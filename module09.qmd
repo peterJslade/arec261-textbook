@@ -1,0 +1,143 @@
+# Probability and Simulation II {#sec-module9}
+
+## Learning Objectives {.unnumbered}
+
+By the end of this module you should be able to:
+
+1. Simulate from empirical distributions by sampling with replacement.
+2. Simulate multivariate processes with correlated inputs.
+3. Use simulation to answer more complex questions (crop revenue with multiple crops, risk analysis, etc.).
+4. Build simulations that others can read and modify.
+5. Explain the limitations of simulation.
+
+## Simulating from Empirical Distributions {#sec-empirical-sim}
+
+In Module 8 you simulated from distributions with known parametric forms (normal, uniform). Sometimes you don't know the distribution — but you have historical data. You can simulate directly from that data by **sampling with replacement**.
+
+"Sampling with replacement" means: each draw is chosen at random from the historical data, and it can be the same value twice. This is different from "sampling without replacement," where each value can only appear once. With replacement is the right choice for simulation because it preserves the frequency of common values.
+
+In R:
+
+```r
+# Historical yield data for the past 30 years
+historical_yields <- c(38, 42, 45, 33, 50, 47, 41, 49, ...)  # etc.
+
+# Simulate 10000 future yields by sampling from the past
+simulated_yields <- sample(historical_yields, size = 10000, replace = TRUE)
+
+mean(simulated_yields)
+hist(simulated_yields)
+```
+
+This approach, sometimes called **empirical simulation** or **the bootstrap**, has two big advantages over parametric simulation:
+
+1. You don't have to assume a distribution. The historical data already "contains" the true distribution, warts and all. Extreme years are represented in proportion to how often they happened.
+2. It naturally preserves weird features — skewness, bimodality, outliers — that a normal distribution would miss.
+
+The big disadvantage: you can only simulate what has happened before. If the future is different from the past (climate change, new varieties, new policies), empirical simulation will not capture that. Use it with care.
+
+## Simulating Multiple Correlated Variables {#sec-multivariate-sim}
+
+Real-world variables are rarely independent. When canola yields are high, soybean yields tend to be high too (shared weather). When yields are high, prices tend to be low (supply). Modeling these correlations is essential for realistic simulations.
+
+The simplest way to handle correlation is **bootstrap multivariate sampling**: instead of simulating each variable separately, you sample *rows* of historical data that contain all the variables together.
+
+```r
+historical <- data.frame(
+  year = 1995:2024,
+  canola_yield = c(...),
+  wheat_yield = c(...),
+  canola_price = c(...),
+  wheat_price = c(...)
+)
+
+# Sample 10000 years by sampling rows with replacement
+sampled_rows <- sample(nrow(historical), size = 10000, replace = TRUE)
+sims <- historical[sampled_rows, ]
+
+head(sims)
+```
+
+Each simulated year contains the canola yield, wheat yield, canola price, and wheat price *as they actually co-occurred* in some historical year. The correlations are preserved automatically, because you didn't break them apart.
+
+For parametric multivariate simulation (normal distributions with a specified correlation structure), you can use `MASS::mvrnorm()`, but that's more than we need for this course.
+
+## A More Complex Example: Whole-Farm Revenue {#sec-whole-farm-sim}
+
+Let's put it all together. A farmer has 1000 acres. She will allocate them between canola and wheat. Historical data gives yields and prices for both crops over 30 years. The question: what is the distribution of total revenue under different allocation strategies?
+
+```r
+set.seed(42)
+
+# Historical data (load from CSV in practice)
+historical <- data.frame(
+  canola_yield = c(...),
+  canola_price = c(...),
+  wheat_yield = c(...),
+  wheat_price = c(...)
+)
+
+# Function to simulate revenue for a given allocation
+simulate_revenue <- function(acres_canola, acres_wheat, n_sims = 10000) {
+  sampled <- historical[sample(nrow(historical), n_sims, replace = TRUE), ]
+  revenue <- acres_canola * sampled$canola_yield * sampled$canola_price +
+             acres_wheat  * sampled$wheat_yield  * sampled$wheat_price
+  revenue
+}
+
+# Compare three strategies
+all_canola    <- simulate_revenue(1000, 0)
+all_wheat     <- simulate_revenue(0, 1000)
+half_and_half <- simulate_revenue(500, 500)
+
+# Summarise
+data.frame(
+  strategy = c("All canola", "All wheat", "Half and half"),
+  mean     = c(mean(all_canola), mean(all_wheat), mean(half_and_half)),
+  sd       = c(sd(all_canola),   sd(all_wheat),   sd(half_and_half)),
+  p05      = c(quantile(all_canola, 0.05),
+               quantile(all_wheat, 0.05),
+               quantile(half_and_half, 0.05))
+)
+```
+
+The interesting result (for most datasets) is that *diversification reduces the worst case*. The half-and-half strategy usually has a lower mean than all-canola but a much better 5th percentile — because bad years for canola are often okay years for wheat. This is the mathematical basis for crop rotation and for the general wisdom of "don't put all your eggs in one basket."
+
+Try varying the allocation to find the one that maximizes the 5th percentile revenue (a risk-averse criterion). This kind of analysis would be *extremely* hard to do analytically. With simulation it is a few lines of code.
+
+## Writing Readable Simulation Code {#sec-readable-sim}
+
+Simulations have a way of turning into spaghetti. A few habits:
+
+- **Start with a function that simulates one iteration.** Then loop or vectorize.
+- **Name your variables descriptively.** `revenue`, not `x`.
+- **Separate data from parameters.** Put assumptions at the top of the script where they are easy to change.
+- **Sanity-check each step.** After simulating, plot a histogram. Does it look sensible? Is the mean what you expect?
+- **Write down the model in words before writing code.** If you can't describe it, you can't code it.
+
+## Limitations of Simulation {#sec-sim-limitations}
+
+Simulation is powerful but not magic. Its output is only as good as its input:
+
+- **Garbage in, garbage out.** If your assumed distributions are wrong, your simulation is wrong. Confidence in the output should be no higher than confidence in the inputs.
+- **Dependence matters.** If you assume variables are independent when they're not (like canola yield and canola price), your results will be misleading — usually optimistic.
+- **Tail behavior matters.** Normal distributions have very thin tails. Real agricultural data often has fatter tails (more extreme events than a normal predicts). If your question hinges on tail events, a normal-based simulation will understate the risk.
+- **One more time: the future may not look like the past.** Climate change, policy change, and structural change make purely historical simulation conservative at best.
+
+All of these are reasons to be humble about simulation results. It is a tool for quantifying uncertainty under stated assumptions, not a crystal ball.
+
+## Test Bank Sample {#sec-module9-test}
+
+1. (Concept.) Why might you prefer empirical simulation over parametric simulation?
+2. (Correlation.) Why is it important to preserve correlation between variables in a simulation?
+3. (R code.) Write code to sample 1000 rows with replacement from a data frame called `historical`.
+4. (Interpretation.) A simulation gives you a 5th percentile revenue of \$200,000. What does this mean for a farmer's decision?
+5. (Limitations.) List three reasons simulation results should be interpreted cautiously.
+
+## Practice Exercises {#sec-module9-practice}
+
+1. Reproduce the whole-farm revenue simulation using the [TBD dataset]. Try different allocations and find the one with the highest 5th percentile.
+2. Compare a normal-distribution-based simulation to an empirical simulation of the same yields. How do they differ?
+3. Simulate the revenue from a crop where yield and price are negatively correlated.
+4. [TBD: a crop insurance pricing simulation.]
+

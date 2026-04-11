@@ -1,0 +1,145 @@
+# Probability and Simulation I {#sec-module8}
+
+## Learning Objectives {.unnumbered}
+
+By the end of this module you should be able to:
+
+1. Explain what simulation is and why it is useful.
+2. Simulate random variables from the normal and uniform distributions in R and Excel.
+3. Estimate probabilities by simulation.
+4. Understand the difference between theoretical and simulated probabilities.
+5. Use `set.seed()` to make simulations reproducible.
+
+## The Idea of Simulation {#sec-simulation-idea}
+
+Module 7 gave you the theory: random variables, distributions, formulas for probabilities. For simple questions those formulas are enough. "What is the probability that a normal random variable exceeds 2?" is `1 - pnorm(2)`, and you're done.
+
+But many real questions are too complex for closed-form formulas. What is the expected revenue from growing three crops with uncertain yields and uncertain prices, if I allocate 200 acres between them? There is no neat formula. But you can *simulate* it: pretend to run the experiment a thousand times, record what happens each time, and summarize the results.
+
+This is **simulation**, or **Monte Carlo** methods (named after the casino). It is one of the most powerful and underused tools in applied statistics.
+
+The idea is simple:
+
+1. Build a mathematical model of the process.
+2. Use a computer to generate random draws from the model.
+3. Repeat many times (usually thousands or millions).
+4. Summarize the results to answer your question.
+
+The beauty is that you can replace clever math with computing power. If you can describe the process, you can simulate it.
+
+## Reproducible Randomness: `set.seed()` {#sec-set-seed}
+
+Computers do not generate "truly" random numbers — they generate **pseudo-random** numbers from a deterministic algorithm. Each time you start the algorithm at a different place ("seed"), you get a different sequence. Each time you start it at the same seed, you get the same sequence.
+
+This is actually extremely useful. If you set the seed at the top of your script:
+
+```r
+set.seed(123)
+```
+
+Then every time you run the script, the "random" numbers will be the same. Your simulation is reproducible — someone else running your code gets exactly the same answer.
+
+**Always set a seed at the top of any script with randomness.** The specific number doesn't matter (I use 42 or 2026 out of habit); the point is to fix it.
+
+## Simulating from a Distribution {#sec-simulating-distributions}
+
+R has four core functions for every distribution, following a pattern:
+
+- `d` — density (PDF or PMF). `dnorm`, `dbinom`, `dpois`, etc.
+- `p` — cumulative distribution function. `pnorm`, `pbinom`, etc.
+- `q` — quantile (inverse CDF). `qnorm`, `qbinom`, etc.
+- `r` — random draws. `rnorm`, `rbinom`, etc.
+
+To simulate, you use the `r*` functions.
+
+```r
+set.seed(42)
+rnorm(10, mean = 50, sd = 8)     # 10 normal draws
+runif(10, min = 0, max = 100)    # 10 uniform draws
+rbinom(10, size = 20, prob = 0.3)  # 10 binomial draws
+rpois(10, lambda = 5)             # 10 Poisson draws
+```
+
+Each call returns a vector of random draws. You can make the vector as long as you want:
+
+```r
+big_sample <- rnorm(10000, mean = 50, sd = 8)
+mean(big_sample)      # close to 50
+sd(big_sample)        # close to 8
+hist(big_sample)      # looks like a bell curve
+```
+
+This is a good sanity check: the empirical statistics of a large random sample should be close to the theoretical values of the distribution.
+
+In Excel, you can generate random normal draws with `=NORM.INV(RAND(), mean, sd)`, random uniform with `=RAND()*(max-min)+min`. The trouble with Excel is that these recalculate every time anything in the sheet changes, so you can't easily lock in a simulation. For serious simulation work, R is much better.
+
+## Estimating Probabilities by Simulation {#sec-estimating-by-simulation}
+
+Suppose you want to know: for a normal distribution with mean 50 and standard deviation 8, what is $P(X > 55)$?
+
+You could use the formula: `1 - pnorm(55, mean = 50, sd = 8)`, which gives about 0.266.
+
+Or you could simulate:
+
+```r
+set.seed(42)
+n_sims <- 100000
+sims <- rnorm(n_sims, mean = 50, sd = 8)
+mean(sims > 55)    # fraction of draws greater than 55
+```
+
+The result should be close to 0.266, but not exactly — simulation introduces its own random error, called **Monte Carlo error**. The error shrinks with the number of simulations (like $1/\sqrt{n}$), so to get one more digit of accuracy, you need 100 times more simulations.
+
+For this particular problem, the formula is clearly better. But what if you wanted $P(X > 55 \text{ and } Y < 100)$ where $X$ and $Y$ are correlated in a complicated way? The formula might be intractable. The simulation is still easy.
+
+## Simulating a Simple Agricultural Problem {#sec-module8-example}
+
+Here is a classic problem: I am a canola farmer with 500 acres. My yield is normally distributed with mean 45 bu/ac and standard deviation 8. The price is uniformly distributed between \$10 and \$16 per bushel. Yield and price are independent (a dubious assumption, but go with it). What is the distribution of my revenue?
+
+```r
+set.seed(42)
+n_sims <- 10000
+
+yield <- rnorm(n_sims, mean = 45, sd = 8)
+price <- runif(n_sims, min = 10, max = 16)
+revenue <- 500 * yield * price
+
+mean(revenue)    # expected revenue
+sd(revenue)      # standard deviation of revenue
+quantile(revenue, c(0.05, 0.5, 0.95))  # 5th, 50th, 95th percentiles
+
+hist(revenue, breaks = 50,
+     main = "Simulated revenue distribution",
+     xlab = "Revenue ($)")
+```
+
+A few things to notice:
+
+- The expected revenue is *not* just `500 * 45 * 13` (where 13 is the midpoint of the price distribution). It is close to that because $E[XY] = E[X]E[Y]$ when $X$ and $Y$ are independent, but for correlated variables this would not hold.
+- The distribution of revenue is not normal, even though yield is. Multiplying two random variables usually gives a non-normal result.
+- The 5th percentile tells you a "reasonable worst case" — 5% of the time, revenue is below this value. Useful for planning.
+- The 95th percentile is the corresponding "reasonable best case."
+
+Change one assumption — say, make yield and price negatively correlated (which they usually are — bumper crops make prices fall) — and the picture changes dramatically. Simulation lets you explore these scenarios easily.
+
+## Verifying a Known Result {#sec-verifying-simulation}
+
+Before you trust a simulation for a hard problem, test it on an easy one. If you are simulating the normal distribution, check that the mean and standard deviation of your simulated sample match what they should be. If you are simulating a coin flip, check that about half come up heads.
+
+This is the "calibration" step. It catches bugs (wrong argument order, typo in the formula) before they mislead you.
+
+## Test Bank Sample {#sec-module8-test}
+
+1. (Concept.) Why do we use simulation when analytical formulas exist?
+2. (R.) Write R code to generate 1000 random draws from $N(100, 15^2)$ and compute their mean.
+3. (Reproducibility.) Why should you call `set.seed()` before running a simulation?
+4. (Estimation.) How would you estimate $P(X > 75)$ where $X \sim N(50, 10^2)$ using simulation?
+5. (Monte Carlo error.) Why do simulated probabilities differ slightly from theoretical ones?
+
+## Practice Exercises {#sec-module8-practice}
+
+1. Simulate 10,000 draws from a normal distribution and verify the 68-95-99.7 rule empirically.
+2. Repeat the canola revenue simulation with different assumptions about yield variance.
+3. Simulate the sum of two dice 10,000 times and compare to the theoretical distribution.
+4. [TBD: an insurance payout simulation.]
+

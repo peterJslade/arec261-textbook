@@ -1,0 +1,150 @@
+# Bootstrap Methods {#sec-module12}
+
+## Learning Objectives {.unnumbered}
+
+By the end of this module you should be able to:
+
+1. Explain the bootstrap principle: treat the sample as a stand-in for the population.
+2. Construct a bootstrap confidence interval for a mean or other statistic.
+3. Interpret a confidence interval correctly.
+4. Use the bootstrap in situations where no formula exists.
+5. Recognize when the bootstrap works and when it doesn't.
+
+## The Problem {#sec-bootstrap-problem}
+
+You have a sample of 100 canola fields with a mean yield of 45 bu/ac. What is the mean yield *in the population*? Well, the sample mean is your best estimate — but it's not perfect, because of sampling variability (@sec-sampling-variability). How much uncertainty is there in the estimate?
+
+The classical answer uses the standard error formula: $SE = s / \sqrt{n}$, and then a confidence interval of the form $\bar{x} \pm 1.96 \cdot SE$ (which you will meet formally in AREC 262). But this relies on the sample mean being normally distributed, which relies on the Central Limit Theorem, which requires a "large enough" sample.
+
+What if you want a confidence interval for the **median** instead of the mean? Or the **correlation coefficient**? Or the **75th percentile of yields**? Or some weird custom statistic? There is no nice formula for the standard error of most of these. The classical approach is stuck.
+
+The bootstrap gets unstuck by doing simulation.
+
+## The Bootstrap Principle {#sec-bootstrap-principle}
+
+**The bootstrap principle** is this: your sample is the best information you have about the population, so use it *as if it were* the population. Repeatedly draw new samples of the same size, *with replacement*, from your original sample. Each of these "bootstrap samples" is one hypothetical version of what your sample might have been. The spread of the statistic across bootstrap samples is a measure of its sampling variability.
+
+The name comes from the phrase "to pull yourself up by your bootstraps" — doing something that sounds impossible, namely estimating uncertainty from a single sample. But it works.
+
+## Bootstrap Confidence Interval for the Mean {#sec-bootstrap-ci}
+
+Let's do a concrete example. Suppose you have yields from 50 fields. You want a 95% confidence interval for the mean.
+
+```r
+set.seed(42)
+
+# Your sample
+yields <- c(48, 52, 47, 55, 50, 41, 46, 49, 53, 45,
+            47, 51, 49, 44, 48, 50, 52, 46, 43, 49,
+            50, 48, 47, 51, 54, 46, 48, 45, 50, 49,
+            47, 52, 48, 50, 46, 49, 47, 51, 48, 50,
+            49, 47, 52, 48, 50, 45, 49, 47, 51, 48)
+
+n <- length(yields)
+observed_mean <- mean(yields)
+
+# Bootstrap: draw many resamples and compute the mean of each
+n_boot <- 10000
+boot_means <- replicate(n_boot, mean(sample(yields, n, replace = TRUE)))
+
+# 95% confidence interval: middle 95% of the bootstrap means
+ci <- quantile(boot_means, c(0.025, 0.975))
+
+observed_mean
+ci
+```
+
+The two numbers in `ci` are the lower and upper bounds of the confidence interval. A reasonable interpretation: "we are 95% confident that the population mean lies between the lower and upper bound."
+
+Actually, let me be careful about interpretation.
+
+## What a Confidence Interval Means (and Does Not) {#sec-ci-interpretation}
+
+The correct interpretation of a 95% confidence interval is:
+
+**If we repeated the sampling procedure many times and computed the 95% CI each time, about 95% of those intervals would contain the true population mean.**
+
+This is a statement about the *procedure*, not about any specific interval. For the interval you have in front of you, either the true mean is in it or it isn't — we just don't know which.
+
+In practice, most people read a 95% CI as "I am 95% sure the true mean is in this range," and that's close enough for most purposes. But be aware of the subtlety: frequentist CIs are not probability statements about the parameter.
+
+What a confidence interval *does* tell you:
+
+- **Point estimate**: the center of the interval is your best guess.
+- **Precision**: a narrow interval means a precise estimate; a wide interval means "we don't really know."
+- **Consistency with hypotheses**: if a hypothesized value (say, "the mean is 50") lies outside the interval, your data is evidence against that hypothesis at the 5% level.
+
+## Bootstrapping Other Statistics {#sec-bootstrap-other}
+
+The beauty of the bootstrap is that it works for (almost) any statistic. Just replace `mean()` with whatever you're interested in:
+
+```r
+# Median
+boot_medians <- replicate(10000, median(sample(yields, n, replace = TRUE)))
+quantile(boot_medians, c(0.025, 0.975))
+
+# Standard deviation
+boot_sds <- replicate(10000, sd(sample(yields, n, replace = TRUE)))
+quantile(boot_sds, c(0.025, 0.975))
+
+# 90th percentile
+boot_p90 <- replicate(10000, quantile(sample(yields, n, replace = TRUE), 0.9))
+quantile(boot_p90, c(0.025, 0.975))
+```
+
+All three of these would be much harder to do with closed-form formulas. The bootstrap makes them trivial.
+
+## Bootstrapping a Regression Coefficient {#sec-bootstrap-regression}
+
+Here's a more sophisticated example. You fit a linear regression of yield on fertilizer and want a confidence interval for the slope. The classical CI uses a formula based on normal-distribution assumptions. The bootstrap CI makes no such assumption.
+
+```r
+# Suppose you have a data frame `yields` with columns yield and fertilizer
+observed_slope <- coef(lm(yield ~ fertilizer, data = yields))["fertilizer"]
+
+boot_slopes <- replicate(10000, {
+  idx <- sample(nrow(yields), nrow(yields), replace = TRUE)
+  boot_sample <- yields[idx, ]
+  coef(lm(yield ~ fertilizer, data = boot_sample))["fertilizer"]
+})
+
+quantile(boot_slopes, c(0.025, 0.975))
+```
+
+This is a fully honest confidence interval for the slope of the regression, without assuming normality. For a large enough sample, the two CIs (classical and bootstrap) will be very similar. For small samples or non-normal data, the bootstrap can be meaningfully different — and more honest.
+
+## When the Bootstrap Works and When It Doesn't {#sec-bootstrap-limits}
+
+The bootstrap is remarkable but not magic. A few things to know:
+
+- **Small samples.** With $n < 20$ or so, the bootstrap gets wobbly. You are resampling from a tiny set, and there are not enough different possibilities. For very small samples, classical methods (or more sophisticated bootstraps) can work better.
+- **Extremes.** The bootstrap is not great for estimating the maximum, the minimum, or other extreme quantiles. By definition, the resample contains at most what the original sample contained — so the maximum never increases.
+- **Dependent data.** If your observations are correlated (time series, spatial data, repeated measures from the same farm), the simple bootstrap underestimates uncertainty. Fancier "block bootstraps" exist for these cases.
+- **Biased statistics.** If your statistic has bias, the bootstrap estimates its distribution but doesn't remove the bias.
+
+For most of what you will do in AREC 261, the bootstrap is a safe and sensible default.
+
+## Bootstrap vs Permutation {#sec-boot-vs-perm}
+
+A confusing point: both bootstrap and permutation tests involve resampling. What's the difference?
+
+- **Permutation tests** are for **hypothesis testing**. They answer "is there a difference?" by shuffling labels to see what would happen if there weren't.
+- **Bootstrap** is for **confidence intervals and uncertainty quantification**. It answers "how precise is my estimate?" by resampling with replacement to see how the estimate varies.
+
+They look similar in code but answer different questions. Use permutation when you are testing a null hypothesis; use bootstrap when you want a confidence interval or standard error.
+
+## Test Bank Sample {#sec-module12-test}
+
+1. (Concept.) In your own words, what is the bootstrap principle?
+2. (R code.) Write R code to construct a 95% bootstrap confidence interval for the mean of a vector `x`.
+3. (Interpretation.) What does "95% confidence interval" actually mean?
+4. (Advantage.) Give an example of a situation where the bootstrap is easier than a closed-form formula.
+5. (Difference.) What is the difference between a bootstrap and a permutation test?
+
+## Practice Exercises {#sec-module12-practice}
+
+1. Compute a bootstrap 95% CI for the median yield in your dataset and interpret.
+2. Compute a bootstrap CI for the correlation between yield and fertilizer and interpret.
+3. Compare a bootstrap CI and a classical CI for a mean. How similar are they?
+4. [TBD: a realistic bootstrap exercise with non-normal data.]
+

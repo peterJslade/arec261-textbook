@@ -1,0 +1,185 @@
+---
+title: "Module 1 — Practice Questions"
+subtitle: "Describing data in Excel"
+author: "AREC 261"
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    number-sections: false
+    theme: cosmo
+---
+
+## How to use this page
+
+These ten practice questions use two synthetic datasets. Download them, open them in Excel, and answer each question by building the appropriate formula, PivotTable, or chart. Each question has a collapsible **Answer** section — try the question yourself before peeking.
+
+### Datasets
+
+- [`canola_yields_2025.csv`](data/canola_yields_2025.csv) — 50 canola fields in Saskatchewan in 2025, with columns `field_id`, `region`, `variety`, `acres`, `yield_bu_ac`, `fertilizer_kg_ha`, `irrigated`.
+- [`farm_costs_2025.csv`](data/farm_costs_2025.csv) — 40 input-cost orders for a grain farm in 2025, with columns `order_id`, `order_date`, `supplier`, `product`, `price_per_unit`, `quantity`, `unit`.
+
+A short tip before you start: import CSVs using **Data → Get Data → From Text/CSV** rather than double-clicking, so Excel does not mangle any of the values.
+
+---
+
+## Question 1 — Mean yield
+
+Compute the **mean yield** (in bu/ac) across all 50 fields in `canola_yields_2025.csv`. Place the result in a labelled cell and round to two decimal places for display.
+
+<details>
+<summary>**Answer**</summary>
+
+- **Expected value:** 44.35 bu/ac
+- **Formula:** `=AVERAGE(E2:E51)` (assuming yield is in column E, rows 2-51)
+- **Why:** The mean is the sum of the values divided by the count. `AVERAGE` does this in one call. If your answer is off by even 0.01 bu/ac, check whether you included the header row or missed the last row.
+
+</details>
+
+---
+
+## Question 2 — Median yield
+
+Compute the **median yield** (in bu/ac) for the same dataset.
+
+<details>
+<summary>**Answer**</summary>
+
+- **Expected value:** 45.40 bu/ac
+- **Formula:** `=MEDIAN(E2:E51)`
+- **Why it matters:** The median is the middle value when the data is sorted. Because it is resistant to outliers, it is often a better "typical" value than the mean, especially for skewed data. Here the median (45.4) is slightly higher than the mean (44.35), suggesting a mild left skew — a few low-yielding fields pulling the mean down.
+
+</details>
+
+---
+
+## Question 3 — Standard deviation of yield
+
+Compute the **sample standard deviation** of yield across all 50 fields.
+
+<details>
+<summary>**Answer**</summary>
+
+- **Expected value:** 5.16 bu/ac
+- **Formula:** `=STDEV.S(E2:E51)`
+- **Why `STDEV.S` and not `STDEV.P`?** `STDEV.S` uses $n-1$ in the denominator (Bessel's correction) and is the right choice when your 50 fields are a **sample** from a larger population. `STDEV.P` divides by $n$ and is only right when you literally have the entire population in front of you. For virtually all data analysis work, use `STDEV.S`.
+
+</details>
+
+---
+
+## Question 4 — 90th percentile of yield
+
+Compute the **90th percentile** of yield (the yield that 90% of fields fall below).
+
+<details>
+<summary>**Answer**</summary>
+
+- **Expected value:** 51.06 bu/ac
+- **Formula:** `=PERCENTILE.INC(E2:E51, 0.9)`
+- **Interpretation:** A field with a yield of 51.06 bu/ac is in the top 10% of this dataset. Percentiles are how crop insurance, government support programs, and variety trials describe performance — get comfortable with them. If you got a slightly different number with `PERCENTILE.EXC`, that's fine — the two versions use different interpolation methods. For this course, use `.INC`.
+
+</details>
+
+---
+
+## Question 5 — Count of above-average fields
+
+How many fields have a yield **strictly greater than 48 bu/ac**?
+
+<details>
+<summary>**Answer**</summary>
+
+- **Expected value:** 12 fields
+- **Formula:** `=COUNTIF(E2:E51, ">48")`
+- **Watch out for:** The criterion must be a text string in quotes when using comparison operators: `">48"`, not `>48`. This trips up almost every beginner at least once. Also note that `COUNTIF` with `">48"` is strict — a yield of exactly 48 is not counted. If you want at-or-above, use `">=48"`.
+
+</details>
+
+---
+
+## Question 6 — Regional average
+
+Compute the **average yield of fields in the "South" region only**.
+
+<details>
+<summary>**Answer**</summary>
+
+- **Expected value:** 42.41 bu/ac
+- **Formula:** `=AVERAGEIF(B2:B51, "South", E2:E51)`
+- **Alternative:** You could also build a PivotTable with `region` on Rows and `yield_bu_ac` as Values (set to Average). A PivotTable is more flexible if you want to see *all three* regional averages at once — question 7 is a good place to try that.
+- **Sanity check:** The South average (42.4) is lower than the overall mean (44.4), which is consistent with the hint in the dataset generator (southern fields have a slightly lower baseline yield).
+
+</details>
+
+---
+
+## Question 7 — Variety with most total acres
+
+Which **variety** has the largest **total acres** planted across all 50 fields?
+
+<details>
+<summary>**Answer**</summary>
+
+- **Expected value:** DKTC 9105, with 3,090 total acres
+- **How to find it:** The cleanest approach is a PivotTable:
+  1. Click anywhere in the data and choose **Insert → PivotTable**.
+  2. Put `variety` on **Rows** and `acres` in **Values** (set to Sum).
+  3. Sort the table by total acres descending.
+- **Alternative (formula-only):** `=SUMIF(C2:C51, "DKTC 9105", D2:D51)` will give you the total for one specific variety, but you would need to run it four times and compare. PivotTables are purpose-built for this kind of "grouped summary" question — it is worth learning them now.
+
+</details>
+
+---
+
+## Question 8 — Total production
+
+Compute the **total production** (in bushels) across all 50 fields. Note that production = yield (bu/ac) × acres.
+
+<details>
+<summary>**Answer**</summary>
+
+- **Expected value:** 476,208.4 bushels (approximately)
+- **Formula:** `=SUMPRODUCT(D2:D51, E2:E51)`
+- **Why `SUMPRODUCT`?** It multiplies two ranges element-wise and then sums the results, all in one step. The long way would be: add a helper column `F` with `=D2*E2` copied down, then `=SUM(F2:F51)`. Both work, but `SUMPRODUCT` is cleaner and a useful tool to have in your back pocket.
+- **Unit check:** acres × (bu/ac) = bushels. Always stop and check that units cancel properly before trusting a computed total.
+
+</details>
+
+---
+
+## Question 9 — Spending with one supplier
+
+In `farm_costs_2025.csv`, compute the **total amount spent with "Prairie Ag Supply"** across all orders (price per unit × quantity, summed across all their orders).
+
+<details>
+<summary>**Answer**</summary>
+
+- **Expected value:** \$6,221.00
+- **Formula:** `=SUMPRODUCT((C2:C41="Prairie Ag Supply")*E2:E41*F2:F41)`
+- **How it works:** `(C2:C41="Prairie Ag Supply")` returns an array of `TRUE`/`FALSE` values. Multiplying converts them to 1/0, which zeros out any row that is not Prairie Ag Supply. Then `SUMPRODUCT` multiplies price × quantity × (1 or 0) and sums the result.
+- **Alternative:** Add a helper column `=E2*F2` (line total), then `=SUMIF(C2:C41, "Prairie Ag Supply", G2:G41)`. Both are valid — the helper-column version is more readable for beginners, and the `SUMPRODUCT` version is more compact.
+
+</details>
+
+---
+
+## Question 10 — Highest Urea price
+
+Across all orders in `farm_costs_2025.csv`, what is the **highest price per unit ever paid for Urea**?
+
+<details>
+<summary>**Answer**</summary>
+
+- **Expected value:** \$0.95 per kg
+- **Formula:** `=MAXIFS(E2:E41, D2:D41, "Urea")`
+- **Alternative (older Excel):** `{=MAX(IF(D2:D41="Urea", E2:E41))}` entered as an array formula with Ctrl+Shift+Enter. `MAXIFS` is much cleaner and works from Excel 2019 onwards.
+- **Practical note:** A single random draw with a fixed seed means there may only be a handful of Urea orders in this dataset. In a real analysis, always check the count of matching rows (`COUNTIF(D2:D41, "Urea")`) before trusting a max — a max computed from three observations is not very meaningful.
+
+</details>
+
+---
+
+## Want more practice?
+
+For a timed auto-generated quiz drawing four random questions from the Module 1 test bank, visit the [Practice Quiz page](quiz/index.html). Each time you click **Generate quiz**, four different questions will be drawn and presented to you — just like the real module test.

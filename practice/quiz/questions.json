@@ -1,0 +1,110 @@
+{
+  "datasets": [
+    {
+      "id": "canola",
+      "name": "canola_yields_2025.csv",
+      "description": "50 canola fields in Saskatchewan in 2025",
+      "path": "../data/canola_yields_2025.csv",
+      "columns": ["field_id", "region", "variety", "acres", "yield_bu_ac", "fertilizer_kg_ha", "irrigated"]
+    },
+    {
+      "id": "costs",
+      "name": "farm_costs_2025.csv",
+      "description": "40 input-cost orders for a grain farm in 2025",
+      "path": "../data/farm_costs_2025.csv",
+      "columns": ["order_id", "order_date", "supplier", "product", "price_per_unit", "quantity", "unit"]
+    }
+  ],
+  "questions": [
+    {
+      "id": 1,
+      "dataset": "canola",
+      "topic": "Central tendency",
+      "question": "Compute the mean yield (in bu/ac) across all 50 fields.",
+      "expected_value": "44.35 bu/ac",
+      "formula": "=AVERAGE(E2:E51)",
+      "notes": "Use AVERAGE on the yield_bu_ac column. Make sure you do not include the header row."
+    },
+    {
+      "id": 2,
+      "dataset": "canola",
+      "topic": "Central tendency",
+      "question": "Compute the median yield (in bu/ac) across all 50 fields.",
+      "expected_value": "45.40 bu/ac",
+      "formula": "=MEDIAN(E2:E51)",
+      "notes": "MEDIAN is less sensitive to outliers than AVERAGE. Here the median is slightly higher than the mean, indicating a mild left skew."
+    },
+    {
+      "id": 3,
+      "dataset": "canola",
+      "topic": "Spread",
+      "question": "Compute the sample standard deviation of yield (in bu/ac) across all 50 fields.",
+      "expected_value": "5.16 bu/ac",
+      "formula": "=STDEV.S(E2:E51)",
+      "notes": "Use STDEV.S (divides by n-1) for a sample. STDEV.P is only correct when you have the full population."
+    },
+    {
+      "id": 4,
+      "dataset": "canola",
+      "topic": "Percentiles",
+      "question": "Compute the 90th percentile of yield (the value below which 90% of fields lie).",
+      "expected_value": "51.06 bu/ac",
+      "formula": "=PERCENTILE.INC(E2:E51, 0.9)",
+      "notes": "Use PERCENTILE.INC for this course. The .EXC variant uses a slightly different interpolation."
+    },
+    {
+      "id": 5,
+      "dataset": "canola",
+      "topic": "Conditional functions",
+      "question": "How many fields have a yield strictly greater than 48 bu/ac?",
+      "expected_value": "12 fields",
+      "formula": "=COUNTIF(E2:E51, \">48\")",
+      "notes": "The criterion must be a string in quotes. \">48\" is strict; use \">=48\" for at-or-above."
+    },
+    {
+      "id": 6,
+      "dataset": "canola",
+      "topic": "Conditional functions",
+      "question": "Compute the average yield of fields in the \"South\" region only.",
+      "expected_value": "42.41 bu/ac",
+      "formula": "=AVERAGEIF(B2:B51, \"South\", E2:E51)",
+      "notes": "AVERAGEIF filters rows by the criterion and averages the target range. A PivotTable would also work and lets you see all three regions at once."
+    },
+    {
+      "id": 7,
+      "dataset": "canola",
+      "topic": "PivotTables",
+      "question": "Which variety has the largest total acres planted across all 50 fields?",
+      "expected_value": "DKTC 9105 (3,090 total acres)",
+      "formula": "PivotTable: variety on Rows, acres in Values (Sum), sort descending",
+      "notes": "You could also use =SUMIF(C2:C51, \"DKTC 9105\", D2:D51) one variety at a time, but PivotTables are much faster for grouped summaries."
+    },
+    {
+      "id": 8,
+      "dataset": "canola",
+      "topic": "Total production",
+      "question": "Compute the total production (in bushels) across all 50 fields. Production = yield (bu/ac) × acres.",
+      "expected_value": "476,208.4 bushels",
+      "formula": "=SUMPRODUCT(D2:D51, E2:E51)",
+      "notes": "SUMPRODUCT multiplies two ranges element-wise and sums the result. Always check that units cancel: acres × (bu/ac) = bushels."
+    },
+    {
+      "id": 9,
+      "dataset": "costs",
+      "topic": "Multi-condition aggregation",
+      "question": "Compute the total amount spent with \"Prairie Ag Supply\" across all their orders (price per unit × quantity, summed).",
+      "expected_value": "$6,221.00",
+      "formula": "=SUMPRODUCT((C2:C41=\"Prairie Ag Supply\")*E2:E41*F2:F41)",
+      "notes": "Alternative: add a helper column =E2*F2 (line total), then =SUMIF(C2:C41, \"Prairie Ag Supply\", G2:G41). Both work."
+    },
+    {
+      "id": 10,
+      "dataset": "costs",
+      "topic": "Conditional functions",
+      "question": "What is the highest price per unit ever paid for Urea across all orders?",
+      "expected_value": "$0.95 per kg",
+      "formula": "=MAXIFS(E2:E41, D2:D41, \"Urea\")",
+      "notes": "MAXIFS (Excel 2019+) is the cleanest approach. Alternative: {=MAX(IF(D2:D41=\"Urea\", E2:E41))} as an array formula."
+    }
+  ]
+}

@@ -1,0 +1,412 @@
+# Introduction to R and Positron {#sec-module2}
+
+## Learning Objectives {.unnumbered}
+
+By the end of this module you should be able to:
+
+1. Explain what R is and why we are using it in addition to Excel.
+2. Install R and Positron, and run a simple R script.
+3. Read a CSV file into R as a data frame.
+4. Compute basic summary statistics (mean, median, sd, quartiles) in R.
+5. Save a script that someone else can run from scratch and get the same results.
+6. Use AI tools (GitHub Copilot, Claude, ChatGPT) productively to help write R code, while maintaining ownership of what the code does.
+
+## Why R? (And Why Also Excel?) {#sec-why-r}
+
+You just spent a module getting comfortable with Excel. Now I am going to tell you to put it down and learn a new tool. Let me explain why.
+
+Excel is an excellent tool for what it was designed to do: small-to-medium calculations where you can see every number on the screen, exploratory work, and handoffs to non-technical colleagues. But it has serious limitations:
+
+- **Reproducibility.** An Excel workbook is a tangle of cells; there is no canonical record of *what order* things were done in. If you want to re-run an analysis on new data, you have to click through the whole thing again.
+- **Scale.** Excel caps out at a bit over a million rows per sheet and slows to a crawl well before that. Real datasets are often larger.
+- **Version control.** Excel files are binary blobs. You cannot see meaningful "diffs" between two versions.
+- **Composability.** Doing the same operation (e.g., compute summary statistics) on fifteen different files in Excel means clicking through the same steps fifteen times.
+- **Advanced statistics.** Excel can do $t$-tests and linear regression, but the further you move from basic statistics, the worse a choice it is.
+
+**R** is a programming language designed for statistical computing. It was created in the 1990s as a free, open-source successor to the commercial language S. It is now the dominant language for academic statistics and one of the two main languages (along with Python) for data science in industry.
+
+R fixes every one of the limitations above. Your analysis is a **script** — a plain-text file that can be re-run, shared, version-controlled, and composed with other scripts. You can handle datasets of tens of millions of rows without trouble. You get access to thousands of packages written by statisticians around the world.
+
+But — and this is important — **R is not a replacement for Excel.** They are different tools for different phases of work. I will tell you when I find myself using each in practice:
+
+- **Excel:** quick ad-hoc calculations, sharing results with non-technical colleagues, building interactive workbooks for people who need to poke at numbers, presenting formatted tables.
+- **R:** any analysis I want to re-run later, any dataset over a few thousand rows, anything involving statistical modeling, anything I need to reproduce exactly for a paper or a report.
+
+Most professional analysts use both. That is what we will do too.
+
+### Why Not Python? {.unnumbered}
+
+If you have heard of Python as "the other big data science language," you may be wondering why we are starting with R. Honest answer: both are great; either would work for this course. R has a slight edge for the specific kind of statistical work we will do — better built-in stats functions, better visualization via ggplot2, stronger traditions around reproducible research — and it is what I know best. If you learn R well, Python will be easy to pick up later. Everything transfers.
+
+## Installing R and Positron {#sec-installing-r}
+
+You need two pieces of software to work with R:
+
+1. **R itself** — the language and its interpreter. Download from <https://cran.r-project.org/>. Pick the version for your operating system and install it with the defaults.
+2. **Positron** — the editor we will use to write R code. Download from <https://positron.posit.co/>.
+
+**Positron** is a new data science IDE from Posit (the same company that makes RStudio). Think of it as the spiritual successor to RStudio, rebuilt on the same foundation as VS Code but purpose-built for data science work. It has the same kind of integrated layout you may have seen in RStudio — editor, console, plot window, variables pane, file browser — but with a few important advantages:
+
+- **Language agnostic.** Positron is built to handle both R and Python (and more languages over time), so the same editor will serve you for anything you pick up later. Unlike RStudio, you do not have to switch tools when you switch languages.
+- **Modern and extensible.** Because it is built on the VS Code foundation, it inherits a huge ecosystem of extensions, including GitHub Copilot and other AI coding assistants.
+- **Data-aware.** It has built-in data explorers, variable inspectors, and a plot history tailored to the way data scientists actually work.
+
+If you have used RStudio before, Positron will feel very familiar. If you have used VS Code, the keybindings and command palette will feel familiar. If you have used neither, you are starting from the best possible place.
+
+### Setting Up Positron {.unnumbered}
+
+1. Install R (above).
+2. Download and install Positron from <https://positron.posit.co/>.
+3. Open Positron. When prompted, select R as your interpreter. Positron should auto-detect your R installation.
+4. Open a new R file (**File → New File → R File**) and try typing `mean(1:10)`. Run it with **Cmd+Enter** (Mac) or **Ctrl+Enter** (Windows/Linux).
+5. Optionally: install **GitHub Copilot** (the AI assistant) via the Extensions panel. This requires a free student account.
+
+Positron is under active development and new features are landing constantly. If something in the screenshots or menus in this book doesn't match what you see, the documentation at <https://positron.posit.co/> is the authoritative source.
+
+### Why Not RStudio or VS Code? {.unnumbered}
+
+Honest answer: both would work. RStudio has been the standard R editor for over a decade and is rock solid. VS Code with the R extension is flexible and well-suited to polyglot workflows. We are using Positron because it is the future of both — the best features of RStudio (data-focused layout, built-in console, one-click run) combined with the best features of VS Code (modern architecture, extensibility, Copilot integration). It is the tool I expect to be using in five years, and there is no reason to teach you an older tool first.
+
+If you have RStudio already installed from a previous course and want to keep using it, you are welcome to — everything in this book works there too, you will just occasionally need to adapt a menu name or keyboard shortcut.
+
+## Your First R Script {#sec-first-script}
+
+Open Positron, create a new file called `hello.R` (**File → New File → R File**, then save as `hello.R`), and paste the following:
+
+```r
+# My first R script
+# Author: your name
+# Date: 2026-09-15
+
+print("Hello, world!")
+2 + 2
+x <- c(1, 2, 3, 4, 5)
+mean(x)
+```
+
+Save the file, then run it. In Positron you can run the whole file by clicking the **Run** button in the top right, or run just the current line (or selected lines) with **Cmd+Enter** / **Ctrl+Enter**. You should see output like:
+
+```
+[1] "Hello, world!"
+[1] 4
+[1] 3
+```
+
+Congratulations — you have run your first R script.
+
+Let's break down what just happened:
+
+- **Comments** start with `#` and are ignored by R. Use them liberally.
+- `print("Hello, world!")` prints text to the console.
+- `2 + 2` evaluates an expression. R prints the result automatically when you run it interactively.
+- `x <- c(1, 2, 3, 4, 5)` creates a **vector** containing the numbers 1 through 5 and assigns it to a variable called `x`. The `<-` is the assignment operator (you can use `=` too, but `<-` is traditional and I recommend it). The `c()` function *combines* values into a vector.
+- `mean(x)` calls the `mean` function on `x` and returns the result.
+
+The key idea is that R is a **language**: you write instructions, R executes them, and the script is a permanent record of what you did. Compare this with an Excel workbook where the "record" is the final state of the cells — there is no trace of the order or logic of the work.
+
+## R Basics: Vectors, Data Frames, Functions {#sec-r-basics}
+
+### Vectors {.unnumbered}
+
+A **vector** is R's basic data structure. It is a sequence of values *of the same type* (all numbers, or all strings, etc.). You create one with `c()`:
+
+```r
+yields <- c(48, 52, 47, 55, 50)
+varieties <- c("InVigor", "DK", "Clearfield", "InVigor", "DK")
+is_irrigated <- c(TRUE, FALSE, FALSE, TRUE, FALSE)
+```
+
+Vectors support **element-wise arithmetic**. If you add two vectors of the same length, R adds them element by element:
+
+```r
+a <- c(1, 2, 3)
+b <- c(10, 20, 30)
+a + b
+# [1] 11 22 33
+```
+
+This is one of R's most important features. Most operations automatically "vectorize" — they work on entire vectors at once without requiring a loop. This makes R code concise and fast.
+
+### Functions {.unnumbered}
+
+You call a function by writing its name followed by parentheses with arguments:
+
+```r
+mean(yields)            # 50.4
+sd(yields)              # about 3.05
+median(yields)          # 50
+quantile(yields, 0.25)  # first quartile
+length(yields)          # 5
+```
+
+To get help on a function, type `?function_name`:
+
+```r
+?mean
+```
+
+R will show you the documentation — what the function does, what its arguments mean, what it returns. Read it. R's documentation is sometimes terse but always authoritative.
+
+### Data Frames {.unnumbered}
+
+A **data frame** is R's word for a table: rows are observations, columns are variables. This is the main thing you will work with.
+
+You can create one by hand:
+
+```r
+fields <- data.frame(
+  field_id = c("F01", "F02", "F03", "F04", "F05"),
+  region = c("South", "South", "Central", "North", "North"),
+  yield = c(48, 52, 47, 55, 50)
+)
+```
+
+But you will almost always **read** a data frame from a CSV file. More on that in a moment.
+
+You can access columns with the `$` operator:
+
+```r
+fields$yield        # the yield column as a vector
+mean(fields$yield)  # mean yield
+```
+
+Or with square brackets:
+
+```r
+fields[1, ]         # first row
+fields[, "yield"]   # yield column
+fields[1, "yield"]  # value at first row, yield column
+```
+
+## Reading Data from CSV {#sec-reading-data}
+
+In practice, you almost always have data in a CSV file that you want to read into R. The modern way to do this uses the **tidyverse**, a collection of packages for data manipulation that has become the standard for working with tabular data in R.
+
+First, install the tidyverse (you only need to do this once per computer):
+
+```r
+install.packages("tidyverse")
+```
+
+Then, at the top of every script that uses it:
+
+```r
+library(tidyverse)
+```
+
+Now you can read a CSV:
+
+```r
+yields <- read_csv("canola_yields_2025.csv")
+```
+
+`read_csv` (from the `readr` package, part of the tidyverse) reads the file into a data frame. It will tell you what column types it guessed. Check them — R is good at guessing but not perfect.
+
+A few tips:
+
+- Put the CSV file in the same folder as your script, or use an absolute path.
+- If your file uses semicolons or tabs instead of commas, use `read_csv2` or `read_tsv`.
+- If you need more control over column types, pass the `col_types` argument.
+
+Once you have the data in, you can explore it:
+
+```r
+yields              # prints the data frame (first 10 rows)
+head(yields)        # first 6 rows
+tail(yields)        # last 6 rows
+nrow(yields)        # number of rows
+ncol(yields)        # number of columns
+names(yields)       # column names
+summary(yields)     # quick summary of every column
+```
+
+`summary()` is especially useful as a first look at a new dataset. It tells you the min, max, mean, median, and quartiles of every numeric column, and the counts of every level of every categorical column. Always run it when you open a new dataset.
+
+## Summary Statistics in R {#sec-r-summary-stats}
+
+All the summary statistics you learned in Module 1 exist in R too:
+
+```r
+mean(yields$yield)
+median(yields$yield)
+sd(yields$yield)
+var(yields$yield)
+min(yields$yield)
+max(yields$yield)
+range(yields$yield)              # returns c(min, max)
+quantile(yields$yield, 0.25)
+quantile(yields$yield, c(0.25, 0.5, 0.75))  # multiple at once
+IQR(yields$yield)
+```
+
+One thing to watch for: if your data has **missing values** (coded as `NA` in R), these functions will return `NA` by default. To compute the statistic ignoring the missing values, pass `na.rm = TRUE`:
+
+```r
+mean(yields$yield, na.rm = TRUE)
+```
+
+This is a common source of confusion. If `mean()` returns `NA` unexpectedly, the first thing to check is whether your data has missing values.
+
+## The `dplyr` Verbs: A First Look {#sec-dplyr-verbs}
+
+The tidyverse provides a set of **verbs** for manipulating data frames. You will meet them properly in Module 3, but I want to give you a taste now.
+
+- `filter()` — keep rows matching a condition.
+- `select()` — keep certain columns.
+- `mutate()` — add new columns computed from existing ones.
+- `summarise()` (or `summarize()`) — collapse many rows into a single summary row.
+- `group_by()` — group rows by a variable, so that subsequent operations happen per group.
+- `arrange()` — sort rows.
+
+And one more piece of machinery: the **pipe operator** `|>` (or `%>%` in older code), which takes the thing on its left and passes it as the first argument to the thing on its right. This lets you chain operations into a readable sequence.
+
+Example: "What is the mean yield of canola for each region, for fields larger than 100 acres?"
+
+```r
+yields |>
+  filter(acres > 100) |>
+  group_by(region) |>
+  summarise(mean_yield = mean(yield, na.rm = TRUE),
+            n = n()) |>
+  arrange(desc(mean_yield))
+```
+
+Read it left to right, top to bottom: "Take the yields data, keep only fields over 100 acres, group by region, compute the mean yield and count in each group, and sort in descending order of mean yield."
+
+This is a *declarative* style: you say what you want, not step by step how to get it. Compare it to the Excel equivalent (sort, filter, insert PivotTable, drag fields, adjust aggregation, sort). The R version is more concise, and — crucially — it is a script you can re-run on updated data without clicking anything.
+
+We will spend all of Module 3 on these verbs. For now, just recognize that this is where we are heading.
+
+## Writing Output to a File {#sec-writing-output}
+
+To save a data frame back to a CSV:
+
+```r
+write_csv(my_summary, "region_summary_2026-09-15.csv")
+```
+
+To save a plot (after making one with ggplot2, which comes in Module 4):
+
+```r
+ggsave("yield_histogram.png", width = 6, height = 4)
+```
+
+And to save the R **environment** (all the objects in memory) so you can pick up where you left off:
+
+```r
+save.image("session_2026-09-15.RData")
+```
+
+(Honestly, I rarely do that last one. If your script is reproducible, you should be able to re-run it from scratch to get back to where you were.)
+
+## Writing Good R Scripts {#sec-good-scripts}
+
+A few habits that will serve you well. I want you to internalize these early because they compound over time:
+
+1. **Start every script with a header.** Your name, the date, what the script does, what input it expects, what output it produces.
+2. **Load libraries at the top.** Not scattered throughout the file.
+3. **Use comments to explain *why*, not *what*.** Anyone can read the code and see what it does. The comment should tell them why you did it that way.
+4. **Use descriptive variable names.** `yield_by_region`, not `x1`. `mean_yield`, not `m`.
+5. **Break long operations into named steps.** Instead of one giant pipe, assign intermediate results to variables with meaningful names.
+6. **Make your script re-runnable from scratch.** If you have to click buttons or run commands in a specific order outside the script, something is wrong.
+7. **Test on a subset first.** For large datasets, develop your analysis on the first 1000 rows until it works, then run on the full data.
+
+A template:
+
+```r
+# ---
+# Title: Canola yield summary by region
+# Author: Your Name
+# Date: 2026-09-15
+# Input: canola_yields_2025.csv
+# Output: region_summary_2026-09-15.csv
+# Description:
+#   Reads the 2025 canola yield data, filters to fields over
+#   100 acres, and computes mean yield per region.
+# ---
+
+library(tidyverse)
+
+# 1. Load data
+yields <- read_csv("canola_yields_2025.csv")
+
+# 2. Explore
+summary(yields)
+
+# 3. Summarise by region (only fields > 100 acres)
+region_summary <- yields |>
+  filter(acres > 100) |>
+  group_by(region) |>
+  summarise(mean_yield = mean(yield, na.rm = TRUE),
+            n = n()) |>
+  arrange(desc(mean_yield))
+
+# 4. Save output
+write_csv(region_summary, "region_summary_2026-09-15.csv")
+```
+
+Notice: this script is *self-documenting*. Six months from now, I can read it and understand exactly what it does. That is the goal.
+
+## A Word on AI Coding Assistants {#sec-r-ai}
+
+I mentioned AI in the Introduction. Let me be more specific now that we are actually writing code.
+
+**What AI is good at:**
+
+- Scaffolding a script from a description ("read this CSV, compute summary statistics by region, make a bar chart").
+- Explaining error messages. Paste the error into Claude or ChatGPT and ask what it means; this is often faster than Googling.
+- Suggesting the R function you want when you know what you want to do but not what it's called.
+- Writing tedious boilerplate (regex patterns, date formatting, complex `case_when` conditions).
+
+**What AI is bad at:**
+
+- Understanding your specific dataset. AI will confidently assume columns have certain names, types, or meanings that they don't.
+- Staying up to date with recent package changes.
+- Deciding whether the analysis makes sense. It can write code that runs cleanly but answers the wrong question.
+- Catching subtle bugs — e.g., silently dropping rows, using an approximate match when you need exact.
+
+**How to use it responsibly:**
+
+1. Read every line of code the AI suggests before you run it. If you don't understand a line, ask the AI to explain it, or look up the function yourself. **Do not run code you don't understand** — that is how you end up with an analysis that looks right but is wrong.
+2. Run small tests. When the AI gives you a function, run it on a small example first and check the output by hand before applying it to the full dataset.
+3. Verify claims. If the AI tells you "this function returns a list," check. If it tells you "there are 42 rows in the result," count them.
+4. Keep a human-readable trail. Your final script should be something *you* wrote and understand, even if AI helped you draft it. If you cannot explain every line, it is not your script.
+
+For this course: **you are allowed to use AI on assignments** (subject to instructions for specific assignments) as long as you can explain what every line does. On tests, you will be on your own — which is why building real understanding now matters.
+
+## Worked Example: From CSV to Summary {#sec-module2-example}
+
+Let's walk through a complete example. The dataset is [TBD: canola yields CSV, Module 2 version]. You will:
+
+1. Create a new folder for this exercise.
+2. Save the CSV file in it.
+3. Create a new file called `module2_exercise.R` in the same folder.
+4. Write a script that:
+   - Loads the tidyverse
+   - Reads the CSV
+   - Prints a summary
+   - Computes the mean, median, and standard deviation of yield
+   - Saves the results to an output CSV
+5. Run the script from top to bottom. Confirm that the output file exists.
+6. Close Positron, reopen, and re-run the script. Confirm you get the same output. This is what reproducibility feels like.
+
+I will not spell out every line of the script here — half the point of the exercise is working it out. If you get stuck, the documentation for each function is always a `?` away, and the tidyverse website (<https://www.tidyverse.org/>) has excellent guides.
+
+## Test Bank Sample {#sec-module2-test}
+
+1. (Concept.) Give two reasons why we use R in addition to Excel. Give one situation where Excel is still the right choice.
+2. (Syntax.) What does the `<-` operator do in R? What does `c()` do?
+3. (Reading data.) You have a file called `yields.csv` in your working directory. Write one line of R that reads it into a data frame called `yields`.
+4. (Summary.) Write R code that computes the mean, median, and standard deviation of the `yield` column of the `yields` data frame, ignoring any missing values.
+5. (Scripting.) Explain why the following is a reproducibility problem:
+   > "I changed the CSV file in Excel, then re-ran my R script."
+6. (AI.) Describe one situation where using an AI coding assistant would help you, and one where it could lead you astray.
+
+## Practice Exercises {#sec-module2-practice}
+
+1. Install R and your editor of choice. Run `hello.R` from @sec-first-script.
+2. Create a vector of the heights (in cm) of five people. Compute the mean, median, and standard deviation.
+3. Download [TBD dataset] and write a script that reads it, prints `summary()`, and computes the mean of each numeric column.
+4. Rewrite your Module 1 worked example (canola yields) as an R script. Compare the result with what you got in Excel.
+5. Break your script intentionally (misspell a column name) and read the error message. Can you fix it?
+

@@ -1,0 +1,129 @@
+# Randomization Tests {#sec-module11}
+
+## Learning Objectives {.unnumbered}
+
+By the end of this module you should be able to:
+
+1. Explain the logic of hypothesis testing.
+2. State a null and alternative hypothesis for a two-group comparison.
+3. Conduct a permutation test by hand and in R.
+4. Interpret a $p$-value correctly.
+5. Distinguish statistical significance from practical significance.
+
+## The Question: Is This Difference Real? {#sec-is-this-real}
+
+You have two groups of canola fields: one treated with a new biological product, one untreated. The treated group has a mean yield of 48 bu/ac. The untreated group has a mean yield of 45 bu/ac. Is the product working?
+
+Before we answer, notice that even if the product does *nothing*, the two groups would not have exactly the same mean. By chance alone, one group will have slightly higher yields. The question is whether the difference we see (3 bu/ac) is *bigger than what we would expect by chance alone*.
+
+This is the core question of **hypothesis testing**: is the observed pattern consistent with nothing interesting going on, or is it too big to be chance?
+
+## The Null Hypothesis {#sec-null-hypothesis}
+
+We formalize "nothing interesting is going on" as the **null hypothesis**, written $H_0$. For our example:
+
+$$
+H_0: \text{the product has no effect (mean yield is the same in both groups)}
+$$
+
+And the **alternative hypothesis**, $H_1$ (or $H_A$):
+
+$$
+H_1: \text{the product does have an effect (means differ)}
+$$
+
+The logic of a hypothesis test is: *assume the null hypothesis is true*, compute how likely your observed data (or something more extreme) would be under that assumption, and if it is very unlikely, reject the null. This is a form of proof by contradiction.
+
+## Permutation Tests: Hypothesis Testing by Simulation {#sec-permutation}
+
+The traditional way to test hypotheses uses formulas (the $t$-test, the $z$-test, etc., which you will meet in AREC 262). Those formulas are useful but they obscure the intuition. Here we do it the modern way, with simulation.
+
+The idea of a **permutation test**: if the null hypothesis is true — if the product has no effect — then the labels "treated" and "untreated" are meaningless. A given field would have the same yield whether we called it treated or untreated. So we can *randomly shuffle* the labels and compute the difference in means again. And again. And again. The distribution of differences we get by random shuffling is the distribution of differences we'd expect *if the null were true*. If our actual observed difference is way out in the tail of this distribution, we reject the null.
+
+In R:
+
+```r
+set.seed(42)
+
+# Observed data
+treated   <- c(49, 52, 47, 50, 46, 51, 48, 47, 49, 50)  # 10 fields
+untreated <- c(44, 46, 45, 47, 43, 44, 46, 47, 45, 43)  # 10 fields
+observed_diff <- mean(treated) - mean(untreated)
+# observed_diff ≈ 4
+
+# Combine all values
+all_yields <- c(treated, untreated)
+n_treated <- length(treated)
+
+# Shuffle labels many times and compute the difference
+n_perms <- 10000
+perm_diffs <- replicate(n_perms, {
+  shuffled <- sample(all_yields)
+  mean(shuffled[1:n_treated]) - mean(shuffled[(n_treated+1):length(shuffled)])
+})
+
+# What fraction of shuffles produce a difference as extreme as observed?
+p_value <- mean(abs(perm_diffs) >= abs(observed_diff))
+
+# Plot
+hist(perm_diffs, breaks = 40, main = "Permutation distribution")
+abline(v = observed_diff, col = "red", lwd = 2)
+abline(v = -observed_diff, col = "red", lwd = 2)
+```
+
+The $p$-value here is the fraction of random shuffles where the difference in means was as extreme as (or more extreme than) what we actually saw. If that fraction is small, the observed difference is unlikely under the null, and we reject the null.
+
+## Interpreting the $p$-Value {#sec-p-value}
+
+This is where a lot of people get confused, so I am going to be careful.
+
+**The $p$-value is the probability, assuming the null hypothesis is true, of seeing data as extreme or more extreme than what you observed.**
+
+That sentence is precise and you should memorize it. Several things the $p$-value is *not*:
+
+- **It is not the probability that the null hypothesis is true.** The null is either true or false; it has no probability in the frequentist framework.
+- **It is not the probability that your result is due to chance.** The $p$-value conditions on the null being true; it tells you how surprising the data is under that condition.
+- **It is not a measure of the size of the effect.** A tiny effect with a huge sample can have a tiny $p$-value. A huge effect with a small sample can have a large $p$-value. The $p$-value alone does not tell you whether the effect matters in practice.
+
+A convention: if $p < 0.05$, we reject the null. This threshold is arbitrary (a historical accident, really) and should not be treated as a sharp boundary between "real" and "not real." A $p$-value of 0.049 is not meaningfully different from 0.051. Report the actual $p$-value and let the reader interpret it.
+
+A better way to think about $p$-values: they are a measure of how surprised the data would make you if the null were true. Small $p$-value = very surprised = evidence against the null. Large $p$-value = not surprised = no evidence against the null (which is *not* the same as evidence for the null).
+
+## Statistical vs Practical Significance {#sec-practical-significance}
+
+Here is a common mistake: "the difference was statistically significant, so the treatment works."
+
+**Statistical significance means the effect is bigger than chance.** That's all. It does not mean the effect is large. It does not mean the treatment is worth adopting.
+
+A 0.1 bu/ac yield increase might be statistically significant in a 10,000-field trial and completely useless in practice. Conversely, a 10 bu/ac yield increase might fail to achieve statistical significance in a 5-field trial and still be a big deal.
+
+Always report *both*:
+
+- **The effect size** (in meaningful units).
+- **A measure of uncertainty** (confidence interval, $p$-value, standard error).
+
+Then let the decision-maker weigh whether the effect is worth acting on.
+
+## One-Sided vs Two-Sided Tests {#sec-one-sided-two-sided}
+
+A brief note. Our example above asked "is there a difference?" — which is a **two-sided** test. It tests the null against "there is a difference in either direction."
+
+Sometimes you only care about one direction: "does the product *increase* yield?" That's a **one-sided** test. Its $p$-value is half of the two-sided one (roughly).
+
+In general, use two-sided tests unless you have a strong reason to only care about one direction *before you see the data*. Picking one-sided after you look at the data is cheating — it's a form of $p$-hacking.
+
+## Test Bank Sample {#sec-module11-test}
+
+1. (Concept.) State the null and alternative hypotheses for comparing the yields of two varieties.
+2. (Permutation.) Explain in words how a permutation test works.
+3. (p-value.) What is the correct interpretation of "$p = 0.03$"?
+4. (Significance.) Why is statistical significance not the same as practical significance?
+5. (R code.) Write R code to perform a permutation test for the difference in means between two vectors.
+
+## Practice Exercises {#sec-module11-practice}
+
+1. Perform a permutation test on the fertilizer trial data from Module 6. Interpret.
+2. Simulate data under a known null and verify that the $p$-value distribution is uniform.
+3. Take a statistically significant result from a small sample and discuss whether it is practically significant.
+4. [TBD: a designed experiment exercise.]
+
