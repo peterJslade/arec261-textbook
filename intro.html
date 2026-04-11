@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.37">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Introduction: How to Think About Data Analysis – AREC 261: Agricultural Data Analytics I</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./module01.html" rel="next">
+<link href="./index.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-b46385535caf84bc62f311a600ac5013.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="nav-sidebar docked quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./intro.html">Introduction: How to Think About Data Analysis</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">AREC 261: Agricultural Data Analytics I</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./intro.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Introduction: How to Think About Data Analysis</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./module01.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Describing Data in Excel</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./module02.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Introduction to R and Positron</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./module03.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Transforming Data in R</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./module04.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Graphing in R and Excel</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./module05.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Communicating Data Analysis</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./module06.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Relationships Between Variables</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./module07.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Probability and Random Variables</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./module08.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Probability and Simulation I</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./module09.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Probability and Simulation II</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./module10.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Sampling</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./module11.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Randomization Tests</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./module12.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Bootstrap Methods</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#sec-why" id="toc-sec-why" class="nav-link active" data-scroll-target="#sec-why">Why Data Analysis?</a></li>
+  <li><a href="#sec-principles" id="toc-sec-principles" class="nav-link" data-scroll-target="#sec-principles">The Four Principles</a>
+  <ul class="collapse">
+  <li><a href="#sec-reproducibility" id="toc-sec-reproducibility" class="nav-link" data-scroll-target="#sec-reproducibility">Principle 1: Reproducibility and Transparency</a></li>
+  <li><a href="#sec-gigo" id="toc-sec-gigo" class="nav-link" data-scroll-target="#sec-gigo">Principle 2: Data Quality, or GIGO</a></li>
+  <li><a href="#sec-methods-quality" id="toc-sec-methods-quality" class="nav-link" data-scroll-target="#sec-methods-quality">Principle 3: Methods Quality</a></li>
+  <li><a href="#sec-bias" id="toc-sec-bias" class="nav-link" data-scroll-target="#sec-bias">Principle 4: Bias</a></li>
+  </ul></li>
+  <li><a href="#sec-ai" id="toc-sec-ai" class="nav-link" data-scroll-target="#sec-ai">A Word About AI</a></li>
+  <li><a href="#sec-organization" id="toc-sec-organization" class="nav-link" data-scroll-target="#sec-organization">How the Rest of This Book Is Organized</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><span id="sec-intro" class="quarto-section-identifier">Introduction: How to Think About Data Analysis</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>Before we touch a spreadsheet or write a line of R code, we need to spend a little time on <em>how to think</em> about data analysis. The specific tools change every few years — the version of Excel you learn in this class will be replaced, R may one day be replaced by something newer, and whatever machine learning library is hot right now will be a footnote in a decade. What <em>doesn’t</em> change are the principles: the habits of mind that separate careful analysis from careless analysis.</p>
+<p>Think of this introduction as the rules of the road. The rest of the book is about learning to drive.</p>
+<section id="sec-why" class="level2">
+<h2 class="anchored" data-anchor-id="sec-why">Why Data Analysis?</h2>
+<p>You are probably reading this because AREC 261 is required for your degree program. Fair enough. But let me try to convince you that this material matters beyond a checkbox on your transcript.</p>
+<p>Agriculture is now one of the most data-intensive sectors of the economy. A single modern combine harvester generates gigabytes of yield, moisture, and position data in a day. A dairy operation tracks the milk output, health, and reproductive status of every cow in near-real-time. Futures markets react to satellite measurements of crop greenness in Ukraine before most farmers have finished breakfast. Input suppliers use machine learning to recommend seed varieties, fertilizer rates, and spray timings. Government programs — crop insurance, AgriStability, environmental cross-compliance — all depend on data, and the people who design them need to understand data.</p>
+<p>Whether you end up working as a farm manager, an agronomist, a commodity trader, a crop insurer, a policy analyst, a consultant, a researcher, or something none of us can predict yet, you will be surrounded by data. The question is whether you will be <em>good at using it</em> or <em>used by people who are</em>. This course is about being the former.</p>
+<p>And even if you never touch a spreadsheet for work, there is a more basic reason to care: data analysis is a form of clear thinking. Learning to ask “how was this measured?”, “what is being compared to what?”, and “could this pattern be a coincidence?” is a life skill. It will save you from scams, bad advice, and political nonsense.</p>
+</section>
+<section id="sec-principles" class="level2">
+<h2 class="anchored" data-anchor-id="sec-principles">The Four Principles</h2>
+<p>I want to introduce four principles that will recur throughout the book. They are not tools. They are habits of mind. You should be thinking about them on every project you do, in this class and after.</p>
+<section id="sec-reproducibility" class="level3">
+<h3 class="anchored" data-anchor-id="sec-reproducibility">Principle 1: Reproducibility and Transparency</h3>
+<p>Imagine you produce a report for your manager in March. It contains a chart showing that input costs per acre rose 18% over the last five years. In September, your manager asks you to update the chart with new data. You open the spreadsheet — but which spreadsheet? There are seven versions of it. You open the most recent one and realize you can’t remember how you calculated the cost per acre. Did you include seed? Fuel? Labour? Crop insurance premiums? You stare at the formulas for twenty minutes and then give up, rebuild the whole thing from scratch, and get a slightly different answer. Now you have two reports with two different numbers and no way to explain why.</p>
+<p>This happens all the time. It happens to professionals with decades of experience. The solution is not “be smarter” or “have a better memory”. The solution is to build your analyses so they are <strong>reproducible</strong>: someone else — including future-you — should be able to take the raw data and the steps you wrote down and arrive at exactly the same answer.</p>
+<p>A few terms that are easy to confuse:</p>
+<ul>
+<li><strong>Reproducibility</strong> means: given the same data, I can re-run the analysis and get the same results. This is about the plumbing of your analysis — the spreadsheet formulas, the R scripts, the way you imported the data.</li>
+<li><strong>Replicability</strong> means: a different person with a <em>different</em> dataset on the same underlying question gets a similar answer. This is a much harder standard and not something you can enforce on your own work.</li>
+<li><strong>Transparency</strong> means: someone reading your analysis can see <em>what you did and why</em>, not just the final number. A chart with no methods section is not transparent, no matter how pretty it is.</li>
+</ul>
+<p>The thing to keep in mind is that every piece of analysis has an <strong>audience</strong> — and that audience is almost never just the person who signs your paycheque. The audience might be:</p>
+<ul>
+<li>Your co-worker who inherits the file when you get promoted.</li>
+<li>Your manager, who needs to defend the number in a meeting.</li>
+<li>A regulator or auditor reviewing a compliance report.</li>
+<li>Your professor, marking your assignment.</li>
+<li>Most importantly: <strong>you, two months from now</strong>, when you have completely forgotten what any of this means.</li>
+</ul>
+<p>Future-you is the most neglected audience in all of analytics. Be nice to her. Leave comments. Name your files sensibly. Write down what you did.</p>
+<p>A related concept is <strong>version control</strong>. Version control means keeping a systematic record of how your analysis changes over time. At the professional level this is done with tools like Git (which you will meet briefly later in the course). At the beginner level it can be as simple as naming files like <code>yield_analysis_2026-04-10.xlsx</code> instead of <code>yield analysis FINAL FINAL v3 (real one).xlsx</code>. We will talk more about file-naming conventions in <a href="module01.html" class="quarto-xref"><span>1&nbsp; Describing Data in Excel</span></a>.</p>
+<p>I should warn you up front: <strong>reproducibility is much harder in Excel than in R or any other scripting language.</strong> In Excel, your analysis is a tangle of cells that reference other cells. There is no “log” of what you did — no record of the order in which you typed things. In R, by contrast, your analysis is a <em>script</em>: a file you can re-run from top to bottom, which either produces the same answer it did last time or throws an error telling you where it broke. This is one of the major reasons we transition to R in <a href="module02.html" class="quarto-xref"><span>2&nbsp; Introduction to R and Positron</span></a>.</p>
+<p>But don’t let that be an excuse to write sloppy Excel. One of the marks of a thoughtful analyst is that their Excel workbooks are still legible a year later, even though the tool does not force them to be.</p>
+</section>
+<section id="sec-gigo" class="level3">
+<h3 class="anchored" data-anchor-id="sec-gigo">Principle 2: Data Quality, or GIGO</h3>
+<p>There is a saying in computing: <strong>garbage in, garbage out</strong> (GIGO). It means that no amount of clever analysis can rescue bad data. If your yield column is measured in bushels per acre on some rows and tonnes per hectare on others, the prettiest regression in the world will give you nonsense. If your “organic” label was applied by someone who didn’t know what “organic” meant, your comparison of organic vs.&nbsp;conventional yields is meaningless.</p>
+<p>A huge — often the <em>majority</em> — of real analysis work is spent on what we call <strong>data cleaning</strong>: checking that values are in the expected range, dealing with missing observations, reconciling units, fixing typos, matching up records across datasets. Students often find this work tedious. Experienced analysts know that it is the part of the job that most often determines whether your final answer is right.</p>
+<p>Some things to ask about any dataset before you do anything else:</p>
+<ul>
+<li>Where did it come from? Who collected it, and why?</li>
+<li>What was measured, and how? Self-report? Sensor? Administrative record?</li>
+<li>What are the units? (A surprising number of analyses have been ruined by mixed units.)</li>
+<li>Are there missing values? How are they coded — blank, “NA”, <code>-99</code>, <code>9999</code>?</li>
+<li>Is the dataset a complete population, or a sample? If a sample, how was it drawn?</li>
+<li>Has the data been edited, and if so, by whom? Could those edits have introduced bias?</li>
+</ul>
+<p>We will revisit these questions throughout the book. For now just internalize the principle: <strong>the data is where the real work is</strong>, not the model.</p>
+</section>
+<section id="sec-methods-quality" class="level3">
+<h3 class="anchored" data-anchor-id="sec-methods-quality">Principle 3: Methods Quality</h3>
+<p>Once you have data you trust, the next question is: am I using the right method?</p>
+<p>I want to introduce two ideas here that many students find uncomfortable at first:</p>
+<p><strong>All models are wrong.</strong> Every statistical or mathematical model you will meet in this course (and in life) is a simplification of reality. A linear regression assumes the relationship between <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> is a straight line — but in the real world it almost never is exactly. A normal distribution assumes outcomes are symmetric and that extreme values are exponentially rare — but real yield distributions have fatter tails than that. A forecasting model assumes the future will behave like the past — but the future sometimes doesn’t.</p>
+<p>Does this mean models are useless? No.&nbsp;It means your job is not to find a “true” model — there isn’t one — but to find one that is <strong>useful for the question you are actually trying to answer</strong>. The statistician George Box put it memorably: all models are wrong, but some are useful. Your job is to pick the least-wrong one for your purpose, and to be honest about its limitations.</p>
+<p><strong>Know your assumptions.</strong> Every technique you learn in this course comes with assumptions. Sometimes they are explicit (“the residuals should be approximately normally distributed”). Sometimes they are implicit (“this sample is representative of the population I want to draw conclusions about”). A responsible analyst does not just run the tool — they check the assumptions, and they state up front when the assumptions are shaky.</p>
+<p>This is not about being exhaustively cautious. It is about being <em>honest</em> about the ground you are standing on.</p>
+</section>
+<section id="sec-bias" class="level3">
+<h3 class="anchored" data-anchor-id="sec-bias">Principle 4: Bias</h3>
+<p>Bias is a word that gets thrown around a lot, usually in the political sense of “people I disagree with are biased.” In data analysis, bias has a more specific meaning: <strong>a systematic tendency for your analysis to be wrong in a particular direction.</strong></p>
+<p>Two kinds to watch for:</p>
+<p><strong>Researcher bias.</strong> This is when the person doing the analysis — you — has an incentive, conscious or unconscious, to arrive at a particular answer. Maybe your boss is expecting the new fertilizer to work and you know it. Maybe you picked the subset of data where the effect showed up and ignored the rest. Maybe you ran ten different regressions and only reported the one with the significant p-value. All of these are researcher bias, and all of them are extraordinarily common even among honest, well-intentioned people.</p>
+<p>The defence against researcher bias is <em>procedure</em>. Decide what you are going to do before you look at the results. Write it down. When you deviate from the plan, note that you deviated and why. Be suspicious of yourself.</p>
+<p><strong>Sample bias.</strong> This is when the data you have is not representative of the population you want to draw conclusions about. A classic example: if you survey farmers at a canola growers’ conference about what they think of canola policy, you will get different answers than if you surveyed all farmers, because the ones who go to canola conferences are systematically different from the ones who don’t. A more subtle example: if your yield dataset only includes fields that were actually harvested and recorded, it systematically excludes the worst fields — the ones that failed and were never harvested. Your average yield is therefore biased upward.</p>
+<p>We will talk much more about sampling in <a href="module10.html" class="quarto-xref"><span>10&nbsp; Sampling</span></a>. For now, the principle is: <strong>the data you see is never all the data that exists</strong>, and the difference matters.</p>
+</section>
+</section>
+<section id="sec-ai" class="level2">
+<h2 class="anchored" data-anchor-id="sec-ai">A Word About AI</h2>
+<p>You cannot read anything about data analysis in 2026 without encountering artificial intelligence. I want to say a few things about how AI fits into this course.</p>
+<p>First: you are allowed and encouraged to use AI tools — GitHub Copilot, Claude, ChatGPT, whatever — to help you learn R and write code. These tools are very good at scaffolding a script, explaining an error message, or suggesting which function you want. Professional analysts use them every day and so should you.</p>
+<p>Second: AI is not a substitute for understanding. If you have an AI write a script you don’t understand and it produces the right answer on the test bank, you will still fail the tests, because the tests are drawn from a bank of 200 questions and the AI’s code will not generalize to all of them unless you understand what it’s doing. More importantly, you will fail in your <em>career</em>, because every real analysis project involves noticing when the output is subtly wrong — which you cannot do if you don’t know what right looks like.</p>
+<p>Third: AI is very good at producing <em>plausible-sounding nonsense</em>. It will confidently tell you that a function exists when it does not. It will confidently tell you that a dataset shows a pattern that it does not. It will confidently misremember the formula for a standard deviation. Your job, as a competent analyst, is to <em>check its work</em>, not trust it. This is the same skill you need for reading anything on the internet — AI just makes the nonsense come at you faster.</p>
+<p>We will come back to AI specifically when we get to R (<a href="module02.html" class="quarto-xref"><span>2&nbsp; Introduction to R and Positron</span></a>), but the principle is the same everywhere: <strong>AI is a power tool. It will make you more productive if you know what you’re doing, and more dangerous if you don’t.</strong></p>
+</section>
+<section id="sec-organization" class="level2">
+<h2 class="anchored" data-anchor-id="sec-organization">How the Rest of This Book Is Organized</h2>
+<p>The book is divided into three parts that mirror the twelve modules of AREC 261:</p>
+<ul>
+<li><strong>Part 1 (Modules 1-6): Data Foundations.</strong> We start in Excel, because most of you have seen it before, and build up the core skills of loading, cleaning, transforming, summarizing, and visualizing data. Around Module 2 we introduce R and run the two tools in parallel for a few modules. By Module 6 you will be comfortable describing and visualizing relationships between variables.</li>
+<li><strong>Part 2 (Modules 7-9): Probability and Simulation.</strong> We introduce the idea of a random variable and the basics of probability, then spend two modules on <em>simulation</em> as a way to answer probability questions without having to know any formulas. Simulation is the foundation we use for inference in the last three modules.</li>
+<li><strong>Part 3 (Modules 10-12): Inference Through Simulation.</strong> We learn about sampling variability, hypothesis testing via randomization, and bootstrap confidence intervals. The goal is to give you a solid, intuitive grasp of statistical inference before you meet the formulas in AREC 262.</li>
+</ul>
+<p>Each module ends with a <strong>test bank sample</strong> (the kind of question you will see on the actual test) and a <strong>practice exercises</strong> section.</p>
+<p>Let’s get started.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./index.html" class="pagination-link" aria-label="Preface">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Preface</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./module01.html" class="pagination-link" aria-label="Describing Data in Excel">
+        <span class="nav-page-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Describing Data in Excel</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

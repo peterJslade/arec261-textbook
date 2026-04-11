@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.37">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>6&nbsp; Relationships Between Variables – AREC 261: Agricultural Data Analytics I</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./module07.html" rel="next">
+<link href="./module05.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-b46385535caf84bc62f311a600ac5013.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="nav-sidebar docked quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./module06.html"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Relationships Between Variables</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">AREC 261: Agricultural Data Analytics I</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Introduction: How to Think About Data Analysis</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./module01.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Describing Data in Excel</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./module02.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Introduction to R and Positron</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./module03.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Transforming Data in R</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./module04.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Graphing in R and Excel</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./module05.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Communicating Data Analysis</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./module06.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Relationships Between Variables</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./module07.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Probability and Random Variables</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./module08.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Probability and Simulation I</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./module09.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Probability and Simulation II</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./module10.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Sampling</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./module11.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Randomization Tests</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./module12.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Bootstrap Methods</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#learning-objectives" id="toc-learning-objectives" class="nav-link active" data-scroll-target="#learning-objectives">Learning Objectives</a></li>
+  <li><a href="#sec-two-variables" id="toc-sec-two-variables" class="nav-link" data-scroll-target="#sec-two-variables"><span class="header-section-number">6.1</span> From One Variable to Two</a></li>
+  <li><a href="#sec-correlation" id="toc-sec-correlation" class="nav-link" data-scroll-target="#sec-correlation"><span class="header-section-number">6.2</span> Covariance and Correlation</a>
+  <ul class="collapse">
+  <li><a href="#the-intuition" id="toc-the-intuition" class="nav-link" data-scroll-target="#the-intuition">The Intuition</a></li>
+  <li><a href="#the-formula" id="toc-the-formula" class="nav-link" data-scroll-target="#the-formula">The Formula</a></li>
+  <li><a href="#in-excel-and-r" id="toc-in-excel-and-r" class="nav-link" data-scroll-target="#in-excel-and-r">In Excel and R</a></li>
+  <li><a href="#what-correlation-does-not-measure" id="toc-what-correlation-does-not-measure" class="nav-link" data-scroll-target="#what-correlation-does-not-measure">What Correlation Does Not Measure</a></li>
+  </ul></li>
+  <li><a href="#sec-correlation-causation" id="toc-sec-correlation-causation" class="nav-link" data-scroll-target="#sec-correlation-causation"><span class="header-section-number">6.3</span> Correlation Is Not Causation</a></li>
+  <li><a href="#sec-simple-regression" id="toc-sec-simple-regression" class="nav-link" data-scroll-target="#sec-simple-regression"><span class="header-section-number">6.4</span> Simple Linear Regression</a>
+  <ul class="collapse">
+  <li><a href="#the-model" id="toc-the-model" class="nav-link" data-scroll-target="#the-model">The Model</a></li>
+  <li><a href="#in-excel" id="toc-in-excel" class="nav-link" data-scroll-target="#in-excel">In Excel</a></li>
+  <li><a href="#in-r" id="toc-in-r" class="nav-link" data-scroll-target="#in-r">In R</a></li>
+  </ul></li>
+  <li><a href="#sec-interpreting-regression" id="toc-sec-interpreting-regression" class="nav-link" data-scroll-target="#sec-interpreting-regression"><span class="header-section-number">6.5</span> Interpreting the Output</a></li>
+  <li><a href="#sec-r-squared" id="toc-sec-r-squared" class="nav-link" data-scroll-target="#sec-r-squared"><span class="header-section-number">6.6</span> <span class="math inline">\(R^2\)</span>: How Well Does the Line Fit?</a></li>
+  <li><a href="#sec-regression-assumptions" id="toc-sec-regression-assumptions" class="nav-link" data-scroll-target="#sec-regression-assumptions"><span class="header-section-number">6.7</span> When Linear Regression Is (and Isn’t) Appropriate</a></li>
+  <li><a href="#sec-module6-example" id="toc-sec-module6-example" class="nav-link" data-scroll-target="#sec-module6-example"><span class="header-section-number">6.8</span> Worked Example: Fertilizer and Yield</a></li>
+  <li><a href="#sec-module6-test" id="toc-sec-module6-test" class="nav-link" data-scroll-target="#sec-module6-test"><span class="header-section-number">6.9</span> Test Bank Sample</a></li>
+  <li><a href="#sec-module6-practice" id="toc-sec-module6-practice" class="nav-link" data-scroll-target="#sec-module6-practice"><span class="header-section-number">6.10</span> Practice Exercises</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><span id="sec-module6" class="quarto-section-identifier"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Relationships Between Variables</span></span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="learning-objectives" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="learning-objectives">Learning Objectives</h2>
+<p>By the end of this module you should be able to:</p>
+<ol type="1">
+<li>Compute and interpret a correlation coefficient.</li>
+<li>Distinguish correlation from causation.</li>
+<li>Fit a simple linear regression and interpret the slope and intercept.</li>
+<li>Check a regression visually with a scatter plot and trend line.</li>
+<li>Explain the difference between <span class="math inline">\(R^2\)</span> and correlation.</li>
+<li>Recognize when a linear model is not appropriate.</li>
+</ol>
+</section>
+<section id="sec-two-variables" class="level2" data-number="6.1">
+<h2 data-number="6.1" class="anchored" data-anchor-id="sec-two-variables"><span class="header-section-number">6.1</span> From One Variable to Two</h2>
+<p>Modules 1-5 were about one variable at a time: how is yield distributed? what is the mean? the spread? With Module 6 we start asking about <em>relationships</em>: how does yield change with acres? does fertilizer application predict yield? is price related to quality?</p>
+<p>Almost every interesting question in data analysis is a question about a relationship between variables. The rest of this course is, in one way or another, about formalizing these questions.</p>
+</section>
+<section id="sec-correlation" class="level2" data-number="6.2">
+<h2 data-number="6.2" class="anchored" data-anchor-id="sec-correlation"><span class="header-section-number">6.2</span> Covariance and Correlation</h2>
+<section id="the-intuition" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="the-intuition">The Intuition</h3>
+<p>Suppose you have two variables — say, fertilizer rate and yield — measured across 100 fields. You make a scatter plot. What does it look like?</p>
+<ul>
+<li>If the points form an upward-sloping cloud, yield tends to increase with fertilizer.</li>
+<li>If they form a downward-sloping cloud, yield tends to decrease with fertilizer.</li>
+<li>If they are a shapeless blob, there is no obvious relationship.</li>
+<li>If they form a tight line, the relationship is strong.</li>
+<li>If they are widely scattered, the relationship is weak.</li>
+</ul>
+<p>The <strong>correlation coefficient</strong> turns this visual intuition into a single number between -1 and +1.</p>
+</section>
+<section id="the-formula" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="the-formula">The Formula</h3>
+<p>First, the <strong>covariance</strong> between two variables <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>, for a sample of size <span class="math inline">\(n\)</span>:</p>
+<p><span class="math display">\[
+\text{Cov}(X, Y) = \frac{1}{n-1} \sum_{i=1}^{n} (x_i - \bar{x})(y_i - \bar{y})
+\]</span></p>
+<p>The covariance is positive when <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> tend to be above (or below) their means together, and negative when one is above while the other is below. But its magnitude depends on the units of both variables, which makes it hard to interpret directly.</p>
+<p>The <strong>(Pearson) correlation coefficient</strong> normalizes the covariance by the standard deviations:</p>
+<p><span class="math display">\[
+r = \frac{\text{Cov}(X, Y)}{s_X \, s_Y}
+\]</span></p>
+<p>The result is always between -1 and +1, regardless of units.</p>
+<ul>
+<li><span class="math inline">\(r = +1\)</span>: perfect positive linear relationship.</li>
+<li><span class="math inline">\(r = 0\)</span>: no linear relationship.</li>
+<li><span class="math inline">\(r = -1\)</span>: perfect negative linear relationship.</li>
+<li><span class="math inline">\(|r|\)</span> between 0 and 1 measures the strength of the (linear!) relationship.</li>
+</ul>
+</section>
+<section id="in-excel-and-r" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="in-excel-and-r">In Excel and R</h3>
+<p>Excel:</p>
+<pre><code>=CORREL(A2:A101, B2:B101)</code></pre>
+<p>R:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cor</span>(yields<span class="sc">$</span>fertilizer, yields<span class="sc">$</span>yield_bu_acre)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Or for a whole data frame:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cor</span>(yields[, <span class="fu">c</span>(<span class="st">"fertilizer"</span>, <span class="st">"acres"</span>, <span class="st">"yield_bu_acre"</span>)])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="what-correlation-does-not-measure" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="what-correlation-does-not-measure">What Correlation Does Not Measure</h3>
+<p>Correlation measures <em>linear</em> relationships. If the true relationship between <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> is a curve — say, <span class="math inline">\(Y\)</span> rises with <span class="math inline">\(X\)</span> and then falls — the correlation can be zero even though there is a very strong relationship. This is why you should <strong>always plot your data</strong> before computing a correlation. A single scatter plot tells you more than a single number.</p>
+<p>There is a famous dataset called <strong>Anscombe’s Quartet</strong> — four datasets that all have the same mean, standard deviation, correlation, and regression line, but look completely different when plotted. We will discuss them in the worked example.</p>
+</section>
+</section>
+<section id="sec-correlation-causation" class="level2" data-number="6.3">
+<h2 data-number="6.3" class="anchored" data-anchor-id="sec-correlation-causation"><span class="header-section-number">6.3</span> Correlation Is Not Causation</h2>
+<p>If you remember nothing else from this course, remember this sentence. <strong>Correlation does not imply causation.</strong></p>
+<p>There are several reasons two variables can be correlated without one causing the other:</p>
+<ol type="1">
+<li><strong>Coincidence.</strong> If you look at enough pairs of variables, some will be correlated by chance alone. There is a famous website (tylervigen.com) that collects absurd correlations: per-capita cheese consumption correlates with deaths by bedsheet entanglement. Neither causes the other. They are both just trending over time.</li>
+<li><strong>Reverse causation.</strong> You observe that people who exercise more have lower weights. Does exercise cause low weight, or do people with low weight exercise more? Usually a bit of both.</li>
+<li><strong>Confounding.</strong> A third variable causes both. Ice cream sales correlate with drowning deaths. Does ice cream cause drowning? No.&nbsp;Both are caused by summer.</li>
+<li><strong>Selection.</strong> The dataset was assembled in a way that induces a spurious correlation. (We will see examples of this in Module 10.)</li>
+</ol>
+<p>To establish causation, you generally need either a controlled experiment (randomly assign treatment and control) or some clever reasoning about the source of variation. This is the domain of <strong>causal inference</strong>, which you will meet in AREC 262.</p>
+<p>For AREC 261, the point is: <strong>any time you see a correlation, the first question should be “is there a plausible causal story, and what else could explain this?”</strong> The second question should be “could it be the reverse direction?” And the third should be “what could be confounding this?”</p>
+</section>
+<section id="sec-simple-regression" class="level2" data-number="6.4">
+<h2 data-number="6.4" class="anchored" data-anchor-id="sec-simple-regression"><span class="header-section-number">6.4</span> Simple Linear Regression</h2>
+<p>Correlation summarizes the strength and direction of a linear relationship. <strong>Linear regression</strong> goes one step further: it estimates the <em>equation</em> of the line.</p>
+<section id="the-model" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="the-model">The Model</h3>
+<p>We write the simple linear regression model as:</p>
+<p><span class="math display">\[
+y_i = \beta_0 + \beta_1 x_i + \varepsilon_i
+\]</span></p>
+<p>where:</p>
+<ul>
+<li><span class="math inline">\(y_i\)</span> is the response variable (the thing we want to predict), for observation <span class="math inline">\(i\)</span>.</li>
+<li><span class="math inline">\(x_i\)</span> is the predictor variable (the thing we’re using to predict), for observation <span class="math inline">\(i\)</span>.</li>
+<li><span class="math inline">\(\beta_0\)</span> is the <strong>intercept</strong> — the expected value of <span class="math inline">\(y\)</span> when <span class="math inline">\(x = 0\)</span>.</li>
+<li><span class="math inline">\(\beta_1\)</span> is the <strong>slope</strong> — the expected change in <span class="math inline">\(y\)</span> per unit change in <span class="math inline">\(x\)</span>.</li>
+<li><span class="math inline">\(\varepsilon_i\)</span> is the <strong>error term</strong> — the deviation of the actual <span class="math inline">\(y_i\)</span> from the line. Accounts for everything that affects <span class="math inline">\(y\)</span> but isn’t captured by <span class="math inline">\(x\)</span>.</li>
+</ul>
+<p>The goal is to estimate <span class="math inline">\(\beta_0\)</span> and <span class="math inline">\(\beta_1\)</span> from data. The standard method is <strong>ordinary least squares (OLS)</strong>, which picks the values that minimize the sum of squared residuals:</p>
+<p><span class="math display">\[
+\sum_{i=1}^{n} (y_i - \hat{y}_i)^2 = \sum_{i=1}^{n} (y_i - (\hat{\beta}_0 + \hat{\beta}_1 x_i))^2
+\]</span></p>
+<p>You don’t need to memorize the derivation. The formulas turn out to be:</p>
+<p><span class="math display">\[
+\hat{\beta}_1 = \frac{\text{Cov}(X, Y)}{\text{Var}(X)} = r \cdot \frac{s_Y}{s_X}
+\]</span></p>
+<p><span class="math display">\[
+\hat{\beta}_0 = \bar{y} - \hat{\beta}_1 \bar{x}
+\]</span></p>
+<p>Notice that the slope involves the correlation, scaled by the ratio of standard deviations. And the intercept is chosen so that the line passes through the point <span class="math inline">\((\bar{x}, \bar{y})\)</span>.</p>
+</section>
+<section id="in-excel" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="in-excel">In Excel</h3>
+<p>For a simple regression, you can use <code>=SLOPE(y_range, x_range)</code> and <code>=INTERCEPT(y_range, x_range)</code>. Or add a trendline to a scatter plot (right-click a series → Add Trendline → Linear → check “Display equation”).</p>
+<p>For more detail, use the Data Analysis ToolPak (<strong>File → Options → Add-ins → Analysis ToolPak</strong>). Once enabled, <strong>Data → Data Analysis → Regression</strong> gives you a full regression output with standard errors, <span class="math inline">\(R^2\)</span>, and so on.</p>
+</section>
+<section id="in-r" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="in-r">In R</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(yield_bu_acre <span class="sc">~</span> fertilizer, <span class="at">data =</span> yields)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The <code>lm()</code> function fits a linear model. The formula <code>y ~ x</code> means “<span class="math inline">\(y\)</span> as a function of <span class="math inline">\(x\)</span>.” <code>summary()</code> prints the estimated coefficients, standard errors, <span class="math inline">\(t\)</span>-statistics, <span class="math inline">\(p\)</span>-values, and <span class="math inline">\(R^2\)</span>.</p>
+<p>You can extract pieces of the model:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">coef</span>(model)           <span class="co"># the coefficients</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">fitted</span>(model)         <span class="co"># the predicted values</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">residuals</span>(model)      <span class="co"># the residuals</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="fu">predict</span>(model, <span class="at">newdata =</span> <span class="fu">data.frame</span>(<span class="at">fertilizer =</span> <span class="dv">100</span>))  <span class="co"># predict for new data</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+</section>
+<section id="sec-interpreting-regression" class="level2" data-number="6.5">
+<h2 data-number="6.5" class="anchored" data-anchor-id="sec-interpreting-regression"><span class="header-section-number">6.5</span> Interpreting the Output</h2>
+<p>Suppose you fit <code>yield_bu_acre ~ fertilizer</code> and get:</p>
+<pre><code>Coefficients:
+            Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)   30.2      2.1       14.3   &lt;2e-16 ***
+fertilizer     0.15     0.02       7.5   1.2e-10 ***</code></pre>
+<p>Interpretation:</p>
+<ul>
+<li><strong>Intercept (30.2)</strong>: the expected yield when fertilizer is zero. Sometimes this is meaningful (what would yield be with no fertilizer?) and sometimes it is an extrapolation to a region you do not have data for. Be careful.</li>
+<li><strong>Slope (0.15)</strong>: for every additional unit of fertilizer, expected yield increases by 0.15 bushels per acre. <strong>The units matter.</strong> If fertilizer is in kg/ha and yield is in bu/ac, the slope is in (bu/ac) per (kg/ha).</li>
+</ul>
+<p>Always state the interpretation in words that include the units. “Yield goes up by 0.15” is vague and wrong. “Each additional kilogram per hectare of fertilizer is associated with an expected 0.15 bu/ac increase in yield” is the kind of sentence you should be writing.</p>
+<p>Note the careful word “associated.” I did not say “causes.” Whether a regression coefficient measures a causal effect is a separate question that depends on how the data was collected — see <a href="#sec-correlation-causation" class="quarto-xref"><span>Section 6.3</span></a>.</p>
+</section>
+<section id="sec-r-squared" class="level2" data-number="6.6">
+<h2 data-number="6.6" class="anchored" data-anchor-id="sec-r-squared"><span class="header-section-number">6.6</span> <span class="math inline">\(R^2\)</span>: How Well Does the Line Fit?</h2>
+<p>The regression line is the “best” line in the least-squares sense, but “best” does not mean “good.” A dataset where the points are scattered all over the place still has a best line; the question is whether the line explains any meaningful fraction of the variation.</p>
+<p><strong><span class="math inline">\(R^2\)</span></strong> (pronounced “R squared”) measures the fraction of the variance in <span class="math inline">\(Y\)</span> that is explained by the regression. It ranges from 0 (the line explains nothing) to 1 (the line explains everything, meaning all points lie exactly on the line).</p>
+<p>For a simple regression, <span class="math inline">\(R^2 = r^2\)</span> — the square of the correlation coefficient. So a correlation of 0.7 gives <span class="math inline">\(R^2 = 0.49\)</span>: about half the variance in <span class="math inline">\(Y\)</span> is accounted for by <span class="math inline">\(X\)</span>.</p>
+<p>In R, <code>summary(model)</code> reports it as <code>Multiple R-squared</code> (and also <code>Adjusted R-squared</code>, which you will meet in AREC 262). In Excel, it’s shown on the regression trendline if you check “Display R-squared value.”</p>
+<p>Rough rules of thumb (very rough; context matters):</p>
+<ul>
+<li><span class="math inline">\(R^2 &lt; 0.1\)</span>: the relationship explains very little.</li>
+<li><span class="math inline">\(R^2 \approx 0.3\)</span>: a noticeable but modest relationship.</li>
+<li><span class="math inline">\(R^2 \approx 0.5\)</span>: a strong relationship.</li>
+<li><span class="math inline">\(R^2 &gt; 0.8\)</span>: either a very strong true relationship, or you are overfitting.</li>
+</ul>
+<p>Agricultural yield data often has <span class="math inline">\(R^2\)</span> in the 0.2-0.5 range for any single predictor, because yields depend on many things. Don’t be disappointed by a modest <span class="math inline">\(R^2\)</span> if the model is nonetheless useful.</p>
+</section>
+<section id="sec-regression-assumptions" class="level2" data-number="6.7">
+<h2 data-number="6.7" class="anchored" data-anchor-id="sec-regression-assumptions"><span class="header-section-number">6.7</span> When Linear Regression Is (and Isn’t) Appropriate</h2>
+<p>Linear regression makes assumptions. The main ones:</p>
+<ol type="1">
+<li><strong>The relationship is approximately linear.</strong> If the true relationship is curved, a straight line will fit badly. Check with a scatter plot.</li>
+<li><strong>Observations are independent.</strong> If you have repeated measurements on the same field, or fields in the same farm, the observations are not independent and your standard errors will be wrong. (Fixing this needs more advanced methods you will meet in AREC 262.)</li>
+<li><strong>Residuals have constant variance.</strong> If the scatter around the line grows as <span class="math inline">\(X\)</span> grows (a “fan shape”), this assumption is violated.</li>
+<li><strong>Residuals are roughly normal.</strong> Matters for small samples; less important for large ones.</li>
+<li><strong>No extreme outliers driving the result.</strong> A single weird point can dramatically change the slope.</li>
+</ol>
+<p>Always make a scatter plot with the regression line on top before trusting a regression. If the data looks nothing like a line, don’t report a linear regression.</p>
+</section>
+<section id="sec-module6-example" class="level2" data-number="6.8">
+<h2 data-number="6.8" class="anchored" data-anchor-id="sec-module6-example"><span class="header-section-number">6.8</span> Worked Example: Fertilizer and Yield</h2>
+<p>[TBD: walk through a complete example with a canola fertilizer trial dataset, showing the scatter plot, correlation, regression, interpretation, and a sensible written summary of the findings.]</p>
+</section>
+<section id="sec-module6-test" class="level2" data-number="6.9">
+<h2 data-number="6.9" class="anchored" data-anchor-id="sec-module6-test"><span class="header-section-number">6.9</span> Test Bank Sample</h2>
+<ol type="1">
+<li>(Concept.) You find a correlation of 0.6 between two variables. What does that mean? What doesn’t it mean?</li>
+<li>(Formula.) Write the formula for the Pearson correlation coefficient.</li>
+<li>(Correlation vs causation.) Give an example of two variables that are correlated but where neither causes the other.</li>
+<li>(Regression.) You fit <code>yield ~ fertilizer</code> and get a slope of 0.2. Write a one-sentence interpretation.</li>
+<li>(R-squared.) Your regression has <span class="math inline">\(R^2 = 0.35\)</span>. What does this tell you?</li>
+<li>(Diagnostics.) Name three things you should check before trusting a regression result.</li>
+</ol>
+</section>
+<section id="sec-module6-practice" class="level2" data-number="6.10">
+<h2 data-number="6.10" class="anchored" data-anchor-id="sec-module6-practice"><span class="header-section-number">6.10</span> Practice Exercises</h2>
+<ol type="1">
+<li>Compute the correlation between two variables in the canola dataset. Interpret.</li>
+<li>Fit a simple linear regression and interpret the coefficients.</li>
+<li>Reproduce Anscombe’s quartet. What does it teach you?</li>
+<li>[TBD: a regression exercise with a deliberately misleading dataset.]</li>
+</ol>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./module05.html" class="pagination-link" aria-label="Communicating Data Analysis">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Communicating Data Analysis</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./module07.html" class="pagination-link" aria-label="Probability and Random Variables">
+        <span class="nav-page-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Probability and Random Variables</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
