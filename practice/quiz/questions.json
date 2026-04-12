@@ -1,110 +1,112 @@
 {
-  "datasets": [
+  "dataset": {
+    "name": "sask_canola_2025.csv",
+    "description": "120 canola fields in Saskatchewan in 2025",
+    "path": "../data/sask_canola_2025.csv",
+    "columns": ["field_id", "region", "variety", "acres", "yield_bu_ac", "fertilizer_kg_ha", "irrigated", "seeding_date"]
+  },
+  "question_types": [
     {
-      "id": "canola",
-      "name": "canola_yields_2025.csv",
-      "description": "50 canola fields in Saskatchewan in 2025",
-      "path": "../data/canola_yields_2025.csv",
-      "columns": ["field_id", "region", "variety", "acres", "yield_bu_ac", "fertilizer_kg_ha", "irrigated"]
+      "type_id": 1,
+      "type_name": "Descriptive Statistics",
+      "description": "Compute summary statistics using Excel functions.",
+      "questions": [
+        {
+          "id": "1a",
+          "parts": [
+            {"label": "a", "text": "Compute the mean yield (bu/ac) across all 120 fields.", "answer": "45.65 bu/ac", "formula": "=AVERAGE(E2:E121)"},
+            {"label": "b", "text": "Compute the median yield.", "answer": "46.25 bu/ac", "formula": "=MEDIAN(E2:E121)"},
+            {"label": "c", "text": "Compute the sample standard deviation of yield.", "answer": "5.80 bu/ac", "formula": "=STDEV.S(E2:E121)"},
+            {"label": "d", "text": "Compute the 90th percentile of yield. Explain what it means in one sentence.", "answer": "52.50 bu/ac — 90% of fields yielded this or less.", "formula": "=PERCENTILE.INC(E2:E121, 0.9)"},
+            {"label": "e", "text": "Is the mean or the median higher? What does this tell you about the shape of the distribution?", "answer": "The median (46.25) is higher than the mean (45.65), indicating a slight left skew — some low-yielding fields pull the mean down.", "formula": "n/a (interpretation)"}
+          ]
+        },
+        {
+          "id": "1b",
+          "parts": [
+            {"label": "a", "text": "Compute the mean and median of the acres column.", "answer": "Mean = 279.57 acres, Median = 276.00 acres", "formula": "=AVERAGE(D2:D121) and =MEDIAN(D2:D121)"},
+            {"label": "b", "text": "Compute Q1 and Q3 of yield.", "answer": "Q1 = 42.27, Q3 = 49.42", "formula": "=QUARTILE.INC(E2:E121, 1) and =QUARTILE.INC(E2:E121, 3)"},
+            {"label": "c", "text": "Compute the IQR of yield.", "answer": "7.15 bu/ac", "formula": "=QUARTILE.INC(E2:E121,3) - QUARTILE.INC(E2:E121,1)"},
+            {"label": "d", "text": "Compute the sample variance of yield. What are its units?", "answer": "33.66 (bu/ac)². Units are squared because variance squares the deviations.", "formula": "=VAR.S(E2:E121)"},
+            {"label": "e", "text": "What is the range of yield? (max minus min)", "answer": "28.9 (from 28.9 to 57.8)", "formula": "=MAX(E2:E121) - MIN(E2:E121)"}
+          ]
+        }
+      ]
     },
     {
-      "id": "costs",
-      "name": "farm_costs_2025.csv",
-      "description": "40 input-cost orders for a grain farm in 2025",
-      "path": "../data/farm_costs_2025.csv",
-      "columns": ["order_id", "order_date", "supplier", "product", "price_per_unit", "quantity", "unit"]
-    }
-  ],
-  "questions": [
-    {
-      "id": 1,
-      "dataset": "canola",
-      "topic": "Central tendency",
-      "question": "Compute the mean yield (in bu/ac) across all 50 fields.",
-      "expected_value": "44.35 bu/ac",
-      "formula": "=AVERAGE(E2:E51)",
-      "notes": "Use AVERAGE on the yield_bu_ac column. Make sure you do not include the header row."
+      "type_id": 2,
+      "type_name": "Conditional Functions & Lookups",
+      "description": "Use COUNTIF, SUMIF, AVERAGEIF, XLOOKUP, and IF to answer questions about subsets of the data.",
+      "questions": [
+        {
+          "id": "2a",
+          "parts": [
+            {"label": "a", "text": "How many fields have a yield strictly greater than 50 bu/ac?", "answer": "26 fields", "formula": "=COUNTIF(E2:E121, \">50\")"},
+            {"label": "b", "text": "What is the average yield in the South region? Central? North?", "answer": "South: 43.39, Central: 47.54, North: 46.41", "formula": "=AVERAGEIF(B2:B121, \"South\", E2:E121)"},
+            {"label": "c", "text": "Compute total production (bushels) across all fields. (Production = yield × acres.)", "answer": "1,533,356.4 bushels", "formula": "=SUMPRODUCT(D2:D121, E2:E121)"},
+            {"label": "d", "text": "Use a lookup function to find the variety planted in field F050.", "answer": "InVigor L345PC", "formula": "=XLOOKUP(\"F050\", A2:A121, C2:C121)"},
+            {"label": "e", "text": "Write a formula that classifies each field as \"Low\" (yield < 40), \"Medium\" (40–50), or \"High\" (above 50). Apply it to all rows.", "answer": "Low / Medium / High labels in a new column", "formula": "=IFS(E2<40, \"Low\", E2<=50, \"Medium\", TRUE, \"High\")"}
+          ]
+        },
+        {
+          "id": "2b",
+          "parts": [
+            {"label": "a", "text": "What is the total production (bushels) in the South region only?", "answer": "574,485.2 bushels", "formula": "=SUMPRODUCT((B2:B121=\"South\")*D2:D121*E2:E121)"},
+            {"label": "b", "text": "How many fields are both irrigated AND in the Central region?", "answer": "Use COUNTIFS — count varies by dataset", "formula": "=COUNTIFS(G2:G121, \"TRUE\", B2:B121, \"Central\")"},
+            {"label": "c", "text": "What is the average yield of irrigated fields? Of non-irrigated fields?", "answer": "Irrigated: 45.34, Non-irrigated: 45.72", "formula": "=AVERAGEIF(G2:G121, \"TRUE\", E2:E121) and =AVERAGEIF(G2:G121, \"FALSE\", E2:E121)"},
+            {"label": "d", "text": "Use a lookup to find the variety and acres for field F100.", "answer": "DKTC 9105 — use XLOOKUP or INDEX/MATCH", "formula": "=XLOOKUP(\"F100\", A2:A121, C2:D121)"},
+            {"label": "e", "text": "How many fields in the North region have a yield above the overall mean?", "answer": "Use COUNTIFS with the computed mean", "formula": "=COUNTIFS(B2:B121, \"North\", E2:E121, \">\"&AVERAGE(E2:E121))"}
+          ]
+        }
+      ]
     },
     {
-      "id": 2,
-      "dataset": "canola",
-      "topic": "Central tendency",
-      "question": "Compute the median yield (in bu/ac) across all 50 fields.",
-      "expected_value": "45.40 bu/ac",
-      "formula": "=MEDIAN(E2:E51)",
-      "notes": "MEDIAN is less sensitive to outliers than AVERAGE. Here the median is slightly higher than the mean, indicating a mild left skew."
+      "type_id": 3,
+      "type_name": "PivotTables",
+      "description": "Build a PivotTable to summarize data by categories.",
+      "questions": [
+        {
+          "id": "3a",
+          "parts": [
+            {"label": "a", "text": "Create a PivotTable showing the average yield by region. Which region has the highest average?", "answer": "Central at 47.54 bu/ac", "formula": "PivotTable: region → Rows, yield → Values (Average)"},
+            {"label": "b", "text": "Expand the PivotTable to show average yield by region AND variety (regions on rows, varieties on columns). Which region-variety combination has the highest average?", "answer": "Central × InVigor L345PC at 49.30 bu/ac", "formula": "Add variety to Columns"},
+            {"label": "c", "text": "Create a second PivotTable showing total acres by variety. Which variety has the most total acreage?", "answer": "DKTC 9105 with 12,826 acres", "formula": "PivotTable: variety → Rows, acres → Values (Sum)"},
+            {"label": "d", "text": "How many fields are in each region? (Use the Count function in your PivotTable.)", "answer": "South: 46, Central: 42, North: 32", "formula": "PivotTable: region → Rows, field_id → Values (Count)"}
+          ]
+        },
+        {
+          "id": "3b",
+          "parts": [
+            {"label": "a", "text": "Create a PivotTable showing average yield by variety. Which variety performs best on average?", "answer": "InVigor L345PC with highest average", "formula": "PivotTable: variety → Rows, yield → Values (Average)"},
+            {"label": "b", "text": "Add a filter to your PivotTable to show only irrigated fields. Does the ranking of varieties change?", "answer": "Add irrigated to Filters, select TRUE. Compare rankings.", "formula": "PivotTable: add irrigated to Filters"},
+            {"label": "c", "text": "Create a PivotTable showing total production (yield × acres) by region. Which region produces the most canola in total?", "answer": "Requires a helper column yield*acres, then PivotTable on that column by region.", "formula": "Helper column =D2*E2, then PivotTable: region → Rows, helper → Values (Sum)"},
+            {"label": "d", "text": "Show the count of fields by region and irrigated status (regions on rows, irrigated on columns).", "answer": "PivotTable: region → Rows, irrigated → Columns, field_id → Values (Count)", "formula": "Two-way PivotTable"}
+          ]
+        }
+      ]
     },
     {
-      "id": 3,
-      "dataset": "canola",
-      "topic": "Spread",
-      "question": "Compute the sample standard deviation of yield (in bu/ac) across all 50 fields.",
-      "expected_value": "5.16 bu/ac",
-      "formula": "=STDEV.S(E2:E51)",
-      "notes": "Use STDEV.S (divides by n-1) for a sample. STDEV.P is only correct when you have the full population."
-    },
-    {
-      "id": 4,
-      "dataset": "canola",
-      "topic": "Percentiles",
-      "question": "Compute the 90th percentile of yield (the value below which 90% of fields lie).",
-      "expected_value": "51.06 bu/ac",
-      "formula": "=PERCENTILE.INC(E2:E51, 0.9)",
-      "notes": "Use PERCENTILE.INC for this course. The .EXC variant uses a slightly different interpolation."
-    },
-    {
-      "id": 5,
-      "dataset": "canola",
-      "topic": "Conditional functions",
-      "question": "How many fields have a yield strictly greater than 48 bu/ac?",
-      "expected_value": "12 fields",
-      "formula": "=COUNTIF(E2:E51, \">48\")",
-      "notes": "The criterion must be a string in quotes. \">48\" is strict; use \">=48\" for at-or-above."
-    },
-    {
-      "id": 6,
-      "dataset": "canola",
-      "topic": "Conditional functions",
-      "question": "Compute the average yield of fields in the \"South\" region only.",
-      "expected_value": "42.41 bu/ac",
-      "formula": "=AVERAGEIF(B2:B51, \"South\", E2:E51)",
-      "notes": "AVERAGEIF filters rows by the criterion and averages the target range. A PivotTable would also work and lets you see all three regions at once."
-    },
-    {
-      "id": 7,
-      "dataset": "canola",
-      "topic": "PivotTables",
-      "question": "Which variety has the largest total acres planted across all 50 fields?",
-      "expected_value": "DKTC 9105 (3,090 total acres)",
-      "formula": "PivotTable: variety on Rows, acres in Values (Sum), sort descending",
-      "notes": "You could also use =SUMIF(C2:C51, \"DKTC 9105\", D2:D51) one variety at a time, but PivotTables are much faster for grouped summaries."
-    },
-    {
-      "id": 8,
-      "dataset": "canola",
-      "topic": "Total production",
-      "question": "Compute the total production (in bushels) across all 50 fields. Production = yield (bu/ac) × acres.",
-      "expected_value": "476,208.4 bushels",
-      "formula": "=SUMPRODUCT(D2:D51, E2:E51)",
-      "notes": "SUMPRODUCT multiplies two ranges element-wise and sums the result. Always check that units cancel: acres × (bu/ac) = bushels."
-    },
-    {
-      "id": 9,
-      "dataset": "costs",
-      "topic": "Multi-condition aggregation",
-      "question": "Compute the total amount spent with \"Prairie Ag Supply\" across all their orders (price per unit × quantity, summed).",
-      "expected_value": "$6,221.00",
-      "formula": "=SUMPRODUCT((C2:C41=\"Prairie Ag Supply\")*E2:E41*F2:F41)",
-      "notes": "Alternative: add a helper column =E2*F2 (line total), then =SUMIF(C2:C41, \"Prairie Ag Supply\", G2:G41). Both work."
-    },
-    {
-      "id": 10,
-      "dataset": "costs",
-      "topic": "Conditional functions",
-      "question": "What is the highest price per unit ever paid for Urea across all orders?",
-      "expected_value": "$0.95 per kg",
-      "formula": "=MAXIFS(E2:E41, D2:D41, \"Urea\")",
-      "notes": "MAXIFS (Excel 2019+) is the cleanest approach. Alternative: {=MAX(IF(D2:D41=\"Urea\", E2:E41))} as an array formula."
+      "type_id": 4,
+      "type_name": "Charts",
+      "description": "Create and interpret histograms and box-and-whisker plots.",
+      "questions": [
+        {
+          "id": "4a",
+          "parts": [
+            {"label": "a", "text": "Create a histogram of yield_bu_ac for all 120 fields. Use approximately 10–15 bins. Give your chart a descriptive title and label both axes.", "answer": "Histogram with bell-shaped, slightly left-skewed distribution centred around 45–47 bu/ac.", "formula": "Insert → Statistical Chart → Histogram"},
+            {"label": "b", "text": "Based on your histogram, is the distribution symmetric, left-skewed, or right-skewed?", "answer": "Slightly left-skewed (longer tail on the low end).", "formula": "n/a (interpretation)"},
+            {"label": "c", "text": "Are there any apparent outliers? If so, approximately what yield values?", "answer": "Possible outliers near 29 bu/ac at the low end.", "formula": "n/a (interpretation)"}
+          ]
+        },
+        {
+          "id": "4b",
+          "parts": [
+            {"label": "a", "text": "Create a box-and-whisker plot comparing yield_bu_ac across the three regions (South, Central, North). Give your chart a descriptive title and label both axes.", "answer": "Three boxes showing Central highest, South lowest and most variable.", "formula": "Insert → Statistical Chart → Box and Whisker"},
+            {"label": "b", "text": "Which region has the highest median yield?", "answer": "Central (median ≈ 47.3 bu/ac).", "formula": "n/a (interpretation)"},
+            {"label": "c", "text": "Which region has the most variability in yield (widest box)? What does this suggest about farming conditions in that region?", "answer": "South has the widest box (IQR ≈ 9.6). This suggests more variable growing conditions — possibly more weather risk or more heterogeneous soil quality.", "formula": "n/a (interpretation)"}
+          ]
+        }
+      ]
     }
   ]
 }
