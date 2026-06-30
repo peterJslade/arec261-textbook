@@ -2,7 +2,7 @@
 
 Source repository for the AREC 261 textbook at the University of Saskatchewan. Built with [Quarto](https://quarto.org/) and published via GitHub Pages.
 
-**Live site:** <https://pjs998.github.io/arec261-textbook/>
+**Live site:** <https://peterJslade.github.io/arec261-textbook/>
 
 ## About
 

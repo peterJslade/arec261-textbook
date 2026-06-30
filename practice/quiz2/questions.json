@@ -1,0 +1,116 @@
+{
+  "dataset": {
+    "name": "sask_wheat_2025.csv",
+    "description": "150 spring-wheat fields in Saskatchewan in 2025 (some yield/protein values missing)",
+    "path": "../data/sask_wheat_2025.csv",
+    "columns": ["field_id", "soil_zone", "variety", "acres", "yield_bu_ac", "protein_pct", "seeded_rate_lb_ac"]
+  },
+  "question_types": [
+    {
+      "type_id": 1,
+      "type_name": "Reading Data & Exploring",
+      "description": "Read the CSV into R and inspect it with nrow, ncol, names, head, summary.",
+      "questions": [
+        {
+          "id": "1a",
+          "parts": [
+            {"label": "a", "text": "Read sask_wheat_2025.csv into a data frame called wheat.", "answer": "A data frame with 150 rows and 7 columns.", "formula": "wheat <- read_csv(\"sask_wheat_2025.csv\")"},
+            {"label": "b", "text": "How many rows and columns does the dataset have? Use functions, not manual counting.", "answer": "150 rows, 7 columns", "formula": "nrow(wheat); ncol(wheat)"},
+            {"label": "c", "text": "Print the names of all the columns.", "answer": "field_id, soil_zone, variety, acres, yield_bu_ac, protein_pct, seeded_rate_lb_ac", "formula": "names(wheat)"},
+            {"label": "d", "text": "Print the first 6 rows of the data.", "answer": "Fields W001 through W006.", "formula": "head(wheat)"},
+            {"label": "e", "text": "Run summary(wheat). What mean yield does it report, and how does it show the missing yield values?", "answer": "Mean yield about 45.33; summary() shows 'NA's : 4' for yield_bu_ac.", "formula": "summary(wheat)"}
+          ]
+        },
+        {
+          "id": "1b",
+          "parts": [
+            {"label": "a", "text": "Read sask_wheat_2025.csv into a data frame called wheat.", "answer": "A data frame with 150 rows and 7 columns.", "formula": "wheat <- read_csv(\"sask_wheat_2025.csv\")"},
+            {"label": "b", "text": "Print the last 6 rows of the data.", "answer": "Fields W145 through W150.", "formula": "tail(wheat)"},
+            {"label": "c", "text": "How many distinct soil zones appear? List them.", "answer": "3 zones: Brown, Dark Brown, Black", "formula": "n_distinct(wheat$soil_zone); unique(wheat$soil_zone)"},
+            {"label": "d", "text": "How many fields are missing a yield_bu_ac value?", "answer": "4 fields (W017, W058, W096, W133)", "formula": "sum(is.na(wheat$yield_bu_ac))"},
+            {"label": "e", "text": "What variety was planted in field W050? Extract it with code.", "answer": "AAC Brandon", "formula": "wheat$variety[wheat$field_id == \"W050\"]"}
+          ]
+        }
+      ]
+    },
+    {
+      "type_id": 2,
+      "type_name": "Vectors & Functions",
+      "description": "Create vectors, use element-wise arithmetic, and call functions like mean, sd, sum, max.",
+      "questions": [
+        {
+          "id": "2a",
+          "parts": [
+            {"label": "a", "text": "Create a vector v containing 48, 52, 47, 55, 50.", "answer": "A length-5 numeric vector.", "formula": "v <- c(48, 52, 47, 55, 50)"},
+            {"label": "b", "text": "Compute the mean, median, and sample standard deviation of v.", "answer": "mean = 50.4, median = 50, sd = 3.21", "formula": "mean(v); median(v); sd(v)"},
+            {"label": "c", "text": "What does v * 2 return? What does length(v) return?", "answer": "v * 2 = 96 104 94 110 100 (each element doubled); length(v) = 5", "formula": "v * 2; length(v)"},
+            {"label": "d", "text": "With a <- c(1,2,3) and b <- c(10,20,30), what is a + b? Explain 'element-wise' in one sentence.", "answer": "a + b = 11 22 33. Element-wise means each position is combined with the matching position, no loop needed.", "formula": "a + b"},
+            {"label": "e", "text": "Extract the acres column from wheat as a vector and compute its mean.", "answer": "About 338.76 acres", "formula": "mean(wheat$acres)"}
+          ]
+        },
+        {
+          "id": "2b",
+          "parts": [
+            {"label": "a", "text": "Create prices <- c(8.50, 9.10, 8.95, 9.40, 8.75).", "answer": "A length-5 numeric vector.", "formula": "prices <- c(8.50, 9.10, 8.95, 9.40, 8.75)"},
+            {"label": "b", "text": "Compute the sum and maximum of prices.", "answer": "sum = 44.70, max = 9.40", "formula": "sum(prices); max(prices)"},
+            {"label": "c", "text": "With bushels <- c(1200,1500,1100,1800,1350), compute total revenue as sum(prices * bushels).", "answer": "$58,807.50", "formula": "sum(prices * bushels)"},
+            {"label": "d", "text": "What does quantile(bushels, 0.25) return and what does it mean?", "answer": "1200 — the first quartile; 25% of values are at or below it.", "formula": "quantile(bushels, 0.25)"},
+            {"label": "e", "text": "Extract seeded_rate_lb_ac from wheat and compute its min and max.", "answer": "Roughly 90 (min) to 140 (max) lb/ac", "formula": "min(wheat$seeded_rate_lb_ac); max(wheat$seeded_rate_lb_ac)"}
+          ]
+        }
+      ]
+    },
+    {
+      "type_id": 3,
+      "type_name": "Summary Statistics in R",
+      "description": "Compute statistics on the dataset, handling missing values with na.rm = TRUE.",
+      "questions": [
+        {
+          "id": "3a",
+          "parts": [
+            {"label": "a", "text": "Compute the mean of yield_bu_ac. What happens without na.rm = TRUE, and why?", "answer": "Without na.rm: NA (4 missing values propagate). With na.rm = TRUE: 45.33.", "formula": "mean(wheat$yield_bu_ac, na.rm = TRUE)"},
+            {"label": "b", "text": "Compute the median, sample sd, and sample variance of yield_bu_ac (ignoring NAs).", "answer": "median = 45.05, sd = 7.34, variance = 53.81", "formula": "median(...); sd(...); var(wheat$yield_bu_ac, na.rm = TRUE)"},
+            {"label": "c", "text": "Compute Q1, Q3, and the IQR of yield_bu_ac.", "answer": "Q1 = 40.23, Q3 = 50.95, IQR = 10.73", "formula": "quantile(wheat$yield_bu_ac, c(0.25,0.75), na.rm = TRUE); IQR(wheat$yield_bu_ac, na.rm = TRUE)"},
+            {"label": "d", "text": "Compute the 90th percentile of yield_bu_ac and explain what it means.", "answer": "54.55 bu/ac — 90% of recorded fields yielded this or less.", "formula": "quantile(wheat$yield_bu_ac, 0.90, na.rm = TRUE)"},
+            {"label": "e", "text": "Compute the mean protein_pct, ignoring missing values.", "answer": "About 15.43%", "formula": "mean(wheat$protein_pct, na.rm = TRUE)"}
+          ]
+        },
+        {
+          "id": "3b",
+          "parts": [
+            {"label": "a", "text": "Compute mean yield for each soil zone (na.rm). Which zone is highest?", "answer": "Black 52.95, Dark Brown 45.17, Brown 38.58 — Black is highest.", "formula": "wheat |> group_by(soil_zone) |> summarise(m = mean(yield_bu_ac, na.rm = TRUE))"},
+            {"label": "b", "text": "Compute mean yield for each variety. Which yields most on average?", "answer": "CDC Landmark 47.60, AAC Brandon 44.36, AAC Viewfield 43.83 — CDC Landmark highest.", "formula": "wheat |> group_by(variety) |> summarise(m = mean(yield_bu_ac, na.rm = TRUE))"},
+            {"label": "c", "text": "How many fields have yield strictly greater than 50 bu/ac? (Mind the NAs.)", "answer": "39 fields", "formula": "sum(wheat$yield_bu_ac > 50, na.rm = TRUE)"},
+            {"label": "d", "text": "Compute the range (min and max) of yield_bu_ac, ignoring NAs.", "answer": "30.2 to 67.3 bu/ac", "formula": "range(wheat$yield_bu_ac, na.rm = TRUE)"},
+            {"label": "e", "text": "Run summary() on yield_bu_ac and protein_pct. How many NAs does each report?", "answer": "yield_bu_ac: 4 NAs; protein_pct: 3 NAs", "formula": "summary(wheat[, c(\"yield_bu_ac\", \"protein_pct\")])"}
+          ]
+        }
+      ]
+    },
+    {
+      "type_id": 4,
+      "type_name": "Scripting, Reproducibility & AI",
+      "description": "Short-answer conceptual questions on good R scripts, reproducibility, and AI use.",
+      "questions": [
+        {
+          "id": "4a",
+          "parts": [
+            {"label": "a", "text": "Give two reasons we use R in addition to Excel, and one situation where Excel is still better.", "answer": "R: reproducible, scales past 1M rows, version-controllable, composable, stronger stats. Excel: quick ad-hoc work, interactive workbooks for non-technical colleagues, formatted tables.", "formula": "n/a (concept)"},
+            {"label": "b", "text": "Explain what <- does and what c() does.", "answer": "<- assigns a value to a variable; c() combines values into a vector.", "formula": "n/a (concept)"},
+            {"label": "c", "text": "A colleague edited the CSV in Excel then re-ran their R script and got a different answer. Why is this a reproducibility problem, and how do you avoid it?", "answer": "The data was changed outside the script, so the script no longer fully records the analysis. Fix: do all cleaning in the script, reading the raw unedited CSV.", "formula": "n/a (concept)"},
+            {"label": "d", "text": "Describe one task where an AI assistant helps, and one where relying on it could mislead you.", "answer": "Helps: scaffolding, explaining errors, recalling function names, boilerplate. Misleads: wrong column assumptions, outdated syntax, code that runs but answers the wrong question. Safeguard: understand every line before running.", "formula": "n/a (concept)"}
+          ]
+        },
+        {
+          "id": "4b",
+          "parts": [
+            {"label": "a", "text": "List three habits of a well-written R script.", "answer": "Any three: header comment; libraries at top; comments explain why not what; descriptive names; named steps; re-runnable from scratch; test on a subset first.", "formula": "n/a (concept)"},
+            {"label": "b", "text": "A script computes mean(wheat$yield_bu_ac) and gets NA. Most likely cause and one-argument fix?", "answer": "The column has missing values (NA), which mean() propagates. Fix: add na.rm = TRUE.", "formula": "mean(wheat$yield_bu_ac, na.rm = TRUE)"},
+            {"label": "c", "text": "Explain what 're-runnable from scratch' means and why the course insists on it.", "answer": "Clearing the environment, restarting R, and running top-to-bottom reproduces the same results with no manual steps. It is the working definition of reproducibility.", "formula": "n/a (concept)"},
+            {"label": "d", "text": "Why does the course allow AI on assignments but not on tests?", "answer": "Assignments build responsible-AI-use skills; tests verify that the understanding is the student's own, not the tool's.", "formula": "n/a (concept)"}
+          ]
+        }
+      ]
+    }
+  ]
+}

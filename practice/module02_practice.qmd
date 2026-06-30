@@ -1,0 +1,428 @@
+# Module 2 — Test Bank {.unnumbered}
+
+## Instructions
+
+Each practice test consists of **four questions**, one from each type below. Download the dataset, do the work in R (in Positron), and check your answers by expanding the answer section below each question.
+
+On the **real test**, you will receive a PDF with four questions and will submit a single **`.R` script** that reads the dataset, performs the analysis, and prints the answers to the console. Your script must run top-to-bottom from a fresh session without errors. You will have access to the full test bank for practice — the test draws one question randomly from each type.
+
+A few expectations for every script you submit:
+
+- Start the script with a header comment (your name, the date, what the script does).
+- Load any libraries you use (`library(tidyverse)`) at the **top**.
+- Read the data with a **relative path**, assuming the CSV is in the same folder as the script.
+- Use **formulas/functions**, not hard-coded numbers — e.g. `mean(wheat$yield_bu_ac, na.rm = TRUE)`, not `45.33`.
+
+### Dataset
+
+Download: [`sask_wheat_2025.csv`](data/sask_wheat_2025.csv) — 150 spring-wheat fields in Saskatchewan in 2025.
+
+| Column | Description |
+|--------|------------|
+| `field_id` | Unique field identifier (W001–W150) |
+| `soil_zone` | Brown, Dark Brown, or Black |
+| `variety` | AAC Brandon, CDC Landmark, or AAC Viewfield |
+| `acres` | Field size in acres |
+| `yield_bu_ac` | Yield in bushels per acre (**4 values are missing** — coded as `NA`) |
+| `protein_pct` | Grain protein content, percent (**3 values are missing**) |
+| `seeded_rate_lb_ac` | Seeding rate in pounds per acre |
+
+This dataset deliberately contains a few **missing values** in `yield_bu_ac` and `protein_pct`. Watch for them — several questions depend on handling `NA` correctly.
+
+Read the file with `read_csv()` from the tidyverse:
+
+```r
+library(tidyverse)
+wheat <- read_csv("sask_wheat_2025.csv")
+```
+
+`read_csv()` reads blank cells as `NA`. Confirm the column types it guessed look right (`yield_bu_ac` and `protein_pct` should be numeric, `dbl`).
+
+---
+
+## Type 1: Reading Data and Exploring
+
+These questions check that you can get a dataset into R and inspect it. Your script should read the CSV and then print the answers. Use `print()` (or just the bare object) so the answers appear in the console when the script runs.
+
+### Variant 1A
+
+**(a)** Read `sask_wheat_2025.csv` into a data frame called `wheat`.
+
+**(b)** How many **rows** does the dataset have? How many **columns**? Use functions, not manual counting.
+
+**(c)** Print the **names** of all the columns.
+
+**(d)** Print the **first 6 rows** of the data.
+
+**(e)** Run `summary(wheat)`. From its output, what is the **mean yield** that `summary()` reports, and how does `summary()` indicate the **missing values** in `yield_bu_ac`?
+
+<details>
+<summary>**Answers**</summary>
+
+```r
+library(tidyverse)
+
+wheat <- read_csv("sask_wheat_2025.csv")   # (a)
+
+nrow(wheat)    # (b) 150 rows
+ncol(wheat)    # (b) 7 columns
+names(wheat)   # (c)
+head(wheat)    # (d) first 6 rows (W001–W006)
+
+summary(wheat) # (e)
+```
+
+| Part | Answer |
+|------|--------|
+| (b) | 150 rows, 7 columns |
+| (c) | `field_id`, `soil_zone`, `variety`, `acres`, `yield_bu_ac`, `protein_pct`, `seeded_rate_lb_ac` |
+| (d) | First six fields are W001–W006 |
+| (e) | `summary()` reports a mean yield of about **45.33**, and shows `NA's : 4` in the `yield_bu_ac` column |
+
+**Note:** `summary()` automatically ignores `NA`s when computing the mean, which is why it still returns a number. This is different from calling `mean()` directly (see Type 3).
+
+**Common mistakes:**
+
+- Using `read.csv()` (base R) instead of `read_csv()` (tidyverse). Both work, but the course standard is `read_csv()`, and it reports column types.
+- Counting rows or columns by eye instead of with `nrow()` / `ncol()`.
+- Hard-coding the answer (`150`) instead of letting the function compute it.
+
+</details>
+
+### Variant 1B
+
+**(a)** Read `sask_wheat_2025.csv` into a data frame called `wheat`.
+
+**(b)** Print the **last 6 rows** of the data.
+
+**(c)** How many **distinct soil zones** appear in the data? List them. (Hint: `unique()` or `n_distinct()`.)
+
+**(d)** How many fields are missing a `yield_bu_ac` value? (Hint: `sum(is.na(...))`.)
+
+**(e)** What **variety** was planted in field **W050**? Extract it with code, do not scroll through the data.
+
+<details>
+<summary>**Answers**</summary>
+
+```r
+library(tidyverse)
+
+wheat <- read_csv("sask_wheat_2025.csv")
+
+tail(wheat)                             # (b) last 6 rows (W145–W150)
+
+unique(wheat$soil_zone)                 # (c)
+n_distinct(wheat$soil_zone)             # (c) 3
+
+sum(is.na(wheat$yield_bu_ac))           # (d) 4
+
+wheat$variety[wheat$field_id == "W050"] # (e)
+# tidyverse alternative:
+wheat |> filter(field_id == "W050") |> pull(variety)
+```
+
+| Part | Answer |
+|------|--------|
+| (c) | 3 zones: Brown, Dark Brown, Black |
+| (d) | 4 fields are missing a yield value (W017, W058, W096, W133) |
+| (e) | W050 was planted with **AAC Brandon** |
+
+**Common mistakes:**
+
+- Using `length(unique(...))` is fine, but `n_distinct()` is the tidyverse idiom and handles `NA` more cleanly.
+- Forgetting that `is.na()` returns a logical vector — you need `sum()` around it to get a count.
+- For (e), using `==` to filter a string requires the value in quotes: `"W050"`, not `W050`.
+
+</details>
+
+---
+
+## Type 2: Vectors and Functions
+
+These questions test the building blocks: creating vectors, element-wise arithmetic, and calling functions. You do **not** need the CSV for most of these — you create the vectors in your script.
+
+### Variant 2A
+
+**(a)** Create a vector called `v` containing the five values 48, 52, 47, 55, 50.
+
+**(b)** Compute the **mean**, **median**, and **sample standard deviation** of `v`.
+
+**(c)** What does `v * 2` return? What does `length(v)` return?
+
+**(d)** Create a second vector `b <- c(10, 20, 30)` and a vector `a <- c(1, 2, 3)`. What is `a + b`? Explain in one sentence what "element-wise" means.
+
+**(e)** Using the `wheat` dataset, extract the `acres` column as a vector and compute its **mean**.
+
+<details>
+<summary>**Answers**</summary>
+
+```r
+v <- c(48, 52, 47, 55, 50)   # (a)
+
+mean(v)     # (b) 50.4
+median(v)   # (b) 50
+sd(v)       # (b) 3.21 (sample sd)
+
+v * 2       # (c) 96 104 94 110 100  — each element doubled
+length(v)   # (c) 5
+
+a <- c(1, 2, 3)
+b <- c(10, 20, 30)
+a + b       # (d) 11 22 33
+
+mean(wheat$acres)  # (e) about 338.76
+```
+
+| Part | Answer |
+|------|--------|
+| (b) | mean = 50.4, median = 50, sd ≈ 3.21 |
+| (c) | `v * 2` = `96 104 94 110 100`; `length(v)` = 5 |
+| (d) | `a + b` = `11 22 33` |
+| (e) | mean acres ≈ 338.76 |
+
+**Part (d) explanation:** "Element-wise" means the operation is applied to each pair of corresponding positions: position 1 with position 1, position 2 with position 2, and so on. R does this automatically without a loop.
+
+**Common mistakes:**
+
+- Using `sd()` and expecting the *population* standard deviation — R's `sd()` is always the **sample** sd (divides by n − 1). There is no built-in population sd.
+- Writing `c(48 52 47 55 50)` (spaces) instead of `c(48, 52, 47, 55, 50)` (commas).
+- For (e), `acres` has no missing values, so `na.rm` is not required here — but it never hurts to include it.
+
+</details>
+
+### Variant 2B
+
+**(a)** Create a vector `prices <- c(8.50, 9.10, 8.95, 9.40, 8.75)` (price per bushel, in dollars).
+
+**(b)** Compute the **sum** and the **maximum** of `prices`.
+
+**(c)** Create a vector `bushels <- c(1200, 1500, 1100, 1800, 1350)`. Compute **total revenue** as the element-wise product of `prices` and `bushels`, summed. (Hint: `sum(prices * bushels)`.)
+
+**(d)** What does `quantile(bushels, 0.25)` return, and what does it mean?
+
+**(e)** Using the `wheat` dataset, extract the `seeded_rate_lb_ac` column and compute its **minimum** and **maximum**.
+
+<details>
+<summary>**Answers**</summary>
+
+```r
+prices  <- c(8.50, 9.10, 8.95, 9.40, 8.75)   # (a)
+
+sum(prices)   # (b) 44.70
+max(prices)   # (b) 9.40
+
+bushels <- c(1200, 1500, 1100, 1800, 1350)
+sum(prices * bushels)   # (c) total revenue
+
+quantile(bushels, 0.25) # (d)
+
+min(wheat$seeded_rate_lb_ac)  # (e)
+max(wheat$seeded_rate_lb_ac)  # (e)
+```
+
+| Part | Answer |
+|------|--------|
+| (b) | sum = 44.70, max = 9.40 |
+| (c) | `sum(prices * bushels)` = 8.50×1200 + 9.10×1500 + 8.95×1100 + 9.40×1800 + 8.75×1350 = **\$58,807.50** |
+| (d) | The first quartile of `bushels` = 1200 — 25% of the values are at or below it |
+| (e) | seeding rate ranges from about 90 to 140 lb/ac |
+
+**Part (c) note:** This is the same idea as Excel's `SUMPRODUCT`. `prices * bushels` multiplies element-by-element, and `sum()` adds the results.
+
+**Common mistakes:**
+
+- Computing `sum(prices) * sum(bushels)` instead of `sum(prices * bushels)`. The first multiplies the totals (wrong); the second multiplies row-by-row then totals (right).
+- Passing a percentage (25) to `quantile()` instead of a proportion (0.25).
+
+</details>
+
+---
+
+## Type 3: Summary Statistics in R (and Missing Values)
+
+These questions use the `wheat` dataset and focus on computing statistics in R — **and handling the missing values correctly**. Remember: if a column contains `NA`, functions like `mean()` and `sd()` return `NA` unless you pass `na.rm = TRUE`.
+
+### Variant 3A
+
+**(a)** Compute the **mean** of `yield_bu_ac`. What happens if you forget `na.rm = TRUE`? Show both, and explain in one sentence why they differ.
+
+**(b)** Compute the **median**, **sample standard deviation**, and **sample variance** of `yield_bu_ac` (ignoring missing values).
+
+**(c)** Compute the **first and third quartiles (Q1, Q3)** and the **IQR** of `yield_bu_ac`.
+
+**(d)** Compute the **90th percentile** of `yield_bu_ac`. Write one sentence explaining what it means.
+
+**(e)** Compute the **mean `protein_pct`**, ignoring missing values.
+
+<details>
+<summary>**Answers**</summary>
+
+```r
+mean(wheat$yield_bu_ac)                 # (a) NA  — because there are 4 NAs
+mean(wheat$yield_bu_ac, na.rm = TRUE)   # (a) 45.33
+
+median(wheat$yield_bu_ac, na.rm = TRUE) # (b) 45.05
+sd(wheat$yield_bu_ac,     na.rm = TRUE) # (b) 7.34
+var(wheat$yield_bu_ac,    na.rm = TRUE) # (b) 53.81
+
+quantile(wheat$yield_bu_ac, 0.25, na.rm = TRUE)  # (c) Q1 ≈ 40.23
+quantile(wheat$yield_bu_ac, 0.75, na.rm = TRUE)  # (c) Q3 ≈ 50.95
+IQR(wheat$yield_bu_ac, na.rm = TRUE)             # (c) ≈ 10.73
+
+quantile(wheat$yield_bu_ac, 0.90, na.rm = TRUE)  # (d) ≈ 54.55
+
+mean(wheat$protein_pct, na.rm = TRUE)            # (e) ≈ 15.43
+```
+
+| Part | Value |
+|------|-------|
+| (a) without `na.rm` | `NA` |
+| (a) with `na.rm = TRUE` | 45.33 bu/ac |
+| (b) median | 45.05 bu/ac |
+| (b) sample sd | 7.34 bu/ac |
+| (b) sample variance | 53.81 (bu/ac)² |
+| (c) Q1 / Q3 | 40.23 / 50.95 bu/ac |
+| (c) IQR | 10.73 bu/ac |
+| (d) P90 | 54.55 bu/ac |
+| (e) mean protein | 15.43% |
+
+**Part (a) explanation:** Without `na.rm = TRUE`, `mean()` returns `NA` because R cannot average a set that contains an unknown value — any arithmetic involving `NA` is `NA`. Passing `na.rm = TRUE` drops the missing values first, then averages the rest.
+
+**Part (d) interpretation:** 90% of fields (with a recorded yield) yielded 54.55 bu/ac or less; only the top 10% exceeded it.
+
+**Common mistakes:**
+
+- Forgetting `na.rm = TRUE` and reporting `NA` as the answer. If a summary function returns `NA`, missing values are the first thing to check.
+- Using `var()` and forgetting the units are **squared** (bu/ac)².
+- `quantile()` returns a *named* value (e.g. `90%`). That is fine — the number is what matters.
+
+</details>
+
+### Variant 3B
+
+**(a)** Compute the **mean yield for each soil zone** (Brown, Dark Brown, Black), ignoring missing values. Which zone has the highest mean yield? (You may use base R subsetting or a `group_by()`/`summarise()` pipe.)
+
+**(b)** Compute the **mean yield for each variety**. Which variety yields the most on average?
+
+**(c)** How many fields have a yield **strictly greater than 50 bu/ac**? (Remember the `NA`s — they should not be counted.)
+
+**(d)** Compute the **range** (min and max) of `yield_bu_ac`, ignoring missing values.
+
+**(e)** Run `summary()` on just the `yield_bu_ac` and `protein_pct` columns. How many `NA`s does each report?
+
+<details>
+<summary>**Answers**</summary>
+
+```r
+# (a) and (b) — the tidyverse way (you will master this in Module 3):
+wheat |>
+  group_by(soil_zone) |>
+  summarise(mean_yield = mean(yield_bu_ac, na.rm = TRUE),
+            n = n()) |>
+  arrange(desc(mean_yield))
+
+wheat |>
+  group_by(variety) |>
+  summarise(mean_yield = mean(yield_bu_ac, na.rm = TRUE)) |>
+  arrange(desc(mean_yield))
+
+# (c) — count yields above 50; na.rm so NAs are not miscounted:
+sum(wheat$yield_bu_ac > 50, na.rm = TRUE)
+
+# (d):
+range(wheat$yield_bu_ac, na.rm = TRUE)
+
+# (e):
+summary(wheat[, c("yield_bu_ac", "protein_pct")])
+```
+
+**Part (a) — mean yield by soil zone:**
+
+| Soil zone | Mean yield (bu/ac) | n |
+|-----------|--------------------|---|
+| Black | **52.95** | 42 |
+| Dark Brown | 45.17 | 58 |
+| Brown | 38.58 | 46 |
+
+**Black** soil has the highest mean yield, which matches the agronomy — Black soil zones are the most productive in the Prairies.
+
+**Part (b) — mean yield by variety:**
+
+| Variety | Mean yield (bu/ac) |
+|---------|--------------------|
+| CDC Landmark | **47.60** |
+| AAC Brandon | 44.36 |
+| AAC Viewfield | 43.83 |
+
+**CDC Landmark** yields the most on average.
+
+| Part | Answer |
+|------|--------|
+| (c) | 39 fields yield above 50 bu/ac |
+| (d) | range = 30.2 to 67.3 bu/ac |
+| (e) | `yield_bu_ac`: 4 `NA`s; `protein_pct`: 3 `NA`s |
+
+**Common mistakes:**
+
+- For (c), omitting `na.rm = TRUE` makes `sum(...)` return `NA`, because `NA > 50` is `NA`, and summing anything with `NA` gives `NA`.
+- Reporting `group_by()` results without `na.rm = TRUE` inside `mean()` — any group containing a missing yield would come back `NA`.
+
+</details>
+
+---
+
+## Type 4: Scripting, Reproducibility, and AI
+
+These are short-answer / conceptual questions. On the real test you would type your answers as **comments inside your `.R` script**, or in a short text block. There is no single correct wording — the answers below show what a full-credit response covers.
+
+### Variant 4A
+
+**(a)** Give **two reasons** we use R in addition to Excel, and **one situation** where Excel is still the better choice.
+
+**(b)** Explain what the `<-` operator does and what `c()` does.
+
+**(c)** Your colleague says: *"I changed the CSV file in Excel, then re-ran my R script and got a different answer."* Explain why this is a **reproducibility problem** and how to avoid it.
+
+**(d)** Describe **one task** where an AI coding assistant would genuinely help you, and **one situation** where relying on it could lead you astray.
+
+<details>
+<summary>**Answers**</summary>
+
+**(a)** Any two of: R analyses are **reproducible** (the script is a permanent, re-runnable record); R **scales** to datasets far larger than Excel's ~1M-row limit; R is **version-controllable** (plain text, meaningful diffs); R is **composable** (apply the same code to many files); R has far stronger **statistical and modelling** tools. Excel is still better for quick ad-hoc calculations, building interactive workbooks for non-technical colleagues, and presenting formatted tables.
+
+**(b)** `<-` is the **assignment operator** — it stores a value in a variable (e.g. `x <- 5` puts 5 into `x`). `c()` **combines** individual values into a single vector (e.g. `c(1, 2, 3)`).
+
+**(c)** The problem is that the **data was edited outside the script**, so the script is no longer a complete record of the analysis — re-running it will not reproduce the colleague's result, because the manual Excel edits aren't captured anywhere. The fix is to **do all data cleaning in the script itself** (read the raw, unedited CSV, then transform it in R) so that the raw data plus the script fully determine the output. Never hand-edit the source data.
+
+**(d)** *Helps:* scaffolding a script from a description, explaining an error message, suggesting the name of a function you can't recall, or writing tedious boilerplate. *Leads astray:* it confidently assumes column names/types that don't match your actual data, may use outdated package syntax, can write code that runs cleanly but answers the wrong question, and can introduce subtle bugs (silently dropping rows, approximate instead of exact matching). The safeguard is to **read and understand every line before running it**.
+
+</details>
+
+### Variant 4B
+
+**(a)** List **three habits** of a well-written R script (from the "Writing Good R Scripts" section).
+
+**(b)** A script computes `mean(wheat$yield_bu_ac)` and gets `NA`. What is the most likely cause, and what is the one-argument fix?
+
+**(c)** Explain what it means for a script to be **"re-runnable from scratch,"** and why the course insists on it.
+
+**(d)** The course policy allows AI on assignments but not on tests. In one or two sentences, explain the **reasoning** behind that policy.
+
+<details>
+<summary>**Answers**</summary>
+
+**(a)** Any three of: start with a **header comment** (name, date, purpose, inputs, outputs); **load libraries at the top**; use comments to explain **why, not what**; use **descriptive variable names**; break long operations into **named steps**; make the script **re-runnable from scratch**; **test on a subset** before running on the full data.
+
+**(b)** The column almost certainly contains **missing values (`NA`)**, and `mean()` propagates `NA` by default. The fix is to add **`na.rm = TRUE`**: `mean(wheat$yield_bu_ac, na.rm = TRUE)`.
+
+**(c)** "Re-runnable from scratch" means that if you **clear your environment, restart R, and run the script top-to-bottom**, you get exactly the same results — without clicking anything or running commands in a special order outside the script. The course insists on it because it is the operational definition of reproducibility: a result no one can reproduce (including future-you) cannot be trusted or built upon.
+
+**(d)** AI is a real part of professional data work, so assignments let you practise using it responsibly — but the **understanding has to be yours**. Tests are AI-free precisely to verify that you, not the tool, can actually read data, compute statistics, and reason about results.
+
+</details>
+
+---
+
+## Auto-Generated Practice Quiz
+
+For a randomized practice quiz that draws one question from each type, visit the [Practice Quiz Generator](quiz2/index.html). Each time you click **Generate quiz**, you get a fresh set of four questions — just like the real module test.
