@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AREC 261 — Module 2 Practice Quiz</title>
+<style>
+  :root {
+    --primary: #2a6b4a;
+    --accent: #d4a53a;
+    --bg: #fafaf7;
+    --card: #ffffff;
+    --text: #222;
+    --muted: #666;
+    --border: #ddd;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    max-width: 850px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+  }
+  header { border-bottom: 3px solid var(--primary); padding-bottom: 1rem; margin-bottom: 1.5rem; }
+  h1 { color: var(--primary); margin: 0 0 0.25rem 0; }
+  .subtitle { color: var(--muted); margin: 0; }
+  .intro { background: var(--card); padding: 1.25rem 1.5rem; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 1.5rem; }
+  .intro ul { margin: 0.5rem 0 0 1.25rem; padding: 0; }
+  .button-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin: 1.5rem 0; }
+  button { background: var(--primary); color: white; border: none; padding: 0.75rem 1.5rem; font-size: 1rem; font-weight: 600; border-radius: 6px; cursor: pointer; transition: background 0.15s; }
+  button:hover { background: #1f5138; }
+  button.secondary { background: #777; }
+  button.secondary:hover { background: #555; }
+  .datasets-box { background: #fffbe6; border: 1px solid #e8d273; padding: 1rem 1.25rem; border-radius: 6px; margin-bottom: 1rem; }
+  .datasets-box p { margin: 0.25rem 0; }
+  .datasets-box a { color: #8a6b0b; font-weight: 600; }
+  .quiz { margin-top: 1rem; }
+  .empty-state { background: var(--card); border: 1px dashed var(--border); padding: 2rem; text-align: center; color: var(--muted); border-radius: 8px; }
+  .question { background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--primary); padding: 1.25rem 1.5rem; margin-bottom: 1.25rem; border-radius: 6px; }
+  .question-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
+  .question-number { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--primary); font-weight: 700; }
+  .question-topic { display: inline-block; background: var(--accent); color: #222; padding: 0.15rem 0.5rem; border-radius: 3px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+  .question-desc { color: var(--muted); font-size: 0.9rem; font-style: italic; margin-bottom: 0.75rem; }
+  .part { margin: 0.6rem 0; padding-left: 0.5rem; }
+  .part-label { font-weight: 700; color: var(--primary); margin-right: 0.3rem; }
+  .answer-section { margin-top: 1rem; padding: 1rem 1.25rem; background: #f0f7f3; border-radius: 5px; border-left: 3px solid var(--primary); display: none; }
+  .answer-section.open { display: block; }
+  .answer-part { margin: 0.5rem 0; font-size: 0.92rem; }
+  .answer-part .part-label { color: var(--primary); }
+  .answer-part code { background: #fff; padding: 0.1rem 0.35rem; border-radius: 3px; border: 1px solid var(--border); font-family: "SF Mono", Consolas, monospace; font-size: 0.88em; }
+  .reveal-btn { background: transparent; border: 1px solid var(--primary); color: var(--primary); font-size: 0.85rem; padding: 0.35rem 0.9rem; margin-top: 0.5rem; }
+  .reveal-btn:hover { background: var(--primary); color: white; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.85rem; text-align: center; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>AREC 261 — Module 2 Practice Quiz</h1>
+  <p class="subtitle">Four questions, one from each type — just like the real test</p>
+</header>
+
+<div class="intro">
+  <strong>How this works.</strong> Click <em>Generate quiz</em> to draw one random question from each of the four question types:
+  <ul>
+    <li><strong>Type 1 — Reading Data &amp; Exploring:</strong> read_csv, nrow, ncol, names, head, summary</li>
+    <li><strong>Type 2 — Vectors &amp; Functions:</strong> c(), element-wise arithmetic, mean/sd/sum/max</li>
+    <li><strong>Type 3 — Summary Statistics in R:</strong> statistics on the data, handling NA with na.rm</li>
+    <li><strong>Type 4 — Scripting, Reproducibility &amp; AI:</strong> short-answer concept questions</li>
+  </ul>
+  Download the dataset, work through the questions in R (Positron), then click <em>Reveal answer</em> to check yourself.
+</div>
+
+<div class="datasets-box">
+  <strong>Dataset:</strong>
+  <p><a href="../data/sask_wheat_2025.csv" download>sask_wheat_2025.csv</a> — 150 spring-wheat fields in Saskatchewan, 2025 (some values missing)</p>
+  <p style="font-size:0.85rem; color:#666;">Read with <code>read_csv("sask_wheat_2025.csv")</code>. Watch for the missing (<code>NA</code>) yield and protein values.</p>
+</div>
+
+<div class="button-row">
+  <button id="generate-btn">Generate quiz</button>
+  <button id="reveal-all-btn" class="secondary">Reveal all answers</button>
+  <button id="hide-all-btn" class="secondary">Hide all answers</button>
+</div>
+
+<div id="quiz" class="quiz">
+  <div class="empty-state">
+    Click <strong>Generate quiz</strong> above to draw four random practice questions.
+  </div>
+</div>
+
+<footer>
+  AREC 261: Agricultural Data Analytics I &middot; University of Saskatchewan &middot; Peter Slade
+</footer>
+
+<script>
+  let bank = null;
+
+  async function loadBank() {
+    try {
+      const res = await fetch("questions.json");
+      bank = await res.json();
+    } catch (e) {
+      document.getElementById("quiz").innerHTML =
+        '<div class="empty-state" style="color:#a33;">Could not load questions.json. ' +
+        'If opening locally, run <code>python3 -m http.server</code> from the practice directory, ' +
+        'then visit <code>http://localhost:8000/quiz2/</code>.</div>';
+    }
+  }
+
+  function pickRandom(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  function escape(s) {
+    return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+
+  function renderQuestion(q, typeInfo, qIndex) {
+    const partsHtml = q.parts.map(p =>
+      `<div class="part"><span class="part-label">(${escape(p.label)})</span> ${escape(p.text)}</div>`
+    ).join("");
+
+    const answerPartsHtml = q.parts.map(p => {
+      const codeLine = (p.formula && p.formula !== "n/a (concept)")
+        ? `<br>Code: <code>${escape(p.formula)}</code>`
+        : "";
+      return `<div class="answer-part">
+        <span class="part-label">(${escape(p.label)})</span>
+        <strong>${escape(p.answer)}</strong>${codeLine}
+      </div>`;
+    }).join("");
+
+    return `
+      <div class="question">
+        <div class="question-header">
+          <span class="question-number">Question ${qIndex + 1}</span>
+          <span class="question-topic">${escape(typeInfo.type_name)}</span>
+        </div>
+        <div class="question-desc">${escape(typeInfo.description)}</div>
+        ${partsHtml}
+        <button class="reveal-btn" data-idx="${qIndex}">Reveal answer</button>
+        <div class="answer-section" id="ans-${qIndex}">
+          ${answerPartsHtml}
+        </div>
+      </div>
+    `;
+  }
+
+  function generateQuiz() {
+    if (!bank) { alert("Question bank not loaded yet."); return; }
+
+    const picked = bank.question_types.map((typeInfo, i) => {
+      const q = pickRandom(typeInfo.questions);
+      return renderQuestion(q, typeInfo, i);
+    });
+
+    document.getElementById("quiz").innerHTML = picked.join("");
+
+    document.querySelectorAll(".reveal-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const idx = btn.getAttribute("data-idx");
+        const ans = document.getElementById("ans-" + idx);
+        const isOpen = ans.classList.toggle("open");
+        btn.textContent = isOpen ? "Hide answer" : "Reveal answer";
+      });
+    });
+  }
+
+  document.getElementById("generate-btn").addEventListener("click", generateQuiz);
+
+  document.getElementById("reveal-all-btn").addEventListener("click", () => {
+    document.querySelectorAll(".answer-section").forEach(a => a.classList.add("open"));
+    document.querySelectorAll(".reveal-btn").forEach(b => b.textContent = "Hide answer");
+  });
+
+  document.getElementById("hide-all-btn").addEventListener("click", () => {
+    document.querySelectorAll(".answer-section").forEach(a => a.classList.remove("open"));
+    document.querySelectorAll(".reveal-btn").forEach(b => b.textContent = "Reveal answer");
+  });
+
+  loadBank();
+</script>
+
+</body>
+</html>
