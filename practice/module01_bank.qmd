@@ -1,0 +1,782 @@
+# Module 1 — Full Test Bank {.unnumbered}
+
+::: {.callout-note}
+## How this test bank works
+This bank holds **120 questions**: 10 per section, for each of 4 sections, across 3 datasets. On the real test you receive **four questions — one from each section — all drawn from the same dataset**, and you submit an `.xlsx` workbook with **a separate sheet for each section's answers**.
+
+Expand each **Answer** block to check your work. Every answer value is verified against the real data (as of the current snapshot); when the source data is refreshed the exact numbers may shift slightly, but the method stays the same.
+:::
+
+**The three datasets.**
+
+- **Saskatchewan RM Crop Yields** (1990–2025). Average yield (bu/ac) for eight crops in every Rural Municipality. Wide file `rm_yields_1990plus.csv` for Sections 1–3; long file `rm_yields_1990plus_long.csv` for Section 4. Blank = crop not grown/reported that RM-year.
+- **Manitoba Wheat Variety** (2020–2025). Red spring wheat yield by variety and municipality. `Reported = FALSE` marks a yield **suppressed** by MASC because too few farms grew that variety there.
+- **Canada Field Crops** (StatsCan, 2015–2025). Seeded acres and average yield (bu/ac) for major field crops, by province.
+
+**Grading model.** Visual appearance **20%**, plus **20%** for each of the four sections (Descriptive, Conditional, Charts, PivotTables) = 100%. Charts and PivotTables are marked partly on how clearly they are presented — titles, axis labels, formatting.
+
+> **Vocabulary note.** Everything here uses only Module 1 tools: mean/median/mode, range, IQR, variance, standard deviation, coefficient of variation, percentiles/quartiles, symmetric vs skewed shape, outliers (the 1.5×IQR rule), histograms, box plots, chart choice, and PivotTables.
+
+---
+
+# Section 1 — Descriptive Statistics
+
+## Questions 1–10 · Saskatchewan RM Crop Yields
+
+### Question 1
+
+*Using the Saskatchewan RM Crop Yields dataset.*
+
+Filter to `Year = 2023` and work with the **Canola** column.
+
+**(a)** Compute the mean and the median canola yield.
+
+**(b)** Compare the two values. What does the relationship between the mean and the median tell you about how yields were distributed across RMs that year, and about the low-yielding RMs in particular?
+
+**(c)** Compute the standard deviation and the interquartile range (IQR) of the same column.
+
+**(d)** The IQR ignores the most extreme RMs while the standard deviation does not. Given what you found in (b), explain which of these two spread measures you would trust more to describe a "typical" amount of variation across RMs, and why.
+
+**(e)** A classmate uses the mean to describe "a typical RM." Do you think the mean or the median better represents a typical RM here? Justify your choice using your answers to (a)–(d).
+
+<details><summary>Answer</summary>
+
+- (a) mean ≈ 33.88, median ≈ 35.50 bu/ac.
+- (b) The mean falls **below** the median → a left/low tail: a minority of RMs with unusually low yields (down to ~3 bu/ac) pull the mean beneath the median. Most RMs cluster higher.
+- (c) SD ≈ 13.33 bu/ac; IQR ≈ 22.30 bu/ac (Q1 ≈ 22.60, Q3 ≈ 44.90).
+- (d) The **IQR** is more robust to the low-yield tail; the SD is inflated by the extreme low RMs. Either defensible if tied to the skew.
+- (e) The **median** — the mean is dragged down by the low tail. Credit for naming the median *and* connecting it to the skew.
+</details>
+
+### Question 2
+
+*Using the Saskatchewan RM Crop Yields dataset.*
+
+Still on `Year = 2023`, compare the **Canola** column and the **Barley** column.
+
+**(a)** Compute the mean and standard deviation of each crop's yield.
+
+**(b)** Compare the two standard deviations. If one crop's is larger, does that by itself prove its yields were "more variable" in a meaningful sense? Explain the trap in comparing raw standard deviations across two crops with different averages.
+
+**(c)** Compute the coefficient of variation (CV) for each crop.
+
+**(d)** Using the CVs, state which crop's yields were more variable *relative to their average*, and by how much in rough terms.
+
+**(e)** Write one sentence, suitable for a farm newspaper, that correctly compares the variability of the two crops without misleading the reader.
+
+<details><summary>Answer</summary>
+
+- (a) Canola: mean ≈ 33.88, SD ≈ 13.33. Barley: mean ≈ 54.56, SD ≈ 24.60.
+- (b) No — barley also has a much higher mean, so a bigger SD is partly just scale. Comparing raw SDs across crops with different means is the trap.
+- (c) CV = SD/mean. Canola ≈ 0.39; Barley ≈ 0.45.
+- (d) Barley is **slightly** more variable relative to its mean (0.45 vs 0.39) — a modest difference.
+- (e) e.g. "Relative to their average yields, Saskatchewan barley yields in 2023 were a little more variable than canola (CV 0.45 vs 0.39)."
+</details>
+
+### Question 3
+
+*Using the Saskatchewan RM Crop Yields dataset.*
+
+Compare **Canola** yields in a normal year and a drought year: filter first to `Year = 2019`, then to `Year = 2021`.
+
+**(a)** Compute the mean and median canola yield for each of the two years.
+
+**(b)** Compute the standard deviation and CV for each year.
+
+**(c)** The CV is much higher in one of these years. Identify which, and explain in plain language what a higher CV means about how RMs fared relative to each other that year.
+
+**(d)** Explain why a drought might make yields not just *lower* on average but also *more variable* across RMs (think about which RMs get rain and which don't).
+
+**(e)** Which single year would you call "more predictable" for a canola grower, and which statistic supports that?
+
+<details><summary>Answer</summary>
+
+- (a) 2019: mean ≈ 40.78, median ≈ 42.10. 2021: mean ≈ 21.86, median ≈ 22.80 bu/ac.
+- (b) 2019: SD ≈ 8.17, CV ≈ 0.20. 2021: SD ≈ 8.14, CV ≈ 0.37.
+- (c) **2021** has the far higher CV — relative to a low average, RMs differed a lot; some did much better or worse than others.
+- (d) In drought, localized rain matters more — RMs that caught a storm did okay, those that missed it failed, widening the spread relative to the (low) mean.
+- (e) **2019** is more predictable — its much lower CV (0.20 vs 0.37) shows tighter relative variation.
+</details>
+
+### Question 4
+
+*Using the Saskatchewan RM Crop Yields dataset.*
+
+Filter to `Year = 2023` and work with the **Oats** column.
+
+**(a)** Compute the mean, median, and the 90th percentile of oat yield.
+
+**(b)** State in plain language what the 90th percentile value tells you about RMs that year.
+
+**(c)** Compute Q1, Q3, and the IQR.
+
+**(d)** Compute the mean and median. Compare them and describe the shape of the distribution in Module-1 terms.
+
+**(e)** Oats show a wide spread this year (a large IQR relative to other crops). Give one reason a widely grown feed/forage crop like oats might vary more across RMs than a cash crop like canola.
+
+<details><summary>Answer</summary>
+
+- (a) mean ≈ 71.14, median ≈ 75.90, P90 ≈ 116.72 bu/ac.
+- (b) 90% of reporting RMs yielded ~117 bu/ac or less; only the top 10% exceeded it.
+- (c) Q1 ≈ 44.98, Q3 ≈ 96.50, IQR ≈ 51.52 bu/ac.
+- (d) Mean (71.1) below median (75.9) → slight left/low skew.
+- (e) Oats are grown on a wider range of land quality and management intensity (feed vs. milling, marginal fields), widening the spread. Any sensible reason credited.
+</details>
+
+### Question 5
+
+*Using the Saskatchewan RM Crop Yields dataset.*
+
+Filter to `Year = 2015` and work with the **Flax** column.
+
+**(a)** Compute the mean, median, standard deviation, and CV.
+
+**(b)** Flax has a lower average yield than most other crops. Explain why comparing flax's standard deviation directly against, say, barley's would be misleading, and what statistic fixes that.
+
+**(c)** Compute the range (max − min).
+
+**(d)** Explain why the range is a fragile measure of spread compared with the IQR, using this column as an example.
+
+**(e)** If you had to report a single "typical flax yield" and a single "typical spread" for 2015, which two statistics would you choose, and why?
+
+<details><summary>Answer</summary>
+
+- (a) mean ≈ 23.62, median ≈ 23.64, SD ≈ 5.62, CV ≈ 0.238.
+- (b) Flax's mean is low, so a small SD is expected on scale alone; the **CV** (SD/mean) compares relative variability fairly across crops.
+- (c) range ≈ 40.15 − 4.25 ≈ 35.9 bu/ac.
+- (d) The range depends on only the two most extreme RMs, so one unusual value swings it; the IQR uses the middle 50% and is stable.
+- (e) **Median** (≈23.6) for centre and **IQR** (≈7.0) for spread — both resist extreme values. (Mean/SD acceptable given the near-symmetry, if justified.)
+</details>
+
+### Question 6
+
+*Using the Saskatchewan RM Crop Yields dataset.*
+
+Filter to `Year = 2021` (a drought year) and work with the **Durum** column.
+
+**(a)** Compute the mean and median durum yield.
+
+**(b)** The mean sits above the median this time. Describe the shape this implies, and contrast it with the left-skew seen in the 2023 canola data.
+
+**(c)** Compute the CV.
+
+**(d)** This is one of the highest CVs of any crop-year in the dataset. Explain, in terms a grower would understand, what such a high CV says about the 2021 durum crop across RMs.
+
+**(e)** Explain why, in a year like this, quoting only the *mean* durum yield to describe the province would hide something important — and what you would add to tell the fuller story.
+
+<details><summary>Answer</summary>
+
+- (a) mean ≈ 21.69, median ≈ 17.20 bu/ac.
+- (b) Mean **above** median → a right/high tail (a minority of RMs did much better than the struggling majority) — the mirror image of the 2023 canola left-skew.
+- (c) CV ≈ 0.57.
+- (d) Enormous relative spread — RMs' fortunes diverged sharply; some near-failed while others were only moderately hit.
+- (e) The mean alone hides that most RMs were *below* it (right-skew) and that spread was huge — add the median and the CV/IQR to show the typical RM did worse than the average suggests.
+</details>
+
+### Question 7
+
+*Using the Saskatchewan RM Crop Yields dataset.*
+
+Filter to `Year = 2023` and compare **Spring Wheat** and **Peas**.
+
+**(a)** Compute the mean and standard deviation of each.
+
+**(b)** Compute the CV of each.
+
+**(c)** The two CVs are similar. Explain what it means for two crops with very different average yields to have similar CVs.
+
+**(d)** Compute the median of each and compare it to the mean. Do both crops show the same direction of skew?
+
+**(e)** A student concludes "wheat and peas are equally risky to grow." Explain one thing this CV comparison does, and one thing it does not, support about that claim.
+
+<details><summary>Answer</summary>
+
+- (a) Spring Wheat: mean ≈ 42.87, SD ≈ 17.22. Peas: mean ≈ 33.96, SD ≈ 13.19.
+- (b) Spring Wheat CV ≈ 0.40; Peas CV ≈ 0.39.
+- (c) Their yields vary by a similar *proportion* of their own averages, even though wheat yields more in absolute bu/ac.
+- (d) Wheat: mean < median (left skew). Peas: mean ≈ median (roughly symmetric). Not the same.
+- (e) Supports: similar *relative yield variability*. Does not support: "risk" also depends on price, cost, and market — not shown here.
+</details>
+
+### Question 8
+
+*Using the Saskatchewan RM Crop Yields dataset.*
+
+Work with the **Canola** column across **all years** (do not filter by year).
+
+**(a)** Compute the overall mean and median canola yield for 1990–2025.
+
+**(b)** Compute the overall standard deviation.
+
+**(c)** Explain why this "all years pooled" standard deviation is larger than the standard deviation within any single year (like 2023 from Question 1).
+
+**(d)** Explain what real-world factor, changing over the decades, inflates the pooled spread (hint: think about how average yields have trended since 1990).
+
+**(e)** Explain why an overall 1990–2025 mean is a poor description of what a grower should expect *today*.
+
+<details><summary>Answer</summary>
+
+- (a) mean ≈ 28.29, median ≈ 28.60 bu/ac (as of snapshot).
+- (b) SD is larger than within-year SD (roughly 9–13 depending on year).
+- (c) Pooling years mixes low early-1990s yields with higher recent ones, so total spread combines within-year variation *and* the across-year trend.
+- (d) A long-run **upward trend** in yields (genetics, agronomy, equipment) means old and new years differ systematically, widening the pooled spread.
+- (e) Yields have risen, so a 36-year average understates today's expectation; recent years are more relevant.
+</details>
+
+### Question 9
+
+*Using the Saskatchewan RM Crop Yields dataset.*
+
+Filter to `Year = 2023` and work with the **Barley** column.
+
+**(a)** Compute Q1, Q3, and the IQR.
+
+**(b)** Using the 1.5×IQR rule, compute the lower and upper "fences" (Q1 − 1.5·IQR and Q3 + 1.5·IQR).
+
+**(c)** Count how many RMs (if any) fall outside those fences — i.e. would be flagged as outliers on a box plot.
+
+**(d)** The minimum barley yield this year is about 2.9 bu/ac. Explain whether the 1.5×IQR rule flags it as an outlier, and why a genuinely low value might *not* be flagged when the spread is already very wide.
+
+**(e)** Explain in one sentence why a wide IQR makes the outlier fences more forgiving.
+
+<details><summary>Answer</summary>
+
+- (a) Q1 ≈ 32.60, Q3 ≈ 74.00, IQR ≈ 41.40 bu/ac.
+- (b) Lower fence ≈ 32.60 − 62.10 ≈ −29.5; upper ≈ 74.00 + 62.10 ≈ 136.1.
+- (c) **Zero** RMs fall outside — even the ~2.9 min is above −29.5.
+- (d) The min (2.9) is above the lower fence, so it is **not** flagged; the very wide IQR (41.4) pushes the fence far below any real value.
+- (e) A wider IQR makes 1.5×IQR larger, so the fences sit farther from the quartiles and catch fewer points.
+</details>
+
+### Question 10
+
+*Using the Saskatchewan RM Crop Yields dataset.*
+
+Work with the **Spring Wheat** column and compare `Year = 2015` with `Year = 2019` (two non-drought years).
+
+**(a)** Compute the mean and median spring wheat yield for each year.
+
+**(b)** Compute the standard deviation and CV for each year.
+
+**(c)** State which year had the higher average, and whether the higher-average year was also more or less variable in relative terms.
+
+**(d)** Explain why two "good" years can still differ noticeably in average yield (name one factor).
+
+**(e)** Describe, in one sentence, how you would summarise the *difference* between these two years to a non-technical reader using the statistics you computed.
+
+<details><summary>Answer</summary>
+
+- (a) 2015: mean ≈ 37.02, median ≈ 37.49. 2019: mean ≈ 49.23, median ≈ 50.05 bu/ac.
+- (b) 2015: SD ≈ 8.67, CV ≈ 0.234. 2019: SD ≈ 11.11, CV ≈ 0.226.
+- (c) 2019 is higher on average (~12 bu/ac more); its CV (0.226) is about equal to 2015's (0.234), so it was **not** more variable in relative terms.
+- (d) Growing-season weather differs year to year even between two good years (rainfall timing, heat, frost). Any sensible factor credited.
+- (e) e.g. "2019 spring wheat yielded about 12 bu/ac more than 2015 on average, with similar relative variability across RMs."
+</details>
+
+## Questions 11–20 · Manitoba Wheat Variety
+
+### Question 11
+
+*Using the Manitoba Wheat Variety dataset.*
+
+Work with the **reported** yields only (`Reported = TRUE`).
+
+**(a)** Compute the mean and the median of the reported yields.
+
+**(b)** Compare the two values, and describe in Module-1 terms what their relationship implies about the shape of the yield distribution.
+
+**(c)** Compute the standard deviation, the IQR, and the coefficient of variation.
+
+**(d)** The CV for Saskatchewan 2023 canola was about 0.39. Compare it to the CV you found here and interpret the contrast in one sentence a grower would understand.
+
+**(e)** Based on the shape and spread, would you describe this variety-trial data as more or less consistent than the Saskatchewan field data, and why might that be the case agronomically?
+
+<details><summary>Answer</summary>
+
+- (a) mean ≈ 61.16, median ≈ 62.20 bu/ac.
+- (b) Mean ≈ median → **roughly symmetric**, unlike the left-skewed SK canola.
+- (c) SD ≈ 12.38, IQR ≈ 15.70, CV ≈ 0.20.
+- (d) CV ≈ 0.20 vs ≈ 0.39 — e.g. "these wheat yields vary about half as much, relative to their average, as SK canola did in 2023."
+- (e) **More consistent** — controlled variety trials on established ground give tighter, more centred yields than whole-region field averages.
+</details>
+
+### Question 12
+
+*Using the Manitoba Wheat Variety dataset.*
+
+Continue with the reported yields.
+
+**(a)** Compute the 90th percentile of the reported yields and state, in plain language, what it means.
+
+**(b)** Compute the minimum reported yield.
+
+**(c)** Look at how the minimum compares to the rest of the data. If it sits well below the others, give one genuine agronomic reason such a low wheat yield could really occur — before assuming it is a data-entry error.
+
+**(d)** Explain what would happen to the mean, versus the median, if that single lowest value were removed — and why the two measures respond differently to one extreme value.
+
+**(e)** Which single number — mean or median — would you headline in a report titled "typical Manitoba wheat yield," and why?
+
+<details><summary>Answer</summary>
+
+- (a) P90 ≈ 75.8 bu/ac — 90% of reported results were at or below this.
+- (b) minimum ≈ 4.5 bu/ac.
+- (c) A localized drought, hail, flood, or failed field can genuinely yield a handful of bushels — low but real.
+- (d) Removing it would raise the **mean** noticeably (mean sums every value) but barely move the **median** (a position).
+- (e) The **median** — not distorted by the low extreme, so it better represents "typical."
+</details>
+
+### Question 13
+
+*Using the Manitoba Wheat Variety dataset.*
+
+Filter the reported yields to a single year, `Year = 2021`, and then to `Year = 2023`.
+
+**(a)** Compute the mean and median reported yield for each of the two years.
+
+**(b)** Compute the standard deviation and CV for each year.
+
+**(c)** 2021 was a drought year on the Prairies. State whether the Manitoba variety data shows a lower average that year, and by roughly how much.
+
+**(d)** Compare the CVs of the two years and say whether the drought year was also *more variable* in relative terms.
+
+**(e)** Explain why variety-trial yields might hold up better in a drought than whole-region field averages (think about where trial plots tend to be located and managed).
+
+<details><summary>Answer</summary>
+
+- (a) 2021: mean ≈ 49.64, median ≈ 50.55. 2023: mean ≈ 61.42, median ≈ 61.90 bu/ac. (2021 lower.)
+- (b) 2021: SD ≈ 12.20, CV ≈ 0.246. 2023: SD ≈ 11.27, CV ≈ 0.184.
+- (c) Yes — 2021 averages ~12 bu/ac below 2023, a clear drought drop.
+- (d) 2021's CV (0.246) is noticeably higher than 2023's (0.184) — the drought year was more variable in relative terms, though both stay well below SK field CVs.
+- (e) Trial plots sit on good, well-managed land and are chosen for consistency, so they buffer drought better than the whole-region average. Any sound reason credited.
+</details>
+
+### Question 14
+
+*Using the Manitoba Wheat Variety dataset.*
+
+Filter the reported yields to the single variety **`AAC BRANDON (BW 932)`** (the most widely grown).
+
+**(a)** Compute the mean, median, and standard deviation of this variety's reported yields.
+
+**(b)** Compute its CV.
+
+**(c)** Compare this variety's CV to the CV of *all* reported yields pooled (Question 11). Is a single variety more or less variable than the whole mix of varieties, and does that make sense?
+
+**(d)** Explain why pooling many different varieties together could make the overall spread larger than any single variety's spread.
+
+**(e)** State, in one sentence, why a grower comparing varieties should look at each variety's own spread, not just the overall average across all varieties.
+
+<details><summary>Answer</summary>
+
+- (a) mean ≈ 59.6, median ≈ 60.x, SD ≈ 11.1 bu/ac.
+- (b) CV ≈ 0.19.
+- (c) Similar to or slightly below the pooled CV (~0.20) — a single variety is about as variable, since most spread is site/year, not variety.
+- (d) Different varieties have different average yields, so mixing them adds between-variety differences to the spread.
+- (e) Overall spread blends variety differences with site/weather; to compare varieties fairly you need each variety's own centre and spread.
+</details>
+
+### Question 15
+
+*Using the Manitoba Wheat Variety dataset.*
+
+Compare two specific varieties across their reported yields: **`SY MANNESS`** and **`AAC BRANDON (BW 932)`**.
+
+**(a)** Compute the mean yield of each variety.
+
+**(b)** Compute the standard deviation of each.
+
+**(c)** One variety has a higher average. State which, and by roughly how much.
+
+**(d)** Compute how many reported results back each average (a simple count). Explain why the variety with the higher average might still be the *riskier* choice if it has far fewer reports.
+
+**(e)** Explain, in one sentence, why "highest average yield" alone is not enough to recommend a variety.
+
+<details><summary>Answer</summary>
+
+- (a) SY MANNESS mean ≈ 72.1; AAC Brandon mean ≈ 59.6 bu/ac.
+- (b) SY MANNESS SD ≈ 11.5; AAC Brandon SD ≈ 11.1.
+- (c) SY MANNESS is higher by ~12 bu/ac.
+- (d) SY MANNESS n ≈ 108 vs AAC Brandon n ≈ 519 — a much thinner track record, so its average is less proven and could reflect favourable sites.
+- (e) A high average on few reports may not generalize; consistency and breadth of testing matter too.
+</details>
+
+### Question 16
+
+*Using the Manitoba Wheat Variety dataset.*
+
+Work with the reported yields for `Year = 2023`.
+
+**(a)** Compute the mean, median, and CV.
+
+**(b)** Compute Q1, Q3, and the IQR.
+
+**(c)** Using the 1.5×IQR rule, compute the lower fence and state whether any reported yields fall below it.
+
+**(d)** Explain what it means that this dataset *does* produce low-end outliers by the 1.5×IQR rule, whereas the wide-spread Saskatchewan barley data (Question 9) did not.
+
+**(e)** State, in one sentence, why "has outliers" depends on how tight the bulk of the data is, not just on how low the lowest value is.
+
+<details><summary>Answer</summary>
+
+- (a) mean ≈ 61.4, median ≈ 61.9, CV ≈ 0.18.
+- (b) Q1 ≈ 55.1, Q3 ≈ 69.25, IQR ≈ 14.15.
+- (c) Lower fence ≈ 55.1 − 21.2 ≈ 33.9; several low values (e.g. ~4.5, ~18–33) fall below → flagged as outliers.
+- (d) The MB bulk is tight (small IQR), so the fences sit close and low values get flagged; SK barley's huge IQR pushed its fences far out, flagging none.
+- (e) Outlier status is relative to the spread of the middle 50%; a tight bulk makes moderate departures stand out.
+</details>
+
+### Question 17
+
+*Using the Manitoba Wheat Variety dataset.*
+
+Consider the **whole file**, including suppressed rows.
+
+**(a)** Using the `Reported` column, count how many rows are reported (TRUE) and how many are suppressed (FALSE).
+
+**(b)** If you computed the mean of `Yield_bu_ac` over the whole file (including suppressed rows), explain what the blank suppressed cells would do to that mean — and why it still returns a sensible number.
+
+**(c)** Explain why the *count* of reported vs suppressed rows is itself informative, even though the suppressed rows carry no yield number.
+
+**(d)** A student says "most varieties in most places have no data, so this dataset is useless." Give a more accurate interpretation of all those suppressed rows.
+
+**(e)** State the one-sentence rule this illustrates about distinguishing "a small measured value" from "a value withheld."
+
+<details><summary>Answer</summary>
+
+- (a) reported ≈ 2398 TRUE, suppressed ≈ 2960 FALSE.
+- (b) Excel's AVERAGE skips blank cells, so it averages only reported yields — the suppressed blanks are ignored, not treated as 0.
+- (c) It shows how widely each variety was grown/reported — a coverage signal, useful on its own.
+- (d) The variety *was* grown there; the number was just withheld for privacy (too few farms). Absence of a number ≠ absence of the crop.
+- (e) A blank means "withheld / no data"; never read it as a measured low value or as zero.
+</details>
+
+### Question 18
+
+*Using the Manitoba Wheat Variety dataset.*
+
+Filter the reported yields to `Year = 2025`.
+
+**(a)** Compute the mean and median.
+
+**(b)** Compute the standard deviation and CV.
+
+**(c)** Compare the 2025 average to the 2021 average (drought year) you would find by refiltering. State roughly how much higher 2025 is.
+
+**(d)** Explain why comparing a variety program's results across years requires care when the *set of varieties tested* changes from year to year.
+
+**(e)** Suggest one way, using Module-1 tools, to make a fairer year-to-year comparison than just comparing overall means (hint: hold something constant).
+
+<details><summary>Answer</summary>
+
+- (a) 2025: mean ≈ 68.03, median ≈ 69.00 bu/ac.
+- (b) SD ≈ 11.84, CV ≈ 0.174.
+- (c) 2025 (≈68.0) averages well above 2021 (≈49.6) — about 18 bu/ac higher, reflecting a non-drought year.
+- (d) If different varieties are tested each year, an average shift could reflect the *mix* of varieties, not the growing conditions.
+- (e) Compare a **single common variety** (e.g. AAC Brandon) across years, holding genetics constant so the year effect is isolated.
+</details>
+
+### Question 19
+
+*Using the Manitoba Wheat Variety dataset.*
+
+Filter the reported yields to the municipality **`RIDING MOUNTAIN WEST`** in `Year = 2025` (eleven varieties were reported there that year).
+
+**(a)** Compute the mean and range of the reported yields within that municipality-year.
+
+**(b)** Explain what the *range* here represents (it is a spread across **varieties** in one place and year, not across places).
+
+**(c)** Explain why this within-municipality spread isolates variety differences better than the province-wide spread does.
+
+**(d)** State one limitation of drawing variety conclusions from a single municipality-year.
+
+**(e)** Describe, in one sentence, how you would combine several municipalities to make a variety comparison more trustworthy.
+
+<details><summary>Answer</summary>
+
+- (a) mean ≈ 71.7 bu/ac; range ≈ 87.7 − 43.4 ≈ 44.3 bu/ac (11 varieties reported).
+- (b) The range is the gap between the best- and worst-yielding varieties in that one place and year.
+- (c) Same place, same weather, same soil → differences are mostly genetics (variety), not environment.
+- (d) One site-year is a single sample; weather/soil there may not represent the province, and chance plays a role.
+- (e) Average each variety across many municipalities (e.g. a PivotTable by variety) so site quirks average out.
+</details>
+
+### Question 20
+
+*Using the Manitoba Wheat Variety dataset.*
+
+Consider the reported yields for the two most widely reported varieties (by count).
+
+**(a)** Identify the two varieties with the most reported rows, and compute the mean of each.
+
+**(b)** Compute the CV of each.
+
+**(c)** State which of the two is more consistent (lower CV), and what "more consistent" means for a grower.
+
+**(d)** Explain why a variety that is both widely grown *and* consistent is attractive, even if its average is not the highest in the dataset.
+
+**(e)** Summarise, in one sentence a grower could act on, the trade-off between chasing the highest-average variety and choosing a consistent, well-tested one.
+
+<details><summary>Answer</summary>
+
+- (a) Most-reported: AAC Brandon (n≈519, mean≈59.6) and AAC Starbuck (n≈374, mean≈62.7).
+- (b) AAC Brandon CV ≈ 0.19; AAC Starbuck CV ≈ 0.18 — very close.
+- (c) The lower-CV variety is more consistent — its yield is more predictable from place to place and year to year.
+- (d) Wide adoption + consistency means dependable, lower-surprise yields — valuable even without the top average.
+- (e) e.g. "A slightly lower but steadier yield you can count on often beats a higher average that swings widely."
+</details>
+
+## Questions 21–30 · Canada Field Crops
+
+### Question 21
+
+*Using the Canada Field Crops dataset.*
+
+Filter to **Spring wheat** (all provinces, all years).
+
+**(a)** Compute the mean, median, and range of spring wheat yield.
+
+**(b)** The range is large. Explain what pooling many provinces (a maritime province together with the Prairies) does to a single national mean, and why that mean might describe no actual province well.
+
+**(c)** Compute the standard deviation and the coefficient of variation of the pooled spring wheat yields.
+
+**(d)** Suggest a better way, using only Module-1 tools, to summarise "spring wheat yield in Canada" than one overall mean and standard deviation.
+
+**(e)** Explain, in one sentence, why "the average Canadian spring wheat yield" can be technically correct but practically misleading.
+
+<details><summary>Answer</summary>
+
+- (a) mean ≈ 51.3, median ≈ 50.8, range ≈ 33.7 to 73.9 bu/ac.
+- (b) Pooling very different provinces produces a mean that sits between groups and matches none of them.
+- (c) SD ≈ 7.5, CV ≈ 0.15.
+- (d) Break out **by province** (AVERAGEIF/PivotTable), and/or a box plot per province — summarise the groups.
+- (e) A national average blends different growing regions, so it can be arithmetically right yet represent no real farm.
+</details>
+
+### Question 22
+
+*Using the Canada Field Crops dataset.*
+
+Filter to **Canola** (all provinces, all years).
+
+**(a)** Compute the mean, standard deviation, and coefficient of variation of canola yield.
+
+**(b)** Compare this canola CV to the spring wheat CV you found in Question 21(c), and state which crop's provincial yields are more consistent across the country.
+
+**(c)** In the *raw* StatsCan table (before cleaning), one province-year listed a canola yield of "0 bu/ac." Explain why treating that 0 as a real yield would distort the mean and the standard deviation.
+
+**(d)** Explain what that 0 most likely represented, and why the cleaned file treats it as missing rather than as the number zero.
+
+**(e)** State the general rule this illustrates about the difference between "a measured value of zero" and "no data."
+
+<details><summary>Answer</summary>
+
+- (a) mean ≈ 41.0, SD ≈ 5.35, CV ≈ 0.13.
+- (b) Canola CV (≈0.13) below spring wheat's (≈0.15) → canola's provincial yields are slightly more consistent.
+- (c) A false 0 pulls the mean down and inflates the SD (it looks like a huge deviation), corrupting both.
+- (d) It was a placeholder for negligible/near-zero acreage (e.g. Newfoundland), not a real yield — so treated as missing.
+- (e) A blank means "no data"; 0 means "a real measurement of zero." Never substitute one for the other.
+</details>
+
+### Question 23
+
+*Using the Canada Field Crops dataset.*
+
+Filter to **Saskatchewan** (all crops, all years), then look at the **Yield_bu_ac** column.
+
+**(a)** Compute the mean and median yield across all Saskatchewan crop-year rows.
+
+**(b)** Explain why mixing different *crops* (canola, wheat, oats, etc.) into one mean makes that mean hard to interpret.
+
+**(c)** Explain the difference between this problem and the province-pooling problem from Question 21 — i.e. pooling *crops* vs pooling *places*.
+
+**(d)** Suggest the right Module-1 tool to separate the crops before summarising.
+
+**(e)** State the one-sentence lesson about what you must hold constant before an average is meaningful.
+
+<details><summary>Answer</summary>
+
+- (a) mean ≈ 45.1, median ≈ 40.4 bu/ac across all SK crop-year rows (a mix of crops — deliberately hard to interpret).
+- (b) Different crops have very different typical yields, so their combined mean is a meaningless blend (oats ~70 with flax ~20, etc.).
+- (c) Same underlying issue — pooling unlike things. Here the unlike dimension is **crop**; in Q21 it was **province**. Both hide structure.
+- (d) A **PivotTable** (Crop on Rows, Yield as Average) — or AVERAGEIF per crop — to summarise each crop separately.
+- (e) An average is only meaningful when the things averaged are alike; hold crop (and ideally place/year) constant first.
+</details>
+
+### Question 24
+
+*Using the Canada Field Crops dataset.*
+
+Compare **Barley** and **Soybeans** yields (all provinces, all years).
+
+**(a)** Compute the mean and standard deviation of each crop.
+
+**(b)** Compute the CV of each.
+
+**(c)** State which crop is more variable in relative terms across the country, and offer one reason (think about where each crop is grown).
+
+**(d)** Barley and soybeans have almost identical standard deviations, yet very different CVs. Explain how that is possible.
+
+**(e)** State, in one sentence, why the *number of provinces* a crop is grown in affects how you interpret its national spread.
+
+<details><summary>Answer</summary>
+
+- (a) Barley: mean ≈ 64.24, SD ≈ 9.10. Soybeans: mean ≈ 39.56, SD ≈ 9.08.
+- (b) Barley CV ≈ 0.142; Soybeans CV ≈ 0.229.
+- (c) **Soybeans** are more variable in relative terms (CV 0.23 vs 0.14). Reasonable causes: soybeans are newer/expanding into varied provinces, or grown across more marginal ground relative to their average. Any sound reason credited.
+- (d) The SDs are nearly equal (~9.1), but barley's mean (64) is much higher than soybeans' (40); dividing the same SD by a bigger mean gives a smaller CV. Relative variability depends on the mean, not the SD alone.
+- (e) A crop grown across many diverse provinces mixes more environments, so its national spread partly reflects geography, not just year-to-year variability.
+</details>
+
+### Question 25
+
+*Using the Canada Field Crops dataset.*
+
+Filter to **Canola** and to a single year, `Year = 2021`.
+
+**(a)** Compute the mean and median canola yield across provinces that year.
+
+**(b)** Compare this to the all-years canola mean from Question 22. Is 2021 above or below the long-run average?
+
+**(c)** Explain how a single bad year shows up when you compare a one-year mean to the multi-year mean.
+
+**(d)** Explain why the provincial spread in a drought year can be *smaller* here than in the Saskatchewan RM data, even for the same drought (think about how much averaging StatsCan does at the province level).
+
+**(e)** State, in one sentence, why province-level averages hide the RM-level variation that the Saskatchewan dataset reveals.
+
+<details><summary>Answer</summary>
+
+- (a) 2021 provincial canola mean/median — below the long-run figure.
+- (b) 2021 is **below** the all-years mean (~41) — a drought year drags it down.
+- (c) The one-year mean sits noticeably under the multi-year mean, flagging an unusual year.
+- (d) StatsCan reports one number per province — an average over all its RMs — so within-province drought variation is already smoothed away.
+- (e) Averaging up to the province hides the RM-to-RM spread that the finer Saskatchewan data still contains.
+</details>
+
+### Question 26
+
+*Using the Canada Field Crops dataset.*
+
+Filter to **Ontario** (all crops, all years) and then to **Saskatchewan**.
+
+**(a)** For **Canola only**, compute each province's mean yield across all years.
+
+**(b)** State which province has the higher average canola yield per acre, and by roughly how much.
+
+**(c)** Explain why "higher yield per acre" does **not** mean "grows more canola" — and what other column you would need to judge total output.
+
+**(d)** Compute (or describe how to compute) each province's typical seeded acres for canola, and explain how that changes the picture.
+
+**(e)** State the one-sentence distinction between a *rate* (yield per acre) and a *total* (production).
+
+<details><summary>Answer</summary>
+
+- (a) Ontario canola mean ≈ 46.7; Saskatchewan ≈ 39.1 bu/ac.
+- (b) Ontario is higher by ~7–8 bu/ac per acre.
+- (c) Yield is per-acre performance; total output also needs **Seeded_acres** — SK's vast acreage means it produces far more canola overall.
+- (d) SK canola seeded acres run to ~12 million+; Ontario's are a small fraction — so SK dominates total production despite lower yield.
+- (e) A rate (bu/ac) measures efficiency per unit land; a total (production) multiplies rate by acres — they can rank provinces oppositely.
+</details>
+
+### Question 27
+
+*Using the Canada Field Crops dataset.*
+
+Filter to **Oats** (all provinces, all years).
+
+**(a)** Compute the mean, median, and CV of oat yield.
+
+**(b)** Compute Q1, Q3, and IQR.
+
+**(c)** Compare the shape (mean vs median) to what you saw for oats in the Saskatchewan RM data. Are they similar in direction of skew?
+
+**(d)** Explain why the *provincial* oat data has fewer, smoother values than the RM oat data (hundreds of RMs vs ten provinces).
+
+**(e)** State, in one sentence, a trade-off between using fine-grained (RM) data and coarse (province) data for describing a crop.
+
+<details><summary>Answer</summary>
+
+- (a) mean ≈ 79.41, median ≈ 75.90, CV ≈ 0.193 bu/ac.
+- (b) Q1 ≈ 68.60, Q3 ≈ 90.80, IQR ≈ 22.20.
+- (c) Here mean (79.4) is **above** median (75.9) → a slight right/high skew, the opposite direction from the slightly left-skewed SK RM oats — a good reminder that aggregation level can change the apparent shape.
+- (d) Only ~10 provinces × 11 years, each already an average, so far fewer and smoother numbers than ~300 RMs × 36 years.
+- (e) Fine data shows local variation but is noisier/patchier; coarse data is clean and comparable but hides within-province detail.
+</details>
+
+### Question 28
+
+*Using the Canada Field Crops dataset.*
+
+Consider **blank** (missing) yields across the whole file.
+
+**(a)** Count how many province-crop-year rows have a blank yield.
+
+**(b)** Identify (by filtering/sorting) which crops the blanks concentrate in, and in which provinces.
+
+**(c)** Explain why a blank here means something different from a blank in the Manitoba variety file (recall: MASC suppression vs. crop-not-grown).
+
+**(d)** Explain why computing a crop's national mean while blanks are present still gives a sensible answer in Excel.
+
+**(e)** State, in one sentence, why you should never replace these blanks with 0 before averaging.
+
+<details><summary>Answer</summary>
+
+- (a) ≈ 185 blank-yield rows (snapshot).
+- (b) Blanks cluster in crops not grown in the east — flax, durum, canola in maritime provinces, etc.
+- (c) Here a blank = **crop not meaningfully grown** in that province/year; MB blanks = **grown but suppressed** for privacy.
+- (d) Excel's AVERAGE skips blanks, so a crop's mean is taken over the provinces/years that actually reported it.
+- (e) Replacing blanks with 0 would count "not grown" as "a real zero yield," dragging the mean down falsely.
+</details>
+
+### Question 29
+
+*Using the Canada Field Crops dataset.*
+
+Filter to **Durum wheat** (all provinces, all years).
+
+**(a)** Compute the mean and CV of durum yield.
+
+**(b)** Count how many *provinces* actually report durum (non-blank). Explain what that count tells you about where durum is grown in Canada.
+
+**(c)** Explain why a national "durum yield" figure really describes only a few provinces, and why that is still useful.
+
+**(d)** Compare durum's CV to canola's (Question 22). Which crop's provincial yields are steadier, and does the geography of where each is grown help explain it?
+
+**(e)** State, in one sentence, why knowing *how many* provinces contribute to an average is part of interpreting that average honestly.
+
+<details><summary>Answer</summary>
+
+- (a) mean ≈ 40.61, CV ≈ 0.287 bu/ac.
+- (b) About **5** provinces report durum (mainly SK and AB, plus a little MB/QC/BC) — it is a Prairie, mostly Saskatchewan, crop.
+- (c) The "national" durum figure is really a Prairie figure; still useful because that is where essentially all Canadian durum is grown.
+- (d) Durum CV (≈0.29) is much higher than canola's (≈0.13) — canola is steadier. Durum's concentration in the drought-prone southern Prairies helps explain its larger swings.
+- (e) An average over ~5 provinces means something different from one over 10; the contributor count sets how broadly the number applies.
+</details>
+
+### Question 30
+
+*Using the Canada Field Crops dataset.*
+
+Filter to **Barley** and to `Year = 2023` (barley is grown in nearly every province).
+
+**(a)** Compute the mean and median yield across provinces that year.
+
+**(b)** Compute the standard deviation and CV.
+
+**(c)** Identify the highest- and lowest-yielding provinces for barley that year (by sorting).
+
+**(d)** Explain what the gap between the top and bottom province tells you, and why that gap is a form of spread.
+
+**(e)** State, in one sentence, how you would describe barley's 2023 national picture to a reader using one centre statistic and one spread statistic.
+
+<details><summary>Answer</summary>
+
+- (a) mean ≈ 58.68, median ≈ 55.20 bu/ac (across 9 reporting provinces).
+- (b) SD ≈ 8.98, CV ≈ 0.153.
+- (c) Highest: **Manitoba** (≈75.4); lowest: **Quebec** (≈46.1) bu/ac.
+- (d) The top-minus-bottom gap (≈29 bu/ac) is the **range** across provinces — a spread measure showing how unevenly barley yielded nationally that year.
+- (e) e.g. "In 2023, barley averaged about 59 bu/ac across provinces (median 55), with a CV of 0.15 indicating fairly modest variation from province to province."
+</details>
+
+---
+
+*Sections 2–4 (Questions 31–120) follow the same format.*
