@@ -1,34 +1,35 @@
 {
   "dataset": {
-    "name": "sask_canola_2025.csv",
-    "description": "120 canola fields in Saskatchewan in 2025",
-    "path": "../data/sask_canola_2025.csv",
-    "columns": ["field_id", "region", "variety", "acres", "yield_bu_ac", "fertilizer_kg_ha", "irrigated", "seeding_date"]
+    "name": "rm_yields_1990plus.csv",
+    "description": "Real Saskatchewan RM crop yields, 1990-2025 (8 crops, one row per RM-year)",
+    "path": "../data/rm_yields_1990plus.csv",
+    "columns": ["Year", "RM", "Spring Wheat", "Durum", "Canola", "Barley", "Oats", "Peas", "Lentils", "Flax"]
   },
   "question_types": [
     {
       "type_id": 1,
       "type_name": "Descriptive Statistics",
-      "description": "Compute summary statistics using Excel functions.",
+      "description": "Filter to one crop in one year, then compute summary statistics with Excel functions.",
       "questions": [
         {
           "id": "1a",
           "parts": [
-            {"label": "a", "text": "Compute the mean yield (bu/ac) across all 120 fields.", "answer": "45.65 bu/ac", "formula": "=AVERAGE(E2:E121)"},
-            {"label": "b", "text": "Compute the median yield.", "answer": "46.25 bu/ac", "formula": "=MEDIAN(E2:E121)"},
-            {"label": "c", "text": "Compute the sample standard deviation of yield.", "answer": "5.80 bu/ac", "formula": "=STDEV.S(E2:E121)"},
-            {"label": "d", "text": "Compute the 90th percentile of yield. Explain what it means in one sentence.", "answer": "52.50 bu/ac — 90% of fields yielded this or less.", "formula": "=PERCENTILE.INC(E2:E121, 0.9)"},
-            {"label": "e", "text": "Is the mean or the median higher? What does this tell you about the shape of the distribution?", "answer": "The median (46.25) is higher than the mean (45.65), indicating a slight left skew — some low-yielding fields pull the mean down.", "formula": "n/a (interpretation)"}
+            {"label": "a", "text": "Filter to Year = 2023. Compute the mean canola yield across all reporting RMs.", "answer": "≈ 33.88 bu/ac (snapshot)", "formula": "=AVERAGE(E2:E296)"},
+            {"label": "b", "text": "Compute the median canola yield for 2023.", "answer": "≈ 35.50 bu/ac", "formula": "=MEDIAN(E2:E296)"},
+            {"label": "c", "text": "Compute the sample standard deviation of 2023 canola yield.", "answer": "≈ 13.33 bu/ac", "formula": "=STDEV.S(E2:E296)"},
+            {"label": "d", "text": "Compute Q1, Q3, and the IQR of 2023 canola yield.", "answer": "Q1 ≈ 22.60, Q3 ≈ 44.90, IQR ≈ 22.30", "formula": "=QUARTILE.INC(E2:E296,1); =QUARTILE.INC(E2:E296,3)"},
+            {"label": "e", "text": "Compute the 90th percentile of 2023 canola yield and explain what it means.", "answer": "≈ 50.44 bu/ac — 90% of reporting RMs yielded this or less.", "formula": "=PERCENTILE.INC(E2:E296, 0.9)"},
+            {"label": "f", "text": "Is the mean or median higher, and what does that say about the shape?", "answer": "Median (35.5) > mean (33.9): slightly left-skewed — low-yield drought RMs pull the mean down.", "formula": "n/a (interpretation)"}
           ]
         },
         {
           "id": "1b",
           "parts": [
-            {"label": "a", "text": "Compute the mean and median of the acres column.", "answer": "Mean = 279.57 acres, Median = 276.00 acres", "formula": "=AVERAGE(D2:D121) and =MEDIAN(D2:D121)"},
-            {"label": "b", "text": "Compute Q1 and Q3 of yield.", "answer": "Q1 = 42.27, Q3 = 49.42", "formula": "=QUARTILE.INC(E2:E121, 1) and =QUARTILE.INC(E2:E121, 3)"},
-            {"label": "c", "text": "Compute the IQR of yield.", "answer": "7.15 bu/ac", "formula": "=QUARTILE.INC(E2:E121,3) - QUARTILE.INC(E2:E121,1)"},
-            {"label": "d", "text": "Compute the sample variance of yield. What are its units?", "answer": "33.66 (bu/ac)². Units are squared because variance squares the deviations.", "formula": "=VAR.S(E2:E121)"},
-            {"label": "e", "text": "What is the range of yield? (max minus min)", "answer": "28.9 (from 28.9 to 57.8)", "formula": "=MAX(E2:E121) - MIN(E2:E121)"}
+            {"label": "a", "text": "Filter to Year = 2023. Compute the mean and median spring wheat yield.", "answer": "Mean ≈ 42.87, Median ≈ 45.80 bu/ac", "formula": "=AVERAGE(C2:C296); =MEDIAN(C2:C296)"},
+            {"label": "b", "text": "Compute the sample standard deviation and variance of 2023 spring wheat. Units of variance?", "answer": "sd ≈ 17.22 bu/ac; variance ≈ 296.5 (bu/ac)² — units are squared.", "formula": "=STDEV.S(C2:C296); =VAR.S(C2:C296)"},
+            {"label": "c", "text": "Compute the min, max, and range of 2023 spring wheat yield.", "answer": "Range = max − min (snapshot values).", "formula": "=MIN(C2:C296); =MAX(C2:C296); =MAX(...)-MIN(...)"},
+            {"label": "d", "text": "Compute Q1, Q3, and IQR of 2023 spring wheat yield.", "answer": "Snapshot values via QUARTILE.INC.", "formula": "=QUARTILE.INC(C2:C296,1); =QUARTILE.INC(C2:C296,3)"},
+            {"label": "e", "text": "How many RMs reported a spring wheat yield in 2023?", "answer": "≈ 285 RMs (COUNT skips blanks; below the ~295 total rows).", "formula": "=COUNT(C2:C296)"}
           ]
         }
       ]
@@ -36,26 +37,26 @@
     {
       "type_id": 2,
       "type_name": "Conditional Functions & Lookups",
-      "description": "Use COUNTIF, SUMIF, AVERAGEIF, XLOOKUP, and IF to answer questions about subsets of the data.",
+      "description": "Use COUNTIF, AVERAGEIF, COUNTIFS, XLOOKUP, and IF across the full unfiltered dataset.",
       "questions": [
         {
           "id": "2a",
           "parts": [
-            {"label": "a", "text": "How many fields have a yield strictly greater than 50 bu/ac?", "answer": "26 fields", "formula": "=COUNTIF(E2:E121, \">50\")"},
-            {"label": "b", "text": "What is the average yield in the South region? Central? North?", "answer": "South: 43.39, Central: 47.54, North: 46.41", "formula": "=AVERAGEIF(B2:B121, \"South\", E2:E121)"},
-            {"label": "c", "text": "Compute total production (bushels) across all fields. (Production = yield × acres.)", "answer": "1,533,356.4 bushels", "formula": "=SUMPRODUCT(D2:D121, E2:E121)"},
-            {"label": "d", "text": "Use a lookup function to find the variety planted in field F050.", "answer": "InVigor L345PC", "formula": "=XLOOKUP(\"F050\", A2:A121, C2:C121)"},
-            {"label": "e", "text": "Write a formula that classifies each field as \"Low\" (yield < 40), \"Medium\" (40–50), or \"High\" (above 50). Apply it to all rows.", "answer": "Low / Medium / High labels in a new column", "formula": "=IFS(E2<40, \"Low\", E2<=50, \"Medium\", TRUE, \"High\")"}
+            {"label": "a", "text": "Across all years and RMs, how many rows have canola yield strictly greater than 40 bu/ac?", "answer": "Snapshot count.", "formula": "=COUNTIF(E2:E10650, \">40\")"},
+            {"label": "b", "text": "What is the average canola yield in 2023 only? (Use AVERAGEIF on the Year column.)", "answer": "≈ 33.88 bu/ac", "formula": "=AVERAGEIF(A2:A10650, 2023, E2:E10650)"},
+            {"label": "c", "text": "Compare average canola yield in 2010 vs 2021 (a drought year). Which is higher?", "answer": "2010 much higher than 2021 (drought).", "formula": "=AVERAGEIF(A2:A10650, 2010, E2:E10650); =AVERAGEIF(A2:A10650, 2021, E2:E10650)"},
+            {"label": "d", "text": "Use a two-criteria lookup to find the canola yield in RM 1 in 2023.", "answer": "≈ 36.8 bu/ac", "formula": "=XLOOKUP(1&\"|\"&2023, B2:B10650&\"|\"&A2:A10650, E2:E10650)"},
+            {"label": "e", "text": "Write a formula classifying each row's canola yield as Low (<20), Medium (20–40), or High (>40).", "answer": "Low / Medium / High in a new column.", "formula": "=IFS(E2<20,\"Low\",E2<=40,\"Medium\",TRUE,\"High\")"}
           ]
         },
         {
           "id": "2b",
           "parts": [
-            {"label": "a", "text": "What is the total production (bushels) in the South region only?", "answer": "574,485.2 bushels", "formula": "=SUMPRODUCT((B2:B121=\"South\")*D2:D121*E2:E121)"},
-            {"label": "b", "text": "How many fields are both irrigated AND in the Central region?", "answer": "Use COUNTIFS — count varies by dataset", "formula": "=COUNTIFS(G2:G121, \"TRUE\", B2:B121, \"Central\")"},
-            {"label": "c", "text": "What is the average yield of irrigated fields? Of non-irrigated fields?", "answer": "Irrigated: 45.34, Non-irrigated: 45.72", "formula": "=AVERAGEIF(G2:G121, \"TRUE\", E2:E121) and =AVERAGEIF(G2:G121, \"FALSE\", E2:E121)"},
-            {"label": "d", "text": "Use a lookup to find the variety and acres for field F100.", "answer": "DKTC 9105 — use XLOOKUP or INDEX/MATCH", "formula": "=XLOOKUP(\"F100\", A2:A121, C2:D121)"},
-            {"label": "e", "text": "How many fields in the North region have a yield above the overall mean?", "answer": "Use COUNTIFS with the computed mean", "formula": "=COUNTIFS(B2:B121, \"North\", E2:E121, \">\"&AVERAGE(E2:E121))"}
+            {"label": "a", "text": "How many rows report a lentil yield (non-blank cells in the Lentils column)?", "answer": "Snapshot count.", "formula": "=COUNT(I2:I10650)"},
+            {"label": "b", "text": "What is the average barley yield across all years in RM 100?", "answer": "Snapshot value.", "formula": "=AVERAGEIF(B2:B10650, 100, F2:F10650)"},
+            {"label": "c", "text": "How many rows have canola above 40 AND spring wheat above 45 in the same RM-year?", "answer": "Snapshot count.", "formula": "=COUNTIFS(E2:E10650, \">40\", C2:C10650, \">45\")"},
+            {"label": "d", "text": "Use a lookup to find the spring wheat yield in RM 100 in 2023.", "answer": "≈ 52.9 bu/ac", "formula": "=XLOOKUP(100&\"|\"&2023, B2:B10650&\"|\"&A2:A10650, C2:C10650)"},
+            {"label": "e", "text": "In how many rows is canola above the overall average canola yield?", "answer": "Snapshot count.", "formula": "=COUNTIF(E2:E10650, \">\"&AVERAGE(E2:E10650))"}
           ]
         }
       ]
@@ -63,24 +64,22 @@
     {
       "type_id": 3,
       "type_name": "PivotTables",
-      "description": "Build a PivotTable to summarize data by categories.",
+      "description": "Build PivotTables to summarize yields across years, RMs, and crops.",
       "questions": [
         {
           "id": "3a",
           "parts": [
-            {"label": "a", "text": "Create a PivotTable showing the average yield by region. Which region has the highest average?", "answer": "Central at 47.54 bu/ac", "formula": "PivotTable: region → Rows, yield → Values (Average)"},
-            {"label": "b", "text": "Expand the PivotTable to show average yield by region AND variety (regions on rows, varieties on columns). Which region-variety combination has the highest average?", "answer": "Central × InVigor L345PC at 49.30 bu/ac", "formula": "Add variety to Columns"},
-            {"label": "c", "text": "Create a second PivotTable showing total acres by variety. Which variety has the most total acreage?", "answer": "DKTC 9105 with 12,826 acres", "formula": "PivotTable: variety → Rows, acres → Values (Sum)"},
-            {"label": "d", "text": "How many fields are in each region? (Use the Count function in your PivotTable.)", "answer": "South: 46, Central: 42, North: 32", "formula": "PivotTable: region → Rows, field_id → Values (Count)"}
+            {"label": "a", "text": "PivotTable of average canola yield by year. Which of 2010–2025 was highest? Lowest?", "answer": "Highest ~2013/2016–2020; lowest 2021 (drought).", "formula": "PivotTable: Year → Rows, Canola → Values (Average)"},
+            {"label": "b", "text": "Add Spring Wheat and Barley as Average value fields. How do the three crops compare?", "answer": "Barley highest, spring wheat middle, canola lowest bu/ac.", "formula": "Drag Spring Wheat, Barley into Values (Average)"},
+            {"label": "c", "text": "Which recent year stands out as a drought year (all three crops low at once)?", "answer": "2021 — all three averages drop together.", "formula": "Read the PivotTable across years"}
           ]
         },
         {
           "id": "3b",
           "parts": [
-            {"label": "a", "text": "Create a PivotTable showing average yield by variety. Which variety performs best on average?", "answer": "InVigor L345PC with highest average", "formula": "PivotTable: variety → Rows, yield → Values (Average)"},
-            {"label": "b", "text": "Add a filter to your PivotTable to show only irrigated fields. Does the ranking of varieties change?", "answer": "Add irrigated to Filters, select TRUE. Compare rankings.", "formula": "PivotTable: add irrigated to Filters"},
-            {"label": "c", "text": "Create a PivotTable showing total production (yield × acres) by region. Which region produces the most canola in total?", "answer": "Requires a helper column yield*acres, then PivotTable on that column by region.", "formula": "Helper column =D2*E2, then PivotTable: region → Rows, helper → Values (Sum)"},
-            {"label": "d", "text": "Show the count of fields by region and irrigated status (regions on rows, irrigated on columns).", "answer": "PivotTable: region → Rows, irrigated → Columns, field_id → Values (Count)", "formula": "Two-way PivotTable"}
+            {"label": "a", "text": "PivotTable of average yield of each crop in 2023 (Year in Filter = 2023). Rank crops high to low.", "answer": "Barley/Oats high, wheat/durum mid, canola/flax lower. (Lentils in lb/ac — different unit.)", "formula": "Year → Filter (2023); each crop → Values (Average)"},
+            {"label": "b", "text": "Compare 2021 vs 2023 canola average. How large is the drought gap?", "answer": "2021 roughly half of 2023 (snapshot).", "formula": "Year → Rows (2021, 2023); Canola → Values (Average)"},
+            {"label": "c", "text": "PivotTable of the count of RMs reporting canola each year. Is coverage complete?", "answer": "≈290 RMs most recent years — fairly complete; thinner near 1990.", "formula": "Year → Rows, Canola → Values (Count)"}
           ]
         }
       ]
@@ -88,22 +87,22 @@
     {
       "type_id": 4,
       "type_name": "Charts",
-      "description": "Create and interpret histograms and box-and-whisker plots.",
+      "description": "Create and interpret histograms, box plots, and time-series line charts.",
       "questions": [
         {
           "id": "4a",
           "parts": [
-            {"label": "a", "text": "Create a histogram of yield_bu_ac for all 120 fields. Use approximately 10–15 bins. Give your chart a descriptive title and label both axes.", "answer": "Histogram with bell-shaped, slightly left-skewed distribution centred around 45–47 bu/ac.", "formula": "Insert → Statistical Chart → Histogram"},
-            {"label": "b", "text": "Based on your histogram, is the distribution symmetric, left-skewed, or right-skewed?", "answer": "Slightly left-skewed (longer tail on the low end).", "formula": "n/a (interpretation)"},
-            {"label": "c", "text": "Are there any apparent outliers? If so, approximately what yield values?", "answer": "Possible outliers near 29 bu/ac at the low end.", "formula": "n/a (interpretation)"}
+            {"label": "a", "text": "Filter to 2023. Create a histogram of canola yield across RMs (10–15 bins), titled with labelled axes.", "answer": "Slightly left-skewed, centred ~34–36, low-end drought outliers.", "formula": "Insert → Statistical Chart → Histogram"},
+            {"label": "b", "text": "Is the 2023 canola distribution symmetric, left-skewed, or right-skewed? Any outliers?", "answer": "Slightly left-skewed; a few low-yield RM outliers.", "formula": "n/a (interpretation)"},
+            {"label": "c", "text": "Create a box plot comparing Canola, Spring Wheat, and Barley in 2023. Which has the highest median? The most spread?", "answer": "Barley highest median; spring wheat widest spread; low-end outliers on all three.", "formula": "Insert → Statistical Chart → Box and Whisker"}
           ]
         },
         {
           "id": "4b",
           "parts": [
-            {"label": "a", "text": "Create a box-and-whisker plot comparing yield_bu_ac across the three regions (South, Central, North). Give your chart a descriptive title and label both axes.", "answer": "Three boxes showing Central highest, South lowest and most variable.", "formula": "Insert → Statistical Chart → Box and Whisker"},
-            {"label": "b", "text": "Which region has the highest median yield?", "answer": "Central (median ≈ 47.3 bu/ac).", "formula": "n/a (interpretation)"},
-            {"label": "c", "text": "Which region has the most variability in yield (widest box)? What does this suggest about farming conditions in that region?", "answer": "South has the widest box (IQR ≈ 9.6). This suggests more variable growing conditions — possibly more weather risk or more heterogeneous soil quality.", "formula": "n/a (interpretation)"}
+            {"label": "a", "text": "PivotTable of average canola yield by year, then a line chart 1990–2025. Is there a long-run upward trend? Why?", "answer": "Yes — rising trend from better genetics/agronomy/equipment.", "formula": "PivotTable Year→Rows, Canola→Average; Insert → Line Chart"},
+            {"label": "b", "text": "Which years show sharp dips, and what do they correspond to?", "answer": "Drought years, notably 2021 — weather shocks, not trend changes.", "formula": "Read the line chart"},
+            {"label": "c", "text": "Make a line chart of average spring wheat yield by year. Do wheat and canola move together?", "answer": "Yes — both track growing-season weather, so they rise and fall together.", "formula": "PivotTable Year→Rows, Spring Wheat→Average; Insert → Line Chart"}
           ]
         }
       ]
