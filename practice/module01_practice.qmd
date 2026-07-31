@@ -6,11 +6,11 @@ Each practice test consists of **four questions**, one from each type below. Dow
 
 On the **real test**, you will receive a PDF with four questions and will submit a `.xlsx` workbook with your answers. You will have access to the full test bank for practice — the test draws one question randomly from each type.
 
-### Dataset
+### Datasets
 
-Download: [`rm_yields_1990plus.csv`](data/rm_yields_1990plus.csv) — real crop yields for every Rural Municipality (RM) in Saskatchewan, 1990–2025.
+This module provides the **same** Saskatchewan crop-yield data in **two shapes**. Use whichever fits the question — see @sec-wide-long in the module for why the shape matters.
 
-This is **real data**, prepared from the Government of Saskatchewan's [RM Yields dataset](https://dashboard.saskatchewan.ca/agriculture/rm-yields/rm-yields-data). We filtered the full file to 1990 onward and kept the eight most widely grown crops. Each row is one RM in one year; each crop column is the average yield (bushels per acre) reported for that crop in that RM and year.
+**Wide format** — [`rm_yields_1990plus.csv`](data/rm_yields_1990plus.csv) — one row per RM-year, each crop in its own column. Use this for **descriptive statistics, conditional functions, and lookups** (Types 1, 2, and the chart questions).
 
 | Column | Excel col | Description |
 |--------|-----------|-------------|
@@ -25,9 +25,21 @@ This is **real data**, prepared from the Government of Saskatchewan's [RM Yields
 | `Lentils` | I | Lentil yield (lb/ac) |
 | `Flax` | J | Flax yield (bu/ac) |
 
-**Important — this is real data, so it has gaps.** A cell is **blank** when that crop was not grown (or not reported) in that RM and year. Excel's `AVERAGE`, `COUNT`, `MEDIAN`, etc. **automatically skip blank cells**, so they compute over the values that *are* present. This is usually what you want — but be aware of it, and never fill blanks with 0 (a blank means "no data," not "a yield of zero").
+**Long format** — [`rm_yields_1990plus_long.csv`](data/rm_yields_1990plus_long.csv) — one row per RM-year-**crop**, with the crop name in its own column. Use this for **PivotTables** (Type 3), where you want to group *by crop*.
 
-Import the CSV using **Data → Get Data → From Text/CSV** (not by double-clicking) to avoid Excel mangling any values.
+| Column | Excel col | Description |
+|--------|-----------|-------------|
+| `Year` | A | Crop year (1990–2025) |
+| `RM` | B | Rural Municipality number |
+| `Crop` | C | Crop name (one of the eight crops) |
+| `Yield` | D | Yield value for that crop |
+| `Unit` | E | `bu/ac` for all crops except Lentils (`lb/ac`) |
+
+Both files come from the Government of Saskatchewan's [RM Yields dataset](https://dashboard.saskatchewan.ca/agriculture/rm-yields/rm-yields-data), filtered to 1990 onward and the eight most widely grown crops. They contain identical information — the long file simply *stacks* the crop columns of the wide file.
+
+**Important — this is real data, so it has gaps.** In the **wide** file a cell is **blank** when that crop was not grown (or not reported) in that RM and year; Excel's `AVERAGE`, `COUNT`, `MEDIAN`, etc. **automatically skip blank cells**. In the **long** file, those non-observations are simply absent (no row), which is why the long file has fewer rows than 8 × the wide file. Either way: never fill a blank with 0 (a blank means "no data," not "a yield of zero").
+
+Import each CSV using **Data → Get Data → From Text/CSV** (not by double-clicking) to avoid Excel mangling any values.
 
 > **A note on the numbers.** Because Saskatchewan updates this dataset over time, the exact figures in the answer keys are stated **as of the current data snapshot**. The important thing is the **method** — the right filter and the right formula — which stays correct even if a number shifts slightly when the data is refreshed.
 
@@ -216,47 +228,62 @@ Copy down all rows. Blank cells will need handling — wrap in an `IF` to leave 
 
 ## Type 3: PivotTables
 
-Create a PivotTable on a **new sheet** in your workbook. PivotTables are the fastest way to summarize this dataset across years, RMs, and crops.
+**Use the long-format file for these questions:** [`rm_yields_1990plus_long.csv`](data/rm_yields_1990plus_long.csv). Because the crop name is in its own `Crop` column, you can put **Crop** on Rows and pivot *by crop* — something the wide file cannot do in a single PivotTable (see @sec-wide-long). Create each PivotTable on a **new sheet**.
 
-### Variant 3A
+### Variant 3A — Comparing crops
 
-**(a)** Build a PivotTable of **average canola yield by year** (Year on Rows, Canola in Values → Average). In which of the years 2010–2025 was average canola yield **highest**? In which was it **lowest**?
+**(a)** Build a PivotTable of **average yield for each crop in 2023** (put `Year` in Filters = 2023, `Crop` on Rows, `Yield` in Values → Average). Rank the crops from highest to lowest average yield.
 
-**(b)** Add **Spring Wheat** and **Barley** to the same PivotTable (as additional Value fields, set to Average). Roughly how do the three crops compare in a typical recent year?
+**(b)** Why does **Lentils** appear far larger than every other crop? What does that tell you about mixing it into the comparison?
 
-**(c)** Which recent year stands out as a **drought year** (low yields across all three crops at once)?
+**(c)** Add `Unit` to the **Filters** and set it to `bu/ac` (excluding lentils). Now which crop has the highest average yield, and which the lowest?
 
 <details>
 <summary>**Answers**</summary>
 
-**Setup:** Put `Year` on Rows; drag `Canola`, then `Spring Wheat`, then `Barley` into Values, each set to **Average** (right-click the value → Summarize Values By → Average).
+**Setup:** `Year` → Filters (set to 2023); `Crop` → Rows; `Yield` → Values, set to **Average** (right-click the value → Summarize Values By → Average).
 
-**Part (a):** Among 2010–2025, average canola yield is **highest around 2013 and 2016–2020** (strong years) and conspicuously **lowest in 2021** (severe drought).
+**Part (a):** Average yield by crop, 2023 (snapshot values):
 
-**Part (b):** In a typical recent year, average **barley** yield (bu/ac) is highest, **spring wheat** next, and **canola** lowest — which is expected, since these crops have very different typical yields per acre.
+| Crop | Avg yield | Unit |
+|------|-----------|------|
+| Lentils | ≈ 1314 | **lb/ac** |
+| Oats | ≈ 71.1 | bu/ac |
+| Barley | ≈ 54.6 | bu/ac |
+| Spring Wheat | ≈ 42.9 | bu/ac |
+| Peas | ≈ 34.0 | bu/ac |
+| Canola | ≈ 33.9 | bu/ac |
+| Durum | ≈ 29.6 | bu/ac |
+| Flax | ≈ 20.3 | bu/ac |
 
-**Part (c):** **2021** stands out — canola, spring wheat, and barley averages all drop together, reflecting the widespread drought that year. (This is exactly the kind of "all crops down at once" signal a PivotTable makes obvious.)
+**Part (b):** Lentils are reported in **lb/ac**, while every other crop is in **bu/ac**. The number is bigger because the *unit* is different, not because lentils out-yield everything — a classic reminder to check units before comparing. It should not be ranked against the bu/ac crops.
+
+**Part (c):** Filtering to `bu/ac` only, **Oats** has the highest average (≈71 bu/ac) and **Flax** the lowest (≈20 bu/ac) in 2023.
+
+**Why long format matters here:** "average yield *by crop*" requires `Crop` to be a single field you can drop on Rows. In the wide file the crops are eight separate columns, so this pivot is impossible without reshaping first.
 
 </details>
 
-### Variant 3B
+### Variant 3B — Crops over time (the drought signal)
 
-**(a)** Build a PivotTable of **average yield of each crop in 2023** (put `Year` in the Filter, set to 2023; drag each crop into Values as Average). Rank the crops from highest to lowest average yield.
+**(a)** Build a PivotTable with `Year` on Rows and `Crop` on Columns, `Yield` in Values → Average. Filter `Unit` to `bu/ac`. Read across a recent row: in a typical year, which crops sit highest and lowest?
 
-**(b)** Change the PivotTable to compare **2021 vs 2023** for canola (put `Year` on Rows, filter to those two years, Canola in Values as Average). How large is the drought gap?
+**(b)** Using the same table, compare **canola in 2021 vs 2023**. How large is the drought gap?
 
-**(c)** Build a PivotTable showing the **count of RMs reporting canola each year** (Year on Rows, Canola in Values → Count). Is reporting fairly complete across years?
+**(c)** Looking down the columns, which single year stands out as a **drought year** — yields low across *all* crops at once?
 
 <details>
 <summary>**Answers**</summary>
 
-**Part (a):** For 2023, ranking by average yield: **Lentils** report in lb/ac so they will look huge (≈1,500+) — note the different unit; among the bu/ac crops, **Barley** and **Oats** are highest, **Spring Wheat** and **Durum** in the middle, **Canola** and **Flax** lower. (Exact order shifts year to year.)
+**Setup:** `Year` → Rows, `Crop` → Columns, `Yield` → Values (Average); `Unit` → Filters set to `bu/ac`.
 
-**Part (b):** The 2021 canola average is dramatically lower than 2023 — roughly **half**, depending on the snapshot. The PivotTable makes the drought's impact immediately visible.
+**Part (a):** In a typical recent year, **Oats** and **Barley** sit highest, the wheats and peas/canola in the middle, and **Flax** lowest — the same ordering the by-crop pivot showed.
 
-**Part (c):** Yes — the count of reporting RMs is close to ~290 in most recent years, so coverage is fairly complete. Earlier in the series (closer to 1990) some crops have thinner reporting.
+**Part (b):** Canola averaged **≈ 21.9 bu/ac in 2021** versus **≈ 33.9 bu/ac in 2023** — roughly a **one-third drop** in the drought year. The crop × year grid makes the gap jump out.
 
-**Note:** Watch the **units** — Lentils are reported in **lb/ac** while the other crops are **bu/ac**, so do not compare Lentils' magnitude directly against the others.
+**Part (c):** **2021** stands out — reading across that row, *every* crop's average dips together, the signature of a widespread drought rather than a crop-specific problem. (Contrast with a year where only one crop is low, which would point to a pest or disease specific to that crop.)
+
+**Note on units:** always filter to a single `Unit` before comparing crops on one chart or table, so lentils (lb/ac) don't swamp the bu/ac crops.
 
 </details>
 
@@ -323,9 +350,9 @@ Answer the following based on your box plot:
 
 ### Variant 4B — A crop over time
 
-Use the **full** dataset (all years).
+Use the **full** dataset (all years). Either file works here: from the **wide** file put `Canola` in Values; from the **long** file put `Yield` in Values and filter `Crop` to Canola. Both give the same by-year averages.
 
-**(a)** Build a PivotTable of **average canola yield by year** (Year on Rows, Canola as Average), then create a **line chart** of average canola yield from 1990 to 2025.
+**(a)** Build a PivotTable of **average canola yield by year** (Year on Rows, canola yield as Average), then create a **line chart** of average canola yield from 1990 to 2025.
 
 Answer the following based on your line chart:
 

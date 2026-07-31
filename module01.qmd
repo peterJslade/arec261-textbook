@@ -161,7 +161,7 @@ $$
 
 where $n$ is the number of observations and $x_i$ is the $i$-th observation.
 
-The mean is the right measure of centre when your data is **roughly symmetric** and has **no extreme outliers**. It has the nice property that the total of all values equals $n \bar{x}$, which matters in many practical contexts (total revenue = average price × quantity, etc.).
+The mean is the right measure of centre when your data is **roughly symmetric** and has **no extreme outliers**. It has the nice property that the total of all values equals $n \bar{x}$, which matters in many practical contexts (total revenue = average price × quantity, etc.).  However, the mean can be very misleading if your data is skewed or has extreme values. For example, if you are looking at farm incomes in a region, a few very large operations can pull the mean way up, so the "average farm income" sounds high, but the *typical* farm earns much less.  You often encounter this issue in the media and political debates about economic growth and the direction of the agricultural sector. 
 
 ### Median {.unnumbered}
 
@@ -169,7 +169,7 @@ The **median** is the middle value when the data is sorted. If you have an odd n
 
 For our yields (sorted: 47, 48, 50, 52, 55), the median is 50. In Excel: `=MEDIAN(A1:A5)`.
 
-The median is the right measure of centre when your data is **skewed** or has **extreme outliers**. Consider farm incomes in a region: a handful of very large operations can pull the mean way up, so the "average farm income" sounds high, but the *typical* farm earns much less. In that case the median is a more honest answer to "what does a typical farm look like?"
+The median is generally the right measure of centre when your data is **skewed** or has **extreme outliers**. To returen to our previous example of farm incomes, if there are a handful of very large operations, then the median income is a more honest assessment of "what a typical farm earns?"
 
 A classic example: in a hypothetical bar, the average income of the customers is \$100,000. Elon Musk walks in. The average income is now \$500 million. The median barely budges.
 
@@ -177,34 +177,16 @@ A classic example: in a hypothetical bar, the average income of the customers is
 
 The **mode** is the most frequently occurring value. In Excel: `=MODE.SNGL(A1:A5)` for a single mode, or `=MODE.MULT(A1:A5)` if you want all of them (for data with multiple modes).
 
-The mode is most useful for **categorical data** ("what is the most common crop in this region?") or for **discrete numeric data** with repeated values. For continuous measurements like yields, the mode is usually not interesting because no two measurements will be exactly equal.
+The mode is most useful for **categorical data** ("what is the most common crop in this region?") or for **discrete numeric data** with repeated values. For continuous measurements like yields, the mode is usually not interesting because no two measurements will be exactly equal, or if they are it is often just random chance.
 
-### Which to Use When {.unnumbered}
-
-A short guide:
-
-| If your data is... | Use... |
-|--------------------|--------|
-| Symmetric, no outliers | Mean |
-| Skewed or has outliers | Median |
-| Categorical | Mode |
-| Symmetric but you also care about totals | Mean (it's what makes totals add up) |
-
-And a critical point: **reporting the mean without checking the shape of the data is a common mistake.** Always look at a histogram or a box plot before you trust a single number to summarize a dataset.
 
 ## Measures of Location: Percentiles and Quartiles {#sec-percentiles}
 
 The mean and median tell you about the centre. Sometimes you want to describe other parts of the distribution. That is what **percentiles** are for.
 
-The **$p$-th percentile** is the value below which $p\%$ of the observations fall. The 50th percentile is the median. The 25th percentile is the value below which a quarter of the observations lie; the 75th percentile is the value below which three-quarters lie. These three values — the 25th, 50th, and 75th percentiles — are called the **first, second, and third quartiles** ($Q_1$, $Q_2$, $Q_3$).
+The **$p$-th percentile** is the value below which $p\%$ of the observations fall. The 50th percentile is the median. The 25th percentile is the value below which a quarter of the observations lie; the 75th percentile is the value below which three-quarters lie. These three values — the 25th, 50th, and 75th percentiles — are called the **first, second, and third quartiles** ($Q_1$, $Q_2$, $Q_3$).  
 
-The range from $Q_1$ to $Q_3$ contains the middle 50% of the data and is called the **interquartile range (IQR)**:
-
-$$
-\text{IQR} = Q_3 - Q_1
-$$
-
-The IQR is a useful measure of spread that is not affected by a few extreme outliers (unlike the range, which is extremely sensitive to them).
+Note that when we have a small amount of data it is not a simple matter to define the quartile (or other percentiles).  For example, if we have nine values, then the 25th percentile would lie somewhere between the second and third smallest values. Generally, we would interpolate between these two values.   In large or dense datasets this is not an issue.  
 
 In Excel:
 
@@ -215,6 +197,15 @@ In Excel:
 (Excel has both `.INC` and `.EXC` variants — inclusive and exclusive. For this course use `.INC`.)
 
 Percentiles are how crop insurance programs define "bad years" (e.g., "a yield in the lowest 10th percentile"), how government agencies define poverty thresholds, and how agronomists describe the performance of a variety ("top-quartile yield"). Get comfortable with them.
+
+The range from $Q_1$ to $Q_3$ contains the middle 50% of the data and is called the **interquartile range (IQR)**:
+
+$$
+\text{IQR} = Q_3 - Q_1
+$$
+
+The IQR is a useful measure of spread that is not affected by a few extreme outliers (unlike the range, which is extremely sensitive to them).
+
 
 ## Measures of Spread: Variance and Standard Deviation {#sec-spread}
 
@@ -241,7 +232,7 @@ In Excel: `=VAR.S(A1:A5)` for a sample, `=VAR.P(A1:A5)` for a full population (w
 
 ### Standard Deviation {.unnumbered}
 
-The variance has an awkward property: its units are the squared units of the original data. If your yields are in bushels per acre, the variance is in "bushels per acre squared," which is not a thing. The **standard deviation** fixes this by taking the square root:
+The variance has an awkward property: its units are the squared units of the original data. If your yields are in bushels per acre, the variance is in "bushels per acre squared," which is not easy to interpret. The **standard deviation** fixes this by taking the square root:
 
 $$
 s = \sqrt{s^2} = \sqrt{\frac{1}{n-1} \sum_{i=1}^{n} (x_i - \bar{x})^2}
@@ -252,6 +243,20 @@ Now the units match the original data, and we can say things like "yields in thi
 In Excel: `=STDEV.S(A1:A5)` for a sample, `=STDEV.P(A1:A5)` for a population.
 
 Standard deviation will show up everywhere in the rest of this course. It is the building block of $z$-scores (which you will meet in AREC 262), confidence intervals (@sec-module12), and most of inferential statistics. Make sure you understand what it represents: the typical distance of an observation from the mean, measured in the original units of the data.
+
+### Coefficient of Variation {.unnumbered}
+A sometimes helpful, sometimes misleading measure of spread is the **coefficient of variation (CV)**, which is the standard deviation divided by the mean:
+
+$$
+CV = \frac{s}{\bar{x}}
+$$
+
+I say it is helpful because it can compare the spread of two datasets with very different means. For example, average wheat and barley yields are very different, so we would expect barley to be more variable in absolute terms. But the CV allows us to compare relative variability: a CV of 0.1 means that the standard deviation is 10% of the mean, regardless of what the mean is. So you can say "wheat yields are more variable than barley yields" even if the absolute standard deviation of wheat is smaller.
+
+However, in other contexts -- particularly when the data can be close to zero or negative -- the CV can be misleading. Suppose we wanted to compare the variability of farm income in a "good" year to farm incomes in a "bad" year.  In a bad year, the mean income might be close to zero or negative.  In that case, the CV would explode to infinity or become negative, which is not intuitive. 
+
+Use the coefficient of variation with caution.
+
 
 ### Range {.unnumbered}
 
@@ -348,6 +353,47 @@ Two basic data manipulation tasks that you should be able to do without thinking
 **Filter** hides rows that don't match a condition. Click inside the data and choose **Data → Filter**. Each column gets a dropdown arrow that lets you pick which values to show. Filtering does not delete rows; it just hides them. Clearing the filter brings them back.
 
 Filtering is enormously useful for exploring a dataset: "let me just look at the canola fields," "just the 2023 data," "just the fields with yields below 30." Learn the keyboard shortcut (`Ctrl+Shift+L` toggles filters on and off).
+
+## Wide vs. Long Data {#sec-wide-long}
+
+Before we get to PivotTables, we need to talk about the *shape* of a dataset — because the same data can be laid out in two very different ways, and which one you have determines what you can easily do with it.
+
+Consider our Saskatchewan crop-yield data. Here it is in **wide** format — one row per RM-year, and each crop gets its own column:
+
+| Year | RM | Spring Wheat | Canola | Barley | Oats |
+|------|----|--------------|--------|--------|------|
+| 2023 | 1  | 50.8 | 36.8 | 53.0 | 55.1 |
+| 2023 | 2  | 48.5 | 34.4 | 50.5 | 81.8 |
+
+And here is the *same information* in **long** format — one row per RM-year-**crop**, with the crop name pulled out into its own column and all the yields stacked into a single `Yield` column:
+
+| Year | RM | Crop | Yield | Unit |
+|------|----|------|-------|------|
+| 2023 | 1 | Spring Wheat | 50.8 | bu/ac |
+| 2023 | 1 | Canola | 36.8 | bu/ac |
+| 2023 | 1 | Barley | 53.0 | bu/ac |
+| 2023 | 1 | Oats | 55.1 | bu/ac |
+| 2023 | 2 | Spring Wheat | 48.5 | bu/ac |
+| … | … | … | … | … |
+
+Both hold exactly the same numbers. The difference is purely structural: in wide format, "which crop" is encoded in the *column position*; in long format, "which crop" is a *value in a column*.
+
+### Which one should I use? {.unnumbered}
+
+Each shape is convenient for different things:
+
+- **Wide is convenient for column-at-a-time math.** If you want the average canola yield, it is right there: `=AVERAGE` the Canola column. Wide format is easy to read by eye and quick for the descriptive statistics and conditional functions we covered above.
+- **Long is what you need to summarize *by* the stacked variable.** Suppose you want a table of *average yield for each crop*. In long format that is a one-move PivotTable: put `Crop` on Rows and `Yield` in Values. In wide format you *cannot* do this in a single pivot — the crops are eight separate columns, so "crop" isn't a field you can drag anywhere.
+
+That is the key idea: **a PivotTable can only group by a field that lives in its own column.** If the thing you want on your rows (here, the crop) is spread across many columns, you must reshape to long first.
+
+### Is wide "wrong"? {.unnumbered}
+
+No. The wide layout above is a perfectly reasonable way to store this data — you could argue each crop genuinely *is* its own variable. Neither format is universally "correct"; they are tools for different jobs. What matters is recognizing which shape you have and reshaping when the task calls for it.
+
+Reshaping between wide and long by hand in Excel is tedious and error-prone. In **R**, it is a single function call in each direction (`pivot_longer()` and `pivot_wider()`), which is one of the reasons we move to R later in the course. You will meet the formal idea of **"tidy data"** — and these reshaping tools — in @sec-module3.
+
+For now, the practical takeaway: **for the practice questions, use the *wide* file for descriptive statistics and lookups, and the *long* file when you need a PivotTable that groups by crop.** We provide both.
 
 ## PivotTables {#sec-pivottables}
 

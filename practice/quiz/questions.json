@@ -1,9 +1,11 @@
 {
   "dataset": {
-    "name": "rm_yields_1990plus.csv",
-    "description": "Real Saskatchewan RM crop yields, 1990-2025 (8 crops, one row per RM-year)",
+    "name": "rm_yields_1990plus.csv (wide) + rm_yields_1990plus_long.csv (long)",
+    "description": "Real Saskatchewan RM crop yields, 1990-2025. WIDE (one crop per column) for stats/lookups; LONG (Crop in its own column) for PivotTables.",
     "path": "../data/rm_yields_1990plus.csv",
-    "columns": ["Year", "RM", "Spring Wheat", "Durum", "Canola", "Barley", "Oats", "Peas", "Lentils", "Flax"]
+    "path_long": "../data/rm_yields_1990plus_long.csv",
+    "columns": ["Year", "RM", "Spring Wheat", "Durum", "Canola", "Barley", "Oats", "Peas", "Lentils", "Flax"],
+    "columns_long": ["Year", "RM", "Crop", "Yield", "Unit"]
   },
   "question_types": [
     {
@@ -64,22 +66,22 @@
     {
       "type_id": 3,
       "type_name": "PivotTables",
-      "description": "Build PivotTables to summarize yields across years, RMs, and crops.",
+      "description": "Use the LONG file (rm_yields_1990plus_long.csv). Crop is its own column, so you can pivot by crop.",
       "questions": [
         {
           "id": "3a",
           "parts": [
-            {"label": "a", "text": "PivotTable of average canola yield by year. Which of 2010–2025 was highest? Lowest?", "answer": "Highest ~2013/2016–2020; lowest 2021 (drought).", "formula": "PivotTable: Year → Rows, Canola → Values (Average)"},
-            {"label": "b", "text": "Add Spring Wheat and Barley as Average value fields. How do the three crops compare?", "answer": "Barley highest, spring wheat middle, canola lowest bu/ac.", "formula": "Drag Spring Wheat, Barley into Values (Average)"},
-            {"label": "c", "text": "Which recent year stands out as a drought year (all three crops low at once)?", "answer": "2021 — all three averages drop together.", "formula": "Read the PivotTable across years"}
+            {"label": "a", "text": "Using the long file: PivotTable of average yield for each crop in 2023 (Year in Filter = 2023, Crop on Rows, Yield as Average). Rank crops high to low.", "answer": "Lentils ~1314 (lb/ac!), Oats ~71, Barley ~55, Spring Wheat ~43, Peas ~34, Canola ~34, Durum ~30, Flax ~20.", "formula": "Year → Filter (2023); Crop → Rows; Yield → Values (Average)"},
+            {"label": "b", "text": "Why does Lentils appear far larger than every other crop?", "answer": "Lentils are in lb/ac, all others in bu/ac — a unit difference, not higher yield. Don't rank it against the bu/ac crops.", "formula": "Check the Unit column"},
+            {"label": "c", "text": "Filter Unit to bu/ac. Which crop is highest, which lowest, in 2023?", "answer": "Oats highest (~71 bu/ac), Flax lowest (~20 bu/ac).", "formula": "Unit → Filter (bu/ac)"}
           ]
         },
         {
           "id": "3b",
           "parts": [
-            {"label": "a", "text": "PivotTable of average yield of each crop in 2023 (Year in Filter = 2023). Rank crops high to low.", "answer": "Barley/Oats high, wheat/durum mid, canola/flax lower. (Lentils in lb/ac — different unit.)", "formula": "Year → Filter (2023); each crop → Values (Average)"},
-            {"label": "b", "text": "Compare 2021 vs 2023 canola average. How large is the drought gap?", "answer": "2021 roughly half of 2023 (snapshot).", "formula": "Year → Rows (2021, 2023); Canola → Values (Average)"},
-            {"label": "c", "text": "PivotTable of the count of RMs reporting canola each year. Is coverage complete?", "answer": "≈290 RMs most recent years — fairly complete; thinner near 1990.", "formula": "Year → Rows, Canola → Values (Count)"}
+            {"label": "a", "text": "Long file: PivotTable with Year on Rows, Crop on Columns, Yield as Average, Unit filtered to bu/ac. In a typical recent year, which crops are highest/lowest?", "answer": "Oats and Barley highest; Flax lowest.", "formula": "Year → Rows, Crop → Columns, Yield → Values (Average), Unit → Filter (bu/ac)"},
+            {"label": "b", "text": "From the same grid, compare canola in 2021 vs 2023. How large is the drought gap?", "answer": "≈21.9 (2021) vs ≈33.9 (2023) — about a one-third drop.", "formula": "Read the Canola column for rows 2021 and 2023"},
+            {"label": "c", "text": "Reading down the columns, which single year is a drought year (all crops low at once)?", "answer": "2021 — every crop's average dips together.", "formula": "Scan the grid for a uniformly low row"}
           ]
         }
       ]
