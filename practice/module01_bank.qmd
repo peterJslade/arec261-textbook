@@ -206,21 +206,21 @@ Work with the **Canola** column across **all years** (do not filter by year).
 
 **(a)** Compute the overall mean and median canola yield for 1990–2025.
 
-**(b)** Compute the overall standard deviation.
+**(b)** Compute the overall (all-years pooled) standard deviation.
 
-**(c)** Explain why this "all years pooled" standard deviation is larger than the standard deviation within any single year (like 2023 from Question 1).
+**(c)** Now compute the standard deviation *within* just 1995 and within just 2023 (filter to each year). Compare these two within-year SDs to the pooled SD from (b), and note whether the pooled value falls above, below, or between them.
 
-**(d)** Compute the average canola yield for `Year = 1995` and for `Year = 2020` separately. Using just these two numbers, explain how a difference between early and recent years would add to the pooled spread from (b).
+**(d)** Compute the average canola yield for `Year = 1995` and for `Year = 2020` separately. Using just these two numbers, describe how much average canola yield changed between an early and a recent year.
 
 **(e)** Based on what you found in (d), explain why an overall 1990–2025 mean is a poor description of what a grower should expect in a recent year.
 
 <details><summary>Answer</summary>
 
-- (a) mean ≈ 28.29, median ≈ 28.60 bu/ac (as of snapshot).
-- (b) SD is larger than within-year SD (roughly 9–13 depending on year).
-- (c) Pooling years mixes lower early values with higher recent ones, so total spread combines within-year variation *and* the difference between years.
-- (d) 1995 canola averages well below 2020 (early years are markedly lower than recent ones in the data). When both are pooled, that early-vs-recent gap adds to the spread on top of the within-year variation.
-- (e) Because recent years read higher than early ones in the data, a 36-year average sits below recent levels and understates a recent-year expectation.
+- (a) mean ≈ 28.29, median ≈ 26.90 bu/ac (as of snapshot).
+- (b) pooled SD ≈ 10.06 bu/ac.
+- (c) Within-year SDs: 1995 ≈ 4.48 (tight), 2023 ≈ 13.33 (wide). The pooled SD (10.06) falls **between** them — early years were tightly clustered, recent drought-affected years spread out more, and pooling all years lands in the middle. (So a pooled SD is not automatically larger than every within-year SD.)
+- (d) 1995 canola averages ≈ 19.2 vs 2020 ≈ 38.2 bu/ac — roughly double; average yields rose markedly from the mid-1990s to recent years.
+- (e) Because recent years read much higher than early ones, a 36-year average (~28) sits well below recent levels and understates a recent-year expectation.
 </details>
 
 ### Question 9
@@ -339,7 +339,7 @@ Filter the reported yields to a single year, `Year = 2021`, and then to `Year = 
 
 **(d)** Compare the CVs of the two years and say whether the drought year was also *more variable* in relative terms.
 
-**(e)** The Saskatchewan RM canola CV jumped to about 0.39 in the 2021 drought, while this Manitoba wheat CV stayed near 0.25. Using only these numbers, state which dataset's yields were disturbed *more* by the drought in relative terms.
+**(e)** The Saskatchewan RM canola CV was about 0.37 in the 2021 drought, while this Manitoba wheat CV stayed near 0.25. Using only these numbers, state which dataset's yields were disturbed *more* by the drought in relative terms.
 
 <details><summary>Answer</summary>
 
@@ -347,7 +347,7 @@ Filter the reported yields to a single year, `Year = 2021`, and then to `Year = 
 - (b) 2021: SD ≈ 12.20, CV ≈ 0.246. 2023: SD ≈ 11.27, CV ≈ 0.184.
 - (c) Yes — 2021 averages ~12 bu/ac below 2023, a clear drought drop.
 - (d) 2021's CV (0.246) is noticeably higher than 2023's (0.184) — the drought year was more variable in relative terms, though both stay well below SK field CVs.
-- (e) The **Saskatchewan** data was disturbed more in relative terms — its drought-year CV (~0.39) is much higher than the Manitoba figure (~0.25), so its yields spread out more relative to their average.
+- (e) The **Saskatchewan** data was disturbed more in relative terms — its drought-year CV (~0.37) is much higher than the Manitoba figure (~0.25), so its yields spread out more relative to their average.
 </details>
 
 ### Question 14
@@ -720,8 +720,8 @@ Consider **blank** (missing) yields across the whole file.
 
 <details><summary>Answer</summary>
 
-- (a) ≈ 185 blank-yield rows (snapshot).
-- (b) Blanks cluster in crops not grown in the east — flax, durum, canola in maritime provinces, etc.
+- (a) ≈ 66 blank-yield rows (snapshot).
+- (b) Blanks cluster in crops not widely grown in the east — Mixed grains and Rye are the most common blanks — and in the eastern provinces (Newfoundland and Labrador, New Brunswick, PEI).
 - (c) Here a blank = **crop not meaningfully grown** in that province/year; MB blanks = **grown but suppressed** for privacy.
 - (d) Excel's AVERAGE skips blanks, so a crop's mean is taken over the provinces/years that actually reported it.
 - (e) Replacing blanks with 0 would count "not grown" as "a real zero yield," dragging the mean down falsely.
@@ -1140,21 +1140,21 @@ Consider the variety **`GLENN`**, which is reported in very few municipality-yea
 
 **(a)** Use a lookup (`XLOOKUP` or `INDEX`/`MATCH`) to find the reported yield for `AAC BRANDON (BW 932)` in the municipality `ALONSA` in 2020.
 
-**(b)** Try the same lookup for a variety-municipality-year you expect to be suppressed. Describe what your lookup returns.
+**(b)** Try the same lookup for a variety-municipality-year you expect to be suppressed (Reported = FALSE). Look carefully at the value your lookup returns for that blank `Yield_bu_ac` cell.
 
-**(c)** Explain why a lookup can succeed (return a number) for one variety-place-year but return a blank or error for another, in terms of the `Reported` status.
+**(c)** When `XLOOKUP` (or `INDEX`/`MATCH`) points at an empty cell, Excel returns **0**, not a blank. Explain why that behaviour is dangerous here, given that a suppressed yield is *not* a real zero.
 
-**(d)** Explain why you would want to check the `Reported` column *before* trusting a looked-up yield.
+**(d)** Explain why you would check the `Reported` column *before* trusting a looked-up yield of 0.
 
-**(e)** State, in one sentence, why a blank lookup result here should not be read as "a low yield."
+**(e)** State, in one sentence, why a looked-up 0 from a suppressed row should not be read as "a yield of zero."
 
 <details><summary>Answer</summary>
 
 - (a) ≈ 65.1 bu/ac.
-- (b) A suppressed combination returns a blank `Yield_bu_ac` (Reported = FALSE) — no number.
-- (c) Reported rows carry a yield; suppressed rows have a blank yield, so the lookup finds a row but no value.
-- (d) The `Reported` flag tells you whether the blank means "withheld" rather than a real measurement, so you know how to treat it.
-- (e) A blank means the yield was withheld, not measured — reading it as "low" would invent data.
+- (b) The lookup finds the suppressed row, but because its `Yield_bu_ac` cell is empty, Excel returns **0** — a real trap.
+- (c) A returned 0 looks like a measured yield of zero, but the row is suppressed (withheld), so treating that 0 as data would drag any average down falsely.
+- (d) The `Reported` flag tells you the 0 came from a withheld cell, not a real measurement, so you know to exclude it.
+- (e) The 0 is an artifact of looking up an empty cell — the yield was withheld, not measured as zero.
 </details>
 
 ### Question 47
@@ -1339,7 +1339,7 @@ Consider the variety **`GLENN`**, which is reported in very few municipality-yea
 - (a) ≈ 44.6 bu/ac.
 - (b) ≈ 3,128,200 acres.
 - (c) Each row is one Province-Crop-Year; only all three together single out a unique record.
-- (d) That crop may not be grown/reported in that province-year, so the yield cell is blank.
+- (d) That crop may not be grown/reported in that province-year, so the yield cell is empty — and a lookup pointing at an empty cell returns **0** in Excel, which must not be read as a real zero yield.
 - (e) With fewer keys, several rows can match, and the lookup returns the first — possibly the wrong crop, province, or year.
 </details>
 
@@ -1555,7 +1555,7 @@ Filter to `Year = 2023`, Canola column.
 
 - (a) Line chart; x = Year, y = "Average yield (bu/ac)".
 - (b) A clear **upward** direction — from ~19 bu/ac in 1995 to the low-to-mid 40s by 2025.
-- (c) The sharpest dip is **2021** (down to ~22 bu/ac from ~41 in 2019).
+- (c) The sharpest single-year drop is into **2021** (from ~38 bu/ac in 2020 down to ~22). (Note: the *lowest* year overall is actually 2002 at ~16 bu/ac; here the question asks for the sharpest one-year drop, which is 2021.)
 - (d) The rising slope over many years is the long-run direction; a single deep notch (2021) that recovers afterward is a one-off dip.
 - (e) A line chart shows change over ordered time; a pie chart shows parts of a whole at one instant and cannot show a trend.
 </details>
@@ -1681,21 +1681,21 @@ Filter to `Year = 2023`, Canola column.
 
 **(a)** Build a line chart of average **Barley** yield by year, 1990–2025, titled with labelled axes.
 
-**(b)** Describe the overall direction and identify the lowest year.
+**(b)** Describe the overall direction and identify the year with the sharpest single-year drop.
 
-**(c)** Compare the lowest year here to the lowest year on your canola line chart (Question 63). Are they the same year?
+**(c)** Compare the sharpest-drop year here to the sharpest-drop year on your canola line chart (Question 63). Are they the same year?
 
-**(d)** Explain what it means when two different crops share their worst year on these charts.
+**(d)** Explain what it means when two different crops share their sharpest drop in the same year.
 
-**(e)** Explain why reading the *same* low year across multiple crop charts is stronger evidence of a broad event than a single crop's chart alone.
+**(e)** Explain why reading the *same* sharp-drop year across multiple crop charts is stronger evidence of a broad event than a single crop's chart alone.
 
 <details><summary>Answer</summary>
 
 - (a) Line chart, titled/labelled.
-- (b) Rising overall; lowest year **2021** (~35 bu/ac).
-- (c) Yes — both canola and barley bottom out in 2021.
+- (b) Rising overall; sharpest single-year drop into **2021** (from ~68 bu/ac in 2020 to ~35).
+- (c) Yes — both canola and barley have their sharpest drop into 2021.
 - (d) It means the poor year hit both crops, pointing to a shared cause rather than a crop-specific one.
-- (e) One crop dipping could be crop-specific; multiple crops dipping in the same year points to a broad, shared event.
+- (e) One crop dropping could be crop-specific; multiple crops dropping sharply in the same year points to a broad, shared event.
 </details>
 
 ### Question 70
@@ -1733,7 +1733,7 @@ Filter to `Year = 2023`, Canola column.
 
 **(c)** Contrast this shape with the Saskatchewan canola histogram from Question 61.
 
-**(d)** This data has genuine low-end outliers by the 1.5×IQR rule (about 39 of them across all years). Explain how a *box plot* of the same data would display them.
+**(d)** This data has genuine low-end outliers by the 1.5×IQR rule (about 35 of them across all years). Explain how a *box plot* of the same data would display them.
 
 **(e)** Explain why a histogram alone might not lead you to call those low values "outliers," whereas a box plot would flag them explicitly.
 
@@ -1750,21 +1750,21 @@ Filter to `Year = 2023`, Canola column.
 
 *Using the Manitoba Wheat Variety dataset.*
 
-**(a)** Identify the six most-reported varieties, and build a box plot comparing their yield distributions (one box each), titled with labelled axes.
+**(a)** Build a box plot comparing the yield distributions of three widely-grown varieties — `AAC BRANDON (BW 932)`, `AAC STARBUCK <SECAN>`, and `AAC REDBERRY` (one box each) — titled with labelled axes.
 
 **(b)** Explain what a reader learns from this box plot that a simple bar chart of *average* yield per variety would hide.
 
-**(c)** Identify, from your chart, which of the six varieties looks the most consistent (least spread), and say how you can tell.
+**(c)** Identify, from your chart, which of the three varieties looks the most consistent (least spread), and say how you can tell.
 
-**(d)** You want to show a general audience that "these top varieties yield similarly." Would you choose the box plot or a bar chart of means? Justify it in terms of audience and message.
+**(d)** You want to show a general audience that "these varieties yield similarly." Would you choose the box plot or a bar chart of means? Justify it in terms of audience and message.
 
 **(e)** Explain one way an unlabelled or poorly titled version of your chart could mislead a reader.
 
 <details><summary>Answer</summary>
 
-- (a) Box plot, six varieties (AAC Brandon, Starbuck, Wheatland, Hockley, Viewfield, Redberry), titled/labelled.
+- (a) Box plot, three named varieties, titled/labelled.
 - (b) Spread and consistency (some varieties more variable) plus outliers — a bar of means hides all of that.
-- (c) The variety with the narrowest box/shortest whiskers is most consistent (e.g. AAC Hockley, IQR ≈ 12.7).
+- (c) The variety with the narrowest box/shortest whiskers is most consistent (AAC Brandon and AAC Redberry both have IQR ≈ 13, tighter than AAC Starbuck's ≈ 14). Credit any answer that reads the box widths correctly.
 - (d) Defensible either way if justified: a bar-of-means is cleaner for a lay audience whose takeaway is "similar averages"; the box plot is right if the message is consistency.
 - (e) A missing y-axis label or a truncated axis could exaggerate small differences between varieties.
 </details>
@@ -2245,9 +2245,9 @@ Filter to `Year = 2023`, Canola column.
 
 *Using the Saskatchewan RM Crop Yields dataset (long file).*
 
-**(a)** Build a PivotTable of average yield by crop for 2019 and, separately, for 2025 (Unit = bu/ac).
+**(a)** Build a single PivotTable with Crop on Rows and Year on Columns (Yield as Average, Unit = bu/ac), then filter the columns to just 2019 and 2025.
 
-**(b)** For each crop, compute the change from 2019 to 2025 (a fifth column, or by reading both tables).
+**(b)** For each crop, read the 2019 and 2025 values and compute the change (2025 minus 2019).
 
 **(c)** State which crop rose the most in absolute bu/ac between those two years.
 
@@ -2257,7 +2257,7 @@ Filter to `Year = 2023`, Canola column.
 
 <details><summary>Answer</summary>
 
-- (a) Two by-crop tables (2019 and 2025).
+- (a) One Crop × Year pivot, columns filtered to 2019 and 2025.
 - (b) 2025 minus 2019 per crop (e.g. Oats 97.5 − 89.4 ≈ 8.1; Barley 72.8 − 68.6 ≈ 4.2; Canola 43.9 − 40.8 ≈ 3.1).
 - (c) **Oats** rose most in absolute bu/ac (~8).
 - (d) Oats already yield the most, so a big absolute gain can be a small percentage; a lower-yielding crop's smaller gain could be a larger percentage.
@@ -2408,7 +2408,7 @@ Filter to `Year = 2023`, Canola column.
 
 **(a)** Build a PivotTable with Year on Rows and Yield as Average for **Canola only**, and use it to create a PivotChart (line).
 
-**(b)** Describe the overall direction of the line and identify the lowest year.
+**(b)** Describe the overall direction of the line and identify the year with the sharpest single-year drop.
 
 **(c)** Explain the advantage of a PivotChart over a static chart when the underlying PivotTable filters change.
 
@@ -2419,7 +2419,7 @@ Filter to `Year = 2023`, Canola column.
 <details><summary>Answer</summary>
 
 - (a) PivotChart line of canola average by year.
-- (b) Rising overall; lowest year **2021**.
+- (b) Rising overall; the sharpest single-year drop is into **2021** (from ~38 to ~22 bu/ac). (The lowest *level* is 2002 at ~16; here the question asks for the sharpest drop.)
 - (c) A PivotChart updates automatically when you change the PivotTable's filters or fields.
 - (d) The PivotTable computes every year's average in one step, instead of writing an `AVERAGEIF` per year.
 - (e) The PivotTable aggregates the raw rows into a summary, and the chart renders that summary visually.
@@ -2444,10 +2444,10 @@ Filter to `Year = 2023`, Canola column.
 <details><summary>Answer</summary>
 
 - (a) Variety on Rows; Yield Average + Count.
-- (b) Highest average ≈ **SY MANNESS** (~72); most-reported ≈ **AAC BRANDON (BW 932)** (~519 reports, mean ~60).
-- (c) A variety grown/reported on fewer sites can post a high average without being widely reported.
-- (d) The widely-reported average (AAC Brandon, n≈519) is more trustworthy than a high average on ~108 reports.
-- (e) Averages from 1–2 reports are noisy and can top the list by chance; a ≥30 threshold keeps only well-supported estimates.
+- (b) Highest average (unfiltered) ≈ **AAC WESTKING** (~79) — but on only ~17 reports; most-reported ≈ **AAC BRANDON (BW 932)** (~519 reports, mean ~60). (Among well-reported varieties with ≥30 reports, SY MANNESS ~72 is the top.)
+- (c) A variety reported on very few sites can post a high average without being widely reported.
+- (d) The widely-reported average (AAC Brandon, n≈519) is more trustworthy than a high average on ~17 reports.
+- (e) Averages from a handful of reports are noisy and can top the list by chance (AAC WESTKING on ~17); a ≥30 threshold keeps only well-supported estimates.
 </details>
 
 ### Question 102
@@ -2615,7 +2615,7 @@ Filter to `Year = 2023`, Canola column.
 
 *Using the Manitoba Wheat Variety dataset.*
 
-**(a)** Build a PivotTable of average yield by variety and turn it into a bar PivotChart (top varieties), titled with labelled axes.
+**(a)** Build a PivotTable of average yield by variety, filter to varieties with at least 30 reports, and turn the highest-averaging ones into a bar PivotChart (ranked by average yield), titled with labelled axes.
 
 **(b)** Identify the tallest and shortest bars.
 
@@ -2627,8 +2627,8 @@ Filter to `Year = 2023`, Canola column.
 
 <details><summary>Answer</summary>
 
-- (a) Bar PivotChart of variety averages, titled/labelled.
-- (b) Tallest ≈ SY MANNESS; shortest among top varieties ≈ AAC Redberry.
+- (a) Bar PivotChart of variety averages (≥30 reports), ranked, titled/labelled.
+- (b) Tallest ≈ **SY MANNESS** (~72, the highest average among well-reported varieties); shortest among these ≈ AAC Tisdale/Redberry (~54).
 - (c) It shows the averages clearly but hides how many reports back each and how spread each variety is.
 - (d) A zero baseline keeps bar heights proportional; a truncated axis exaggerates small gaps.
 - (e) A PivotChart redraws automatically whenever the PivotTable's fields or filters change.
