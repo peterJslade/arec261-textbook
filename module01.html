@@ -329,6 +329,7 @@ window.Quarto = {
   <ul class="collapse">
   <li><a href="#mean" id="toc-mean" class="nav-link" data-scroll-target="#mean">Mean</a></li>
   <li><a href="#median" id="toc-median" class="nav-link" data-scroll-target="#median">Median</a></li>
+  <li><a href="#the-shape-of-a-distribution-skew" id="toc-the-shape-of-a-distribution-skew" class="nav-link" data-scroll-target="#the-shape-of-a-distribution-skew">The Shape of a Distribution: Skew</a></li>
   <li><a href="#mode" id="toc-mode" class="nav-link" data-scroll-target="#mode">Mode</a></li>
   </ul></li>
   <li><a href="#sec-percentiles" id="toc-sec-percentiles" class="nav-link" data-scroll-target="#sec-percentiles"><span class="header-section-number">1.6</span> Measures of Location: Percentiles and Quartiles</a></li>
@@ -349,6 +350,7 @@ window.Quarto = {
   <li><a href="#vlookup" id="toc-vlookup" class="nav-link" data-scroll-target="#vlookup"><code>VLOOKUP</code></a></li>
   <li><a href="#xlookup" id="toc-xlookup" class="nav-link" data-scroll-target="#xlookup"><code>XLOOKUP</code></a></li>
   <li><a href="#indexmatch" id="toc-indexmatch" class="nav-link" data-scroll-target="#indexmatch"><code>INDEX</code>/<code>MATCH</code></a></li>
+  <li><a href="#sec-two-key-lookup" id="toc-sec-two-key-lookup" class="nav-link" data-scroll-target="#sec-two-key-lookup">Looking Up on Two Keys at Once</a></li>
   </ul></li>
   <li><a href="#sec-sort-filter" id="toc-sec-sort-filter" class="nav-link" data-scroll-target="#sec-sort-filter"><span class="header-section-number">1.10</span> Sorting and Filtering</a></li>
   <li><a href="#sec-wide-long" id="toc-sec-wide-long" class="nav-link" data-scroll-target="#sec-wide-long"><span class="header-section-number">1.11</span> Wide vs.&nbsp;Long Data</a>
@@ -405,12 +407,12 @@ window.Quarto = {
 <p>By the end of this module you should be able to:</p>
 <ol type="1">
 <li>Open and navigate an Excel workbook, including working with multiple worksheets, cell references, and named ranges.</li>
-<li>Calculate measures of central tendency (mean, median, mode) and spread (range, variance, standard deviation) for a dataset.</li>
+<li>Calculate measures of central tendency (mean, median, mode) and spread (range, variance, standard deviation, coefficient of variation) for a dataset, and use the mean-vs-median comparison to judge whether a distribution is symmetric or skewed.</li>
 <li>Calculate percentiles and quartiles, and interpret what they mean.</li>
-<li>Use conditional functions (<code>IF</code>, <code>SUMIF</code>, <code>COUNTIF</code>, <code>AVERAGEIF</code>) to do calculations on subsets of data.</li>
-<li>Use lookup functions (<code>VLOOKUP</code>, <code>XLOOKUP</code>, <code>INDEX</code>/<code>MATCH</code>) to combine information from multiple tables.</li>
-<li>Build PivotTables and PivotCharts to summarize data.</li>
-<li>Create and interpret basic charts: bar charts, line charts, histograms, and box-and-whisker plots.</li>
+<li>Use conditional functions (<code>IF</code>, <code>SUMIF</code>, <code>COUNTIF</code>, <code>AVERAGEIF</code>, and dynamic criteria like <code>"&gt;"&amp;AVERAGE(...)</code>) to do calculations on subsets of data, and handle blank cells correctly.</li>
+<li>Use lookup functions (<code>VLOOKUP</code>, <code>XLOOKUP</code>, <code>INDEX</code>/<code>MATCH</code>), including two-key lookups, to combine information from multiple tables.</li>
+<li>Distinguish wide from long data, and build PivotTables and PivotCharts to summarize data.</li>
+<li>Create and interpret basic charts — bar, line, histogram, and box-and-whisker — with clear titles and axis labels, and understand why pie charts are usually a poor choice.</li>
 <li>Write well-organized, reproducible Excel workbooks that someone else (or future-you) can understand.</li>
 </ol>
 </section>
@@ -430,7 +432,7 @@ window.Quarto = {
 <h2 data-number="1.2" class="anchored" data-anchor-id="sec-file-formats"><span class="header-section-number">1.2</span> File Formats and File Management</h2>
 <p>A quick technical interlude. Excel can read and write several file formats, and the distinction matters.</p>
 <ul>
-<li><strong><code>.xlsx</code></strong> — The default modern Excel format. Can contain multiple worksheets, formulas, formatting, charts, PivotTables, macros (in <code>.xlsm</code>). This is what you save your <em>working</em> Excel files as.</li>
+<li><strong><code>.xlsx</code></strong> — The default modern Excel format. Can contain multiple worksheets, formulas, formatting, charts, and PivotTables. This is what you save your <em>working</em> Excel files as. (A variant, <code>.xlsm</code>, additionally allows macros; a plain <code>.xlsx</code> cannot store them.)</li>
 <li><strong><code>.csv</code></strong> — Comma-separated values. A plain-text format that stores a single table, one row per line, values separated by commas. No formulas, no formatting, no multiple sheets, no types. This is the universal exchange format for tabular data — every analysis tool in the world reads CSV. You should save data as CSV when you want to share it with anyone, or hand it off to another tool.</li>
 <li><strong><code>.tsv</code></strong> — Tab-separated values. Same idea as CSV but using tabs. Sometimes preferred when your data itself contains commas.</li>
 <li><strong><code>.xls</code></strong> — The old pre-2007 Excel format. You will occasionally encounter these in the wild. Open them and resave as <code>.xlsx</code>.</li>
@@ -457,13 +459,13 @@ window.Quarto = {
 <li><strong>External audiences.</strong> A file that will be shared with clients, regulators, or the public — or published on a website. Now aesthetics genuinely matter. Consistent colour schemes, carefully formatted tables, branding where appropriate, charts that can stand on their own. You may even want to hide the working sheets and show only the final outputs. Every element of the file is a reflection on you or your organization, so it needs to be polished.</li>
 </ul>
 <p>There is no single “right” way to format an Excel file, because “right” depends on who is going to open it. The mistake is not picking the wrong level of polish — it is not thinking about it at all and defaulting to whatever is comfortable. A slapped-together file handed to an external client looks unprofessional; a heavily-formatted file built for your own scratch work is a waste of time. Match the polish to the audience.</p>
-<p>Here is a structure I recommend for a workbooks that are just for you:</p>
+<p>Here is a structure I recommend for any workbook that will be shared or that you might come back to later:</p>
 <ol type="1">
 <li><strong>A README or contents sheet.</strong> A sheet that explains what the workbook is, who made it, when, what the inputs are, and what each other sheet contains. It can also contain <em>links</em> to the other worksheets. This is your gift to future-you.<br>
 </li>
 <li><strong>Raw data sheet(s).</strong> The original, untouched data. Never modify these cells. If you need to correct something, do it in a separate sheet. This way you always have access to the uncorrupted raw data.</li>
 <li><strong>Cleaned data sheet(s).</strong> The data after cleaning — unit conversions, missing-value handling, outlier corrections. Keep this separate from the raw data so the cleaning is auditable.</li>
-<li><strong>Analysis sheet(s).</strong> Where the calculations happen. Summary statistics, pivot tables, regressions.</li>
+<li><strong>Analysis sheet(s).</strong> Where the calculations happen — summary statistics, PivotTables, and (later in the course) more advanced analyses.</li>
 <li><strong>Outputs sheet(s).</strong> Final charts and tables, formatted for presentation.</li>
 </ol>
 <p>This is overkill for a two-minute calculation, but for anything you will hand to someone else or come back to later, it is the minimum. The principle is <strong>separation of concerns</strong>: raw data, cleaning, analysis, and presentation each have their own place.</p>
@@ -475,7 +477,7 @@ window.Quarto = {
 <p>Each cell in a worksheet has an address formed by its column letter and row number: <code>A1</code>, <code>B2</code>, <code>AA35</code>, and so on. A cell can contain:</p>
 <ul>
 <li>A number: <code>42</code>, <code>3.14</code>, <code>-1000</code></li>
-<li>Text: <code>Canola</code>, <code>2026-09-15</code>, <code>North field</code></li>
+<li>Text: <code>Canola</code>, <code>Field 7</code>, <code>North field</code></li>
 <li>A date (internally stored as a number): <code>2026-09-15</code></li>
 <li>A formula: anything starting with <code>=</code></li>
 </ul>
@@ -548,7 +550,7 @@ window.Quarto = {
 <li><code>$A$1</code> — absolute column and row (neither changes; “locked”)</li>
 </ul>
 <p>So in the exchange-rate example, you should write <code>=A2*$E$1</code>. Now when you copy the formula down, <code>A2</code> becomes <code>A3</code>, <code>A4</code>, … but <code>$E$1</code> stays as <code>$E$1</code>. Exactly what you want.</p>
-<p>There is a keyboard shortcut: after typing or selecting a cell reference, press <code>F4</code> and Excel cycles through the four variations. Get in the habit of using it.</p>
+<p>There is a keyboard shortcut: after typing or selecting a cell reference, press <code>F4</code> (Windows) or <code>⌘T</code> (Mac) and Excel cycles through the four variations. Get in the habit of using it.</p>
 <p>A practical rule of thumb: <strong>any number that appears in your analysis but is not part of the data itself should live in a labelled cell that you reference, not in the formula.</strong> If your analysis assumes a 5% discount rate, don’t write <code>=A1*1.05</code> in a hundred places. Put <code>0.05</code> in a cell called <code>discount_rate</code>, label it clearly, and reference it. When the assumption changes (and it will), you change one number instead of a hundred.</p>
 </section>
 <section id="sec-named-ranges" class="level3" data-number="1.4.2">
@@ -583,8 +585,18 @@ window.Quarto = {
 <h3 class="unnumbered anchored" data-anchor-id="median">Median</h3>
 <p>The <strong>median</strong> is the middle value when the data is sorted. If you have an odd number of observations, it is literally the middle one. If you have an even number, it is the average of the two middle ones.</p>
 <p>For our yields (sorted: 47, 48, 50, 52, 55), the median is 50. In Excel: <code>=MEDIAN(A1:A5)</code>.</p>
-<p>The median is generally the right measure of centre when your data is <strong>skewed</strong> or has <strong>extreme outliers</strong>. To returen to our previous example of farm incomes, if there are a handful of very large operations, then the median income is a more honest assessment of “what a typical farm earns?”</p>
-<p>A classic example: in a hypothetical bar, the average income of the customers is $100,000. Elon Musk walks in. The average income is now $500 million. The median barely budges.</p>
+<p>The median is generally the right measure of centre when your data is <strong>skewed</strong> or has <strong>extreme outliers</strong>. To return to our previous example of farm incomes, if there are a handful of very large operations, then the median income is a more honest answer to “what does a typical farm earn?”</p>
+<p>A classic example: in a hypothetical bar, the average <em>wealth</em> of the customers is $100,000. Elon Musk walks in. The average wealth is now hundreds of millions of dollars. The median barely budges.</p>
+</section>
+<section id="the-shape-of-a-distribution-skew" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="the-shape-of-a-distribution-skew">The Shape of a Distribution: Skew</h3>
+<p>The relationship between the mean and the median is a quick, useful clue to the <strong>shape</strong> of a distribution:</p>
+<ul>
+<li>If the data is roughly <strong>symmetric</strong>, the mean and median are close together.</li>
+<li>If the data is <strong>right-skewed</strong> (a long tail of high values, like farm incomes with a few huge operations), the high tail pulls the <strong>mean above the median</strong>.</li>
+<li>If the data is <strong>left-skewed</strong> (a long tail of low values, like crop yields with a few drought-hit fields), the low tail pulls the <strong>mean below the median</strong>.</li>
+</ul>
+<p>So a handy rule of thumb: <strong>compare the mean and the median.</strong> Mean noticeably above median → right-skewed; mean noticeably below median → left-skewed; mean ≈ median → roughly symmetric. This is only a rule of thumb, not a law — but it is a fast first read on the shape before you even draw a chart. (You will see the shape directly when you build a histogram later in this module.)</p>
 </section>
 <section id="mode" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="mode">Mode</h3>
@@ -595,8 +607,8 @@ window.Quarto = {
 <section id="sec-percentiles" class="level2" data-number="1.6">
 <h2 data-number="1.6" class="anchored" data-anchor-id="sec-percentiles"><span class="header-section-number">1.6</span> Measures of Location: Percentiles and Quartiles</h2>
 <p>The mean and median tell you about the centre. Sometimes you want to describe other parts of the distribution. That is what <strong>percentiles</strong> are for.</p>
-<p>The <strong><span class="math inline">\(p\)</span>-th percentile</strong> is the value below which <span class="math inline">\(p\%\)</span> of the observations fall. The 50th percentile is the median. The 25th percentile is the value below which a quarter of the observations lie; the 75th percentile is the value below which three-quarters lie. These three values — the 25th, 50th, and 75th percentiles — are called the <strong>first, second, and third quartiles</strong> (<span class="math inline">\(Q_1\)</span>, <span class="math inline">\(Q_2\)</span>, <span class="math inline">\(Q_3\)</span>).</p>
-<p>Note that when we have a small amount of data it is not a simple matter to define the quartile (or other percentiles). For example, if we have nine values, then the 25th percentile would lie somewhere between the second and third smallest values. Generally, we would interpolate between these two values. In large or dense datasets this is not an issue.</p>
+<p>The <strong><span class="math inline">\(p\)</span>-th percentile</strong> is the value at or below which about <span class="math inline">\(p\%\)</span> of the observations fall. The 50th percentile is the median. The 25th percentile is the value below which a quarter of the observations lie; the 75th percentile is the value below which three-quarters lie. These three values — the 25th, 50th, and 75th percentiles — are called the <strong>first, second, and third quartiles</strong> (<span class="math inline">\(Q_1\)</span>, <span class="math inline">\(Q_2\)</span>, <span class="math inline">\(Q_3\)</span>).</p>
+<p>Note that when we have a small amount of data, the percentile does not always land exactly on one of our data points, and different software uses slightly different rules to fill the gap. Excel’s <code>.INC</code> method (the one we use in this course) places the percentile at position <span class="math inline">\(1 + (n-1)p\)</span> in the sorted data. For example, with ten values the 25th percentile lands at position <span class="math inline">\(1 + 9 \times 0.25 = 3.25\)</span> — one-quarter of the way from the 3rd-smallest value to the 4th, so Excel <strong>interpolates</strong> between them. With larger datasets these interpolation details rarely matter.</p>
 <p>In Excel:</p>
 <ul>
 <li><code>=PERCENTILE.INC(A1:A100, 0.9)</code> — the 90th percentile.</li>
@@ -621,7 +633,7 @@ window.Quarto = {
 <p>Both have a mean of 50, but B is much more spread out. We need a number that captures that.</p>
 <section id="variance" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="variance">Variance</h3>
-<p>The <strong>variance</strong> is the average of the squared deviations from the mean. For a sample of size <span class="math inline">\(n\)</span>:</p>
+<p>The <strong>variance</strong> is (roughly) the average of the squared deviations from the mean — with one small adjustment to the denominator that we explain just below. For a sample of size <span class="math inline">\(n\)</span>:</p>
 <p><span class="math display">\[
 s^2 = \frac{1}{n-1} \sum_{i=1}^{n} (x_i - \bar{x})^2
 \]</span></p>
@@ -645,7 +657,7 @@ s = \sqrt{s^2} = \sqrt{\frac{1}{n-1} \sum_{i=1}^{n} (x_i - \bar{x})^2}
 <p><span class="math display">\[
 CV = \frac{s}{\bar{x}}
 \]</span></p>
-<p>I say it is helpful because it can compare the spread of two datasets with very different means. For example, average wheat and barley yields are very different, so we would expect barley to be more variable in absolute terms. But the CV allows us to compare relative variability: a CV of 0.1 means that the standard deviation is 10% of the mean, regardless of what the mean is. So you can say “wheat yields are more variable than barley yields” even if the absolute standard deviation of wheat is smaller.</p>
+<p>I say it is helpful because it can compare the spread of two datasets with very different means. Suppose barley averages 55 bu/ac with a standard deviation of 11 (CV = 11/55 = 0.20), while wheat averages 40 bu/ac with a standard deviation of 10 (CV = 10/40 = 0.25). Wheat’s standard deviation is <em>smaller</em> in absolute terms (10 vs 11), yet relative to its own average, wheat is <em>more</em> variable (CV 0.25 vs 0.20). The CV captures that relative variability: a CV of 0.1 means the standard deviation is 10% of the mean, regardless of how big the mean is. So the CV lets you fairly compare the variability of two things measured on very different scales.</p>
 <p>However, in other contexts – particularly when the data can be close to zero or negative – the CV can be misleading. Suppose we wanted to compare the variability of farm income in a “good” year to farm incomes in a “bad” year. In a bad year, the mean income might be close to zero or negative. In that case, the CV would explode to infinity or become negative, which is not intuitive.</p>
 <p>Use the coefficient of variation with caution.</p>
 </section>
@@ -663,7 +675,7 @@ CV = \frac{s}{\bar{x}}
 <p>Example: <code>=IF(B2&gt;50, "Above average", "Below average")</code> — labels each row based on whether its value in B2 exceeds 50.</p>
 <p>You can nest <code>IF</code>s inside each other to handle more than two cases:</p>
 <p><code>=IF(B2&lt;40, "Low", IF(B2&lt;60, "Medium", "High"))</code></p>
-<p>This labels values under 40 as “Low”, values from 40 to 59 as “Medium”, and 60+ as “High”. Nested <code>IF</code>s get ugly quickly; once you are more than two levels deep, consider using <code>IFS</code> (see below) or a <code>VLOOKUP</code>/<code>XLOOKUP</code> against a table of breakpoints.</p>
+<p>This labels values under 40 as “Low”, values from 40 up to (but not including) 60 as “Medium”, and 60 or above as “High”. Nested <code>IF</code>s get ugly quickly; once you are more than two levels deep, consider using <code>IFS</code> (see below) or a <code>VLOOKUP</code>/<code>XLOOKUP</code> against a table of breakpoints.</p>
 <p><code>IFS(condition1, value1, condition2, value2, ...)</code> is a cleaner way to write nested conditions:</p>
 <p><code>=IFS(B2&lt;40, "Low", B2&lt;60, "Medium", TRUE, "High")</code></p>
 <p>(The <code>TRUE</code> at the end is an “else” catch-all.)</p>
@@ -680,7 +692,16 @@ CV = \frac{s}{\bar{x}}
 <p>Example: <code>=SUMIF(A2:A100, "Canola", B2:B100)</code> sums the values in <code>B2:B100</code> for rows where <code>A2:A100</code> equals “Canola”.</p>
 <p>The “S” versions — <code>COUNTIFS</code>, <code>SUMIFS</code>, <code>AVERAGEIFS</code> — let you specify multiple conditions:</p>
 <p><code>=SUMIFS(B2:B100, A2:A100, "Canola", C2:C100, "&gt;1000")</code></p>
-<p>This sums column B for rows where column A is “Canola” <em>and</em> column C is greater than 1000. Note that the sum range comes <em>first</em> in the <code>IFS</code> versions and <em>last</em> in the non-<code>IFS</code> version, because Microsoft hates you.</p>
+<p>This sums column B for rows where column A is “Canola” <em>and</em> column C is greater than 1000. Note that the sum range comes <em>first</em> in the <code>IFS</code> versions and <em>last</em> in the non-<code>IFS</code> version — an inconsistency for historical reasons that you simply have to memorize.</p>
+<p><strong>Building a criterion from a formula.</strong> Sometimes the number you want to compare against is itself computed — for example, “how many yields are above the <em>average</em> yield?” You cannot write <code>=COUNTIF(E2:E100, "&gt;AVERAGE(E2:E100)")</code>, because everything inside the quotes is treated as literal text (Excel would look for cells literally equal to the text “&gt; AVERAGE(…)”). Instead, build the criterion by joining the <code>"&gt;"</code> symbol to the computed number with the <code>&amp;</code> operator:</p>
+<pre><code>=COUNTIF(E2:E100, "&gt;"&amp;AVERAGE(E2:E100))</code></pre>
+<p>Here <code>"&gt;"&amp;AVERAGE(E2:E100)</code> first computes the average, then glues <code>"&gt;"</code> in front of it to make a criterion like <code>"&gt;28.3"</code>. The same trick works for <code>SUMIF</code>/<code>AVERAGEIF</code> and for any criterion whose threshold you need to compute rather than type.</p>
+<p><strong>Counting, and blank cells.</strong> Two closely related counting functions are easy to confuse:</p>
+<ul>
+<li><code>=COUNT(range)</code> counts only cells that contain <strong>numbers</strong>. It skips blanks and text.</li>
+<li><code>=COUNTA(range)</code> counts <strong>any non-empty</strong> cell (numbers <em>or</em> text).</li>
+</ul>
+<p>For “how many fields reported a yield?” you want <code>COUNT</code>, which naturally skips blank cells. This matters because real agricultural data is full of blanks (a crop not grown, a value not reported). A <strong>blank is not zero</strong>: <code>AVERAGE</code>, <code>COUNT</code>, <code>MEDIAN</code>, and <code>STDEV.S</code> all silently <strong>skip blank cells</strong>, which is usually what you want. But if you “helpfully” fill blanks with <code>0</code> first, those functions will treat the zeros as real measurements — dragging the average down and corrupting your analysis. Leave blanks blank.</p>
 <p>These conditional functions are workhorses for any moderately complex analysis. Get comfortable with them.</p>
 </section>
 </section>
@@ -705,6 +726,7 @@ CV = \frac{s}{\bar{x}}
 <p><code>XLOOKUP(lookup_value, lookup_array, return_array, [if_not_found], [match_mode], [search_mode])</code></p>
 <p>Conceptually simpler: you specify the array to search in, and the array to return from. They can be anywhere. If not found, you can specify what to return (instead of the ugly <code>#N/A</code> you get from <code>VLOOKUP</code>).</p>
 <p>Example: <code>=XLOOKUP(A2, $F$2:$F$50, $G$2:$G$50, "Unknown")</code> — looks up A2 in column F, returns the matching value from column G, returns <code>"Unknown"</code> if not found.</p>
+<p>A nice bonus: <code>XLOOKUP</code> <strong>defaults to an exact match</strong>, so it avoids the silent-wrong-answer trap that <code>VLOOKUP</code>’s <code>TRUE</code> default creates. One less thing to remember.</p>
 <p><code>XLOOKUP</code> is the right default choice in modern Excel. Use it instead of <code>VLOOKUP</code> unless you are working in a file that might be opened in an older version of Excel.</p>
 </section>
 <section id="indexmatch" class="level3 unnumbered">
@@ -716,18 +738,48 @@ CV = \frac{s}{\bar{x}}
 </ul>
 <p>Combining them: <code>=INDEX($G$2:$G$50, MATCH(A2, $F$2:$F$50, 0))</code> does the same thing as the <code>XLOOKUP</code> above. You still see this pattern a lot in older workbooks.</p>
 </section>
+<section id="sec-two-key-lookup" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="sec-two-key-lookup">Looking Up on Two Keys at Once</h3>
+<p>Often a single column does not uniquely identify the row you want. Suppose each row of your data is one Rural Municipality (RM) in one year, so RM 1 appears many times — once per year. Looking up “RM 1” alone returns only the <em>first</em> matching row (some arbitrary year), not the year you meant. You need to match on <strong>RM and Year together</strong>.</p>
+<p>The simplest way is to build a combined key on the fly by joining the two lookup values with a separator, and searching a matching joined column:</p>
+<pre><code>=XLOOKUP(1 &amp; "|" &amp; 2023, B2:B10650 &amp; "|" &amp; A2:A10650, E2:E10650)</code></pre>
+<p>Here <code>B2:B10650 &amp; "|" &amp; A2:A10650</code> builds a temporary column of keys like <code>1|2023</code>, and the lookup value <code>1 &amp; "|" &amp; 2023</code> builds the matching key <code>1|2023</code>. The <code>"|"</code> separator matters: without it, the pair <code>(1, 12)</code> and the pair <code>(11, 2)</code> would both collapse to <code>112</code> and could match by accident; the <code>"|"</code> keeps <code>1|12</code> and <code>11|2</code> distinct.</p>
+<p>The same idea works with <code>INDEX</code>/<code>MATCH</code>:</p>
+<pre><code>=INDEX(E2:E10650, MATCH(1 &amp; "|" &amp; 2023, B2:B10650 &amp; "|" &amp; A2:A10650, 0))</code></pre>
+<p>In older versions of Excel these are entered as <em>array formulas</em> (Ctrl+Shift+Enter); modern Excel handles them directly. Two-key lookups like this come up constantly with agricultural data, where a value is identified by <em>place and time</em> together.</p>
+</section>
 </section>
 <section id="sec-sort-filter" class="level2" data-number="1.10">
 <h2 data-number="1.10" class="anchored" data-anchor-id="sec-sort-filter"><span class="header-section-number">1.10</span> Sorting and Filtering</h2>
 <p>Two basic data manipulation tasks that you should be able to do without thinking:</p>
 <p><strong>Sort</strong> rearranges the rows by the values in one or more columns. Select the data (or click a cell inside it), then <strong>Data → Sort</strong>. You can sort by multiple columns in sequence (sort by region, then by yield within region). Critical: make sure you include all the relevant columns when you sort! A common rookie mistake is to select just the column you want to sort by, which reorders that column but leaves the others in place — silently corrupting the correspondence between rows.</p>
 <p><strong>Filter</strong> hides rows that don’t match a condition. Click inside the data and choose <strong>Data → Filter</strong>. Each column gets a dropdown arrow that lets you pick which values to show. Filtering does not delete rows; it just hides them. Clearing the filter brings them back.</p>
-<p>Filtering is enormously useful for exploring a dataset: “let me just look at the canola fields,” “just the 2023 data,” “just the fields with yields below 30.” Learn the keyboard shortcut (<code>Ctrl+Shift+L</code> toggles filters on and off).</p>
+<p>Filtering is enormously useful for exploring a dataset: “let me just look at the canola fields,” “just the 2023 data,” “just the fields with yields below 30.” Learn the keyboard shortcut (<code>Ctrl+Shift+L</code> on Windows, <code>⌘⇧F</code> on Mac, toggles filters on and off).</p>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>Filters hide rows from <em>you</em>, not from your formulas
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>This trips up almost everyone. If you filter a column to show only 2023 and then write <code>=AVERAGE(E2:E10650)</code>, Excel <strong>still averages every row</strong> — including the hidden ones. Ordinary functions (<code>AVERAGE</code>, <code>SUM</code>, <code>MEDIAN</code>, <code>STDEV.S</code>, <code>QUARTILE.INC</code>, …) ignore the filter completely. You would get the 1990–2025 average, not the 2023 average, and never notice.</p>
+<p>To compute a statistic on a <em>subset</em>, do one of these:</p>
+<ul>
+<li><strong>Copy the visible rows to a new sheet, then compute there</strong> (the recommended workflow for this course). After filtering, select the visible data, copy, and paste into a fresh sheet — only the visible rows come along — then run your formulas on that clean subset.</li>
+<li>Or use a conditional function that does the filtering itself: <code>AVERAGEIF</code>, <code>SUMIF</code>, <code>COUNTIF</code> (covered above), which never rely on hidden rows.</li>
+<li>Or use <code>SUBTOTAL</code> / <code>AGGREGATE</code>, which are the two functions that <em>do</em> respect filters (optional, more advanced).</li>
+</ul>
+<p>Whenever a task says “for the 2023 data, compute …,” your first move should be to isolate that subset — do not just filter and point a formula at the whole column.</p>
+</div>
+</div>
 </section>
 <section id="sec-wide-long" class="level2" data-number="1.11">
 <h2 data-number="1.11" class="anchored" data-anchor-id="sec-wide-long"><span class="header-section-number">1.11</span> Wide vs.&nbsp;Long Data</h2>
 <p>Before we get to PivotTables, we need to talk about the <em>shape</em> of a dataset — because the same data can be laid out in two very different ways, and which one you have determines what you can easily do with it.</p>
-<p>Consider our Saskatchewan crop-yield data. Here it is in <strong>wide</strong> format — one row per RM-year, and each crop gets its own column:</p>
+<p>Consider our Saskatchewan crop-yield data. Each row records the average yields for one <strong>Rural Municipality</strong> (RM — a local administrative area, the way Saskatchewan divides up its farmland) in one year. Here it is in <strong>wide</strong> format — one row per RM-year, and each crop gets its own column:</p>
 <table class="caption-top table">
 <thead>
 <tr class="header">
@@ -820,7 +872,7 @@ CV = \frac{s}{\bar{x}}
 <p>Each shape is convenient for different things:</p>
 <ul>
 <li><strong>Wide is convenient for column-at-a-time math.</strong> If you want the average canola yield, it is right there: <code>=AVERAGE</code> the Canola column. Wide format is easy to read by eye and quick for the descriptive statistics and conditional functions we covered above.</li>
-<li><strong>Long is what you need to summarize <em>by</em> the stacked variable.</strong> Suppose you want a table of <em>average yield for each crop</em>. In long format that is a one-move PivotTable: put <code>Crop</code> on Rows and <code>Yield</code> in Values. In wide format you <em>cannot</em> do this in a single pivot — the crops are eight separate columns, so “crop” isn’t a field you can drag anywhere.</li>
+<li><strong>Long is what you need to summarize <em>by</em> the stacked variable.</strong> Suppose you want a table of <em>average yield for each crop</em>. In long format that is a one-move PivotTable: put <code>Crop</code> on Rows and <code>Yield</code> in Values. In wide format you <em>cannot</em> do this in a single pivot — the crops are separate columns (four in the small example above, eight in the full dataset), so “crop” isn’t a field you can drag anywhere.</li>
 </ul>
 <p>That is the key idea: <strong>a PivotTable can only group by a field that lives in its own column.</strong> If the thing you want on your rows (here, the crop) is spread across many columns, you must reshape to long first.</p>
 </section>
@@ -853,6 +905,7 @@ CV = \frac{s}{\bar{x}}
 </ul></li>
 <li>Experiment. Drag fields in and out until the table tells you what you want to know.</li>
 </ol>
+<p><strong>A word of caution before you compare categories: check the units.</strong> A PivotTable will happily rank crops by average “yield” even if some crops are measured in bushels per acre and others in pounds per acre — and the pounds-per-acre crop will look enormously higher for no real reason. Before reading anything into a comparison, confirm that every category shares the same unit; if not, filter to a single unit first. Comparing numbers in different units is one of the most common ways to draw a completely wrong conclusion from a correct calculation.</p>
 </section>
 <section id="common-operations" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="common-operations">Common Operations</h3>
@@ -877,6 +930,7 @@ CV = \frac{s}{\bar{x}}
 <p>Before we get into specific chart types, some general principles. These come from a long tradition of work on data visualization, especially by Edward Tufte (<em>The Visual Display of Quantitative Information</em>) and more recently by Cole Nussbaumer Knaflic (<em>Storytelling with Data</em>):</p>
 <ul>
 <li><strong>A chart should answer a question.</strong> Before you make a chart, decide what question it is supposed to answer. “Show the yield data” is not a question. “Which variety had the highest yield?” is.</li>
+<li><strong>Always add a descriptive title and label every axis.</strong> A reader who did not make the chart must be able to tell what it shows without asking. “Yield” is not an axis label; “Yield (bu/ac)” is. In Excel, add these from <strong>Chart Design → Add Chart Element → Chart Title</strong> and <strong>→ Axis Titles</strong>. Unlabelled charts are the single most common — and most easily avoided — presentation failure.</li>
 <li><strong>Minimize clutter.</strong> Gridlines, 3D effects, drop shadows, patterned fills, excessive tick marks — all of these are usually just noise. Tufte calls the noise “chart junk.” Default to removing it.</li>
 <li><strong>Label directly when possible.</strong> A chart where each line is labeled at the end is easier to read than one with a legend that forces the eye to jump back and forth.</li>
 <li><strong>Start the y-axis at zero</strong> for bar charts. Not starting at zero misrepresents the magnitudes. (For line charts of data that never gets near zero, it is sometimes reasonable to not start at zero, but be honest about it.)</li>
@@ -906,7 +960,7 @@ CV = \frac{s}{\bar{x}}
 <section id="histograms" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="histograms">Histograms</h3>
 <p><strong>When to use</strong>: showing the <em>distribution</em> of a single numeric variable. “How are yields distributed across fields?” “How concentrated is farm size in this region?”</p>
-<p>A histogram divides the range of the data into <strong>bins</strong> and plots a bar showing how many observations fall in each bin. It shows you at a glance whether the data is roughly symmetric, skewed, bimodal, or has outliers. This is almost always the first plot you should make when exploring a new variable.</p>
+<p>A histogram divides the range of the data into <strong>bins</strong> and plots a bar showing how many observations fall in each bin. It shows you at a glance whether the data is roughly <strong>symmetric</strong> (balanced around the centre), <strong>skewed</strong> (a long tail on one side — recall the mean-vs-median clue from the <em>Shape of a Distribution</em> discussion above), or has <strong>outliers</strong> (a few values sitting far from the rest). This is almost always the first plot you should make when exploring a new variable.</p>
 <p><strong>How to make in Excel</strong>: select the data, <strong>Insert → Statistical Chart → Histogram</strong>. Right-click the horizontal axis → <strong>Format Axis</strong> to control the bin width.</p>
 <p><strong>Tips</strong>: bin width matters a lot. Too few bins and you hide the shape; too many and you see random noise. A rule of thumb: start with about <span class="math inline">\(\sqrt{n}\)</span> bins where <span class="math inline">\(n\)</span> is the sample size, then adjust. Try a few different bin widths and pick the one that makes the shape clearest.</p>
 </section>
@@ -921,7 +975,13 @@ CV = \frac{s}{\bar{x}}
 <li><strong>Outliers</strong> shown as individual dots beyond the whiskers.</li>
 </ul>
 <p>The box contains the middle 50% of the data; the whiskers show the bulk of the rest; outliers are flagged separately. When you put several box plots side by side (one per category), you can compare the distributions at a glance.</p>
+<p><strong>The 1.5 × IQR outlier rule.</strong> A value is flagged as an outlier if it falls outside the “fences”:</p>
+<p><span class="math display">\[
+\text{lower fence} = Q_1 - 1.5 \times \text{IQR}, \qquad \text{upper fence} = Q_3 + 1.5 \times \text{IQR}
+\]</span></p>
+<p>For example, if <span class="math inline">\(Q_1 = 40\)</span>, <span class="math inline">\(Q_3 = 60\)</span>, so <span class="math inline">\(\text{IQR} = 20\)</span>, then the fences are <span class="math inline">\(40 - 30 = 10\)</span> and <span class="math inline">\(60 + 30 = 90\)</span>; any value below 10 or above 90 is flagged as an outlier and drawn as a separate dot. Notice that a <em>wide</em> box (large IQR) pushes the fences far out, so a genuinely low value may not be flagged when the data is already very spread out — “outlier” is always relative to how tight the middle of the data is, not just how extreme the value looks.</p>
 <p><strong>How to make in Excel</strong>: <strong>Insert → Statistical Chart → Box and Whisker</strong>.</p>
+<p><strong>Two Excel-specific quirks</strong> worth knowing so the chart matches your formulas: Excel’s box plot uses the <em>exclusive</em> median method by default, so its box edges may not exactly equal the <span class="math inline">\(Q_1\)</span>/<span class="math inline">\(Q_3\)</span> you computed with <code>QUARTILE.INC</code> — right-click the box → <strong>Format Data Series → Inclusive median</strong> to make them agree. Excel also draws the <strong>mean as an “×” marker</strong> inside each box by default; that × is the mean, not part of the standard box-plot definition.</p>
 <p><strong>Tips</strong>: box plots are not as intuitive to non-statistical audiences as histograms or bar charts. If you are presenting to a general audience, you may need to explain what the box and whiskers mean. But for your own exploratory analysis, and for technical audiences, box plots are invaluable.</p>
 </section>
 </section>
@@ -968,8 +1028,8 @@ CV = \frac{s}{\bar{x}}
 <section id="sec-module1-practice" class="level2" data-number="1.16">
 <h2 data-number="1.16" class="anchored" data-anchor-id="sec-module1-practice"><span class="header-section-number">1.16</span> Practice Exercises</h2>
 <ol type="1">
-<li>Download [TBD dataset: Saskatchewan canola yields by CAR] and produce a one-page summary of the distribution of yields using the techniques in this module.</li>
-<li>Compute the mean and median of the farm incomes in [TBD dataset]. Why are they so different?</li>
+<li>Download the <a href="practice/data/rm_yields_1990plus.csv"><code>rm_yields_1990plus.csv</code></a> dataset, filter to a single recent year and one crop, and produce a one-page summary of the distribution of yields using the techniques in this module (mean/median, spread, a histogram). Remember to isolate the year <em>before</em> computing statistics.</li>
+<li>Using the same dataset, compare the mean and median canola yield in 2021 (a drought year) to a normal year. Why do the two measures differ, and what does the gap tell you about the shape of the distribution?</li>
 <li>Build a PivotTable that shows the average and count of yields by region and variety, with percent-of-total added.</li>
 <li>Construct side-by-side box plots comparing the yield distributions of three varieties. Write two sentences describing what the box plots show.</li>
 <li>Find a chart in a news article about agriculture. Critique it using the principles in <a href="#sec-charts" class="quarto-xref"><span>Section 1.13</span></a>.</li>
