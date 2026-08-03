@@ -489,16 +489,30 @@ Figure&nbsp;2.1: The Positron Welcome screen. Note the <strong>interpreter picke
 <p>Before you write any code, here is the mental model that makes R click. Working in R is really just two activities, repeated over and over:</p>
 <ol type="1">
 <li><p><strong>You save things as named objects.</strong> An “object” is just a piece of data you have given a name — it might be a single number, a list of numbers, a whole table of data, or a result you computed. You create one with the <strong>assignment operator</strong>, <code>&lt;-</code>. The same operator saves <em>any</em> kind of data; here are three objects of increasing richness:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>yield_field    <span class="ot">&lt;-</span> <span class="dv">42</span>                       <span class="co"># a single number</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>yield_farm     <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">42</span>, <span class="dv">45</span>, <span class="dv">48</span>, <span class="dv">43</span>)        <span class="co"># a vector: several numbers</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>yield_province <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"yields.csv"</span>)   <span class="co"># a data frame: a whole table</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Each line reads as “let the name on the left <em>be</em> the thing on the right.” <code>yield_field</code> is one value, <code>yield_farm</code> is a vector of four values (the <code>c()</code> function <em>combines</em> values into a vector), and <code>yield_province</code> is an entire table read in from a file. All three are now objects living in R’s memory — you will see them appear in Positron’s <em>Variables</em> pane (the panel that lists the objects you have created) — and you can refer to each by name from then on. (We use base R’s <code>read.csv</code> here; later we switch to the tidyverse’s <code>read_csv</code>, which is a little smarter about column types.)</p></li>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>yield_field <span class="ot">&lt;-</span> <span class="dv">42</span>                    <span class="co"># a single number</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>yield_farm  <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">42</span>, <span class="dv">45</span>, <span class="dv">48</span>, <span class="dv">43</span>)     <span class="co"># a vector: several numbers</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>yield_table <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(           <span class="co"># a data frame: a whole table</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">field =</span> <span class="fu">c</span>(<span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"C"</span>, <span class="st">"D"</span>),</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">yield =</span> <span class="fu">c</span>(<span class="dv">42</span>, <span class="dv">45</span>, <span class="dv">48</span>, <span class="dv">43</span>)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Each line reads as “let the name on the left <em>be</em> the thing on the right.” <code>yield_field</code> is one value; <code>yield_farm</code> is a vector of four values (the <code>c()</code> function <em>combines</em> values into a vector); and <code>yield_table</code> is a small table with two columns (a <strong>data frame</strong> — R’s word for a table, which we will use constantly). All three are now objects living in R’s memory — you will see them appear in Positron’s <em>Variables</em> pane (the panel that lists the objects you have created) — and you can refer to each by name from then on. (Later, instead of typing tables out by hand, we will <em>read</em> them from files with a function like <code>read_csv</code>.)</p></li>
 <li><p><strong>You run functions on those objects.</strong> A <strong>function</strong> takes one or more objects, does something with them, and hands back a result:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(yield_farm)      <span class="co"># run the 'mean' function on the object 'yield_farm'</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>And crucially, you can <strong>save the result as a new object</strong> and keep going:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>average_yield <span class="ot">&lt;-</span> <span class="fu">mean</span>(yield_farm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></li>
 </ol>
 <p>That is the whole rhythm of R: <em>create objects, run functions on them, save the results as new objects.</em> An analysis is just a sequence of those steps written down in a script. Unlike Excel — where your “data” and your “formulas” live together in the same grid of cells — in R the objects live in memory and your script is the separate, re-runnable list of instructions that builds them. Keep this picture in mind and the code below will make sense.</p>
+<p>Here is exactly that rhythm running in Positron. The script (top) creates a single value, a vector, and then a result computed from the vector; after running it, all three objects appear in the <em>Variables</em> pane on the right, and the computed average (44.5) prints in the console:</p>
+<div id="fig-objects-example" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-objects-example-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/positron_objects_example.png" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-objects-example-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2.2: Creating objects and running a function on them. <code>yield_field</code>, <code>yield_farm</code>, and the computed <code>avg_farm_yield</code> all appear in the Variables pane; the result also prints in the console.
+</figcaption>
+</figure>
+</div>
 </section>
 <section id="the-script-and-the-console" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="the-script-and-the-console">The Script and the Console</h3>
@@ -508,11 +522,44 @@ Figure&nbsp;2.1: The Positron Welcome screen. Note the <strong>interpreter picke
 <li>The <strong>console</strong> is where R <em>runs</em> code and <em>shows results</em>. When you run a line, R does the work and prints the answer in the console. The console is disposable — it is a running conversation with R, not something you save.</li>
 </ul>
 <p>A helpful way to picture it: the <strong>script is what you write; the console is what R says back.</strong> You will spend most of your time typing in the script and running lines from it (with the Run button, or <strong>Cmd+Enter</strong> / <strong>Ctrl+Enter</strong>), and watching the results appear in the console below. You <em>can</em> also type directly into the console for a quick one-off calculation — but anything you want to keep should live in the script, because the console’s contents vanish when you close Positron.</p>
+<p>The two screenshots below show this in action. In the first, some code has been <em>written</em> in the script (top) but not yet run — notice the console (bottom) is still empty and the <em>Variables</em> pane (right) says “No variables have been created”:</p>
+<div id="fig-script-before" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-script-before-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/positron_script_before_run.png" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-script-before-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2.3: Code written in the <strong>script</strong> (top), but not yet run. The console is empty and no objects exist yet — writing code does not run it.
+</figcaption>
+</figure>
+</div>
+<p>In the second, the same lines have been <em>run</em>: the results now appear in the <strong>console</strong> (bottom), and the objects <code>a</code> and <code>b</code> show up in the <strong>Variables</strong> pane (right):</p>
+<div id="fig-script-after" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-script-after-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/positron_script_after_run.png" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-script-after-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2.4: After running the script, the <strong>console</strong> shows the results and the <strong>Variables</strong> pane lists the objects that were created. Running the code is what makes things happen.
+</figcaption>
+</figure>
+</div>
 <p>So the golden rule from day one: <strong>write your code in the script, not the console.</strong> If it is worth doing, it is worth saving.</p>
 </section>
 <section id="writing-and-running-the-script" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="writing-and-running-the-script">Writing and Running the Script</h3>
-<p>Open Positron, create a new file called <code>hello.R</code> (<strong>File → New File → R File</strong>, then save as <code>hello.R</code>), and paste the following:</p>
+<p>Open Positron and create a new file with <strong>File → New File</strong>, then choose <strong>R File</strong> from the menu that appears:</p>
+<div id="fig-new-file" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-new-file-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/positron_new_file.png" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-new-file-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2.5: Creating a new R file. <strong>File → New File</strong> opens this menu; choose <strong>R File</strong>.
+</figcaption>
+</figure>
+</div>
+<p>Save it as <code>hello.R</code>, then paste the following:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># My first R script</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Author: your name</span></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Date: 2026-09-15</span></span>
