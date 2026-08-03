@@ -19,6 +19,32 @@ In Excel, this work happens in a mix of formulas, filters, and manual edits. In 
 
 The tidyverse package `dplyr` provides a small set of verbs for data transformation that are powerful enough to express most of what you will ever need. The key insight of `dplyr` is that most data manipulation is a *sequence of simple operations*, and if you have the right small vocabulary, complex transformations become readable.
 
+## Getting Set Up {#sec-module3-setup}
+
+To follow along with this module hands-on, download the small teaching dataset [`field_yields.csv`](practice/data/field_yields.csv) — 60 canola fields with columns `field_id`, `region`, `variety`, `acres`, `yield_bu_acre`, `year`, `seeding_date`, and `units`. Put it in your working directory (see @sec-reading-data in Module 2 if you need a reminder about the working directory), then start your script with:
+
+```r
+library(tidyverse)
+
+yields <- read_csv("field_yields.csv")
+```
+
+Every example below assumes this `yields` data frame is loaded. Run `yields` on its own line to see it, or `glimpse(yields)` for a compact column-by-column view.
+
+**One crucial thing to understand before we start.** Every `dplyr` verb *returns a new data frame* — it does **not** change the original. So this:
+
+```r
+yields |> filter(yield_bu_acre > 50)
+```
+
+computes the filtered result and *prints it*, but `yields` itself is unchanged — the next time you use `yields`, all 60 rows are still there. If you want to **keep** a result, you must assign it to an object:
+
+```r
+big_fields <- yields |> filter(yield_bu_acre > 50)   # save the result
+```
+
+This is a feature, not a limitation: your original data stays intact while you experiment. Throughout this module, when an example just shows a pipeline without `<-`, assume we are looking at the result on screen; add `name <- ` in front when you want to save it.
+
 ## Tidy Data {#sec-tidy-data}
 
 Before we dive into verbs, a philosophical detour.
@@ -41,7 +67,11 @@ For now the point is: when you are reading in a dataset, *look at the shape*. Is
 
 ## The Six Core Verbs {#sec-six-verbs}
 
-All code in this section assumes you have loaded the tidyverse and have a data frame called `yields` with at least columns `field_id`, `region`, `variety`, `acres`, and `yield_bu_acre`.
+All code in this section uses the `yields` data frame you loaded in @sec-module3-setup.
+
+### A note on the pipe `|>` {.unnumbered}
+
+You will see the symbol `|>` in almost every example below. It is the **pipe**, and it does something simple: it takes whatever is on its *left* and feeds it as the first input to the function on its *right*. So `yields |> filter(...)` reads as "take `yields`, then filter it." You could write the same thing as `filter(yields, ...)`, but the pipe lets you chain several steps into a readable top-to-bottom sequence, which you will see shortly. Read `|>` as the word **"then."** (Older code uses `%>%` for the same idea; `|>` is the modern built-in version.)
 
 ### `filter()`: Keep Certain Rows {.unnumbered}
 
@@ -65,7 +95,7 @@ A shortcut for "in this set of values":
 yields |> filter(region %in% c("South", "Central"))
 ```
 
-Important distinction: `==` tests equality (one equals sign would be assignment). Always use `==`. And `"South"` — with quotes — is a string; `South` — without — would be a variable name that probably doesn't exist and would cause an error.
+Important distinction: use **`==`** (two equals signs) to *test* whether two things are equal. A single `=` means something different in R — it is used for assigning values and naming arguments, not for testing equality — so writing `region = "South"` inside `filter()` will not do what you want. Always use `==` for comparisons. And note `"South"` — with quotes — is a **string** (a piece of text); `South` — without quotes — would be read as the name of an object, which probably doesn't exist and would cause an error.
 
 ### `select()`: Keep Certain Columns {.unnumbered}
 
@@ -85,7 +115,7 @@ Useful when you have a wide dataset and want to focus on a few columns.
 
 ```r
 yields |>
-  mutate(yield_t_ha = yield_bu_acre * 0.0628)   # bu/acre to tonnes/ha for canola
+  mutate(yield_t_ha = yield_bu_acre * 0.0560)   # bu/acre to tonnes/ha for canola
 ```
 
 The new column is computed from the existing ones. You can create multiple columns in one call, and later columns can use earlier ones:
@@ -93,7 +123,7 @@ The new column is computed from the existing ones. You can create multiple colum
 ```r
 yields |>
   mutate(
-    yield_t_ha = yield_bu_acre * 0.0628,
+    yield_t_ha = yield_bu_acre * 0.0560,
     above_average = yield_bu_acre > mean(yield_bu_acre, na.rm = TRUE),
     total_bu = yield_bu_acre * acres
   )
@@ -158,14 +188,14 @@ yields |>
 Canadian ag data often comes in mixed units. Canola yields are traditionally reported in bushels per acre (bu/ac) in Canada, but metric tonnes per hectare (t/ha) in global datasets. The conversion for canola is approximately:
 
 $$
-\text{yield (t/ha)} = \text{yield (bu/ac)} \times 0.0628
+\text{yield (t/ha)} = \text{yield (bu/ac)} \times 0.0560
 $$
 
-(This factor comes from: 1 bushel of canola ≈ 22.68 kg, and 1 acre ≈ 0.4047 ha, so 1 bu/ac ≈ 22.68/0.4047/1000 ≈ 0.056 t/ha... okay, I lied; the exact conversion depends on the bushel weight you use. For this class use 0.0628. In a real analysis you would look it up carefully and cite your source.)
+This factor comes from two facts: a bushel of canola weighs about 22.68 kg (canola's standard 50-lb bushel), and an acre is about 0.4047 ha. So one bu/ac is $22.68 \div 0.4047 \div 1000 \approx 0.0560$ t/ha. (The exact factor depends on the crop's bushel weight — a wheat or corn bushel is 60 or 56 lb and gives a different number — so in a real analysis you would look up the right bushel weight for your crop and cite your source.)
 
 ```r
 yields_converted <- yields |>
-  mutate(yield_t_ha = yield_bu_acre * 0.0628)
+  mutate(yield_t_ha = yield_bu_acre * 0.0560)
 ```
 
 Now suppose your dataset is really messy — some rows are in bu/ac and some are already in t/ha, and there is a `units` column telling you which. You can use `case_when`:
@@ -174,12 +204,14 @@ Now suppose your dataset is really messy — some rows are in bu/ac and some are
 yields_converted <- yields |>
   mutate(
     yield_t_ha = case_when(
-      units == "bu/ac" ~ yield * 0.0628,
-      units == "t/ha"  ~ yield,
-      TRUE             ~ NA_real_   # anything else becomes missing
+      units == "bu/ac" ~ yield_bu_acre * 0.0560,   # convert the bu/ac rows
+      units == "t/ha"  ~ yield_bu_acre,             # already metric: leave as-is
+      TRUE             ~ NA_real_                    # anything else becomes missing
     )
   )
 ```
+
+(Here we assume the value lives in a `yield_bu_acre` column and a separate `units` column records the unit of each row. `NA_real_` is just R's way of writing a missing *numeric* value — the numeric version of `NA`.)
 
 `case_when` is the R analogue of nested `IF`s in Excel. Each line is a condition and a value. The first matching condition wins. The `TRUE ~ ...` line is the catch-all "else." Use `case_when` whenever you have multi-way conditions; it is much cleaner than nested `if_else`.
 
@@ -268,7 +300,7 @@ Let's do something realistic. Suppose we want to answer: "For each region, what 
 ```r
 yields |>
   filter(year == 2025, acres > 100) |>
-  mutate(yield_t_ha = yield_bu_acre * 0.0628,
+  mutate(yield_t_ha = yield_bu_acre * 0.0560,
          total_tonnes = yield_t_ha * acres * 0.4047) |>
   group_by(variety) |>
   mutate(variety_total = sum(total_tonnes, na.rm = TRUE)) |>
@@ -283,14 +315,14 @@ yields |>
 
 This is a lot. Don't panic. Read it top to bottom and notice how each step does one thing:
 
-1. Filter to 2025 and fields over 100 acres.
-2. Compute metric yield and total production per field.
-3. For each variety, compute total production across all its fields. (`group_by` + `mutate` instead of `summarise` keeps all the rows but adds a column.)
-4. Keep only the top three varieties by total production.
-5. Regroup by region and variety and summarize.
-6. Sort.
+1. **Filter** to 2025 and fields over 100 acres.
+2. **Compute** metric yield and total production for each field.
+3. For each variety, compute its total production across all its fields. Here we use `group_by(variety)` followed by `mutate` (not `summarise`) on purpose: `summarise` would collapse each variety down to a single row, but `mutate` keeps *all* the rows and just adds the group total as a new column on each one. (After a grouped operation, call `ungroup()` to remove the grouping so later steps behave normally.)
+4. **Keep the top three varieties** by total production. `desc(variety_total)` sorts largest-first; `dense_rank(...)` assigns rank 1 to the biggest, 2 to the next, and so on; and `<= 3` keeps ranks 1, 2, and 3.
+5. **Regroup** by region and variety and `summarise` down to one row per group, computing the mean yield and the number of fields (`n()` counts the rows in each group). The `.groups = "drop"` argument just tells `summarise` to return an ordinary, ungrouped data frame afterward (without it, R prints a chatty message about how it left the grouping).
+6. **Sort** the final table.
 
-Writing it as a pipeline makes the logic visible. Compare with how you would do this in Excel — probably three PivotTables, a manual filter, and a lot of copy-pasting between sheets.
+Do not worry about writing something this long yet — the point is that each line is one small, readable step. Writing it as a pipeline makes the logic visible. Compare with how you would do this in Excel — probably three PivotTables, a manual filter, and a lot of copy-pasting between sheets.
 
 ## Renaming and Cleaning Column Names {#sec-renaming}
 
@@ -321,8 +353,11 @@ yields <- read_csv("messy_data.csv") |> clean_names()
 
 ## Practice Exercises {#sec-module3-practice}
 
-1. Take the dataset from Module 2 and reproduce your summary statistics using `dplyr` verbs.
+Use the `field_yields.csv` dataset from @sec-module3-setup for these.
+
+1. Read in `field_yields.csv` and reproduce a table of summary statistics (mean, median, and standard deviation of yield) using `dplyr` verbs.
 2. Filter to one region and one year, and find the variety with the highest mean yield.
-3. Create a new column that flags whether each field is "above average" for its region.
-4. [TBD: a messy real-world dataset for cleaning practice.]
+3. Create a new column that flags whether each field is "above average" in yield for its region.
+4. The dataset has a few fields with a missing (`NA`) yield. Find them with `filter(is.na(yield_bu_acre))`, then compute the mean yield with and without `na.rm = TRUE` and explain the difference.
+5. Add a `yield_t_ha` column converting `yield_bu_acre` to tonnes per hectare (× 0.0560), then sort the fields from highest to lowest metric yield.
 
