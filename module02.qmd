@@ -84,12 +84,15 @@ Before you write any code, here is the mental model that makes R click. Working 
 1. **You save things as named objects.** An "object" is just a piece of data you have given a name — it might be a single number, a list of numbers, a whole table of data, or a result you computed. You create one with the **assignment operator**, `<-`. The same operator saves *any* kind of data; here are three objects of increasing richness:
 
     ```r
-    yield_field    <- 42                       # a single number
-    yield_farm     <- c(42, 45, 48, 43)        # a vector: several numbers
-    yield_province <- read.csv("yields.csv")   # a data frame: a whole table
+    yield_field <- 42                    # a single number
+    yield_farm  <- c(42, 45, 48, 43)     # a vector: several numbers
+    yield_table <- data.frame(           # a data frame: a whole table
+      field = c("A", "B", "C", "D"),
+      yield = c(42, 45, 48, 43)
+    )
     ```
 
-    Each line reads as "let the name on the left *be* the thing on the right." `yield_field` is one value, `yield_farm` is a vector of four values (the `c()` function *combines* values into a vector), and `yield_province` is an entire table read in from a file. All three are now objects living in R's memory — you will see them appear in Positron's *Variables* pane (the panel that lists the objects you have created) — and you can refer to each by name from then on. (We use base R's `read.csv` here; later we switch to the tidyverse's `read_csv`, which is a little smarter about column types.)
+    Each line reads as "let the name on the left *be* the thing on the right." `yield_field` is one value; `yield_farm` is a vector of four values (the `c()` function *combines* values into a vector); and `yield_table` is a small table with two columns (a **data frame** — R's word for a table, which we will use constantly). All three are now objects living in R's memory — you will see them appear in Positron's *Variables* pane (the panel that lists the objects you have created) — and you can refer to each by name from then on. (Later, instead of typing tables out by hand, we will *read* them from files with a function like `read_csv`.)
 
 2. **You run functions on those objects.** A **function** takes one or more objects, does something with them, and hands back a result:
 
@@ -105,6 +108,10 @@ Before you write any code, here is the mental model that makes R click. Working 
 
 That is the whole rhythm of R: *create objects, run functions on them, save the results as new objects.* An analysis is just a sequence of those steps written down in a script. Unlike Excel — where your "data" and your "formulas" live together in the same grid of cells — in R the objects live in memory and your script is the separate, re-runnable list of instructions that builds them. Keep this picture in mind and the code below will make sense.
 
+Here is exactly that rhythm running in Positron. The script (top) creates a single value, a vector, and then a result computed from the vector; after running it, all three objects appear in the *Variables* pane on the right, and the computed average (44.5) prints in the console:
+
+![Creating objects and running a function on them. `yield_field`, `yield_farm`, and the computed `avg_farm_yield` all appear in the Variables pane; the result also prints in the console.](images/positron_objects_example.png){#fig-objects-example}
+
 ### The Script and the Console {.unnumbered}
 
 When you open Positron you will work in two main places, and it is important to understand the difference:
@@ -114,11 +121,23 @@ When you open Positron you will work in two main places, and it is important to 
 
 A helpful way to picture it: the **script is what you write; the console is what R says back.** You will spend most of your time typing in the script and running lines from it (with the Run button, or **Cmd+Enter** / **Ctrl+Enter**), and watching the results appear in the console below. You *can* also type directly into the console for a quick one-off calculation — but anything you want to keep should live in the script, because the console's contents vanish when you close Positron.
 
+The two screenshots below show this in action. In the first, some code has been *written* in the script (top) but not yet run — notice the console (bottom) is still empty and the *Variables* pane (right) says "No variables have been created":
+
+![Code written in the **script** (top), but not yet run. The console is empty and no objects exist yet — writing code does not run it.](images/positron_script_before_run.png){#fig-script-before}
+
+In the second, the same lines have been *run*: the results now appear in the **console** (bottom), and the objects `a` and `b` show up in the **Variables** pane (right):
+
+![After running the script, the **console** shows the results and the **Variables** pane lists the objects that were created. Running the code is what makes things happen.](images/positron_script_after_run.png){#fig-script-after}
+
 So the golden rule from day one: **write your code in the script, not the console.** If it is worth doing, it is worth saving.
 
 ### Writing and Running the Script {.unnumbered}
 
-Open Positron, create a new file called `hello.R` (**File → New File → R File**, then save as `hello.R`), and paste the following:
+Open Positron and create a new file with **File → New File**, then choose **R File** from the menu that appears:
+
+![Creating a new R file. **File → New File** opens this menu; choose **R File**.](images/positron_new_file.png){#fig-new-file}
+
+Save it as `hello.R`, then paste the following:
 
 ```r
 # My first R script
