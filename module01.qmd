@@ -139,9 +139,62 @@ There is a keyboard shortcut: after typing or selecting a cell reference, press 
 
 A practical rule of thumb: **any number that appears in your analysis but is not part of the data itself should live in a labelled cell that you reference, not in the formula.** If your analysis assumes a 5% discount rate, don't write `=A1*1.05` in a hundred places. Put `0.05` in a cell called `discount_rate`, label it clearly, and reference it. When the assumption changes (and it will), you change one number instead of a hundred.
 
+### The `SUM` Function {#sec-sum}
+
+So far every formula has referenced cells one at a time — `=A2*B2`, `=A1+B1`. That is fine for a handful of cells, but imagine adding up a column of 500 field sizes: `=A2+A3+A4+ ... ` for 500 rows is unthinkable. This is where **functions** come in. A function is a built-in operation with a name, and the first one worth knowing is `SUM`.
+
+`SUM` adds up a group of cells. Instead of listing each cell, you give it a **range** — a block of cells written as two corners separated by a colon:
+
+- `A2:A10` — the ten cells from `A2` down to `A10` (a column).
+- `A2:D2` — the four cells from `A2` across to `D2` (a row).
+- `A2:D10` — the rectangular block with those corners (a grid).
+
+So to add up all the acres in a column that runs from `B2` to `B10`, you write:
+
+```
+=SUM(B2:B10)
+```
+
+That single formula does the work of nine `+` signs, and it keeps working if you insert more rows inside the range. You can also sum several pieces at once by separating them with commas — cells, ranges, or plain numbers mixed freely:
+
+```
+=SUM(B2:B10, D2:D10)      the acres plus a second block
+=SUM(B2:B10, 500)         the column, plus one extra 500
+```
+
+**A worked example.** Suppose column B holds the acres seeded to nine barley varieties in `B2:B10`, and column C holds each variety's yield in bushels per acre. Two quick questions:
+
+- *Total acres of barley?* `=SUM(B2:B10)`.
+- *Total production, in bushels?* You want each variety's acres × yield, then all of those added up. The long way is a helper column: put `=B2*C2` in `D2`, copy it down to `D10`, then `=SUM(D2:D10)`. (There is a one-formula shortcut, `SUMPRODUCT`, but the helper-column version is clearer while you are learning — and it lets you *see* each variety's contribution.)
+
+`SUM` is the gateway to a whole family of range functions you will meet in the next sections: `AVERAGE`, `MEDIAN`, `MIN`, `MAX`, `COUNT`, and later the conditional versions like `SUMIF`. They all share the same idea — hand the function a range, get one number back. Once you are comfortable with the `range` idea here, the rest come easily.
+
+::: {.callout-tip}
+## Watch the range, not just the formula
+
+The commonest `SUM` mistake is a range that is too small or too big — you added rows to your data but your `=SUM(B2:B10)` still stops at row 10, or it accidentally includes a total cell and double-counts. After writing a `SUM`, glance at the range Excel highlights (it colours the cells as you edit the formula) and confirm it covers exactly the numbers you meant.
+:::
+
 ### Named Ranges {#sec-named-ranges}
 
-Once you have cells you will reference often, you can give them **names**. Select a cell (or range) and type a name in the Name Box (to the left of the formula bar), or use **Formulas → Define Name**. Now you can write `=price*quantity` instead of `=$B$4*$C$4`. Named ranges make formulas dramatically more readable.
+Once you have cells you will reference often, you can give them **names**. Select a cell (or a range of cells) and type a name in the Name Box (to the left of the formula bar), or use **Formulas → Define Name**. A name works anywhere the cell reference would — and because a name can point at either a *single cell* or a *whole range*, it plugs straight into the two things you just learned.
+
+**Naming a single cell.** Put a barley price of `5.50` in cell `F1`, select it, and name it `price`. Now a revenue formula reads like a sentence instead of a puzzle:
+
+```
+=D2*price          instead of   =D2*$F$1
+```
+
+The name is absolute by nature — it always points at that one cell — so you get the "locked reference" behaviour of `$F$1` for free, and it never drifts when you copy the formula down.
+
+**Naming a range.** Select the acres column `B2:B10` and name it `acres`; select the yields `C2:C10` and name it `yield`. Now the totals from the last section become almost plain English:
+
+```
+=SUM(acres)                    total acres
+=SUMPRODUCT(acres, yield)      total production in bushels
+```
+
+Anyone reading `=SUM(acres)` knows exactly what it does; `=SUM(B2:B10)` makes them go hunting for what column B holds. That readability is the whole point.
 
 A few rules:
 
