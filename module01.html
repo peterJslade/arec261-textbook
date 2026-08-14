@@ -317,7 +317,8 @@ window.Quarto = {
   <li><a href="#the-basics" id="toc-the-basics" class="nav-link" data-scroll-target="#the-basics">The Basics</a></li>
   <li><a href="#operators-and-the-order-of-operations" id="toc-operators-and-the-order-of-operations" class="nav-link" data-scroll-target="#operators-and-the-order-of-operations">Operators and the Order of Operations</a></li>
   <li><a href="#sec-references" id="toc-sec-references" class="nav-link" data-scroll-target="#sec-references"><span class="header-section-number">1.4.1</span> Relative and Absolute References</a></li>
-  <li><a href="#sec-named-ranges" id="toc-sec-named-ranges" class="nav-link" data-scroll-target="#sec-named-ranges"><span class="header-section-number">1.4.2</span> Named Ranges</a></li>
+  <li><a href="#sec-sum" id="toc-sec-sum" class="nav-link" data-scroll-target="#sec-sum"><span class="header-section-number">1.4.2</span> The <code>SUM</code> Function</a></li>
+  <li><a href="#sec-named-ranges" id="toc-sec-named-ranges" class="nav-link" data-scroll-target="#sec-named-ranges"><span class="header-section-number">1.4.3</span> Named Ranges</a></li>
   </ul></li>
   <li><a href="#sec-central-tendency" id="toc-sec-central-tendency" class="nav-link" data-scroll-target="#sec-central-tendency"><span class="header-section-number">1.5</span> Measures of Central Tendency</a>
   <ul class="collapse">
@@ -567,9 +568,50 @@ window.Quarto = {
 <p>There is a keyboard shortcut: after typing or selecting a cell reference, press <code>F4</code> (Windows) or <code>⌘T</code> (Mac) and Excel cycles through the four variations. Get in the habit of using it.</p>
 <p>A practical rule of thumb: <strong>any number that appears in your analysis but is not part of the data itself should live in a labelled cell that you reference, not in the formula.</strong> If your analysis assumes a 5% discount rate, don’t write <code>=A1*1.05</code> in a hundred places. Put <code>0.05</code> in a cell called <code>discount_rate</code>, label it clearly, and reference it. When the assumption changes (and it will), you change one number instead of a hundred.</p>
 </section>
-<section id="sec-named-ranges" class="level3" data-number="1.4.2">
-<h3 data-number="1.4.2" class="anchored" data-anchor-id="sec-named-ranges"><span class="header-section-number">1.4.2</span> Named Ranges</h3>
-<p>Once you have cells you will reference often, you can give them <strong>names</strong>. Select a cell (or range) and type a name in the Name Box (to the left of the formula bar), or use <strong>Formulas → Define Name</strong>. Now you can write <code>=price*quantity</code> instead of <code>=$B$4*$C$4</code>. Named ranges make formulas dramatically more readable.</p>
+<section id="sec-sum" class="level3" data-number="1.4.2">
+<h3 data-number="1.4.2" class="anchored" data-anchor-id="sec-sum"><span class="header-section-number">1.4.2</span> The <code>SUM</code> Function</h3>
+<p>So far every formula has referenced cells one at a time — <code>=A2*B2</code>, <code>=A1+B1</code>. That is fine for a handful of cells, but imagine adding up a column of 500 field sizes: <code>=A2+A3+A4+ ...</code> for 500 rows is unthinkable. This is where <strong>functions</strong> come in. A function is a built-in operation with a name, and the first one worth knowing is <code>SUM</code>.</p>
+<p><code>SUM</code> adds up a group of cells. Instead of listing each cell, you give it a <strong>range</strong> — a block of cells written as two corners separated by a colon:</p>
+<ul>
+<li><code>A2:A10</code> — the ten cells from <code>A2</code> down to <code>A10</code> (a column).</li>
+<li><code>A2:D2</code> — the four cells from <code>A2</code> across to <code>D2</code> (a row).</li>
+<li><code>A2:D10</code> — the rectangular block with those corners (a grid).</li>
+</ul>
+<p>So to add up all the acres in a column that runs from <code>B2</code> to <code>B10</code>, you write:</p>
+<pre><code>=SUM(B2:B10)</code></pre>
+<p>That single formula does the work of nine <code>+</code> signs, and it keeps working if you insert more rows inside the range. You can also sum several pieces at once by separating them with commas — cells, ranges, or plain numbers mixed freely:</p>
+<pre><code>=SUM(B2:B10, D2:D10)      the acres plus a second block
+=SUM(B2:B10, 500)         the column, plus one extra 500</code></pre>
+<p><strong>A worked example.</strong> Suppose column B holds the acres seeded to nine barley varieties in <code>B2:B10</code>, and column C holds each variety’s yield in bushels per acre. Two quick questions:</p>
+<ul>
+<li><em>Total acres of barley?</em> <code>=SUM(B2:B10)</code>.</li>
+<li><em>Total production, in bushels?</em> You want each variety’s acres × yield, then all of those added up. The long way is a helper column: put <code>=B2*C2</code> in <code>D2</code>, copy it down to <code>D10</code>, then <code>=SUM(D2:D10)</code>. (There is a one-formula shortcut, <code>SUMPRODUCT</code>, but the helper-column version is clearer while you are learning — and it lets you <em>see</em> each variety’s contribution.)</li>
+</ul>
+<p><code>SUM</code> is the gateway to a whole family of range functions you will meet in the next sections: <code>AVERAGE</code>, <code>MEDIAN</code>, <code>MIN</code>, <code>MAX</code>, <code>COUNT</code>, and later the conditional versions like <code>SUMIF</code>. They all share the same idea — hand the function a range, get one number back. Once you are comfortable with the <code>range</code> idea here, the rest come easily.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Watch the range, not just the formula
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The commonest <code>SUM</code> mistake is a range that is too small or too big — you added rows to your data but your <code>=SUM(B2:B10)</code> still stops at row 10, or it accidentally includes a total cell and double-counts. After writing a <code>SUM</code>, glance at the range Excel highlights (it colours the cells as you edit the formula) and confirm it covers exactly the numbers you meant.</p>
+</div>
+</div>
+</section>
+<section id="sec-named-ranges" class="level3" data-number="1.4.3">
+<h3 data-number="1.4.3" class="anchored" data-anchor-id="sec-named-ranges"><span class="header-section-number">1.4.3</span> Named Ranges</h3>
+<p>Once you have cells you will reference often, you can give them <strong>names</strong>. Select a cell (or a range of cells) and type a name in the Name Box (to the left of the formula bar), or use <strong>Formulas → Define Name</strong>. A name works anywhere the cell reference would — and because a name can point at either a <em>single cell</em> or a <em>whole range</em>, it plugs straight into the two things you just learned.</p>
+<p><strong>Naming a single cell.</strong> Put a barley price of <code>5.50</code> in cell <code>F1</code>, select it, and name it <code>price</code>. Now a revenue formula reads like a sentence instead of a puzzle:</p>
+<pre><code>=D2*price          instead of   =D2*$F$1</code></pre>
+<p>The name is absolute by nature — it always points at that one cell — so you get the “locked reference” behaviour of <code>$F$1</code> for free, and it never drifts when you copy the formula down.</p>
+<p><strong>Naming a range.</strong> Select the acres column <code>B2:B10</code> and name it <code>acres</code>; select the yields <code>C2:C10</code> and name it <code>yield</code>. Now the totals from the last section become almost plain English:</p>
+<pre><code>=SUM(acres)                    total acres
+=SUMPRODUCT(acres, yield)      total production in bushels</code></pre>
+<p>Anyone reading <code>=SUM(acres)</code> knows exactly what it does; <code>=SUM(B2:B10)</code> makes them go hunting for what column B holds. That readability is the whole point.</p>
 <p>A few rules:</p>
 <ul>
 <li>Names cannot start with a number or contain spaces. Use underscores.</li>
@@ -577,7 +619,7 @@ window.Quarto = {
 <li>The <strong>Name Manager</strong> (<strong>Formulas → Name Manager</strong>) lets you see, edit, and delete names.</li>
 </ul>
 <div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -586,7 +628,7 @@ window.Quarto = {
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <ul>
 <li><strong>OpenStax, <em>Introductory Statistics 2e</em></strong> — <a href="https://openstax.org/books/introductory-statistics-2e/pages/2-introduction">Chapter 2 introduction</a> (orientation to descriptive statistics, which these formulas support).</li>
@@ -642,7 +684,7 @@ window.Quarto = {
 <p>The <strong>mode</strong> is the most frequently occurring value. In Excel: <code>=MODE.SNGL(A1:A5)</code> for a single mode, or <code>=MODE.MULT(A1:A5)</code> if you want all of them (for data with multiple modes).</p>
 <p>The mode is most useful for <strong>categorical data</strong> (“what is the most common crop in this region?”) or for <strong>discrete numeric data</strong> with repeated values. For continuous measurements like yields, the mode is usually not interesting because no two measurements will be exactly equal, or if they are it is often just random chance.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -651,7 +693,7 @@ window.Quarto = {
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-3" class="callout-3-contents callout-collapse collapse">
+<div id="callout-4" class="callout-4-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <ul>
 <li><strong>OpenStax, <em>Introductory Statistics 2e</em></strong> — <a href="https://openstax.org/books/introductory-statistics-2e/pages/2-5-measures-of-the-center-of-the-data">§2.5 “Measures of the Center of the Data”</a>. Free, thorough treatment of mean, median, and mode with worked examples.</li>
@@ -684,7 +726,7 @@ window.Quarto = {
 \]</span></p>
 <p>The IQR is a useful measure of spread that is not affected by a few extreme outliers (unlike the range, which is extremely sensitive to them).</p>
 <div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -693,7 +735,7 @@ window.Quarto = {
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-4" class="callout-4-contents callout-collapse collapse">
+<div id="callout-5" class="callout-5-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <ul>
 <li><strong>OpenStax, <em>Introductory Statistics 2e</em></strong> — <a href="https://openstax.org/books/introductory-statistics-2e/pages/2-3-measures-of-the-location-of-the-data">§2.3 “Measures of the Location of the Data”</a> (percentiles, quartiles, and the IQR).</li>
@@ -748,7 +790,7 @@ CV = \frac{s}{\bar{x}}
 <h3 class="unnumbered anchored" data-anchor-id="range">Range</h3>
 <p>The <strong>range</strong> is just the maximum minus the minimum. In Excel: <code>=MAX(A1:A5) - MIN(A1:A5)</code>. The range is easy to understand but very sensitive to outliers — a single bad measurement can blow up the range dramatically. The IQR (<a href="#sec-percentiles" class="quarto-xref"><span>Section 1.6</span></a>) is usually a better choice.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -757,7 +799,7 @@ CV = \frac{s}{\bar{x}}
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-5" class="callout-5-contents callout-collapse collapse">
+<div id="callout-6" class="callout-6-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <ul>
 <li><strong>OpenStax, <em>Introductory Statistics 2e</em></strong> — <a href="https://openstax.org/books/introductory-statistics-2e/pages/2-7-measures-of-the-spread-of-the-data">§2.7 “Measures of the Spread of the Data”</a> (variance and standard deviation).</li>
@@ -810,7 +852,7 @@ CV = \frac{s}{\bar{x}}
 <p>For “how many fields reported a yield?” you want <code>COUNT</code>, which naturally skips blank cells. This matters because real agricultural data is full of blanks (a crop not grown, a value not reported). A <strong>blank is not zero</strong>: <code>AVERAGE</code>, <code>COUNT</code>, <code>MEDIAN</code>, and <code>STDEV.S</code> all silently <strong>skip blank cells</strong>, which is usually what you want. But if you “helpfully” fill blanks with <code>0</code> first, those functions will treat the zeros as real measurements — dragging the average down and corrupting your analysis. Leave blanks blank.</p>
 <p>These conditional functions are workhorses for any moderately complex analysis. Get comfortable with them.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-7-contents" aria-controls="callout-7" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -819,7 +861,7 @@ CV = \frac{s}{\bar{x}}
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-6" class="callout-6-contents callout-collapse collapse">
+<div id="callout-7" class="callout-7-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <ul>
 <li><strong>Excel for Dummies</strong> — <em>Microsoft 365 Excel for Dummies</em>, the chapters on logical functions (<code>IF</code>) and on conditional counting/summing.</li>
@@ -876,7 +918,7 @@ CV = \frac{s}{\bar{x}}
 <pre><code>=INDEX(E2:E10650, MATCH(1 &amp; "|" &amp; 2023, B2:B10650 &amp; "|" &amp; A2:A10650, 0))</code></pre>
 <p>In older versions of Excel these are entered as <em>array formulas</em> (Ctrl+Shift+Enter); modern Excel handles them directly. Two-key lookups like this come up constantly with agricultural data, where a value is identified by <em>place and time</em> together.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-7-contents" aria-controls="callout-7" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-8-contents" aria-controls="callout-8" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -885,7 +927,7 @@ CV = \frac{s}{\bar{x}}
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-7" class="callout-7-contents callout-collapse collapse">
+<div id="callout-8" class="callout-8-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <ul>
 <li><strong>Excel for Dummies</strong> — <em>Microsoft 365 Excel for Dummies</em>, the chapter on lookup and reference functions.</li>
@@ -926,7 +968,7 @@ CV = \frac{s}{\bar{x}}
 </div>
 </div>
 <div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-9-contents" aria-controls="callout-9" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-10-contents" aria-controls="callout-10" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -935,7 +977,7 @@ CV = \frac{s}{\bar{x}}
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-9" class="callout-9-contents callout-collapse collapse">
+<div id="callout-10" class="callout-10-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <ul>
 <li><strong>Excel for Dummies</strong> — <em>Microsoft 365 Excel for Dummies</em>, the chapter on sorting and filtering data.</li>
@@ -1053,7 +1095,7 @@ CV = \frac{s}{\bar{x}}
 <p>Reshaping between wide and long by hand in Excel is tedious and error-prone. In <strong>R</strong>, it is a single function call in each direction (<code>pivot_longer()</code> and <code>pivot_wider()</code>), which is one of the reasons we move to R later in the course. You will meet the formal idea of <strong>“tidy data”</strong> — and these reshaping tools — in <a href="module03.html" class="quarto-xref"><span>Chapter 3</span></a>.</p>
 <p>For now, the practical takeaway: <strong>for the practice questions, use the <em>wide</em> file for descriptive statistics and lookups, and the <em>long</em> file when you need a PivotTable that groups by crop.</strong> We provide both.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-10-contents" aria-controls="callout-10" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-11-contents" aria-controls="callout-11" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -1062,7 +1104,7 @@ CV = \frac{s}{\bar{x}}
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-10" class="callout-10-contents callout-collapse collapse">
+<div id="callout-11" class="callout-11-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <ul>
 <li><strong>R for Data Science (Wickham)</strong> — the <a href="https://r4ds.hadley.nz/data-tidy">Data tidying chapter</a> is the definitive treatment of tidy data and the wide/long distinction (we return to this in Module 3).</li>
@@ -1111,7 +1153,7 @@ CV = \frac{s}{\bar{x}}
 <h3 class="unnumbered anchored" data-anchor-id="pivotcharts">PivotCharts</h3>
 <p>A <strong>PivotChart</strong> is a chart tied to a PivotTable. It updates automatically when you change the PivotTable, and filters on the chart filter the table. Make one with <strong>PivotTable Analyze → PivotChart</strong>.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-11-contents" aria-controls="callout-11" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-12-contents" aria-controls="callout-12" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -1120,7 +1162,7 @@ CV = \frac{s}{\bar{x}}
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-11" class="callout-11-contents callout-collapse collapse">
+<div id="callout-12" class="callout-12-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <ul>
 <li><strong>Excel for Dummies</strong> — <em>Microsoft Excel Data Analysis for Dummies</em> (3rd ed.), the PivotTable chapters (this is one of the book’s strongest topics).</li>
@@ -1194,7 +1236,7 @@ CV = \frac{s}{\bar{x}}
 <p><strong>Two Excel-specific quirks</strong> worth knowing so the chart matches your formulas: Excel’s box plot uses the <em>exclusive</em> median method by default, so its box edges may not exactly equal the <span class="math inline">\(Q_1\)</span>/<span class="math inline">\(Q_3\)</span> you computed with <code>QUARTILE.INC</code> — right-click the box → <strong>Format Data Series → Inclusive median</strong> to make them agree. Excel also draws the <strong>mean as an “×” marker</strong> inside each box by default; that × is the mean, not part of the standard box-plot definition.</p>
 <p><strong>Tips</strong>: box plots are not as intuitive to non-statistical audiences as histograms or bar charts. If you are presenting to a general audience, you may need to explain what the box and whiskers mean. But for your own exploratory analysis, and for technical audiences, box plots are invaluable.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-12-contents" aria-controls="callout-12" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-13-contents" aria-controls="callout-13" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -1203,7 +1245,7 @@ CV = \frac{s}{\bar{x}}
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-12" class="callout-12-contents callout-collapse collapse">
+<div id="callout-13" class="callout-13-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <ul>
 <li><strong>OpenStax, <em>Introductory Statistics 2e</em></strong> — <a href="https://openstax.org/books/introductory-statistics-2e/pages/2-2-histograms-frequency-polygons-and-time-series-graphs">§2.2 “Histograms, Frequency Polygons, and Time Series Graphs”</a> and <a href="https://openstax.org/books/introductory-statistics-2e/pages/2-4-box-plots">§2.4 “Box Plots”</a>.</li>
