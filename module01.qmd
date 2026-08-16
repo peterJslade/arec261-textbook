@@ -29,19 +29,34 @@ By the end of this module, you will be able to:
 - Write reproducible workbooks others can follow
 :::
 
-## What Is Excel, Really? {#sec-what-is-excel}
+## Describing Data {#sec-describing-data}
 
-Most of you have used Excel before. You know it as the grid of cells where you type numbers and add things up. That's not wrong, but it is a limited way to think about it. Let me offer a richer framing.
+Before we touch a spreadsheet, it helps to know what we are trying to *do* with one. Most of this module is about **describing data**: taking a column of numbers — say the yields of a hundred canola fields — and summarizing it so a human can grasp it at a glance. A hundred numbers is too many to hold in your head; a few well-chosen summaries are not.
 
-Excel is a **spreadsheet program**. The core idea of a spreadsheet is that every cell can either contain a *value* (a number, a piece of text) or a *formula* that computes a value from other cells. When you change an input value, all the formulas that depend on it update automatically. This is not quite as obvious as it sounds. Before spreadsheets existed (VisiCalc in 1979 was the first one that caught on), if you wanted to redo a financial projection with a different interest rate, you had to re-do the entire calculation by hand. Spreadsheets automated that, and they became the first "killer app" for personal computers.
+There are four questions we typically ask of any variable, and they organize everything that follows:
+
+- **Centre.** What is a *typical* value? (Mean, median, mode.)
+- **Position.** Where does a particular observation sit relative to the rest? (Percentiles, quartiles.)
+- **Spread.** How *spread out* are the values — tightly clustered, or all over the map? (Range, variance, standard deviation.)
+- **Shape.** What does the whole distribution *look like* — symmetric, lopsided, full of outliers? (Histograms, box plots.)
+
+Keep these four in mind. When you meet a new dataset, running through centre / position / spread / shape is a reliable way to get to know it. The rest of this module teaches you to answer each question — and to do it in Excel, the tool most of you already have.
+
+## Excel: An Introduction {#sec-excel-intro}
+
+### What Is Excel, Really? {#sec-what-is-excel .unnumbered}
+
+Most of you have used Excel before — the grid of cells where you type numbers and add things up. That is not wrong, but it is a thin way to think about it.
+
+Excel is a **spreadsheet program**. The core idea is that every cell holds either a *value* (a number or text) or a *formula* that computes a value from other cells — and when an input changes, every formula that depends on it updates automatically. That sounds obvious now, but before spreadsheets (VisiCalc, 1979, was the first to catch on) you re-did the whole calculation by hand to change one interest rate. Spreadsheets automated that, and became the first "killer app" for personal computers.
 
 For our purposes, Excel is three things at once:
 
-1. **A calculator.** You can use it as a fancy calculator to do arithmetic on numbers and ranges.
-2. **A database.** You can store tables of data and query them — filter, sort, join with other tables, aggregate.
-3. **A programming environment.** Every formula you write is a tiny program. Excel will also let you write full macros in VBA, though we will not go there in this course.
+1. **A calculator** — arithmetic on numbers and ranges.
+2. **A database** — tables of data you can filter, sort, join, and aggregate.
+3. **A programming environment** — every formula is a tiny program. (Excel also runs full macros in VBA, which we will not use.)
 
-Understanding that Excel is all three of these things helps you understand its strengths and weaknesses. It is very good at small-to-medium datasets where you want to see every number on the screen and experiment with them. It is bad at large datasets (anything over a few hundred thousand rows), at analyses that need to be re-run in a specific order, and at anything you need to reproduce exactly on a different machine. That is why, later in this course, we will switch to R for the heavier lifting.
+Seeing all three helps you judge when to reach for it. Excel shines on small-to-medium data you want to see and experiment with on screen. It struggles with large datasets (much beyond a few hundred thousand rows), with analyses that must run in a fixed order, and with anything you need to reproduce exactly elsewhere. That is why we later switch to R for the heavy lifting.
 
 ::: {.callout-tip collapse="true"}
 ## Other resources — getting started with Excel
@@ -51,38 +66,33 @@ Understanding that Excel is all three of these things helps you understand its s
 - **Video (beginner overview)** — [*How to use Excel for beginners*](https://www.youtube.com/watch?v=Ai0MV7twEBE) — a short tour of entering data, formatting, and the interface.
 :::
 
-## File Formats and File Management {#sec-file-formats}
+### File Formats and File Management {#sec-file-formats .unnumbered}
 
-A quick technical interlude. Excel can read and write several file formats, and the distinction matters.
+Excel reads and writes several file formats, and the distinction matters.
 
-- **`.xlsx`** — The default modern Excel format. Can contain multiple worksheets, formulas, formatting, charts, and PivotTables. This is what you save your *working* Excel files as. (A variant, `.xlsm`, additionally allows macros; a plain `.xlsx` cannot store them.)
-- **`.csv`** — Comma-separated values. A plain-text format that stores a single table, one row per line, values separated by commas. No formulas, no formatting, no multiple sheets, no types. This is the universal exchange format for tabular data — every analysis tool in the world reads CSV. You should save data as CSV when you want to share it with anyone, or hand it off to another tool.
-- **`.tsv`** — Tab-separated values. Same idea as CSV but using tabs. Sometimes preferred when your data itself contains commas.
-- **`.xls`** — The old pre-2007 Excel format. You will occasionally encounter these in the wild. Open them and resave as `.xlsx`.
+- **`.xlsx`** — The default modern Excel format. Holds multiple worksheets, formulas, formatting, charts, and PivotTables. Save your *working* files as this. (The variant `.xlsm` also allows macros; a plain `.xlsx` cannot store them.)
+- **`.csv`** — Comma-separated values: plain text, one table, one row per line, values separated by commas. No formulas, formatting, sheets, or types. It is the universal exchange format — every analysis tool reads CSV — so save data as CSV whenever you want to share it or hand it to another tool.
+- **`.tsv`** — Tab-separated values. Same idea as CSV but tab-delimited, handy when the data itself contains commas.
+- **`.xls`** — The old pre-2007 format. If you meet one, open it and resave as `.xlsx`.
 
-A common source of frustration for students is opening a CSV file in Excel and finding that Excel has helpfully "fixed" their data — turning a gene name like `SEPT1` into the date `1-Sep`, turning a row of leading zeros in a farm ID into a shorter number. **This is a real problem and a well-known one.** If you are working with a CSV where this might happen, use Excel's "Get Data" / "From Text/CSV" feature, which lets you specify column types explicitly, rather than double-clicking the file.
+Watch out for one classic trap: open a CSV in Excel and it may "helpfully" mangle your data — turning `SEPT1` into the date `1-Sep`, or stripping leading zeros off a farm ID. **This is a real, well-known problem.** When it might happen, use **Data → Get Data → From Text/CSV**, which lets you set column types explicitly, instead of double-clicking the file.
 
-### File Naming Conventions {.unnumbered}
+A few file-*naming* habits that save real pain over a career:
 
-A few habits that will save you hours of pain over the course of your career:
+- **No spaces** — use underscores or hyphens; spaces break URLs, command lines, and most non-Excel tools.
+- **Date evolving files** in `YYYY-MM-DD` form (e.g. `2026-09-15`) — it sorts correctly alphabetically.
+- **No "FINAL"** — `report_FINAL.xlsx` never is. Use dates or version numbers.
+- **Name the project, not the author** — `canola_yield_analysis_2026-09-15.xlsx`, not `peter_analysis.xlsx`.
 
-- **No spaces** in filenames. Use underscores or hyphens. Spaces cause problems in URLs, command lines, and any tool that isn't Excel.
-- **Include a date** for any file that evolves over time, in `YYYY-MM-DD` format (e.g., `2026-09-15`). This format sorts correctly alphabetically.
-- **No "FINAL"**. The file named `report_FINAL.xlsx` is almost never final. Use versions or dates instead.
-- **Name the project, not the author**. `peter_analysis.xlsx` is a bad name. `canola_yield_analysis_2026-09-15.xlsx` is a good name.
+### Workbook Structure: Thinking in Sheets {#sec-workbook-structure .unnumbered}
 
-## Workbook Structure: Thinking in Sheets {#sec-workbook-structure}
+A **workbook** is one Excel file; it holds one or more **worksheets** ("sheets" or "tabs"). A habit worth building early is deciding deliberately how to split work across sheets — and that starts with one question you should ask *every time*: **who is the audience for this workbook?** Three answers, each shaping how you build it:
 
-When you open a new Excel file, you get a **workbook** that contains one or more **worksheets** (often just called "sheets" or "tabs"). One of the most important habits you can develop early is thinking carefully about how to divide your work across sheets.
+- **Just you.** A scratchpad — quick numbers for today's decision, or exploratory work. You can get away with fewer sheets, terser labels, less formatting. But be honest: "just for me" files have a habit of becoming "I need to send this to my boss tomorrow" files, so if there is any chance it will be shared, build it as if it will be.
+- **Internal colleagues.** A file for a co-worker, your boss, or the TA. Now you want a README, clear labels, consistent structure, and enough formatting to navigate without asking you questions. Aim for "clean and self-explanatory," not "pretty."
+- **External audiences.** A file for clients, regulators, or the public. Here aesthetics genuinely matter — consistent formatting, polished tables, charts that stand on their own, often with the working sheets hidden. Every element reflects on you or your organization.
 
-
-Before you start building a workbook, stop and ask yourself a question I want you to ask *every time*: **who is the audience for this workbook?** There are roughly three answers, and they should shape how you build the file:
-
-- **Just you.** A scratchpad for your own calculations — quick numbers for a decision you are making today, or exploratory work that may or may not turn into something. You can get away with fewer sheets, terser labels, and less formatting. But be honest with yourself: "just for me" files have a bad habit of turning into "I need to send this to my boss tomorrow" files. If there is any chance it will be shared or revisited, build it as if it will be.
-- **Internal colleagues.** A file you will hand to a co-worker, your boss, or the TA. Now you need a README, clear column labels, a consistent structure, and enough formatting that the reader can navigate it without asking you questions. Aesthetics matter but not obsessively — this is a working document, not a presentation. Think "clean and self-explanatory" rather than "pretty."
-- **External audiences.** A file that will be shared with clients, regulators, or the public — or published on a website. Now aesthetics genuinely matter. Consistent colour schemes, carefully formatted tables, branding where appropriate, charts that can stand on their own. You may even want to hide the working sheets and show only the final outputs. Every element of the file is a reflection on you or your organization, so it needs to be polished.
-
-There is no single "right" way to format an Excel file, because "right" depends on who is going to open it. The mistake is not picking the wrong level of polish — it is not thinking about it at all and defaulting to whatever is comfortable. A slapped-together file handed to an external client looks unprofessional; a heavily-formatted file built for your own scratch work is a waste of time. Match the polish to the audience.
+There is no single "right" level of polish — it depends on who opens the file. The mistake is not picking wrong; it is not thinking about it at all. Match the polish to the audience.
 
 Here is a structure I recommend for any workbook that will be shared or that you might come back to later:
 
