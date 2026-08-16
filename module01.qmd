@@ -40,21 +40,11 @@ Most datasets are so large that we can't quickly look at all the numbers in them
 
 In this chapter, we will learn a) the statistics and charts that can be used to summarize the centre, position, spread, and shape of the data; b) how to interpret these statistics and charts; and c) how to calculate them in Excel.  Along the way we will also learn a lot about how Excel operates.
 
-## Excel: An Introduction {#sec-excel-intro}
-
-### What Is Excel, Really? {#sec-what-is-excel .unnumbered}
+## Excel: A Quick Introduction {#sec-excel-intro}
 
 Most of you have used Excel before — the grid of cells where you type numbers and add things up. That is not wrong, but it is a thin way to think about it.
 
-Excel is a **spreadsheet program**. The core idea is that every cell holds either a *value* (a number or text) or a *formula* that computes a value from other cells — and when an input changes, every formula that depends on it updates automatically. That sounds obvious now, but before spreadsheets (VisiCalc, 1979, was the first to catch on) you re-did the whole calculation by hand to change one interest rate. Spreadsheets automated that, and became the first "killer app" for personal computers.
-
-For our purposes, Excel is three things at once:
-
-1. **A calculator** — arithmetic on numbers and ranges.
-2. **A database** — tables of data you can filter, sort, join, and aggregate.
-3. **A programming environment** — every formula is a tiny program. (Excel also runs full macros in VBA, which we will not use.)
-
-Seeing all three helps you judge when to reach for it. Excel shines on small-to-medium data you want to see and experiment with on screen. It struggles with large datasets (much beyond a few hundred thousand rows), with analyses that must run in a fixed order, and with anything you need to reproduce exactly elsewhere. That is why we later switch to R for the heavy lifting.
+Excel is a **spreadsheet program**. The core idea is that every cell holds either a *value* (a number or text) or a *formula* that computes a value from other cells — and when an input changes, every formula that depends on it updates automatically. 
 
 ::: {.callout-tip collapse="true"}
 ## Other resources — getting started with Excel
@@ -66,19 +56,12 @@ Seeing all three helps you judge when to reach for it. Excel shines on small-to-
 
 ### File Formats and File Management {#sec-file-formats .unnumbered}
 
-Excel reads and writes several file formats, and the distinction matters.
+In this class, we will read in data in two formats:
 
-- **`.xlsx`** — The default modern Excel format. Holds multiple worksheets, formulas, formatting, charts, and PivotTables. Save your *working* files as this. (The variant `.xlsm` also allows macros; a plain `.xlsx` cannot store them.)
-- **`.csv`** — Comma-separated values: plain text, one table, one row per line, values separated by commas. No formulas, formatting, sheets, or types. It is the universal exchange format — every analysis tool reads CSV — so save data as CSV whenever you want to share it or hand it to another tool.
-- **`.xls`** — The old pre-2007 format. If you meet one, open it and resave as `.xlsx`.
+- **`.xlsx`** — The default modern Excel format. Holds multiple worksheets, formulas, formatting, charts, and PivotTables. Save your *working* files as this. Note that `.xls` is a pre-2007 format.
+- **`.csv`** — Comma-separated values: plain text, one table, one row per line, values separated by commas. This is generally preferred for raw data because it can be read by most statistical software (notably *R*).  Whereas *R* has difficulty reading Excel files.
 
-Watch out for one classic trap: open a CSV in Excel and it may "helpfully" mangle your data — turning `SEPT1` into the date `1-Sep`, or stripping leading zeros off a farm ID. **This is a real, well-known problem.** When it might happen, use **Data → Get Data → From Text/CSV**, which lets you set column types explicitly, instead of double-clicking the file.
-
-A few file-*naming* habits that save real pain over a career:
-
-- **No spaces** — use underscores or hyphens; spaces break URLs, command lines, and most non-Excel tools.
-- **Date evolving files** in `YYYY-MM-DD` form (e.g. `2026-09-15`) — it sorts correctly alphabetically.  This works much better than saying `report_DRAFT.xlsx`, `report_Work_in_Progress.xlsx`, and `report_FINAL.xlsx`.
-
+Excel will readily open a .csv file.  However, it sometimes tries to be too helpful and will convert data to a format that it thinks is appropriate (e.g., turning `SEPT1` into the date `1-Sep`, or stripping leading zeros off a farm ID). When this might happen, use **Data → Get Data → From Text/CSV**, which lets you set column types explicitly, instead of double-clicking the file.
 
 ### Workbook Structure: Thinking in Sheets {#sec-workbook-structure .unnumbered}
 
@@ -90,15 +73,13 @@ A **workbook** is one Excel file; it holds one or more **worksheets** ("sheets" 
 
 There is no single "right" level of polish — it depends on who opens the file. The mistake is not picking wrong; it is not thinking about it at all. Match the polish to the audience.
 
-Here is a structure I recommend for any workbook that will be shared or that you might come back to later:
+A complex workbook should have a **README or contents** as the first worksheet.  This explains what the workbook is, who made it, when, what the inputs are, and what each other sheet contains. It can also contain *links* to the other worksheets. 
 
-1. **A README or contents sheet.** A sheet that explains what the workbook is, who made it, when, what the inputs are, and what each other sheet contains. It can also contain *links* to the other worksheets. This is your gift to future-you.  
-2. **Raw data sheet(s).** The original, untouched data. Never modify these cells. If you need to correct something, do it in a separate sheet.  This way you always have access to the uncorrupted raw data.
-3. **Cleaned data sheet(s).** The data after cleaning — unit conversions, missing-value handling, outlier corrections. Keep this separate from the raw data so the cleaning is auditable.
-4. **Analysis sheet(s).** Where the calculations happen — summary statistics, PivotTables, and (later in the course) more advanced analyses.
-5. **Outputs sheet(s).** Final charts and tables, formatted for presentation.
+If you are doing a lot of data cleaning, it is also good practice to store **raw data** in a separate sheet from the **cleaned data**.  This way you can always come back to the raw data and see what is the result of your work versus the raw data.
 
-This is overkill for a two-minute calculation, but for anything you will hand to someone else or come back to later, it is the minimum. The principle is **separation of concerns**: raw data, cleaning, analysis, and presentation each have their own place.
+Finally, it is best to do **analysis** and **charts** in separate sheets, rather than having one sheet with 32 charts and 16 summary statistics.  Of course, you don't need to have a separate worksheet where you calculate the mean, and another where you calculate the median, and another where you calculate the standard deviation.  But generally, you don't want too much analysis on the same sheet.  So for example, you might have one sheet for **summary statistics** and another for **hypothesis tests**.
+
+The principle is **separation of concerns**: raw data, cleaning, analysis, and presentation each have their own place.
 
 ## Cells, References, and Formulas {#sec-cells-formulas}
 
