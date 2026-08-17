@@ -398,14 +398,22 @@ The IQR is a useful measure of spread that is not affected by a few extreme outl
 
 Two datasets can have the same mean but look very different. Consider the two sets of 30 hypothetical farm yields in @fig-spread. Both have a mean of exactly 40 bushels per acre, but in panel A the yields are very spread out, while in panel B they are clustered tightly together.
 
-::: {#fig-spread}
-
-![](images/spread_wide.png){#fig-spread-wide}
-
-![](images/spread_tight.png){#fig-spread-tight}
-
-Thirty farm yields, each dot one field. Both sets average 40 bu/ac, but their spread is very different.
-:::
+```{r}
+#| label: fig-spread
+#| eval: true
+#| echo: false
+#| message: false
+#| fig-width: 7.2
+#| fig-height: 1.7
+#| fig-cap: "Thirty farm yields, each dot one field. Both sets average 40 bu/ac, but their spread is very different."
+#| fig-subcap:
+#|   - ""
+#|   - ""
+#| layout-ncol: 1
+source("R/strip_plot.R")
+strip_plot(yields_wide,  "A. Yields spread widely",     mean_at = 40)
+strip_plot(yields_tight, "B. Yields clustered tightly", mean_at = 40)
+```
 
 
 For a data analyst, the spread is very informative.  If the values are spread out then we should be curious about what causes this spread.  If these fields are far away from each other then maybe the spread is due to weather.  But if they are in the same Township, with reasonably similar weather, then it may be due to management practices such as varietal choice, nitrogen application rates, or seeding dates.  When we are dealing with large datasets it can be difficult to just look at how spread out points are on a one-dimensional graph.  It is therefore handy to be able to distill the spread of data into a single number.  In this section we will examine several different measures of spread, each of which has there strengths and weaknesses.
@@ -414,7 +422,19 @@ For a data analyst, the spread is very informative.  If the values are spread ou
 
 The simplest measure of the spread of the data is the **range**, which is just the maximum value minus the minimum value. In Excel: `=MAX(A1:A100) - MIN(A1:A100)`. The range is easy to understand but it is very sensitive to outliers — a single bad measurement can blow up the range dramatically.  Suppose, for example, that one of the tightly-clustered fields in @fig-spread-hail experiences a hail storm that wipes out its crop. That single field stretches the range from 8.9 to 40.6 bu/ac — more than four times larger — even though it is only one field in 30. The IQR, by contrast, barely moves (3.4 to 3.6), because it ignores the extremes entirely.
 
-![One hailed-out field. The range explodes; the interquartile range hardly notices.](images/spread_hail.png){#fig-spread-hail}
+```{r}
+#| label: fig-spread-hail
+#| eval: true
+#| echo: false
+#| message: false
+#| fig-width: 7.2
+#| fig-height: 1.7
+#| fig-cap: "One hailed-out field. The range explodes; the interquartile range hardly notices."
+source("R/strip_plot.R")
+strip_plot(head(sort(yields_tight), -1),
+           "C. The clustered fields, plus one hailed-out field",
+           highlight = 3, highlight_label = "hail-damaged field")
+```
 
 This problem is even greater if we have a data of hundreds or thousands.  
 
@@ -490,14 +510,23 @@ Use the coefficient of variation with caution.
 
 The **distribution** of the data refers to how often different values, or ranges of values, occur in a dataset. It tells you more than any single summary number can, because very different-looking datasets can share the same summary statistics. @fig-shape shows two sets of 60 farm yields with *identical means* (40 bu/ac) and *identical ranges* (26 to 54 bu/ac), yet they look nothing alike. In panel A the observations sit in two separate clusters; in panel B they are dense in the middle and thin out toward either edge.
 
-::: {#fig-shape}
-
-![](images/shape_bimodal.png){#fig-shape-bimodal}
-
-![](images/shape_unimodal.png){#fig-shape-unimodal}
-
-Two datasets with the same mean and the same range, but very different shapes.
-:::
+```{r}
+#| label: fig-shape
+#| eval: true
+#| echo: false
+#| message: false
+#| fig-width: 7.2
+#| fig-height: 1.7
+#| fig-cap: "Two datasets with the same mean and the same range, but very different shapes."
+#| fig-subcap:
+#|   - ""
+#|   - ""
+#| layout-ncol: 1
+source("R/strip_plot.R")
+strip_plot(shapes$bimodal,  "A. Two clusters", xlim = c(20, 60), mean_at = 40)
+strip_plot(shapes$unimodal, "B. Dense in the middle, thinning toward the edges",
+           xlim = c(20, 60), mean_at = 40)
+```
 
 Knowing the shape gives you real insight. The two clusters in panel A are a signal worth chasing: perhaps those farms differ in variety, soil zone, or seeding date, and what looks like one population is really two. Note also that the mean of 40 bu/ac in panel A describes a yield that *almost no farm actually achieved* — a good reminder that a summary statistic is not a substitute for looking at your data. 
 
