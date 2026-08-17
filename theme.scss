@@ -253,51 +253,66 @@ code:not(.sourceCode) {
   border-radius: 3px;
 }
 
-// --- R console transcripts ----------------------------------------------
-// Executed chunks render collapsed (see knitr opts_chunk in _quarto.yml):
-// input and output interleaved in one block, with "> " prompts, exactly as
-// they appear in the Positron console. Label the whole block "R console" and
-// give it a wheat ground so it reads as a live session rather than a static
-// code listing — a third kind of thing next to the green "Other resources"
-// and blue Excel boxes.
+// --- R console output ---------------------------------------------------
+// Executed chunks render as two blocks (see knitr opts_chunk in _quarto.yml):
+// the code the student types, then what R printed back. console-fold.html
+// wraps that output in <details class="console-fold">, collapsed by default,
+// so students can predict the result before revealing it.
 //
-// A collapsed chunk is a .cell containing a .sourceCode.cell-code block.
-// Quarto wraps that block in a .code-copy-outer-scaffold div, so this must be
-// a descendant selector, not a child one. Static ```r listings are NOT inside
-// a .cell, so they keep plain code styling and stay visually distinct.
-div.cell .sourceCode.cell-code {
-  position: relative;
+// The <details> itself carries the wheat band; the <summary> is its clickable
+// label. Wheat keeps console output distinct from the green "Other resources"
+// and blue Excel callouts. The code block above keeps Quarto's normal styling.
+details.console-fold {
   margin: 0.15rem 0 1.4rem;
   border-left: 3px solid $wheat;
   border-radius: 0 4px 4px 0;
   background: #fbf9f3;
-  padding: 1.6rem 0.9rem 0.5rem;
+  padding: 0.45rem 0.9rem;
 
-  &::before {
-    content: "R console";
-    position: absolute;
-    top: 0.4rem;
-    left: 0.9rem;
+  > summary {
+    cursor: pointer;
+    list-style: none;            // hide the default triangle; we draw our own
     font-variant: small-caps;
     font-size: 0.72rem;
     letter-spacing: 0.06em;
     font-weight: 700;
     color: $wheat;
+    user-select: none;
+
+    &::-webkit-details-marker { display: none; }
+
+    &::before {
+      content: "\25B8";          // ▸ pointing right when closed
+      display: inline-block;
+      margin-right: 0.45rem;
+      transition: transform 0.15s ease;
+    }
   }
 
-  pre {
-    margin: 0;
-    padding: 0;
-    background: transparent;
-    border: none;
+  &[open] > summary {
+    margin-bottom: 0.45rem;
+    &::before { transform: rotate(90deg); }   // ▾ pointing down when open
   }
-  pre code { background: transparent; padding: 0; }
+
+  // Once open, the output sits flush inside the band — no nested box.
+  .cell-output { margin: 0; padding: 0; background: transparent; border: none; }
+  pre { margin: 0; padding: 0; background: transparent; border: none; font-size: 0.88em; }
+  pre code { background: transparent; padding: 0; color: $ink; }
 }
 
-// Any non-collapsed output (e.g. a chunk that opts out of collapse) keeps
-// the older labelled-band treatment.
-.cell-output-stdout,
-.cell-output-stderr {
+// Messages, warnings, and deliberate errors: same fold, amber accent.
+details.console-fold:has(.cell-output-stderr),
+details.console-fold:has(.cell-output-error) {
+  border-left-color: #b3801f;
+  background: #fdf7ec;
+  > summary { color: #b3801f; }
+}
+
+// Fallback for any output NOT wrapped by the script (e.g. if JS is disabled):
+// keep the older labelled-band treatment so it never renders unstyled. Scoped
+// with :not() so wrapped output doesn't get a second band inside the fold.
+.cell-output-stdout:not(.console-fold *),
+.cell-output-stderr:not(.console-fold *) {
   position: relative;
   margin: 0.15rem 0 1.4rem;
   border-left: 3px solid $wheat;
@@ -333,7 +348,8 @@ div.cell .sourceCode.cell-code {
 }
 
 // Warnings and errors are still console output, but flag them in amber.
-.cell-output-stderr {
+// (Unwrapped fallback only — folded stderr is handled by the :has() rule above.)
+.cell-output-stderr:not(.console-fold *) {
   border-left-color: #b3801f;
   background: #fdf7ec;
   &::before { content: "Console output — message"; color: #b3801f; }
@@ -386,7 +402,9 @@ nav[role="doc-toc"] a.active { color: $prairie-dark !important; border-left-colo
   .objectives { background: #22302a; border-color: #35493c; }
   .formula    { background: #232a26; }
   .example    { background: #1f2622; border-color: #333c37; }
-  div.cell .sourceCode.cell-code { background: #262319; }
+  details.console-fold { background: #262319; }
+  details.console-fold pre code { color: #e2e6e0; }
+  details.console-fold:has(.cell-output-stderr) { background: #2a2318; }
   .cell-output-stdout { background: #262319; }
   .cell-output-stdout pre code { color: #e2e6e0; }
   .cell-output-stderr { background: #2a2318; }
