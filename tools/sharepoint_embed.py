@@ -27,7 +27,7 @@ def embed_block(guid: str, title: str | None, typing: bool, active_cell: str | N
     if active_cell:
         src += f"&ActiveCell={active_cell}"
     src += "&wdHideGridlines=True&wdHideHeaders=True&wdDownloadButton=True&wdInConfigurator=True"
-    copy_url = BASE.format(guid=guid) + "&action=default&Copy=1"
+    open_url = BASE.format(guid=guid) + "&action=default"
 
     head = f"::: {{.callout-tip collapse=\"true\"}}\n## {title}\n" if title else ""
     tail = ":::\n" if title else ""
@@ -37,8 +37,8 @@ def embed_block(guid: str, title: str | None, typing: bool, active_cell: str | N
         "::: {.excel-embed}\n"
         f'<iframe width="402" height="346" frameborder="0" scrolling="no" src="{src}"></iframe>\n'
         ":::\n\n"
-        f"[Open an editable copy]({copy_url}) — opens your own editable copy in "
-        "Excel for the web (Microsoft sign-in required).\n"
+        f"[Open in Excel for the web]({open_url}) — opens in your browser "
+        "(Microsoft sign-in required); use File \u2192 Save a Copy for your own version.\n"
         f"{tail}"
         ":::\n"
     )
