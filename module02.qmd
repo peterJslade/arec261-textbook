@@ -95,18 +95,9 @@ The whole rhythm of R is just this: **create objects with `<-`, and run function
 
 ## R Scripts {#sec-first-script}
 
-You should only ever type code directly into the console (as we did above) for quick, throwaway calculations.  The whole point of 
+You should only ever type code directly into the console (as we did above) for quick, throwaway calculations.  For any real analysis — anything you want to re-run, check, share, or hand in — you need your code written down in a file you can save. That file is called a **script**, and it is the subject of the next section.
 
-Everything typed into  **it is disposable.** Everything you typed is gone when you close Positron, and there is no tidy record of *what you did, in what order*. For any real analysis — anything you want to re-run, check, share, or hand in — you need your code written down in a file you can save. That file is called a **script**, and it is the subject of the next section.
-
-
-A **script** is a plain text file (ending in `.R`) where you *write and save* your code. If the console is a throwaway conversation, the script is the permanent **recipe** for your analysis: you edit it, save it, and can re-run the whole thing later or share it with someone else. This is where your real work lives.
-
-A helpful way to hold the two in your head:
-
-> **The console is what R says back. The script is what you write and keep.**
-
-The golden rule from day one: **write your code in the script, not the console.** If a calculation is worth doing, it is worth saving.
+A **script** is a plain text file (ending in `.R`) where you *write and save* your code. The script is the permanent **recipe** for your analysis: you edit it, save it, and can re-run the whole thing later or share it with someone else. 
 
 ### Creating and running a script {.unnumbered}
 
@@ -114,7 +105,7 @@ Open Positron and create a new file with **File → New File**, then choose **R 
 
 ![Creating a new R file. **File → New File** opens this menu; choose **R File**.](images/positron_new_file.png){#fig-new-file}
 
-Save it as `hello.R`, then type (or paste) the following:
+Save it as `hello.R` (or whatever you want), then type (or paste) the following:
 
 ```r
 # My first R script
@@ -131,19 +122,15 @@ Here is the crucial thing that trips up beginners: **writing code in the script 
 
 ![Code written in the **script** (top), but not yet run. The console is empty and the Variables pane says "No variables have been created" — writing code does not run it.](images/positron_script_before_run.png){#fig-script-before}
 
-To actually run it, click the **Run** button in the top right to run the whole file, or run just the current line (or selected lines) with **Cmd+Enter** (Mac) / **Ctrl+Enter** (Windows). *Now* things happen: the results appear in the **console**, and any objects you created show up in the **Variables** pane:
+To actually run it, you have a two different options:
+
+1. Click the **Run** button in the top right and either source the whole code to run all lines of your code, or "Execture code" to run just the selected lines (or the current line if noting is selected).
+
+2. A faster way to run code is to just type **Cmd+Enter** (Mac) / **Ctrl+Enter** (Windows). 
+
+After running all lines, the results appear in the **console**, and any objects you created show up in the **Variables** pane:
 
 ![After running the script, the **console** shows the results and the **Variables** pane lists the objects that were created. Running the code is what makes things happen.](images/positron_script_after_run.png){#fig-script-after}
-
-You should see output like this in the console:
-
-```
-[1] "Hello, world!"
-[1] 4
-[1] 3
-```
-
-Congratulations — you have run your first R script.
 
 Let's break down what just happened:
 
@@ -153,9 +140,9 @@ Let's break down what just happened:
 - `x <- c(1, 2, 3, 4, 5)` is the "save an object" step you met in the console: it creates a **vector** of the numbers 1 through 5 and stores it under the name `x`. (You can write `=` instead of `<-`, but `<-` is traditional in R and I recommend it.)
 - `mean(x)` is the "run a function on an object" step: it calls the `mean` function on `x` and hands back the result.
 
-Because it is saved in a file, you can run this script again tomorrow, e-mail it to a classmate, or fix one line and re-run the whole thing — none of which the console lets you do. That is the whole point of working in scripts.
+We should also note that the object `x` is now stored in **R**, and it will be stored until we exit this session or overwrite `x` with a new value.
 
-The key idea is that R is a **language**: you write instructions, R executes them, and the script is a permanent record of what you did. Compare this with an Excel workbook where the "record" is the final state of the cells — there is no trace of the order or logic of the work.
+This will be the last screen shot of **Positron** that I will show in the textbook.  From now on I will just show the code, and sometimes the results of this code.    
 
 ::: {.callout-tip collapse="true"}
 ## Other resources — R scripts
@@ -164,7 +151,11 @@ The key idea is that R is a **language**: you write instructions, R executes the
 - **Video** — Sam Burer, [*The Basics of Scripts in R*](https://www.youtube.com/watch?v=NVglx_rthuM) — a short intro to what an R script is and how to run it.
 :::
 
-## R Basics: Vectors, Data Frames, Functions {#sec-r-basics}
+## R Basics: Types, Vectors, Data Frames, Functions {#sec-r-basics}
+
+**R** works by having you store objects—which include simple numbers, vectors, matrices, data frames, regression models, charts, and more. To get started with data, we will learn about two of these objects: vectors and data frames.
+
+Objects contain values of different types. Common types include character (text), numeric (numbers), and logical (TRUE/FALSE). Somewhat confusingly, the components of an object can themselves have different types. For example, a data frame consists of columns, and each column can contain a different type of data.
 
 ### Vectors {.unnumbered}
 
@@ -176,16 +167,43 @@ varieties <- c("InVigor", "DK", "Clearfield", "InVigor", "DK")
 is_irrigated <- c(TRUE, FALSE, FALSE, TRUE, FALSE)
 ```
 
-Vectors support **element-wise arithmetic**. If you add two vectors of the same length, R adds them element by element:
-
+If a vector is numeric then we can do arithmetic operations on it.  For example, say we have a vetor of yields in bu per acre and we want to convert it to tonnes per hectare, we can simply multiply the entire vector by a constant conversion factor.  
 ```r
-a <- c(1, 2, 3)
-b <- c(10, 20, 30)
-a + b
-# [1] 11 22 33
+
 ```
 
-This is one of R's most important features. Most operations automatically "vectorize" — they work on entire vectors at once without requiring a loop. This makes R code concise and fast.
+### Data Frames {.unnumbered}
+
+A **data frame** is R's word for a table: rows are observations, columns are variables. This is the main thing we will work with in this class
+
+You can create one by hand, by combining vectors as in the following example:
+
+```{r}
+#| eval: true
+fields <- data.frame(
+  field_id = c("F01", "F02", "F03", "F04", "F05"),
+  region = c("South", "South", "Central", "North", "North"),
+  yield = c(48, 52, 47, 55, 50)
+)
+fields
+```
+
+But you will almost usually **read** a data frame from a CSV file. More on that in a moment.
+
+You can access columns with the `$` operator.  For example, to get the column `yield` in our data frame `fields` we would type `fields$yield`.  You will even note that when you type `fields$` Positron will provide a dropdown of all the columns that you cna choose from.  
+
+```r
+fields$yield        # the yield column as a vector
+mean(fields$yield)  # mean yield
+```
+
+Or with square brackets:
+
+```r
+fields[1, ]         # first row
+fields[, "yield"]   # yield column
+fields[1, "yield"]  # value at first row, yield column
+```
 
 ### Functions {.unnumbered}
 
@@ -207,36 +225,6 @@ To get help on a function, type `?function_name`:
 
 R will show you the documentation — what the function does, what its arguments mean, what it returns. Read it. R's documentation is sometimes terse but always authoritative.
 
-### Data Frames {.unnumbered}
-
-A **data frame** is R's word for a table: rows are observations, columns are variables. This is the main thing you will work with.
-
-You can create one by hand:
-
-```r
-fields <- data.frame(
-  field_id = c("F01", "F02", "F03", "F04", "F05"),
-  region = c("South", "South", "Central", "North", "North"),
-  yield = c(48, 52, 47, 55, 50)
-)
-```
-
-But you will almost always **read** a data frame from a CSV file. More on that in a moment.
-
-You can access columns with the `$` operator:
-
-```r
-fields$yield        # the yield column as a vector
-mean(fields$yield)  # mean yield
-```
-
-Or with square brackets:
-
-```r
-fields[1, ]         # first row
-fields[, "yield"]   # yield column
-fields[1, "yield"]  # value at first row, yield column
-```
 
 ::: {.callout-tip collapse="true"}
 ## Other resources — vectors, data frames, and functions
