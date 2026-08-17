@@ -1,0 +1,461 @@
+# Loading Data and the Tidyverse {#sec-tidyverse}
+
+With R installed and the basics in hand, this chapter is about getting *real* data into
+R and reshaping it: loading the tidyverse, reading a CSV, and using the small set of
+`dplyr` verbs that covers most of the data manipulation you will ever need.
+
+## Learning Objectives {.unnumbered}
+
+::: {.objectives}
+By the end of this chapter you should be able to:
+
+1. Install and load packages, and explain the difference between the two.
+2. Read a CSV file into R as a data frame, and diagnose working-directory errors.
+3. Compute summary statistics in R, handling missing values correctly.
+4. Use the core `dplyr` verbs (`filter`, `select`, `mutate`, `arrange`, `summarise`, `group_by`) fluently.
+5. Chain operations together with the pipe (`|>`).
+6. Use `case_when` for multi-condition transformations, such as unit conversion.
+7. Write results back out to a file, and write scripts someone else can re-run.
+:::
+
+## Reading Data from CSV {#sec-reading-data}
+
+In practice, you almost always have data in a CSV file that you want to read into R. The modern way to do this uses the **tidyverse**, a collection of add-on **packages** for data manipulation that has become the standard for working with tabular data in R.
+
+### Packages: install once, load every time {.unnumbered}
+
+A **package** is a bundle of extra functions someone has written that do not come with R itself. Using one is a two-step process, and beginners constantly trip on the difference:
+
+1. **Install it — once per computer.** This downloads the package from the internet and saves it on your machine. You only ever do this once (per computer):
+
+    ```r
+    install.packages("tidyverse")
+    ```
+
+    This prints a *lot* of text — progress bars and messages, sometimes in red. That red text is normal; it is not an error. Just wait for it to finish (it can take a few minutes the first time).
+
+2. **Load it — once per script.** Installing puts the package on your computer, but it is not switched on until you *load* it. Put this at the **top of every script** that uses the tidyverse:
+
+    ```r
+    library(tidyverse)
+    ```
+
+If you skip the `library()` step and try to use a tidyverse function, R will stop with an error like:
+
+```
+Error in read_csv(...) : could not find function "read_csv"
+```
+
+That "could not find function" message almost always means **you forgot to load the package** (or you have not installed it yet). The fix is to run `library(tidyverse)` first. Note the quirk: you put quotes around the name when you *install* (`install.packages("tidyverse")`) but not when you *load* (`library(tidyverse)`).
+
+### Reading the file, and the working directory {.unnumbered}
+
+Once the tidyverse is loaded, you can read a CSV:
+
+```r
+yields <- read_csv("canola_yields_2025.csv")
+```
+
+`read_csv` (from the tidyverse) reads the file into a data frame and saves it in the object `yields`. It also prints a short note about what column types it guessed — check them, because R guesses well but not perfectly.
+
+But here is the thing that stops almost every beginner the first time. When you write just `"canola_yields_2025.csv"` — a filename with no folder path — R looks for that file in one specific place called the **working directory**: the folder R currently considers "here." If the file is not in that folder, you get:
+
+```
+Error: 'canola_yields_2025.csv' does not exist in current working directory (...)
+```
+
+To fix this, you need the file and R to agree on where "here" is. Three ways, easiest first:
+
+- **Check where R is looking** by running `getwd()` ("get working directory"). It prints the folder R is currently using.
+- **Point R at the right folder** with `setwd("/full/path/to/your/folder")` ("set working directory"), or in Positron use **Session → Set Working Directory → Choose Directory…** and pick the folder that contains your CSV.
+- **Best habit:** keep each analysis in its own folder, put the script *and* its data in that folder, and open that folder in Positron (**File → Open Folder…**). Then the working directory is already that folder and plain filenames just work.
+
+A couple more notes:
+
+- Alternatively you can give the *full path* to the file, e.g. `read_csv("C:/Users/you/Documents/data/canola_yields_2025.csv")`. Use forward slashes `/` even on Windows.
+- If your file uses semicolons or tabs instead of commas, use `read_csv2` or `read_tsv`.
+
+Once you have the data in, you can explore it:
+
+```r
+yields              # prints the data frame (first 10 rows)
+head(yields)        # first 6 rows
+tail(yields)        # last 6 rows
+nrow(yields)        # number of rows
+ncol(yields)        # number of columns
+names(yields)       # column names
+summary(yields)     # quick summary of every column
+```
+
+`summary()` is especially useful as a first look at a new dataset. For every numeric column it reports the min, max, mean, median, and quartiles; for text columns it simply notes how many values there are (and if a column is stored as a *factor* — a special categorical type — it counts each category). Always run it when you open a new dataset.
+
+::: {.callout-tip collapse="true"}
+## Other resources — reading data from CSV
+
+- **R for Data Science (2nd ed.)** — [Chapter 7, "Data import"](https://r4ds.hadley.nz/data-import.html): reading files with `read_csv()`, column types, and common import problems.
+- **readr documentation** — the [tidyverse readr reference](https://readr.tidyverse.org/) for `read_csv()` and its relatives.
+- **Working directory & path errors** — [this chapter from *Mastering R Through Errors and Warnings*](https://bookdown.org/guokai8/mastering-r-through-errors/docs/working-directory-paths.html) explains `getwd()`/`setwd()` and the "file does not exist" error beginners hit constantly.
+- **Video** — Science Grad School Coach, [*Read and load CSV files into R*](https://www.youtube.com/watch?v=B30wv33QzNY) — loading a CSV step by step.
+:::
+
+## Summary Statistics in R {#sec-r-summary-stats}
+
+All the summary statistics you learned in Module 1 exist in R too:
+
+```r
+mean(yields$yield)
+median(yields$yield)
+sd(yields$yield)
+var(yields$yield)
+min(yields$yield)
+max(yields$yield)
+range(yields$yield)              # returns c(min, max)
+quantile(yields$yield, 0.25)
+quantile(yields$yield, c(0.25, 0.5, 0.75))  # multiple at once
+IQR(yields$yield)
+```
+
+One thing to watch for: if your data has **missing values** (coded as `NA` in R), these functions will return `NA` by default. To compute the statistic ignoring the missing values, pass `na.rm = TRUE`:
+
+```r
+mean(yields$yield, na.rm = TRUE)
+```
+
+This is a common source of confusion. If `mean()` returns `NA` unexpectedly, the first thing to check is whether your data has missing values.
+
+::: {.callout-tip collapse="true"}
+## Other resources — summary statistics in R
+
+- **Video** — Rob Spencer, [*Descriptive statistics using the `summary` function*](https://www.youtube.com/watch?v=rPSKX6460gY) — a short walkthrough of `summary()`.
+- **Video** — Dr E Research Videos, [*Basic summary statistics in R*](https://www.youtube.com/watch?v=8XFmPP93w_Y) — mean, median, standard deviation, and the number summary.
+:::
+
+## The `dplyr` Verbs {#sec-dplyr-verbs}
+
+The tidyverse package `dplyr` provides a small set of **verbs** for data transformation
+that are powerful enough to express most of what you will ever need. The key insight is
+that most data manipulation is a *sequence of simple operations*, and if you have the
+right small vocabulary, complex transformations become readable.
+
+To follow along hands-on, download the small teaching dataset
+[`field_yields.csv`](practice/data/field_yields.csv) — 60 canola fields with columns
+`field_id`, `region`, `variety`, `acres`, `yield_bu_acre`, `year`, `seeding_date`, and
+`units`. Put it in your working directory (see @sec-reading-data above if you need a
+reminder), then start your script with:
+
+```r
+library(tidyverse)
+
+yields <- read_csv("field_yields.csv")
+```
+
+Every example below assumes this `yields` data frame is loaded. Run `yields` on its own
+line to see it, or `glimpse(yields)` for a compact column-by-column view.
+
+**One crucial thing to understand before we start.** Every `dplyr` verb *returns a new
+data frame* — it does **not** change the original. So this:
+
+```r
+yields |> filter(yield_bu_acre > 50)
+```
+
+computes the filtered result and *prints it*, but `yields` itself is unchanged — the next
+time you use `yields`, all 60 rows are still there. If you want to **keep** a result, you
+must assign it to an object:
+
+```r
+big_fields <- yields |> filter(yield_bu_acre > 50)   # save the result
+```
+
+This is a feature, not a limitation: your original data stays intact while you
+experiment. Throughout this chapter, when an example just shows a pipeline without `<-`,
+assume we are looking at the result on screen; add `name <- ` in front when you want to
+save it.
+
+### A note on the pipe `|>` {.unnumbered}
+
+You will see the symbol `|>` in almost every example below. It is the **pipe**, and it does something simple: it takes whatever is on its *left* and feeds it as the first input to the function on its *right*. So `yields |> filter(...)` reads as "take `yields`, then filter it." You could write the same thing as `filter(yields, ...)`, but the pipe lets you chain several steps into a readable top-to-bottom sequence, which you will see shortly. Read `|>` as the word **"then."** (Older code uses `%>%` for the same idea; `|>` is the modern built-in version.)
+
+### `filter()`: Keep Certain Rows {.unnumbered}
+
+`filter()` keeps rows where a condition is true.
+
+```r
+yields |> filter(yield_bu_acre > 50)
+```
+
+This keeps only rows where yield exceeds 50. You can combine conditions with `&` (and), `|` (or), and `!` (not):
+
+```r
+yields |> filter(yield_bu_acre > 50 & region == "South")
+yields |> filter(region == "South" | region == "Central")
+yields |> filter(!is.na(yield_bu_acre))  # drop rows with missing yield
+```
+
+A shortcut for "in this set of values":
+
+```r
+yields |> filter(region %in% c("South", "Central"))
+```
+
+Important distinction: use **`==`** (two equals signs) to *test* whether two things are equal. A single `=` means something different in R — it is used for assigning values and naming arguments, not for testing equality — so writing `region = "South"` inside `filter()` will not do what you want. Always use `==` for comparisons. And note `"South"` — with quotes — is a **string** (a piece of text); `South` — without quotes — would be read as the name of an object, which probably doesn't exist and would cause an error.
+
+### `select()`: Keep Certain Columns {.unnumbered}
+
+`select()` keeps (or drops) columns.
+
+```r
+yields |> select(field_id, region, yield_bu_acre)  # keep these three
+yields |> select(-field_id)                         # drop field_id
+yields |> select(starts_with("yield"))              # columns whose name starts with "yield"
+```
+
+Useful when you have a wide dataset and want to focus on a few columns.
+
+### `mutate()`: Add or Modify Columns {.unnumbered}
+
+`mutate()` creates new columns or modifies existing ones.
+
+```r
+yields |>
+  mutate(yield_t_ha = yield_bu_acre * 0.0560)   # bu/acre to tonnes/ha for canola
+```
+
+The new column is computed from the existing ones. You can create multiple columns in one call, and later columns can use earlier ones:
+
+```r
+yields |>
+  mutate(
+    yield_t_ha = yield_bu_acre * 0.0560,
+    above_average = yield_bu_acre > mean(yield_bu_acre, na.rm = TRUE),
+    total_bu = yield_bu_acre * acres
+  )
+```
+
+### `arrange()`: Sort Rows {.unnumbered}
+
+```r
+yields |> arrange(yield_bu_acre)              # ascending
+yields |> arrange(desc(yield_bu_acre))        # descending
+yields |> arrange(region, desc(yield_bu_acre))  # sort by region, then by yield within region
+```
+
+### `summarise()`: Collapse to Summary {.unnumbered}
+
+`summarise()` computes summary statistics, reducing many rows to one.
+
+```r
+yields |>
+  summarise(
+    mean_yield = mean(yield_bu_acre, na.rm = TRUE),
+    sd_yield = sd(yield_bu_acre, na.rm = TRUE),
+    n = n()
+  )
+```
+
+The result is a data frame with one row containing the requested summaries.
+
+### `group_by()`: Do the Above by Group {.unnumbered}
+
+This is where things get powerful. `group_by()` doesn't change the data — but it tells subsequent operations to apply *per group*.
+
+```r
+yields |>
+  group_by(region) |>
+  summarise(
+    mean_yield = mean(yield_bu_acre, na.rm = TRUE),
+    sd_yield = sd(yield_bu_acre, na.rm = TRUE),
+    n = n()
+  )
+```
+
+The result is a data frame with one row per region, containing the summary statistics for that region. This is the R equivalent of a PivotTable. You can group by multiple columns:
+
+```r
+yields |>
+  group_by(region, variety) |>
+  summarise(mean_yield = mean(yield_bu_acre, na.rm = TRUE))
+```
+
+After you are done summarising, it is good practice to `ungroup()` — otherwise the grouping persists and can surprise you later:
+
+```r
+yields |>
+  group_by(region) |>
+  summarise(mean_yield = mean(yield_bu_acre, na.rm = TRUE)) |>
+  ungroup()
+```
+
+
+## Unit Conversion: A Worked Example {#sec-unit-conversion}
+
+Canadian ag data often comes in mixed units. Canola yields are traditionally reported in bushels per acre (bu/ac) in Canada, but metric tonnes per hectare (t/ha) in global datasets. The conversion for canola is approximately:
+
+$$
+\text{yield (t/ha)} = \text{yield (bu/ac)} \times 0.0560
+$$
+
+This factor comes from two facts: a bushel of canola weighs about 22.68 kg (canola's standard 50-lb bushel), and an acre is about 0.4047 ha. So one bu/ac is $22.68 \div 0.4047 \div 1000 \approx 0.0560$ t/ha. (The exact factor depends on the crop's bushel weight — a wheat or corn bushel is 60 or 56 lb and gives a different number — so in a real analysis you would look up the right bushel weight for your crop and cite your source.)
+
+```r
+yields_converted <- yields |>
+  mutate(yield_t_ha = yield_bu_acre * 0.0560)
+```
+
+Now suppose your dataset is really messy — some rows are in bu/ac and some are already in t/ha, and there is a `units` column telling you which. You can use `case_when`:
+
+```r
+yields_converted <- yields |>
+  mutate(
+    yield_t_ha = case_when(
+      units == "bu/ac" ~ yield_bu_acre * 0.0560,   # convert the bu/ac rows
+      units == "t/ha"  ~ yield_bu_acre,             # already metric: leave as-is
+      TRUE             ~ NA_real_                    # anything else becomes missing
+    )
+  )
+```
+
+(Here we assume the value lives in a `yield_bu_acre` column and a separate `units` column records the unit of each row. `NA_real_` is just R's way of writing a missing *numeric* value — the numeric version of `NA`.)
+
+`case_when` is the R analogue of nested `IF`s in Excel. Each line is a condition and a value. The first matching condition wins. The `TRUE ~ ...` line is the catch-all "else." Use `case_when` whenever you have multi-way conditions; it is much cleaner than nested `if_else`.
+
+## Handling Missing Values {#sec-missing-values}
+
+In R, missing values are represented as `NA`. They are sneaky because most operations *propagate* them — any operation involving `NA` returns `NA`:
+
+```r
+c(1, 2, NA) + 1   # c(2, 3, NA)
+mean(c(1, 2, NA)) # NA
+```
+
+This is actually the right default behavior — silently treating missing values as zero (as Excel often does) is a recipe for bugs. But it means you need to deal with `NA`s explicitly.
+
+A few patterns:
+
+```r
+# Check for missing values
+is.na(yields$yield)              # logical vector
+sum(is.na(yields$yield))          # count of NAs
+mean(is.na(yields$yield))         # fraction of NAs
+
+# Remove rows with any missing values
+yields_clean <- yields |> drop_na()
+
+# Remove rows with missing values in specific columns
+yields_clean <- yields |> drop_na(yield_bu_acre)
+
+# Compute a statistic ignoring NAs
+mean(yields$yield_bu_acre, na.rm = TRUE)
+
+# Replace NAs with a value
+yields |> mutate(yield_bu_acre = replace_na(yield_bu_acre, 0))
+```
+
+**When is it safe to drop missing values and when is it dangerous?** It depends on *why* they are missing. If data is missing completely at random (e.g., a sensor failed arbitrarily), dropping missing values gives you unbiased estimates, just with less data. If data is missing for a reason related to the value itself (e.g., only high-yielding fields were reported), dropping them can bias your results — you will systematically overestimate yields.
+
+The honest answer to "what should I do with missing values" is almost always: *think about why they are missing*, and *document what you decided to do*. There is no universal fix.
+
+## Writing Output to a File {#sec-writing-output}
+
+To save a data frame back to a CSV, pass the object you want to save and the filename to write it to. For example, if you have built a summary table and stored it in an object called `region_summary`:
+
+```r
+write_csv(region_summary, "region_summary_2026-09-15.csv")
+```
+
+To save a plot (after making one with ggplot2, which comes in Module 4):
+
+```r
+ggsave("yield_histogram.png", width = 6, height = 4)
+```
+
+And to save the R **environment** (all the objects in memory) so you can pick up where you left off:
+
+```r
+save.image("session_2026-09-15.RData")
+```
+
+(Honestly, I rarely do that last one. If your script is reproducible, you should be able to re-run it from scratch to get back to where you were.)
+
+## Writing Good R Scripts {#sec-good-scripts}
+
+A few habits that will serve you well. I want you to internalize these early because they compound over time:
+
+1. **Start every script with a header.** Your name, the date, what the script does, what input it expects, what output it produces.
+2. **Load libraries at the top.** Not scattered throughout the file.
+3. **Use comments to explain *why*, not *what*.** Anyone can read the code and see what it does. The comment should tell them why you did it that way.
+4. **Use descriptive variable names.** `yield_by_region`, not `x1`. `mean_yield`, not `m`.
+5. **Break long operations into named steps.** Instead of one giant pipe, assign intermediate results to variables with meaningful names.
+6. **Make your script re-runnable from scratch.** If you have to click buttons or run commands in a specific order outside the script, something is wrong.
+7. **Test on a subset first.** For large datasets, develop your analysis on the first 1000 rows until it works, then run on the full data.
+
+A template:
+
+```r
+# ---
+# Title: Canola yield summary by region
+# Author: Your Name
+# Date: 2026-09-15
+# Input: canola_yields_2025.csv
+# Output: region_summary_2026-09-15.csv
+# Description:
+#   Reads the 2025 canola yield data, filters to fields over
+#   100 acres, and computes mean yield per region.
+# ---
+
+library(tidyverse)
+
+# 1. Load data
+yields <- read_csv("canola_yields_2025.csv")
+
+# 2. Explore
+summary(yields)
+
+# 3. Summarise by region (only fields > 100 acres)
+region_summary <- yields |>
+  filter(acres > 100) |>
+  group_by(region) |>
+  summarise(mean_yield = mean(yield, na.rm = TRUE),
+            n = n()) |>
+  arrange(desc(mean_yield))
+
+# 4. Save output
+write_csv(region_summary, "region_summary_2026-09-15.csv")
+```
+
+Notice: this script is *self-documenting*. Six months from now, I can read it and understand exactly what it does. That is the goal.
+
+::: {.callout-tip collapse="true"}
+## Other resources — writing good, reproducible R scripts
+
+- **The tidyverse style guide** — [style.tidyverse.org](https://style.tidyverse.org/) is the standard reference for naming, spacing, pipes, and generally readable R code.
+- **Video** — Riffomonas Project (Pat Schloss), [*Keeping R code DRY with functions*](https://www.youtube.com/watch?v=XSRO4VKD-pc) — a good-habits video on not repeating yourself, from a reproducible-research series.
+:::
+
+## A Word on AI Coding Assistants {#sec-r-ai}
+
+I mentioned AI in the Introduction. Let me be more specific now that we are actually writing code.
+
+**What AI is good at:**
+
+- Scaffolding a script from a description ("read this CSV, compute summary statistics by region, make a bar chart").
+- Explaining error messages. Paste the error into Claude or ChatGPT and ask what it means; this is often faster than Googling.
+- Suggesting the R function you want when you know what you want to do but not what it's called.
+- Writing tedious boilerplate (regex patterns, date formatting, complex `case_when` conditions).
+
+**What AI is bad at:**
+
+- Understanding your specific dataset. AI will confidently assume columns have certain names, types, or meanings that they don't.
+- Staying up to date with recent package changes.
+- Deciding whether the analysis makes sense. It can write code that runs cleanly but answers the wrong question.
+- Catching subtle bugs — e.g., silently dropping rows, using an approximate match when you need exact.
+
+**How to use it responsibly:**
+
+1. Read every line of code the AI suggests before you run it. If you don't understand a line, ask the AI to explain it, or look up the function yourself. **Do not run code you don't understand** — that is how you end up with an analysis that looks right but is wrong.
+2. Run small tests. When the AI gives you a function, run it on a small example first and check the output by hand before applying it to the full dataset.
+3. Verify claims. If the AI tells you "this function returns a list," check. If it tells you "there are 42 rows in the result," count them.
+4. Keep a human-readable trail. Your final script should be something *you* wrote and understand, even if AI helped you draft it. If you cannot explain every line, it is not your script.
+
+For this course: **you are allowed to use AI on assignments** (subject to instructions for specific assignments) as long as you can explain what every line does. On tests, you will be on your own — which is why building real understanding now matters.
+
