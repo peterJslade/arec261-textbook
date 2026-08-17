@@ -253,6 +253,56 @@ code:not(.sourceCode) {
   border-radius: 3px;
 }
 
+// --- R console output ---------------------------------------------------
+// Quarto wraps the printed result of an executed chunk in
+// .cell-output-stdout (and .cell-output-stderr for messages/warnings).
+// Give it a labelled, tinted band so students can tell at a glance what R
+// *printed back* versus the code they typed. Wheat accent, so it reads as a
+// third kind of thing next to the green "Other resources" and blue Excel
+// boxes.
+.cell-output-stdout,
+.cell-output-stderr {
+  position: relative;
+  margin: 0.15rem 0 1.4rem;
+  border-left: 3px solid $wheat;
+  border-radius: 0 4px 4px 0;
+  background: #fbf9f3;              // very pale wheat ground
+  padding: 1.6rem 0.9rem 0.5rem;    // top padding leaves room for the label
+
+  &::before {
+    content: "Console output";
+    position: absolute;
+    top: 0.4rem;
+    left: 0.9rem;
+    font-variant: small-caps;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+    color: $wheat;
+  }
+
+  // The output itself: plain monospace on the tinted ground, no nested box.
+  pre {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border: none;
+    font-size: 0.88em;
+  }
+  pre code {
+    background: transparent;
+    padding: 0;
+    color: $ink;
+  }
+}
+
+// Warnings and errors are still console output, but flag them in amber.
+.cell-output-stderr {
+  border-left-color: #b3801f;
+  background: #fdf7ec;
+  &::before { content: "Console output — message"; color: #b3801f; }
+}
+
 // --- Left sidebar: a whisper of prairie, not grey ----------------------
 // Very pale green ground + a soft green edge, so navigation reads as part
 // of the motif without competing with the content column.
@@ -300,6 +350,9 @@ nav[role="doc-toc"] a.active { color: $prairie-dark !important; border-left-colo
   .objectives { background: #22302a; border-color: #35493c; }
   .formula    { background: #232a26; }
   .example    { background: #1f2622; border-color: #333c37; }
+  .cell-output-stdout { background: #262319; }
+  .cell-output-stdout pre code { color: #e2e6e0; }
+  .cell-output-stderr { background: #2a2318; }
   tbody tr:nth-child(odd) { background: rgba(255,255,255,0.02); }
   code:not(.sourceCode) { background: #232a26; color: #a9d3b6; }
   .sidebar.sidebar-navigation, #quarto-sidebar {
