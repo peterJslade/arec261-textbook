@@ -78,13 +78,6 @@ def header(ws, r, labels):
             align=left if i == 1 else centre)
 
 
-def footnote(ws, r, text, width):
-    c = put(ws, r, 1, text, font=f_note)
-    c.alignment = wrap
-    ws.merge_cells(start_row=r, start_column=1, end_row=r, end_column=width)
-    ws.row_dimensions[r].height = 32
-
-
 def finish(ws, widths, last_row, freeze):
     for col, w in widths:
         ws.column_dimensions[col].width = w
@@ -101,9 +94,11 @@ def finish(ws, widths, last_row, freeze):
 # ==========================================================================
 wb, ws = new_sheet(
     "Relative references",
-    "The formula in column D multiplies the two cells beside it. Copy it down and "
-    "BOTH references move with it — row 5 uses row 5, row 6 uses row 6.",
-    "Relative", width=5)
+    "In this worksheet we have five loads of grain.  Each load has a different size "
+    "in bushels (col B) and price per bushel (col C).  We want to calculate the value "
+    "of each load by multiplying bushels times price.  To do so, we can just write "
+    "B5*C5 in cell D5 and the copy that equation into cells D6-D9.",
+    "Relative referencing example", width=5)
 
 header(ws, 4, ["Load", "Bushels", "Price ($/bu)", "Value ($)", "The formula in D"])
 FIRST = 5
@@ -117,10 +112,6 @@ for i, bu in enumerate(LOADS):
     put(ws, r, 5, f"={FT}(D{r})", font=f_form)
 LAST = FIRST + len(LOADS) - 1
 
-footnote(ws, LAST + 2,
-         "Read column E downwards: B5*C5, then B6*C6, then B7*C7. Both references "
-         "step down one row at a time — each load uses its own bushels and its own "
-         "price. This is what a reference does if you leave it alone.", 5)
 
 finish(ws, [("A", 12), ("B", 12), ("C", 14), ("D", 12), ("E", 26)], LAST + 2, "A5")
 
@@ -129,9 +120,11 @@ finish(ws, [("A", 12), ("B", 12), ("C", 14), ("D", 12), ("E", 26)], LAST + 2, "A
 # ==========================================================================
 wb, ws = new_sheet(
     "Absolute references — one crop",
-    "Here the conversion factor lives in ONE cell (B4). Every formula has to point "
-    "at that same cell, so we lock it with dollar signs: $B$4.",
-    "Absolute", width=4)
+    "Now we want the same five loads in tonnes rather than bushels.  The conversion "
+    "factor sits in one cell (B4), and every load needs that same cell.  If we write "
+    "B7*B4 and copy it down, the B4 part drifts to B5, B6 and the answers go wrong.  "
+    "Writing B7*$B$4 instead locks the factor in place while the bushels still move.",
+    "Absolute referencing example", width=4)
 
 FACTOR_ROW = 4
 put(ws, FACTOR_ROW, 1, "Tonnes per bushel (wheat)", font=f_bold)
@@ -148,11 +141,6 @@ for i, bu in enumerate(LOADS):
     put(ws, r, 4, f"={FT}(C{r})", font=f_form)
 LAST = FIRST + len(LOADS) - 1
 
-footnote(ws, LAST + 2,
-         "Read column D downwards: the B7 part steps down to B8, B9 … but $B$4 never "
-         "changes. Without the dollar signs it would drift to B5, B6, B7 and the "
-         "answers would be wrong. Type B4 and press F4 (Windows) or ⌘T (Mac) to add "
-         "the dollar signs.", 4)
 
 finish(ws, [("A", 24), ("B", 12), ("C", 12), ("D", 24)], LAST + 2, "A7")
 
@@ -161,10 +149,11 @@ finish(ws, [("A", 24), ("B", 12), ("C", 12), ("D", 24)], LAST + 2, "A7")
 # ==========================================================================
 wb, ws = new_sheet(
     "Absolute references — several crops",
-    "Each crop has its own factor, side by side in row 4. One formula fills all three "
-    "columns: lock the ROW so it always looks up to row 4, but leave the column free "
-    "so each column finds its own crop.",
-    "Several crops", width=6)
+    "Now each crop has its own conversion factor, sitting side by side in row 4.  We "
+    "want one formula that fills all three columns.  Writing $B7*C$4 locks the column "
+    "on the bushels (so every crop reads column B) and locks the row on the factors "
+    "(so every load reads row 4) — but leaves the other half of each free to move.",
+    "Absolute referencing example 2", width=6)
 
 FACTOR_ROW = 4
 put(ws, FACTOR_ROW, 1, "Tonnes per bushel →", font=f_bold)
@@ -187,10 +176,6 @@ for i, bu in enumerate(LOADS):
     put(ws, r, 6, f"={FT}(C{r})", font=f_form)
 LAST = FIRST + len(LOADS) - 1
 
-footnote(ws, LAST + 2,
-         "The one formula is =$B7*C$4, filled across and down. $B keeps every column "
-         "looking left to the bushels. C$4 keeps every row looking up to row 4 — and "
-         "because the column letter is free, wheat reads C4, barley D4, oats E4.", 6)
 
 finish(ws, [("A", 12), ("B", 11), ("C", 13), ("D", 13), ("E", 12), ("F", 22)],
        LAST + 2, "A7")
