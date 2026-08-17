@@ -157,17 +157,6 @@ The workbook below has three worksheets (tabs), that demonstrate relative and ab
 [Download this workbook](textbook_examples/mod01_references.xlsx) · [Open online](https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7Bb7f0c21d-352c-47ea-9eed-a82a2e30f8e9%7D&action=default) (File → Save a Copy to view formulas and edit)
 :::
 
-The workbook below holds the data we will use for the rest of this module: every barley variety grown in Saskatchewan in 2025, with the total acres seeded to each and its average yield. It is a good sheet to practice references on — try computing total production for a variety (acres × yield), then dragging that formula down the column.
-
-::: {.workbook-callout}
-::: {.excel-embed}
-<iframe width="402" height="700" frameborder="0" scrolling="no" src="https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7Bd5cfe169-4900-4832-800c-8c721cc6690d%7D&action=embedview&wdAllowInteractivity=False&wdDownloadButton=True&wdInConfigurator=True"></iframe>
-:::
-
-[Download this workbook](practice/data/sask_barley_2025.xlsx) · [Open online](https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7Bd5cfe169-4900-4832-800c-8c721cc6690d%7D&action=default) (File → Save a Copy to view formulas and edit)
-
-Source: aggregated from Saskatchewan Crop Insurance Corporation variety data, 2025.
-:::
 
 ## Cell Formatting {#sec-cell_formatting}
 
@@ -196,39 +185,48 @@ Importantly, formatting changes only how a value *looks*, not the value Excel st
 
 ## Arrays and the `SUM` Function {#sec-sum}
 
-So far every formula has referenced cells one at a time — `=A2*B2`, `=A1+B1`. That is fine for a handful of cells, but imagine adding up a column of 500 field sizes: `=A2+A3+A4+ ... ` for 500 rows is unthinkable. This is where **functions** come in. A function is a built-in operation with a name, and the first one worth knowing is `SUM`.
+Every formula so far has pointed at cells one at a time -- `=A2*B2`, `=B7*$B$4`.  That works
+when you are combining two or three numbers, but it falls apart quickly.  If you have 500
+fields and you want the total acres, you are not going to write `=A2+A3+A4+` and so on for
+500 rows.
 
-`SUM` adds up a group of cells. Instead of listing each cell, you give it a **range** — a block of cells written as two corners separated by a colon:
+What we want is a way to refer to a whole block of cells at once.  In Excel that block is
+called an **array**, and you write it as two corner cells separated by a colon:
 
-- `A2:A10` — the ten cells from `A2` down to `A10` (a column).
-- `A2:D2` — the four cells from `A2` across to `D2` (a row).
-- `A2:D10` — the rectangular block with those corners (a grid).
+- `B5:B9` is the five cells running down column B from row 5 to row 9.
+- `B5:D5` is the three cells running across row 5 from column B to column D.
+- `B5:D9` is the rectangle with `B5` in the top left and `D9` in the bottom right --
+  fifteen cells in all.
 
-So to add up all the acres in a column that runs from `B2` to `B10`, you write:
+An array is just a set of cells, and most of the functions we use in this course take one as
+their input.  `SUM` is the first of them.  Hand it an array and it adds up everything inside:
 
 ```
-=SUM(B2:B10)
+=SUM(B5:B9)
 ```
 
-That single formula does the work of nine `+` signs, and it keeps working if you insert more rows inside the range. You can also sum several pieces at once by separating them with commas — cells, ranges, or plain numbers mixed freely:
+The worksheet below has five fields of wheat.  Column B gives the size of each field in
+acres and column C gives its yield in bushels per acre, so multiplying the two gives the
+bushels each field produced.  The total acres is `=SUM(B5:B9)` and the total production is
+`=SUM(D5:D9)`.  Column E shows the formula behind each cell in column D so you can see what
+is going on.
 
-```
-=SUM(B2:B10, D2:D10)      the acres plus a second block
-=SUM(B2:B10, 500)         the column, plus one extra 500
-```
+[Download this workbook](textbook_examples/mod01_sum.xlsx)
 
-**A worked example.** Suppose column B holds the acres seeded to nine barley varieties in `B2:B10`, and column C holds each variety's yield in bushels per acre. Two quick questions:
+Two things are worth noticing.  You can hand `SUM` more than one array by separating them
+with commas, and you can mix in plain numbers -- `=SUM(B5:B9,40)` adds forty acres of
+summerfallow that never made it into the table.  And an array can run across a row as easily
+as down a column, though `=SUM(B5:D5)` here adds acres to a yield to a bushel count, which
+is arithmetic that means nothing.  Excel will not stop you.
 
-- *Total acres of barley?* `=SUM(B2:B10)`.
-- *Total production, in bushels?* You want each variety's acres × yield, then all of those added up. The long way is a helper column: put `=B2*C2` in `D2`, copy it down to `D10`, then `=SUM(D2:D10)`. (There is a one-formula shortcut, `SUMPRODUCT`, but the helper-column version is clearer while you are learning — and it lets you *see* each variety's contribution.)
+The mistake to watch for is a range that does not cover what you think it does.  You add
+three new fields at the bottom of the table and your `=SUM(B5:B9)` quietly keeps totalling
+the first five.  When you click on a cell containing a `SUM`, Excel outlines the cells it is
+actually adding -- look at that outline and check it matches the data.
 
-`SUM` is the gateway to a whole family of range functions you will meet in the next sections: `AVERAGE`, `MEDIAN`, `MIN`, `MAX`, `COUNT`, and later the conditional versions like `SUMIF`. They all share the same idea — hand the function a range, get one number back. Once you are comfortable with the `range` idea here, the rest come easily.
-
-::: {.callout-tip}
-## Watch the range, not just the formula
-
-The commonest `SUM` mistake is a range that is too small or too big — you added rows to your data but your `=SUM(B2:B10)` still stops at row 10, or it accidentally includes a total cell and double-counts. After writing a `SUM`, glance at the range Excel highlights (it colours the cells as you edit the formula) and confirm it covers exactly the numbers you meant.
-:::
+You will meet the same array idea in `AVERAGE`, `MEDIAN`, `MIN`, `MAX` and `COUNT` in the
+next chapter, and again in `SUMIF` and `COUNTIF` after that.  They all work the same way:
+give the function an array, get one number back.
 
 ::: {.callout-tip collapse="true"}
 ## Other resources — cells, references, and formulas
