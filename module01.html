@@ -344,7 +344,6 @@ window.Quarto = {
   <li><a href="#cell-formatting" id="toc-cell-formatting" class="nav-link" data-scroll-target="#cell-formatting">Cell Formatting</a></li>
   <li><a href="#sec-references" id="toc-sec-references" class="nav-link" data-scroll-target="#sec-references"><span class="header-section-number">1.3.1</span> Relative and Absolute References</a></li>
   <li><a href="#sec-sum" id="toc-sec-sum" class="nav-link" data-scroll-target="#sec-sum"><span class="header-section-number">1.3.2</span> The <code>SUM</code> Function</a></li>
-  <li><a href="#sec-named-ranges" id="toc-sec-named-ranges" class="nav-link" data-scroll-target="#sec-named-ranges"><span class="header-section-number">1.3.3</span> Named Ranges</a></li>
   </ul></li>
   <li><a href="#sec-central-tendency" id="toc-sec-central-tendency" class="nav-link" data-scroll-target="#sec-central-tendency"><span class="header-section-number">1.4</span> Measures of Central Tendency</a>
   <ul class="collapse">
@@ -727,23 +726,6 @@ Figure&nbsp;1.1: Changing a cell’s number format. The value Excel stores is un
 <p>The commonest <code>SUM</code> mistake is a range that is too small or too big — you added rows to your data but your <code>=SUM(B2:B10)</code> still stops at row 10, or it accidentally includes a total cell and double-counts. After writing a <code>SUM</code>, glance at the range Excel highlights (it colours the cells as you edit the formula) and confirm it covers exactly the numbers you meant.</p>
 </div>
 </div>
-</section>
-<section id="sec-named-ranges" class="level3" data-number="1.3.3">
-<h3 data-number="1.3.3" class="anchored" data-anchor-id="sec-named-ranges"><span class="header-section-number">1.3.3</span> Named Ranges</h3>
-<p>Once you have cells you will reference often, you can give them <strong>names</strong>. Select a cell (or a range of cells) and type a name in the Name Box (to the left of the formula bar), or use <strong>Formulas → Define Name</strong>. A name works anywhere the cell reference would — and because a name can point at either a <em>single cell</em> or a <em>whole range</em>, it plugs straight into the two things you just learned.</p>
-<p><strong>Naming a single cell.</strong> Put a barley price of <code>5.50</code> in cell <code>F1</code>, select it, and name it <code>price</code>. Now a revenue formula reads like a sentence instead of a puzzle:</p>
-<pre><code>=D2*price          instead of   =D2*$F$1</code></pre>
-<p>The name is absolute by nature — it always points at that one cell — so you get the “locked reference” behaviour of <code>$F$1</code> for free, and it never drifts when you copy the formula down.</p>
-<p><strong>Naming a range.</strong> Select the acres column <code>B2:B10</code> and name it <code>acres</code>; select the yields <code>C2:C10</code> and name it <code>yield</code>. Now the totals from the last section become almost plain English:</p>
-<pre><code>=SUM(acres)                    total acres
-=SUMPRODUCT(acres, yield)      total production in bushels</code></pre>
-<p>Anyone reading <code>=SUM(acres)</code> knows exactly what it does; <code>=SUM(B2:B10)</code> makes them go hunting for what column B holds. That readability is the whole point.</p>
-<p>A few rules:</p>
-<ul>
-<li>Names cannot start with a number or contain spaces. Use underscores.</li>
-<li>Names cannot look like cell references (so <code>A1</code> is not a valid name).</li>
-<li>The <strong>Name Manager</strong> (<strong>Formulas → Name Manager</strong>) lets you see, edit, and delete names.</li>
-</ul>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
@@ -800,7 +782,7 @@ Figure&nbsp;1.1: Changing a cell’s number format. The value Excel stores is un
 \]</span></p>
 <p>where <span class="math inline">\(x_i\)</span> is each variety’s yield and <span class="math inline">\(w_i\)</span> is its acres (the <strong>weight</strong>). You already know both pieces from the <code>SUM</code> section — it is <code>SUMPRODUCT</code> over <code>SUM</code>:</p>
 <pre><code>=SUMPRODUCT(C2:C10, B2:B10) / SUM(B2:B10)</code></pre>
-<p>or, with the named ranges from §1.4, the almost-English <code>=SUMPRODUCT(yield, acres)/SUM(acres)</code>. This comes out to roughly <strong>46.6 bu/ac</strong> — noticeably <em>below</em> the simple 48.1. The gap is telling you that the biggest-acreage varieties yielded a bit below the small-acreage ones, so counting every variety equally overstated the zone’s real average. Same data, two different “averages,” and the weighted one is the honest answer to the question actually asked.</p>
+<p>This comes out to roughly <strong>46.6 bu/ac</strong> — noticeably <em>below</em> the simple 48.1. The gap is telling you that the biggest-acreage varieties yielded a bit below the small-acreage ones, so counting every variety equally overstated the zone’s real average. Same data, two different “averages,” and the weighted one is the honest answer to the question actually asked.</p>
 <p><strong>This is not just an agriculture trick.</strong> Any time you average numbers that stand for different-sized quantities, you weight. A classic example is a <strong>course grade</strong>: if the midterm is worth 30% and the final 70%, and you score 80 and 90, your grade is <em>not</em> the plain average 85. It is the weighted average <span class="math inline">\(0.30 \times 80 + 0.70 \times 90 = 87\)</span> — the final counts more because it carries more weight. Grade-point averages (weighting each course’s grade by its credit hours), price indexes, and portfolio returns all work the same way.</p>
 <div class="takeaway">
 <p>When your values represent different-sized things, average them by <em>weighting</em> — multiply each value by its weight, sum, and divide by the total weight (<code>=SUMPRODUCT(values, weights)/SUM(weights)</code>) — rather than counting every row equally.</p>
