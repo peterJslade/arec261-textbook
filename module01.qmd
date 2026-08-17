@@ -151,6 +151,48 @@ The worksheet below provides examples of simple operations.
 [Download this workbook](textbook_examples/mod01_excel_operations.xlsx) · [Open online](https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7Bc02b36ae-e4f1-4cb9-aa41-da843db59da7%7D&action=default) (File → Save a Copy to view formulas and edit)
 :::
 
+#### Relative and Absolute References {#sec-references .unnumbered}
+
+This is the concept that trips up more beginners than any other. Pay attention.
+
+When you write a formula like `=A1+B1` in cell `C1` and then copy that formula down to `C2`, Excel automatically changes it to `=A2+B2`. This is called a **relative reference** — the cell addresses are interpreted relative to where the formula is. Usually this is what you want. If you have a column of sales in column A and a column of costs in column B, and you want profit in column C, you want each row to compute its own sales minus its own costs.
+
+But sometimes you don't want the reference to change. Suppose you have a fixed exchange rate in cell `E1` (say, 1.35 CAD per USD) and you want to convert a column of USD prices in `A2:A100` to CAD. If you write `=A2*E1` in cell `B2` and copy it down, `A2` correctly becomes `A3`, `A4`, etc. — but `E1` also becomes `E2`, `E3`, `E4`, which are empty cells. Your conversion breaks.
+
+The fix is to use an **absolute reference** by putting a dollar sign in front of the column letter, row number, or both:
+
+- `A1` — relative column, relative row (changes when copied in either direction)
+- `$A1` — absolute column, relative row (column stays as A, row changes)
+- `A$1` — relative column, absolute row (column changes, row stays as 1)
+- `$A$1` — absolute column and row (neither changes; "locked")
+
+So in the exchange-rate example, you should write `=A2*$E$1`. Now when you copy the formula down, `A2` becomes `A3`, `A4`, ... but `$E$1` stays as `$E$1`. Exactly what you want.
+
+There is a keyboard shortcut: after typing or selecting a cell reference, press `F4` (Windows) or `⌘T` (Mac) and Excel cycles through the four variations. Get in the habit of using it.
+
+A practical rule of thumb: **any number that appears in your analysis but is not part of the data itself should live in a labelled cell that you reference, not in the formula.** If your analysis assumes a 5% discount rate, don't write `=A1*1.05` in a hundred places. Put `0.05` in a cell called `discount_rate`, label it clearly, and reference it. When the assumption changes (and it will), you change one number instead of a hundred.
+
+The workbook below shows this happening. It works through the same conversion four
+times: once with a relative reference (which is fine), once pointing at the factor cell
+*without* locking it — where you can watch the reference drift down and the answers quietly
+fall apart — and once with `$` signs holding it in place. The last block is a grid where one
+formula is copied both across and down, which is the situation that needs the mixed forms
+`B$5` and `$B5`.
+
+[Download this workbook](textbook_examples/mod01_references.xlsx)
+
+The workbook below holds the data we will use for the rest of this module: every barley variety grown in Saskatchewan in 2025, with the total acres seeded to each and its average yield. It is a good sheet to practice references on — try computing total production for a variety (acres × yield), then dragging that formula down the column.
+
+::: {.workbook-callout}
+::: {.excel-embed}
+<iframe width="402" height="700" frameborder="0" scrolling="no" src="https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7Bd5cfe169-4900-4832-800c-8c721cc6690d%7D&action=embedview&wdAllowInteractivity=False&wdDownloadButton=True&wdInConfigurator=True"></iframe>
+:::
+
+[Download this workbook](practice/data/sask_barley_2025.xlsx) · [Open online](https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7Bd5cfe169-4900-4832-800c-8c721cc6690d%7D&action=default) (File → Save a Copy to view formulas and edit)
+
+Source: aggregated from Saskatchewan Crop Insurance Corporation variety data, 2025.
+:::
+
 #### Cell Formatting {.unnumbered}
 
 In the formulas above we were working only with numbers.  However, cells can also store text, dates, times, or currencies.  Each cell has a number format, and it is important that the number format of the cell match the data it is storing.  Examples of number formats are *General*, *Number*, *Date*, and *Currency*.  Excel will usually default to formatting a cell as *General*, but may autodetect when you enter information as, for example, a date and immediately change the format to date.  You can alter the format of a cell by right-clicking on it and choosing **Format Cells…** (@fig-format-menu), which opens a dialog where you pick a category and set its options.
@@ -176,40 +218,7 @@ Importantly, formatting changes only how a value *looks*, not the value Excel st
 [Download this workbook](textbook_examples/mod01_cell_formatting.xlsx) · [Open online](https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7B58a2f02f-69cb-46fa-ba96-4768f4ef22d9%7D&action=default) (File → Save a Copy to view formulas and edit)
 :::
 
-#### Relative and Absolute References {#sec-references}
-
-This is the concept that trips up more beginners than any other. Pay attention.
-
-When you write a formula like `=A1+B1` in cell `C1` and then copy that formula down to `C2`, Excel automatically changes it to `=A2+B2`. This is called a **relative reference** — the cell addresses are interpreted relative to where the formula is. Usually this is what you want. If you have a column of sales in column A and a column of costs in column B, and you want profit in column C, you want each row to compute its own sales minus its own costs.
-
-But sometimes you don't want the reference to change. Suppose you have a fixed exchange rate in cell `E1` (say, 1.35 CAD per USD) and you want to convert a column of USD prices in `A2:A100` to CAD. If you write `=A2*E1` in cell `B2` and copy it down, `A2` correctly becomes `A3`, `A4`, etc. — but `E1` also becomes `E2`, `E3`, `E4`, which are empty cells. Your conversion breaks.
-
-The fix is to use an **absolute reference** by putting a dollar sign in front of the column letter, row number, or both:
-
-- `A1` — relative column, relative row (changes when copied in either direction)
-- `$A1` — absolute column, relative row (column stays as A, row changes)
-- `A$1` — relative column, absolute row (column changes, row stays as 1)
-- `$A$1` — absolute column and row (neither changes; "locked")
-
-So in the exchange-rate example, you should write `=A2*$E$1`. Now when you copy the formula down, `A2` becomes `A3`, `A4`, ... but `$E$1` stays as `$E$1`. Exactly what you want.
-
-There is a keyboard shortcut: after typing or selecting a cell reference, press `F4` (Windows) or `⌘T` (Mac) and Excel cycles through the four variations. Get in the habit of using it.
-
-A practical rule of thumb: **any number that appears in your analysis but is not part of the data itself should live in a labelled cell that you reference, not in the formula.** If your analysis assumes a 5% discount rate, don't write `=A1*1.05` in a hundred places. Put `0.05` in a cell called `discount_rate`, label it clearly, and reference it. When the assumption changes (and it will), you change one number instead of a hundred.
-
-The workbook below holds the data we will use for the rest of this module: every barley variety grown in Saskatchewan in 2025, with the total acres seeded to each and its average yield. It is a good sheet to practice references on — try computing total production for a variety (acres × yield), then dragging that formula down the column.
-
-::: {.workbook-callout}
-::: {.excel-embed}
-<iframe width="402" height="700" frameborder="0" scrolling="no" src="https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7Bd5cfe169-4900-4832-800c-8c721cc6690d%7D&action=embedview&wdAllowInteractivity=False&wdDownloadButton=True&wdInConfigurator=True"></iframe>
-:::
-
-[Download this workbook](practice/data/sask_barley_2025.xlsx) · [Open online](https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7Bd5cfe169-4900-4832-800c-8c721cc6690d%7D&action=default) (File → Save a Copy to view formulas and edit)
-
-Source: aggregated from Saskatchewan Crop Insurance Corporation variety data, 2025.
-:::
-
-#### The `SUM` Function {#sec-sum}
+#### The `SUM` Function {#sec-sum .unnumbered}
 
 So far every formula has referenced cells one at a time — `=A2*B2`, `=A1+B1`. That is fine for a handful of cells, but imagine adding up a column of 500 field sizes: `=A2+A3+A4+ ... ` for 500 rows is unthinkable. This is where **functions** come in. A function is a built-in operation with a name, and the first one worth knowing is `SUM`.
 
