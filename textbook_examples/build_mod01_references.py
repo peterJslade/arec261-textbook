@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Build mod01_references.xlsx — one workbook, three tabs, on cell references.
+"""Build the three small Module 1 worksheets on cell references.
 
-Each TAB makes one point and fits on screen in the 700px embed (no scrolling):
+Each workbook makes ONE point and fits on screen in the 700px embed (no scrolling):
 
-  Relative       — a relative reference: everything moves together
-  Absolute       — one crop, one factor cell, locked with $B$4
-  Several crops  — three crops, factors in row 4, locked with C$4
+  mod01_ref_relative.xlsx  — a relative reference: everything moves together
+  mod01_ref_absolute.xlsx  — one crop, one factor cell, locked with $B$4
+  mod01_ref_multiple.xlsx  — three crops, factors in row 4, locked with C$4
 
 Every sheet pairs a live formula with a FORMULATEXT column so the reader can see
 which part of a reference moved and which part stayed put.
@@ -49,18 +49,15 @@ wrap   = Alignment(horizontal="left", vertical="top", wrap_text=True)
 LOADS = [500, 1000, 2500, 5000, 8000]
 
 
-WB = Workbook()
-WB.remove(WB.active)          # start clean; every sheet is added explicitly
-
-
 def new_sheet(title, subtitle, name, width=6):
-    """Add a tab to the single shared workbook."""
-    ws = WB.create_sheet(name)
+    wb = Workbook()
+    ws = wb.active
+    ws.title = name
     ws.cell(1, 1, title).font = f_title
     c = ws.cell(2, 1, subtitle); c.font = f_sub; c.alignment = wrap
     ws.merge_cells(start_row=2, start_column=1, end_row=2, end_column=width)
     ws.row_dimensions[2].height = 30
-    return WB, ws
+    return wb, ws
 
 
 def put(ws, r, c, v, font=f_body, fill=None, fmt=None, align=None):
@@ -123,6 +120,8 @@ footnote(ws, LAST + 2,
          "price. This is what a reference does if you leave it alone.", 5)
 
 finish(ws, [("A", 12), ("B", 12), ("C", 14), ("D", 12), ("E", 26)], LAST + 2, "A5")
+wb.save("textbook_examples/mod01_ref_relative.xlsx")
+print("wrote mod01_ref_relative.xlsx")
 
 # ==========================================================================
 # 2 — ABSOLUTE, one crop: one factor cell, locked with $B$4
@@ -155,6 +154,8 @@ footnote(ws, LAST + 2,
          "the dollar signs.", 4)
 
 finish(ws, [("A", 24), ("B", 12), ("C", 12), ("D", 24)], LAST + 2, "A7")
+wb.save("textbook_examples/mod01_ref_absolute.xlsx")
+print("wrote mod01_ref_absolute.xlsx")
 
 # ==========================================================================
 # 3 — ABSOLUTE, several crops: factors along row 4, locked with C$4
@@ -194,22 +195,21 @@ footnote(ws, LAST + 2,
 
 finish(ws, [("A", 12), ("B", 11), ("C", 13), ("D", 13), ("E", 12), ("F", 22)],
        LAST + 2, "A7")
-
-# --- save the single workbook ---------------------------------------------
-OUT = "textbook_examples/mod01_references.xlsx"
-WB.save(OUT)
-print(f"wrote {OUT} with sheets: {WB.sheetnames}")
+wb.save("textbook_examples/mod01_ref_multiple.xlsx")
+print("wrote mod01_ref_multiple.xlsx")
 
 # --- sanity checks ---------------------------------------------------------
 print()
-for ws in load_workbook(OUT).worksheets:
-    bare = sum(1 for row in ws.iter_rows() for c in row
+for f in ("mod01_ref_relative.xlsx", "mod01_ref_absolute.xlsx",
+          "mod01_ref_multiple.xlsx"):
+    s = load_workbook(f"textbook_examples/{f}").active
+    bare = sum(1 for row in s.iter_rows() for c in row
                if isinstance(c.value, str) and "FORMULATEXT" in c.value
                and "_xlfn." not in c.value)
-    pop = {c.row for row in ws.iter_rows() for c in row if c.value is not None}
-    missing = [r for r in pop if ws.row_dimensions[r].height is None]
-    print(f"  {ws.title:16} {max(pop):2} rows  bare-FT={bare}  no-height={len(missing)}")
-    assert bare == 0,      f"{ws.title}: unprefixed FORMULATEXT"
-    assert not missing,    f"{ws.title}: rows without an explicit height"
-    assert max(pop) <= 16, f"{ws.title}: {max(pop)} rows is too tall for the embed"
-print("\nthree tabs, each fitting on screen in the 700px embed")
+    pop = {c.row for row in s.iter_rows() for c in row if c.value is not None}
+    missing = [r for r in pop if s.row_dimensions[r].height is None]
+    print(f"  {f:28} {max(pop):2} rows  bare-FT={bare}  no-height={len(missing)}")
+    assert bare == 0,        f"{f}: unprefixed FORMULATEXT"
+    assert not missing,      f"{f}: rows without an explicit height"
+    assert max(pop) <= 16,   f"{f}: {max(pop)} rows is too tall for the embed"
+print("\nall three fit on screen in the 700px embed (~29 rows visible)")
