@@ -1,268 +1,215 @@
 #!/usr/bin/env python3
-"""Build mod01_references.xlsx — the Module 1 worksheet for relative vs absolute
-cell references.
+"""Build the three small Module 1 worksheets on cell references.
 
-The concept is about what happens when a formula is COPIED, so every block pairs a
-live formula with a FORMULATEXT column: the reader watches which part of a reference
-moves and which part stays locked.
+Each workbook makes ONE point and fits on screen in the 700px embed (no scrolling):
+
+  mod01_ref_relative.xlsx  — a relative reference: everything moves together
+  mod01_ref_absolute.xlsx  — one crop, one factor cell, locked with $B$4
+  mod01_ref_multiple.xlsx  — three crops, factors in row 4, locked with C$4
+
+Every sheet pairs a live formula with a FORMULATEXT column so the reader can see
+which part of a reference moved and which part stayed put.
 
 Run:  python3 textbook_examples/build_mod01_references.py
 """
 
-from openpyxl import Workbook
-from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl import Workbook, load_workbook
+from openpyxl.styles import Font, PatternFill, Alignment
 
 # --- palette (matches the other Module 1 teaching workbooks) ----------------
 PRAIRIE = "4A7C59"   # header fill
-PALE    = "EEF4EF"   # section banner fill
+PALE    = "EEF4EF"   # banner fill
 INK     = "24302A"   # body text
 MUTED   = "5C6B62"   # notes
-WHEAT   = "B7973F"   # the "locked assumption" cell
 FORMULA = "2F5D46"   # the FORMULATEXT column
+LOCKFIL = "F6EFD9"   # pale wheat, for the locked factor cells
 
 # FORMULATEXT is an Excel-2013 function: openpyxl must write the _xlfn. prefix
-# or Excel shows #NAME?.
+# or Excel renders #NAME?.
 FT = "_xlfn.FORMULATEXT"
 
+# bushel weights (lb/bu) / 2.20462 / 1000  ->  tonnes per bushel
+WHEAT_F, BARLEY_F, OATS_F = 0.027216, 0.021772, 0.017237
+
 head_fill = PatternFill("solid", fgColor=PRAIRIE)
-band_fill = PatternFill("solid", fgColor=PALE)
-lock_fill = PatternFill("solid", fgColor="F6EFD9")     # pale wheat
+lock_fill = PatternFill("solid", fgColor=LOCKFIL)
 
 f_title = Font(name="Arial", size=14, bold=True, color=PRAIRIE)
 f_sub   = Font(name="Arial", size=10, color=MUTED)
 f_head  = Font(name="Arial", size=11, bold=True, color="FFFFFF")
-f_band  = Font(name="Arial", size=10, bold=True, color=INK)
 f_body  = Font(name="Arial", size=10, color=INK)
 f_bold  = Font(name="Arial", size=10, bold=True, color=INK)
 f_note  = Font(name="Arial", size=10, color=MUTED)
 f_form  = Font(name="Consolas", size=10, color=FORMULA)
-f_formsm= Font(name="Consolas", size=9, color=FORMULA)
 
 centre = Alignment(horizontal="center")
 left   = Alignment(horizontal="left")
+wrap   = Alignment(horizontal="left", vertical="top", wrap_text=True)
 
-wb = Workbook()
-ws = wb.active
-ws.title = "References"
-
-# Track every row we write to, so we can set heights at the end.
-touched = set()
+LOADS = [500, 1000, 2500, 5000, 8000]
 
 
-def put(r, c, value, font=f_body, fill=None, fmt=None, align=None):
-    cell = ws.cell(r, c, value)
+def new_sheet(title, subtitle, name, width=6):
+    wb = Workbook()
+    ws = wb.active
+    ws.title = name
+    ws.cell(1, 1, title).font = f_title
+    c = ws.cell(2, 1, subtitle); c.font = f_sub; c.alignment = wrap
+    ws.merge_cells(start_row=2, start_column=1, end_row=2, end_column=width)
+    ws.row_dimensions[2].height = 30
+    return wb, ws
+
+
+def put(ws, r, c, v, font=f_body, fill=None, fmt=None, align=None):
+    cell = ws.cell(r, c, v)
     cell.font = font
     if fill:  cell.fill = fill
     if fmt:   cell.number_format = fmt
     if align: cell.alignment = align
-    touched.add(r)
     return cell
 
 
-def banner(r, text, width=6):
-    for c in range(1, width + 1):
-        ws.cell(r, c).fill = band_fill
-    put(r, 1, text, font=f_band, fill=band_fill)
-
-
-def header(r, labels):
+def header(ws, r, labels):
     for i, lab in enumerate(labels, start=1):
-        put(r, i, lab, font=f_head, fill=head_fill,
-            align=left if i in (1, len(labels)) else centre)
+        put(ws, r, i, lab, font=f_head, fill=head_fill,
+            align=left if i == 1 else centre)
 
 
-def prose(r, text, width=6):
-    put(r, 1, text, font=f_sub)
+def footnote(ws, r, text, width):
+    c = put(ws, r, 1, text, font=f_note)
+    c.alignment = wrap
     ws.merge_cells(start_row=r, start_column=1, end_row=r, end_column=width)
+    ws.row_dimensions[r].height = 32
 
 
-# =========================================================================
-# Title
-# =========================================================================
-put(1, 1, "Relative and Absolute References").font = f_title
-prose(2, "A reference like B6 MOVES when you copy a formula. Put a $ in front of a "
-         "column letter or row number and that part stays put. Column D shows the "
-         "formula that produced column C, so you can watch which parts move.")
+def finish(ws, widths, last_row, freeze):
+    for col, w in widths:
+        ws.column_dimensions[col].width = w
+    for r in range(1, last_row + 2):
+        if ws.row_dimensions[r].height is None:
+            ws.row_dimensions[r].height = 18
+    ws.freeze_panes = freeze
+    ws.sheet_view.showGridLines = True   # headers/gridlines ON: the reader needs
+                                         # to see which cell is which
 
-# =========================================================================
-# Block 1 — the assumption cell
-# =========================================================================
-banner(4, "1 · Put an assumption in one labelled cell")
-LOCK_ROW = 5
-put(LOCK_ROW, 1, "Tonnes per bushel (wheat)", font=f_bold)
-put(LOCK_ROW, 2, 0.027216, font=f_bold, fill=lock_fill, fmt="0.00000", align=centre)
-put(LOCK_ROW, 3, "← every formula below points at this one cell", font=f_note)
 
-# =========================================================================
-# Block 2 — a relative reference works fine
-# =========================================================================
-banner(7, "2 · A relative reference is usually what you want")
-header(8, ["Load", "Bushels", "Tonnes", "The formula in C", "What happened"])
-B2_FIRST = 9
-loads = [("Load A", 500), ("Load B", 1000), ("Load C", 2500), ("Load D", 5000)]
-for i, (name, bu) in enumerate(loads):
-    r = B2_FIRST + i
-    put(r, 1, name)
-    put(r, 2, bu, fmt="#,##0", align=centre)
-    put(r, 3, f"=B{r}*0.027216", fmt="#,##0.0", align=centre)
-    put(r, 4, f"={FT}(C{r})", font=f_form)
-put(B2_FIRST, 5, "B9 → B10 → B11 → B12: the reference", font=f_note)
-put(B2_FIRST + 1, 5, "moves down with the formula, which", font=f_note)
-put(B2_FIRST + 2, 5, "is exactly what we want here.", font=f_note)
+# ==========================================================================
+# 1 — RELATIVE: every part of the reference moves
+# ==========================================================================
+wb, ws = new_sheet(
+    "Relative references",
+    "The formula in column D multiplies the two cells beside it. Copy it down and "
+    "BOTH references move with it — row 5 uses row 5, row 6 uses row 6.",
+    "Relative", width=5)
 
-# =========================================================================
-# Block 3 — the failure: the factor reference drifts
-# =========================================================================
-# The formula in C uses a RELATIVE reference to the factor cell (B5). Copied
-# down, it drifts B5 -> B6 -> B7 -> B8, landing on cells that fail in three
-# visibly different ways. Those landing cells are asserted below.
-banner(15, "3 · The same formula, but pointing at the factor cell — and it breaks")
-header(16, ["Load", "Bushels", "Tonnes — BROKEN", "The formula in C", "What went wrong"])
-B3_FIRST = 17
-# The first row of this block points at the factor cell RELATIVELY, so copying
-# down walks the reference forward one row at a time. We choose the starting
-# target so the drift lands on: the factor (correct), an empty cell (silent 0),
-# the block's own header text (#VALUE!), and finally a BUSHELS number — the
-# plausible-but-badly-wrong case that is the whole point of this block.
-DRIFT_START = LOCK_ROW               # B5 = the factor
-drift_notes = [
-    "Correct — B5 really does hold the factor.",
-    "B6 is empty → 0 tonnes. No error at all.",
-    "B7 is empty too → 0 tonnes.",
-    "B8 is the word 'Bushels' → #VALUE!",
-]
-for i, (name, bu) in enumerate(loads):
-    r = B3_FIRST + i
-    drift_target = DRIFT_START + i
-    put(r, 1, name)
-    put(r, 2, bu, fmt="#,##0", align=centre)
-    put(r, 3, f"=B{r}*B{drift_target}", fmt="#,##0.0", align=centre)
-    put(r, 4, f"={FT}(C{r})", font=f_form)
-    put(r, 5, drift_notes[i], font=f_note)
+header(ws, 4, ["Load", "Bushels", "Price ($/bu)", "Value ($)", "The formula in D"])
+FIRST = 5
+prices = [7.50, 7.50, 8.10, 8.10, 7.95]
+for i, bu in enumerate(LOADS):
+    r = FIRST + i
+    put(ws, r, 1, f"Load {chr(65+i)}")
+    put(ws, r, 2, bu, fmt="#,##0", align=centre)
+    put(ws, r, 3, prices[i], fmt='"$"#,##0.00', align=centre)
+    put(ws, r, 4, f"=B{r}*C{r}", fmt='"$"#,##0', align=centre)
+    put(ws, r, 5, f"={FT}(D{r})", font=f_form)
+LAST = FIRST + len(LOADS) - 1
 
-# A fifth row, to show the worst case: the reference reaches a NUMBER that is
-# not a factor, so the result looks like a real tonnage but is wildly wrong.
-r = B3_FIRST + len(loads)
-put(r, 1, "Load E")
-put(r, 2, 8000, fmt="#,##0", align=centre)
-put(r, 3, f"=B{r}*B{DRIFT_START + len(loads)}", fmt="#,##0.0", align=centre)
-put(r, 4, f"={FT}(C{r})", font=f_form)
-put(r, 5, f"B{DRIFT_START+len(loads)} is BUSHELS, not a factor —", font=f_note)
-put(r + 1, 5, "a number, so no error. Wrong by ~18,000×.", font=f_note)
+footnote(ws, LAST + 2,
+         "Read column E downwards: B5*C5, then B6*C6, then B7*C7. Both references "
+         "step down one row at a time — each load uses its own bushels and its own "
+         "price. This is what a reference does if you leave it alone.", 5)
 
-# Assert the drift lands where the notes claim. If a row is ever inserted above,
-# this fails loudly instead of quietly teaching the wrong thing.
-assert ws.cell(LOCK_ROW, 2).value == 0.027216,          "factor cell moved"
-assert ws.cell(DRIFT_START + 1, 2).value is None,       "expected an empty cell"
-assert ws.cell(DRIFT_START + 2, 2).value is None,       "expected an empty cell"
-assert ws.cell(DRIFT_START + 3, 2).value == "Bushels",  "expected the header text"
-assert isinstance(ws.cell(DRIFT_START + 4, 2).value, int), "expected a bushels number"
+finish(ws, [("A", 12), ("B", 12), ("C", 14), ("D", 12), ("E", 26)], LAST + 2, "A5")
+wb.save("textbook_examples/mod01_ref_relative.xlsx")
+print("wrote mod01_ref_relative.xlsx")
 
-# =========================================================================
-# Block 4 — the fix
-# =========================================================================
-banner(23, "4 · Lock the factor with $ — =B24*$B$5")
-header(24, ["Load", "Bushels", "Tonnes — FIXED", "The formula in C", "Note"])
-B4_FIRST = 25
-for i, (name, bu) in enumerate(loads):
-    r = B4_FIRST + i
-    put(r, 1, name)
-    put(r, 2, bu, fmt="#,##0", align=centre)
-    put(r, 3, f"=B{r}*$B${LOCK_ROW}", fmt="#,##0.0", align=centre)
-    put(r, 4, f"={FT}(C{r})", font=f_form)
-put(B4_FIRST, 5, "$B$5 never moves, however far you", font=f_note)
-put(B4_FIRST + 1, 5, "copy. Type B5 then press F4 (Win)", font=f_note)
-put(B4_FIRST + 2, 5, "or ⌘T (Mac) to add the $ signs.", font=f_note)
+# ==========================================================================
+# 2 — ABSOLUTE, one crop: one factor cell, locked with $B$4
+# ==========================================================================
+wb, ws = new_sheet(
+    "Absolute references — one crop",
+    "Here the conversion factor lives in ONE cell (B4). Every formula has to point "
+    "at that same cell, so we lock it with dollar signs: $B$4.",
+    "Absolute", width=4)
 
-# =========================================================================
-# Block 5 — the 4x4 grid: why MIXED references exist
-# =========================================================================
-banner(31, "5 · Copy across AND down — where $A5 and B$4 earn their keep")
-prose(32, "Bushels to tonnes for four crops. ONE formula, =$A35*B$34, copied across and "
-          "down. It must find its quantity to the LEFT (column A) and its factor ABOVE "
-          "(row 34) — so each needs a different half locked.")
+FACTOR_ROW = 4
+put(ws, FACTOR_ROW, 1, "Tonnes per bushel (wheat)", font=f_bold)
+put(ws, FACTOR_ROW, 2, WHEAT_F, font=f_bold, fill=lock_fill, fmt="0.00000", align=centre)
+put(ws, FACTOR_ROW, 3, "← every formula points here", font=f_note)
 
-CROP_ROW = 34                                    # the factor row
-QTY_COL  = 1                                     # the quantity column
-crops   = [("Wheat", 0.027216), ("Barley", 0.021772),
-           ("Oats", 0.017237), ("Canola", 0.022680)]
-qtys    = [500, 1000, 2500, 5000]
+header(ws, 6, ["Load", "Bushels", "Tonnes", "The formula in C"])
+FIRST = 7
+for i, bu in enumerate(LOADS):
+    r = FIRST + i
+    put(ws, r, 1, f"Load {chr(65+i)}")
+    put(ws, r, 2, bu, fmt="#,##0", align=centre)
+    put(ws, r, 3, f"=B{r}*$B${FACTOR_ROW}", fmt="#,##0.0", align=centre)
+    put(ws, r, 4, f"={FT}(C{r})", font=f_form)
+LAST = FIRST + len(LOADS) - 1
 
-put(CROP_ROW, 1, "bu ↓   crop →", font=f_bold, align=centre)
-for j, (crop, fac) in enumerate(crops):
-    put(CROP_ROW - 1, 2 + j, crop, font=f_head, fill=head_fill, align=centre)
-    put(CROP_ROW, 2 + j, fac, font=f_bold, fill=lock_fill, fmt="0.00000", align=centre)
+footnote(ws, LAST + 2,
+         "Read column D downwards: the B7 part steps down to B8, B9 … but $B$4 never "
+         "changes. Without the dollar signs it would drift to B5, B6, B7 and the "
+         "answers would be wrong. Type B4 and press F4 (Windows) or ⌘T (Mac) to add "
+         "the dollar signs.", 4)
 
-GRID_FIRST = CROP_ROW + 1
-for i, q in enumerate(qtys):
-    r = GRID_FIRST + i
-    put(r, 1, q, font=f_bold, fill=lock_fill, fmt="#,##0", align=centre)
-    for j in range(len(crops)):
-        c = 2 + j
-        put(r, c, f"=$A{r}*{chr(65+c-1)}${CROP_ROW}", fmt="#,##0.0", align=centre)
+finish(ws, [("A", 24), ("B", 12), ("C", 12), ("D", 24)], LAST + 2, "A7")
+wb.save("textbook_examples/mod01_ref_absolute.xlsx")
+print("wrote mod01_ref_absolute.xlsx")
 
-# mirror grid: the same formulas as text, so the $ pattern is visible at once
-MIRROR_FIRST = GRID_FIRST + len(qtys) + 2
-prose(MIRROR_FIRST - 1, "The same cells, showing their formulas. Read ACROSS: $A stays, "
-      "the column letter moves. Read DOWN: $34 stays, the row number moves.")
-for i in range(len(qtys)):
-    r = MIRROR_FIRST + i
-    for j in range(len(crops)):
-        c = 2 + j
-        put(r, c, f"={FT}({chr(65+c-1)}{GRID_FIRST+i})", font=f_formsm, align=centre)
-    put(r, 1, f"row {GRID_FIRST+i}", font=f_note, align=centre)
+# ==========================================================================
+# 3 — ABSOLUTE, several crops: factors along row 4, locked with C$4
+# ==========================================================================
+wb, ws = new_sheet(
+    "Absolute references — several crops",
+    "Each crop has its own factor, side by side in row 4. One formula fills all three "
+    "columns: lock the ROW so it always looks up to row 4, but leave the column free "
+    "so each column finds its own crop.",
+    "Several crops", width=6)
 
-# the two wrong lockings
-WRONG = MIRROR_FIRST + len(qtys) + 1
-banner(WRONG, "What the wrong lockings do")
-put(WRONG + 1, 1, "All relative", font=f_bold)
-put(WRONG + 1, 2, f"=A{GRID_FIRST}*B{CROP_ROW}", fmt="#,##0.0", align=centre)
-put(WRONG + 1, 3, f"={FT}(B{WRONG+1})", font=f_form)
-put(WRONG + 1, 5, "Wanders diagonally off the table when copied.", font=f_note)
-put(WRONG + 2, 1, "All absolute", font=f_bold)
-put(WRONG + 2, 2, f"=$A${GRID_FIRST}*$B${CROP_ROW}", fmt="#,##0.0", align=centre)
-put(WRONG + 2, 3, f"={FT}(B{WRONG+2})", font=f_form)
-put(WRONG + 2, 5, "Every cell returns the same number — nothing moves.", font=f_note)
+FACTOR_ROW = 4
+put(ws, FACTOR_ROW, 1, "Tonnes per bushel →", font=f_bold)
+put(ws, FACTOR_ROW, 2, "", font=f_body)
+for j, fac in enumerate([WHEAT_F, BARLEY_F, OATS_F]):
+    put(ws, FACTOR_ROW, 3 + j, fac, font=f_bold, fill=lock_fill,
+        fmt="0.00000", align=centre)
 
-# =========================================================================
-# Block 6 — the four forms, as a reference card
-# =========================================================================
-CARD = WRONG + 4
-banner(CARD, "6 · The four forms")
-header(CARD + 1, ["Form", "What is locked", "Copied down", "Copied across", "Use it when"])
-forms = [
-    ("B5",     "nothing",        "row changes", "column changes",
-     "each row does its own arithmetic"),
-    ("$B$5",   "column and row", "no change",   "no change",
-     "one assumption cell — a rate, a price"),
-    ("B$5",    "the row",        "no change",   "column changes",
-     "a header ROW of factors above a grid"),
-    ("$B5",    "the column",     "row changes", "no change",
-     "a header COLUMN of values beside a grid"),
-]
-for i, (form, locked, down, across, use) in enumerate(forms):
-    r = CARD + 2 + i
-    put(r, 1, form, font=f_form, align=centre)
-    put(r, 2, locked, font=f_note)
-    put(r, 3, down,   font=f_note, align=centre)
-    put(r, 4, across, font=f_note, align=centre)
-    put(r, 5, use,    font=f_note)
+header(ws, 6, ["Load", "Bushels", "wheat_tons", "barley_tons", "oats_tons",
+               "The formula in C"])
+FIRST = 7
+for i, bu in enumerate(LOADS):
+    r = FIRST + i
+    put(ws, r, 1, f"Load {chr(65+i)}")
+    put(ws, r, 2, bu, fmt="#,##0", align=centre)
+    for j in range(3):
+        col = 3 + j
+        letter = chr(64 + col)          # C, D, E
+        put(ws, r, col, f"=$B{r}*{letter}${FACTOR_ROW}", fmt="#,##0.0", align=centre)
+    put(ws, r, 6, f"={FT}(C{r})", font=f_form)
+LAST = FIRST + len(LOADS) - 1
 
-# =========================================================================
-# Layout
-# =========================================================================
-for col, w in [("A", 22), ("B", 15), ("C", 18), ("D", 24), ("E", 40), ("F", 12)]:
-    ws.column_dimensions[col].width = w
+footnote(ws, LAST + 2,
+         "The one formula is =$B7*C$4, filled across and down. $B keeps every column "
+         "looking left to the bushels. C$4 keeps every row looking up to row 4 — and "
+         "because the column letter is free, wheat reads C4, barley D4, oats E4.", 6)
 
-# The embed viewer clips text in short rows: set an explicit height everywhere.
-for r in range(1, CARD + 8):
-    ws.row_dimensions[r].height = 18
+finish(ws, [("A", 12), ("B", 11), ("C", 13), ("D", 13), ("E", 12), ("F", 22)],
+       LAST + 2, "A7")
+wb.save("textbook_examples/mod01_ref_multiple.xlsx")
+print("wrote mod01_ref_multiple.xlsx")
 
-ws.freeze_panes = "A4"
-ws.sheet_view.showGridLines = True     # headers/gridlines stay ON for this sheet
-
-out = "textbook_examples/mod01_references.xlsx"
-wb.save(out)
-print(f"wrote {out}")
-print(f"  factor cell B{LOCK_ROW}; broken block starts row {B3_FIRST}; "
-      f"grid at row {GRID_FIRST}; card at row {CARD}")
+# --- sanity checks ---------------------------------------------------------
+print()
+for f in ("mod01_ref_relative.xlsx", "mod01_ref_absolute.xlsx",
+          "mod01_ref_multiple.xlsx"):
+    s = load_workbook(f"textbook_examples/{f}").active
+    bare = sum(1 for row in s.iter_rows() for c in row
+               if isinstance(c.value, str) and "FORMULATEXT" in c.value
+               and "_xlfn." not in c.value)
+    pop = {c.row for row in s.iter_rows() for c in row if c.value is not None}
+    missing = [r for r in pop if s.row_dimensions[r].height is None]
+    print(f"  {f:28} {max(pop):2} rows  bare-FT={bare}  no-height={len(missing)}")
+    assert bare == 0,        f"{f}: unprefixed FORMULATEXT"
+    assert not missing,      f"{f}: rows without an explicit height"
+    assert max(pop) <= 16,   f"{f}: {max(pop)} rows is too tall for the embed"
+print("\nall three fit on screen in the 700px embed (~29 rows visible)")
