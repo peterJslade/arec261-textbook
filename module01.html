@@ -356,12 +356,13 @@ window.Quarto = {
   <li><a href="#sec-percentiles" id="toc-sec-percentiles" class="nav-link" data-scroll-target="#sec-percentiles"><span class="header-section-number">1.5</span> Measures of Location: Percentiles and Quartiles</a></li>
   <li><a href="#sec-spread" id="toc-sec-spread" class="nav-link" data-scroll-target="#sec-spread"><span class="header-section-number">1.6</span> Measures of Spread: Variance and Standard Deviation</a>
   <ul class="collapse">
+  <li><a href="#range" id="toc-range" class="nav-link" data-scroll-target="#range">Range</a></li>
+  <li><a href="#mean-absolute-deviation" id="toc-mean-absolute-deviation" class="nav-link" data-scroll-target="#mean-absolute-deviation">Mean absolute deviation</a></li>
   <li><a href="#variance" id="toc-variance" class="nav-link" data-scroll-target="#variance">Variance</a></li>
   <li><a href="#standard-deviation" id="toc-standard-deviation" class="nav-link" data-scroll-target="#standard-deviation">Standard Deviation</a></li>
   <li><a href="#coefficient-of-variation" id="toc-coefficient-of-variation" class="nav-link" data-scroll-target="#coefficient-of-variation">Coefficient of Variation</a></li>
-  <li><a href="#range" id="toc-range" class="nav-link" data-scroll-target="#range">Range</a></li>
   </ul></li>
-  <li><a href="#sec-charts" id="toc-sec-charts" class="nav-link" data-scroll-target="#sec-charts"><span class="header-section-number">1.7</span> Visualizing the Shape of the Data</a>
+  <li><a href="#sec-charts" id="toc-sec-charts" class="nav-link" data-scroll-target="#sec-charts"><span class="header-section-number">1.7</span> Visualizing the Distribution of the Data</a>
   <ul class="collapse">
   <li><a href="#principles-of-good-charts" id="toc-principles-of-good-charts" class="nav-link" data-scroll-target="#principles-of-good-charts">Principles of Good Charts</a></li>
   <li><a href="#histograms" id="toc-histograms" class="nav-link" data-scroll-target="#histograms">Histograms</a></li>
@@ -874,31 +875,80 @@ Figure&nbsp;1.1: Changing a cell’s number format. The value Excel stores is un
 </section>
 <section id="sec-spread" class="level2" data-number="1.6">
 <h2 data-number="1.6" class="anchored" data-anchor-id="sec-spread"><span class="header-section-number">1.6</span> Measures of Spread: Variance and Standard Deviation</h2>
-<p>Two datasets can have the same mean but look very different. Consider:</p>
-<ul>
-<li>Dataset A: 49, 50, 50, 50, 51. Mean = 50.</li>
-<li>Dataset B: 30, 40, 50, 60, 70. Mean = 50.</li>
-</ul>
-<p>Both have a mean of 50, but B is much more spread out. We need a number that captures that.</p>
+<p>Two datasets can have the same mean but look very different. Consider the two sets of 30 hypothetical farm yields in <a href="#fig-spread" class="quarto-xref">Figure&nbsp;<span>1.2</span></a>. Both have a mean of exactly 40 bushels per acre, but in panel A the yields are very spread out, while in panel B they are clustered tightly together.</p>
+<div id="fig-spread" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-spread-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div id="fig-spread-wide" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-spread-wide-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/spread_wide.png" id="fig-spread-wide" class="img-fluid figure-img" data-ref-parent="fig-spread">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-spread-wide-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(a)
+</figcaption>
+</figure>
+</div>
+<div id="fig-spread-tight" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-spread-tight-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/spread_tight.png" id="fig-spread-tight" class="img-fluid figure-img" data-ref-parent="fig-spread">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-spread-tight-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(b)
+</figcaption>
+</figure>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-spread-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1.2: Thirty farm yields, each dot one field. Both sets average 40 bu/ac, but their spread is very different.
+</figcaption>
+</figure>
+</div>
+<p>For a data analyst, the spread is very informative. If the values are spread out then we should be curious about what causes this spread. If these fields are far away from each other then maybe the spread is due to weather. But if they are in the same Township, with reasonably similar weather, then it may be due to management practices such as varietal choice, nitrogen application rates, or seeding dates. When we are dealing with large datasets it can be difficult to just look at how spread out points are on a one-dimensional graph. It is therefore handy to be able to distill the spread of data into a single number. In this section we will examine several different measures of spread, each of which has there strengths and weaknesses.</p>
+<section id="range" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="range">Range</h3>
+<p>The simplest measure of the spread of the data is the <strong>range</strong>, which is just the maximum value minus the minimum value. In Excel: <code>=MAX(A1:A100) - MIN(A1:A100)</code>. The range is easy to understand but it is very sensitive to outliers — a single bad measurement can blow up the range dramatically. Suppose, for example, that one of the tightly-clustered fields in <a href="#fig-spread-hail" class="quarto-xref">Figure&nbsp;<span>1.3</span></a> experiences a hail storm that wipes out its crop. That single field stretches the range from 8.9 to 40.6 bu/ac — more than four times larger — even though it is only one field in 30. The IQR, by contrast, barely moves (3.4 to 3.6), because it ignores the extremes entirely.</p>
+<div id="fig-spread-hail" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-spread-hail-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/spread_hail.png" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-spread-hail-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1.3: One hailed-out field. The range explodes; the interquartile range hardly notices.
+</figcaption>
+</figure>
+</div>
+<p>This problem is even greater if we have a data of hundreds or thousands.</p>
+<p>A potentially more useful measure is the <strong>interquartile range</strong> or IRQ, which measures the difference between the first and third quartile. In other words, half the data lie within the interquartile range. In Excel: =<code>QUARTILE.INC(A1:A100, 3)-QUARTILE.INC(A1:A100, 1)</code>. However, whereas the range was too sensitive to outliers, the IQR might not tell us enough about data in the tail of the distribution.</p>
+</section>
+<section id="mean-absolute-deviation" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="mean-absolute-deviation">Mean absolute deviation</h3>
+<p>A better way to measure the spread of the data is to examine how far each observation is from the mean. That is to say for each observation we could calculate <span class="math inline">\(x_i-\bar{x}\)</span>, add them all up and divide by <span class="math inline">\(n\)</span>. However, if we did this we would find that some of the deviations are negative and others are positive. By the definition of a mean, they would all cancel out, giving us zero.</p>
+<p>A more useful approach is to calculate the absolute value of these differences – this is called the mean absolute deviation (MAD):</p>
+<p><span class="math display">\[
+MAD = \frac{\sum_{i=1}^{n} |x_i - \bar{x}|}{n}.
+\]</span></p>
+<p>Note that the straight lines in the equation above denote absolute value – that is to say if a negative number is between these lines, we treat it as a positive number. If our data is very spread out (panel A of <a href="#fig-spread" class="quarto-xref">Figure&nbsp;<span>1.2</span></a>) we would get a large MAD; if it is tightly clustered (panel B) we would get a small one. If we find a MAD of 8 bu/acre then this means that on average a farm’s yields are 8 bu/acre different (either higher or lower) than the mean. Of course, some farms will have yields that are closer to the mean and others will have yiels that are farther.</p>
+<p>There is no simple command to calculate the MAD in Excel – you would need to first calculate the mean, then the absolute difference between each observation and the mean, and then sum these absolute values.</p>
+</section>
 <section id="variance" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="variance">Variance</h3>
-<p>The <strong>variance</strong> is (roughly) the average of the squared deviations from the mean — with one small adjustment to the denominator that we explain just below. For a sample of size <span class="math inline">\(n\)</span>:</p>
+<p>It turns out that an even more useful way of calculating the spread of the data is not to take the absolute value of the differences between each observation and the mean, but to square these differences and then divide by <span class="math inline">\(n\)</span>. This is called the <strong>variance</strong>. We denote the variance of a population as <span class="math inline">\(\sigma^2\)</span> and the variance of a sample as <span class="math inline">\(s^2\)</span>. For technical reasons, which we won’t get into in this class, when we have a sample of data we divide by <span class="math inline">\(n-1\)</span> rather than n, so that:</p>
 <p><span class="math display">\[
 s^2 = \frac{1}{n-1} \sum_{i=1}^{n} (x_i - \bar{x})^2
 \]</span></p>
-<p>A few things to notice. First, we square the deviations. Why? Because otherwise the positive and negative deviations cancel out to zero (the mean is literally the point where they balance). Squaring makes them all positive.</p>
-<p>Second, we divide by <span class="math inline">\(n - 1\)</span>, not <span class="math inline">\(n\)</span>. This is called <strong>Bessel’s correction</strong>. The intuition is that we used the data to estimate <span class="math inline">\(\bar{x}\)</span>, which “uses up” one degree of freedom, so the effective sample size for estimating the variance is <span class="math inline">\(n - 1\)</span> rather than <span class="math inline">\(n\)</span>. Without this correction the sample variance would systematically underestimate the population variance. (Don’t worry too much about the derivation right now; just remember that we divide by <span class="math inline">\(n-1\)</span>.)</p>
 <p>In Excel: <code>=VAR.S(A1:A5)</code> for a sample, <code>=VAR.P(A1:A5)</code> for a full population (which divides by <span class="math inline">\(n\)</span>). Use <code>VAR.S</code> unless you have a specific reason not to.</p>
 </section>
 <section id="standard-deviation" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="standard-deviation">Standard Deviation</h3>
-<p>The variance has an awkward property: its units are the squared units of the original data. If your yields are in bushels per acre, the variance is in “bushels per acre squared,” which is not easy to interpret. The <strong>standard deviation</strong> fixes this by taking the square root:</p>
+<p>The variance has an awkward property: its units are the squared units of the original data. If your yields are in bushels per acre, the variance is in “bushels per acre squared,” which is not easy to interpret. The <strong>standard deviation</strong> fixes this by taking the square root of the variance:</p>
 <p><span class="math display">\[
 s = \sqrt{s^2} = \sqrt{\frac{1}{n-1} \sum_{i=1}^{n} (x_i - \bar{x})^2}
 \]</span></p>
-<p>Now the units match the original data, and we can say things like “yields in this region average 50 bu/acre with a standard deviation of 8 bu/acre.” That is a statement someone can actually interpret.</p>
+<p>Now the units match the original data, and we can say things like “yields in this region average 50 bu/acre with a standard deviation of 8 bu/acre.” That is a statement someone can actually interpret. This means that roughly on average the yields of any given variety are around 8 bu/acre different from the mean.</p>
 <p>In Excel: <code>=STDEV.S(A1:A5)</code> for a sample, <code>=STDEV.P(A1:A5)</code> for a population.</p>
-<p>Standard deviation will show up everywhere in the rest of this course. It is the building block of <span class="math inline">\(z\)</span>-scores (which you will meet in AREC 262), confidence intervals (<a href="module12.html" class="quarto-xref"><span>Chapter 12</span></a>), and most of inferential statistics. Make sure you understand what it represents: the typical distance of an observation from the mean, measured in the original units of the data.</p>
+<p>Standard deviation will show up everywhere in the rest of this course.</p>
 </section>
 <section id="coefficient-of-variation" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="coefficient-of-variation">Coefficient of Variation</h3>
@@ -909,10 +959,6 @@ CV = \frac{s}{\bar{x}}
 <p>I say it is helpful because it can compare the spread of two datasets with very different means. Suppose barley averages 55 bu/ac with a standard deviation of 11 (CV = 11/55 = 0.20), while wheat averages 40 bu/ac with a standard deviation of 10 (CV = 10/40 = 0.25). Wheat’s standard deviation is <em>smaller</em> in absolute terms (10 vs 11), yet relative to its own average, wheat is <em>more</em> variable (CV 0.25 vs 0.20). The CV captures that relative variability: a CV of 0.1 means the standard deviation is 10% of the mean, regardless of how big the mean is. So the CV lets you fairly compare the variability of two things measured on very different scales.</p>
 <p>However, in other contexts – particularly when the data can be close to zero or negative – the CV can be misleading. Suppose we wanted to compare the variability of farm income in a “good” year to farm incomes in a “bad” year. In a bad year, the mean income might be close to zero or negative. In that case, the CV would explode to infinity or become negative, which is not intuitive.</p>
 <p>Use the coefficient of variation with caution.</p>
-</section>
-<section id="range" class="level3 unnumbered">
-<h3 class="unnumbered anchored" data-anchor-id="range">Range</h3>
-<p>The <strong>range</strong> is just the maximum minus the minimum. In Excel: <code>=MAX(A1:A5) - MIN(A1:A5)</code>. The range is easy to understand but very sensitive to outliers — a single bad measurement can blow up the range dramatically. The IQR (<a href="#sec-percentiles" class="quarto-xref"><span>Section 1.5</span></a>) is usually a better choice.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-9-contents" aria-controls="callout-9" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
@@ -939,8 +985,39 @@ CV = \frac{s}{\bar{x}}
 </section>
 </section>
 <section id="sec-charts" class="level2" data-number="1.7">
-<h2 data-number="1.7" class="anchored" data-anchor-id="sec-charts"><span class="header-section-number">1.7</span> Visualizing the Shape of the Data</h2>
-<p>Numbers describe a distribution; a picture <em>shows</em> it. Two charts do most of the work when you are exploring a single variable: a <strong>histogram</strong>, which shows the shape of a distribution, and a <strong>box and whisker plot</strong>, which shows its centre, spread, and outliers at a glance — and lets you compare distributions side by side. Both are visual restatements of the statistics you just computed. (Charts for <em>comparing categories</em> or showing change over time — bar, line, and scatter plots — are covered in <a href="module04.html" class="quarto-xref"><span>Chapter 4</span></a>.)</p>
+<h2 data-number="1.7" class="anchored" data-anchor-id="sec-charts"><span class="header-section-number">1.7</span> Visualizing the Distribution of the Data</h2>
+<p>The <strong>distribution</strong> of the data refers to how often different values, or ranges of values, occur in a dataset. It tells you more than any single summary number can, because very different-looking datasets can share the same summary statistics. <a href="#fig-shape" class="quarto-xref">Figure&nbsp;<span>1.4</span></a> shows two sets of 60 farm yields with <em>identical means</em> (40 bu/ac) and <em>identical ranges</em> (26 to 54 bu/ac), yet they look nothing alike. In panel A the observations sit in two separate clusters; in panel B they are dense in the middle and thin out toward either edge.</p>
+<div id="fig-shape" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-shape-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div id="fig-shape-bimodal" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-shape-bimodal-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/shape_bimodal.png" id="fig-shape-bimodal" class="img-fluid figure-img" data-ref-parent="fig-shape">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-shape-bimodal-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(a)
+</figcaption>
+</figure>
+</div>
+<div id="fig-shape-unimodal" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-shape-unimodal-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/shape_unimodal.png" id="fig-shape-unimodal" class="img-fluid figure-img" data-ref-parent="fig-shape">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-shape-unimodal-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(b)
+</figcaption>
+</figure>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-shape-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1.4: Two datasets with the same mean and the same range, but very different shapes.
+</figcaption>
+</figure>
+</div>
+<p>Knowing the shape gives you real insight. The two clusters in panel A are a signal worth chasing: perhaps those farms differ in variety, soil zone, or seeding date, and what looks like one population is really two. Note also that the mean of 40 bu/ac in panel A describes a yield that <em>almost no farm actually achieved</em> — a good reminder that a summary statistic is not a substitute for looking at your data.</p>
+<p>The best way to</p>
 <section id="principles-of-good-charts" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="principles-of-good-charts">Principles of Good Charts</h3>
 <p>Before we get into specific chart types, some general principles. These come from a long tradition of work on data visualization, especially by Edward Tufte (<em>The Visual Display of Quantitative Information</em>) and more recently by Cole Nussbaumer Knaflic (<em>Storytelling with Data</em>):</p>
