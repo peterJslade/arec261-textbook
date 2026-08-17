@@ -82,7 +82,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-0c10bb20747794d2d50657b0857b5bf2.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-28b8da78cd6fddf5337693be705b98b4.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -523,6 +523,37 @@ window.Quarto = {
 </section>
 
 </main> <!-- /main -->
+<script>
+// Wrap each executed chunk's console output in a collapsed <details> so
+// students can predict what R will print before revealing it.
+//
+// Quarto has code-fold for *code*, but no equivalent for output, so we do it
+// here: for every .cell-output block, build a <details class="console-fold">
+// and move the output inside it. Runs once on DOMContentLoaded.
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll(".cell-output").forEach(function (out) {
+    // Don't double-wrap if this ever runs twice.
+    if (out.closest("details.console-fold")) return;
+
+    var details = document.createElement("details");
+    details.className = "console-fold";
+
+    var summary = document.createElement("summary");
+    // stderr = messages/warnings; error = a deliberate mistake we're showing.
+    if (out.classList.contains("cell-output-error")) {
+      summary.textContent = "Show R's error message";
+    } else if (out.classList.contains("cell-output-stderr")) {
+      summary.textContent = "Show console message";
+    } else {
+      summary.textContent = "Show console output";
+    }
+    details.appendChild(summary);
+
+    out.parentNode.insertBefore(details, out);
+    details.appendChild(out);
+  });
+});
+</script>
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";
