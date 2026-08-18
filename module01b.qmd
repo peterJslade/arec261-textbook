@@ -1,65 +1,40 @@
 # Going Further with Excel {#sec-excel-further}
 
-With the basics in place, this chapter covers the tools that make Excel useful for real
-data: calculations that depend on a condition, pulling values from another table,
-sorting and filtering, reshaping, and PivotTables.
+The first chapter covered how a spreadsheet works.  This one covers the functions that make
+Excel worth using on real data: calculations that apply to only part of a table, pulling
+values in from a second table, and summarizing a long table by category.
 
 ## Conditional Functions {#sec-conditional-functions}
 
-So far we have summarized entire columns. Often you want to summarize only a subset: "what is the average yield *on irrigated fields*?" "how many farms in the dataset are *over 1,000 acres*?" This is what Excel's conditional functions are for.
+Everything so far has applied to a whole column.  Just as often you want an answer about
+part of it -- the average yield on the canola fields, the number of fields over 60 bushels.
+Excel handles this with a family of functions that take a condition alongside the range.
 
-### The `IF` Function {.unnumbered}
+`COUNTIF` counts the rows that match, `SUMIF` adds them up, and `AVERAGEIF` averages them.
+Each takes the range to test, the condition to test for, and (for `SUMIF` and `AVERAGEIF`)
+the range holding the numbers you actually want.  `IF` is the simpler cousin: it looks at one
+cell and returns one of two things.
 
-`IF(condition, value_if_true, value_if_false)` returns one thing if a condition is true and another if it's false.
+The worksheet works through all of them on eight fields.  Column E labels each field with
+`IF`, and the block underneath answers six questions about subsets.  Column F and column C
+show the formulas.
 
-Example: `=IF(B2>50, "Above average", "Below average")` — labels each row based on whether its value in B2 exceeds 50.
+[Download this workbook](textbook_examples/mod01_conditional.xlsx) · [blank version to fill in yourself](textbook_examples/mod01_conditional_practice.xlsx)
 
-You can nest `IF`s inside each other to handle more than two cases:
-
-`=IF(B2<40, "Low", IF(B2<60, "Medium", "High"))`
-
-This labels values under 40 as "Low", values from 40 up to (but not including) 60 as "Medium", and 60 or above as "High". Nested `IF`s get ugly quickly; once you are more than two levels deep, consider using `IFS` (see below) or a `VLOOKUP`/`XLOOKUP` against a table of breakpoints.
-
-`IFS(condition1, value1, condition2, value2, ...)` is a cleaner way to write nested conditions:
-
-`=IFS(B2<40, "Low", B2<60, "Medium", TRUE, "High")`
-
-(The `TRUE` at the end is an "else" catch-all.)
-
-### `COUNTIF`, `SUMIF`, and `AVERAGEIF` {.unnumbered}
-
-These functions summarize a range conditionally.
-
-- `=COUNTIF(range, criterion)` — how many cells in the range match the criterion?
-- `=SUMIF(range, criterion, [sum_range])` — sum of cells matching the criterion.
-- `=AVERAGEIF(range, criterion, [average_range])` — average of cells matching the criterion.
-
-Example: `=COUNTIF(C2:C100, ">1000")` counts the number of rows where column C is greater than 1000.
-
-Example: `=SUMIF(A2:A100, "Canola", B2:B100)` sums the values in `B2:B100` for rows where `A2:A100` equals "Canola".
-
-The "S" versions — `COUNTIFS`, `SUMIFS`, `AVERAGEIFS` — let you specify multiple conditions:
-
-`=SUMIFS(B2:B100, A2:A100, "Canola", C2:C100, ">1000")`
-
-This sums column B for rows where column A is "Canola" *and* column C is greater than 1000. Note that the sum range comes *first* in the `IFS` versions and *last* in the non-`IFS` version — an inconsistency for historical reasons that you simply have to memorize.
-
-**Building a criterion from a formula.** Sometimes the number you want to compare against is itself computed — for example, "how many yields are above the *average* yield?" You cannot write `=COUNTIF(E2:E100, ">AVERAGE(E2:E100)")`, because everything inside the quotes is treated as literal text (Excel would look for cells literally equal to the text "> AVERAGE(...)"). Instead, build the criterion by joining the `">"` symbol to the computed number with the `&` operator:
+The last row of that worksheet is the one worth studying.  When the number you are comparing
+against has to be calculated -- "how many fields beat the average?" -- you cannot write
+`">AVERAGE(D5:D12)"`, because everything inside quotation marks is treated as literal text.
+Excel would go looking for a cell containing those characters.  Instead you glue the `>` onto
+the calculated number with `&`:
 
 ```
-=COUNTIF(E2:E100, ">"&AVERAGE(E2:E100))
+=COUNTIF(D5:D12,">"&AVERAGE(D5:D12))
 ```
 
-Here `">"&AVERAGE(E2:E100)` first computes the average, then glues `">"` in front of it to make a criterion like `">28.3"`. The same trick works for `SUMIF`/`AVERAGEIF` and for any criterion whose threshold you need to compute rather than type.
-
-**Counting, and blank cells.** Two closely related counting functions are easy to confuse:
-
-- `=COUNT(range)` counts only cells that contain **numbers**. It skips blanks and text.
-- `=COUNTA(range)` counts **any non-empty** cell (numbers *or* text).
-
-For "how many fields reported a yield?" you want `COUNT`, which naturally skips blank cells. This matters because real agricultural data is full of blanks (a crop not grown, a value not reported). A **blank is not zero**: `AVERAGE`, `COUNT`, `MEDIAN`, and `STDEV.S` all silently **skip blank cells**, which is usually what you want. But if you "helpfully" fill blanks with `0` first, those functions will treat the zeros as real measurements — dragging the average down and corrupting your analysis. Leave blanks blank.
-
-These conditional functions are workhorses for any moderately complex analysis. Get comfortable with them.
+Two more that come up constantly.  `COUNT` counts cells containing numbers; `COUNTA` counts
+any cell that is not empty, text included.  And a blank cell is not a zero: `AVERAGE`,
+`COUNT` and `MEDIAN` skip blanks, which is nearly always what you want.  If you fill the
+blanks with zeros first, those zeros become real measurements and drag the average down.
 
 ::: {.callout-tip collapse="true"}
 ## Other resources — conditional functions (IF, COUNTIF, SUMIF, …)
@@ -74,65 +49,34 @@ These conditional functions are workhorses for any moderately complex analysis. 
 
 ## Lookup Functions {#sec-lookup}
 
-One of the most common real-world tasks is combining information from two tables. You have a table of yields by field, and a separate table listing the variety planted in each field. You want to add the variety to your yield table. This is a **lookup**.
+Data usually arrives split across tables.  You have yields by field in one place and crop
+prices in another, and you need them together.  Pulling a value from the second table into
+the first is a **lookup**.
 
-### `VLOOKUP` {.unnumbered}
+`XLOOKUP` takes three things: the value to find, the column to search in, and the column to
+return from.  The worksheet below has a price list off to the side in H4:I7, and column E
+looks up each field\'s crop to bring back its price.
 
-`VLOOKUP(lookup_value, table_array, column_index, [range_lookup])`
+[Download this workbook](textbook_examples/mod01_lookup.xlsx) · [blank version to fill in yourself](textbook_examples/mod01_lookup_practice.xlsx)
 
-Searches for `lookup_value` in the *first column* of `table_array`, and returns the value in the `column_index`-th column of the matching row.
+Underneath, the same lookup is written three ways.  `XLOOKUP` is the one to use.  `VLOOKUP`
+is older and still everywhere, so you need to be able to read it, but it has two traps: it
+can only search the *first* column of its table, and its last argument defaults to
+approximate matching.  Leave that argument off and Excel will happily return a wrong answer
+without complaint, so always pass `FALSE`.  `INDEX`/`MATCH` was the workaround before
+`XLOOKUP` existed and turns up in older workbooks.
 
-Example: if `F2:G50` contains a list of field IDs in column F and varieties in column G, then `=VLOOKUP(A2, $F$2:$G$50, 2, FALSE)` looks up the field ID in cell A2 and returns the matching variety.
-
-The fourth argument, `range_lookup`, is critical:
-
-- `FALSE` (or `0`): **exact match only.** Use this almost always.
-- `TRUE` (or `1`, or omitted): approximate match. Only use this when you are looking up a number against a sorted table of breakpoints (e.g., income → tax bracket). If your lookup table is not sorted or you are looking up text, `TRUE` will silently give you wrong answers.
-
-I cannot emphasize enough: **always explicitly pass `FALSE`** unless you are absolutely sure you want approximate matching. The default of `TRUE` has burned countless people.
-
-`VLOOKUP` has two big limitations: it can only look up in the *first* column (it cannot look "backwards"), and if you insert a column in your lookup table, the column index silently breaks. Microsoft introduced `XLOOKUP` to fix both.
-
-### `XLOOKUP` {.unnumbered}
-
-`XLOOKUP(lookup_value, lookup_array, return_array, [if_not_found], [match_mode], [search_mode])`
-
-Conceptually simpler: you specify the array to search in, and the array to return from. They can be anywhere. If not found, you can specify what to return (instead of the ugly `#N/A` you get from `VLOOKUP`).
-
-Example: `=XLOOKUP(A2, $F$2:$F$50, $G$2:$G$50, "Unknown")` — looks up A2 in column F, returns the matching value from column G, returns `"Unknown"` if not found.
-
-A nice bonus: `XLOOKUP` **defaults to an exact match**, so it avoids the silent-wrong-answer trap that `VLOOKUP`'s `TRUE` default creates. One less thing to remember.
-
-`XLOOKUP` is the right default choice in modern Excel. Use it instead of `VLOOKUP` unless you are working in a file that might be opened in an older version of Excel.
-
-### `INDEX`/`MATCH` {.unnumbered}
-
-Before `XLOOKUP`, the standard workaround for `VLOOKUP`'s limitations was to combine `INDEX` and `MATCH`.
-
-- `MATCH(lookup_value, lookup_array, [match_type])` returns the *position* of a value in an array.
-- `INDEX(array, row_num, [column_num])` returns the value at a given position.
-
-Combining them: `=INDEX($G$2:$G$50, MATCH(A2, $F$2:$F$50, 0))` does the same thing as the `XLOOKUP` above. You still see this pattern a lot in older workbooks.
-
-### Looking Up on Two Keys at Once {#sec-two-key-lookup .unnumbered}
-
-Often a single column does not uniquely identify the row you want. Suppose each row of your data is one Rural Municipality (RM) in one year, so RM 1 appears many times — once per year. Looking up "RM 1" alone returns only the *first* matching row (some arbitrary year), not the year you meant. You need to match on **RM and Year together**.
-
-The simplest way is to build a combined key on the fly by joining the two lookup values with a separator, and searching a matching joined column:
+Sometimes one column is not enough to identify a row.  If each row is one rural municipality
+in one year, then RM 1 appears many times over and looking up "RM 1" finds only whichever
+year happens to come first.  You need to match on RM *and* year.  The trick is to join them
+into a single key with a separator:
 
 ```
 =XLOOKUP(1 & "|" & 2023, B2:B10650 & "|" & A2:A10650, E2:E10650)
 ```
 
-Here `B2:B10650 & "|" & A2:A10650` builds a temporary column of keys like `1|2023`, and the lookup value `1 & "|" & 2023` builds the matching key `1|2023`. The `"|"` separator matters: without it, the pair `(1, 12)` and the pair `(11, 2)` would both collapse to `112` and could match by accident; the `"|"` keeps `1|12` and `11|2` distinct.
-
-The same idea works with `INDEX`/`MATCH`:
-
-```
-=INDEX(E2:E10650, MATCH(1 & "|" & 2023, B2:B10650 & "|" & A2:A10650, 0))
-```
-
-In older versions of Excel these are entered as *array formulas* (Ctrl+Shift+Enter); modern Excel handles them directly. Two-key lookups like this come up constantly with agricultural data, where a value is identified by *place and time* together.
+The separator earns its keep.  Without it, RM 1 in 2023 and RM 12 in 023 would both collapse
+to `12023`.
 
 ::: {.callout-tip collapse="true"}
 ## Other resources — lookup functions (VLOOKUP, XLOOKUP, INDEX/MATCH)
@@ -147,13 +91,16 @@ In older versions of Excel these are entered as *array formulas* (Ctrl+Shift+Ent
 
 ## Sorting and Filtering {#sec-sort-filter}
 
-Two basic data manipulation tasks that you should be able to do without thinking:
+**Sort** reorders the rows by one or more columns: click inside the data, then **Data →
+Sort**.  The one thing to get right is the selection.  If you highlight a single column and
+sort it, Excel reorders that column and leaves the rest where they are, so every row now
+carries some other row\'s numbers.  Click one cell inside the table and let Excel take the
+whole thing.
 
-**Sort** rearranges the rows by the values in one or more columns. Select the data (or click a cell inside it), then **Data → Sort**. You can sort by multiple columns in sequence (sort by region, then by yield within region). Critical: make sure you include all the relevant columns when you sort! A common rookie mistake is to select just the column you want to sort by, which reorders that column but leaves the others in place — silently corrupting the correspondence between rows.
-
-**Filter** hides rows that don't match a condition. Click inside the data and choose **Data → Filter**. Each column gets a dropdown arrow that lets you pick which values to show. Filtering does not delete rows; it just hides them. Clearing the filter brings them back.
-
-Filtering is enormously useful for exploring a dataset: "let me just look at the canola fields," "just the 2023 data," "just the fields with yields below 30." Learn the keyboard shortcut (`Ctrl+Shift+L` on Windows, `⌘⇧F` on Mac, toggles filters on and off).
+**Filter** hides the rows that do not match a condition: **Data → Filter**, then use the
+dropdown on any column heading.  Nothing is deleted; clearing the filter brings everything
+back.  It is the quickest way to look at one crop or one year in a large table.
+`Ctrl+Shift+L` on Windows, `⌘⇧F` on a Mac, toggles it.
 
 ::: {.callout-warning}
 ## Filters hide rows from *you*, not from your formulas
@@ -180,44 +127,25 @@ Whenever a task says "for the 2023 data, compute …," your first move should be
 
 ## Wide vs. Long Data {#sec-wide-long}
 
-Before we get to PivotTables, we need to talk about the *shape* of a dataset — because the same data can be laid out in two very different ways, and which one you have determines what you can easily do with it.
+The same numbers can be laid out in two ways, and which one you have decides what you can do
+with them.  The worksheet below shows both.
 
-Consider our Saskatchewan crop-yield data. Each row records the average yields for one **Rural Municipality** (RM — a local administrative area, the way Saskatchewan divides up its farmland) in one year. Here it is in **wide** format — one row per RM-year, and each crop gets its own column:
+[Download this workbook](textbook_examples/mod01_wide_long.xlsx)
 
-| Year | RM | Spring Wheat | Canola | Barley | Oats |
-|------|----|--------------|--------|--------|------|
-| 2023 | 1  | 50.8 | 36.8 | 53.0 | 55.1 |
-| 2023 | 2  | 48.5 | 34.4 | 50.5 | 81.8 |
+In the **wide** table, the crop is the column heading -- three crops, three columns.  In the
+**long** table, the crop is a value sitting in its own column, and every yield is stacked
+into a single Yield column.  Same data, different shape.
 
-And here is the *same information* in **long** format — one row per RM-year-**crop**, with the crop name pulled out into its own column and all the yields stacked into a single `Yield` column:
+Wide is easy to read and convenient for column-at-a-time arithmetic: average the Canola
+column and you are done.  Long is what you need when you want to summarize *by* the thing
+that is stacked.  A PivotTable can only group by a field that lives in its own column, so if
+you want average yield by crop, the crop has to be a column of values rather than a set of
+headings.
 
-| Year | RM | Crop | Yield | Unit |
-|------|----|------|-------|------|
-| 2023 | 1 | Spring Wheat | 50.8 | bu/ac |
-| 2023 | 1 | Canola | 36.8 | bu/ac |
-| 2023 | 1 | Barley | 53.0 | bu/ac |
-| 2023 | 1 | Oats | 55.1 | bu/ac |
-| 2023 | 2 | Spring Wheat | 48.5 | bu/ac |
-| … | … | … | … | … |
-
-Both hold exactly the same numbers. The difference is purely structural: in wide format, "which crop" is encoded in the *column position*; in long format, "which crop" is a *value in a column*.
-
-### Which one should I use? {.unnumbered}
-
-Each shape is convenient for different things:
-
-- **Wide is convenient for column-at-a-time math.** If you want the average canola yield, it is right there: `=AVERAGE` the Canola column. Wide format is easy to read by eye and quick for the descriptive statistics and conditional functions we covered above.
-- **Long is what you need to summarize *by* the stacked variable.** Suppose you want a table of *average yield for each crop*. In long format that is a one-move PivotTable: put `Crop` on Rows and `Yield` in Values. In wide format you *cannot* do this in a single pivot — the crops are separate columns (four in the small example above, eight in the full dataset), so "crop" isn't a field you can drag anywhere.
-
-That is the key idea: **a PivotTable can only group by a field that lives in its own column.** If the thing you want on your rows (here, the crop) is spread across many columns, you must reshape to long first.
-
-### Is wide "wrong"? {.unnumbered}
-
-No. The wide layout above is a perfectly reasonable way to store this data — you could argue each crop genuinely *is* its own variable. Neither format is universally "correct"; they are tools for different jobs. What matters is recognizing which shape you have and reshaping when the task calls for it.
-
-Reshaping between wide and long by hand in Excel is tedious and error-prone. In **R**, it is a single function call in each direction (`pivot_longer()` and `pivot_wider()`), which is one of the reasons we move to R later in the course. You will meet the formal idea of **"tidy data"** — and these reshaping tools — in @sec-tidy-data-chapter.
-
-For now, the practical takeaway: **for the practice questions, use the *wide* file for descriptive statistics and lookups, and the *long* file when you need a PivotTable that groups by crop.** We provide both.
+Neither is wrong.  Reshaping between them by hand in Excel is tedious, which is one of the
+arguments for moving to R -- there it is a single function call in each direction
+(`pivot_longer()` and `pivot_wider()`).  You will meet the formal version of this idea,
+called tidy data, in @sec-tidy-data-chapter.
 
 ::: {.callout-tip collapse="true"}
 ## Other resources — wide vs. long data
@@ -229,35 +157,33 @@ For now, the practical takeaway: **for the practice questions, use the *wide* fi
 
 ## PivotTables {#sec-pivottables}
 
-A PivotTable lets you take a long table of data and summarize it by one or more categories — total acres by crop, average yield by year — without writing any formulas. The name comes from the fact that you can "pivot" the summary: put regions on the rows and years on the columns, then swap them, then add varieties as a third dimension, all with drag-and-drop.
+A PivotTable summarizes a long table by category -- total acres by crop, average yield by
+year -- without writing any formulas.  You drag the field you want to group by into one box
+and the field you want to summarized into another, and Excel builds the table.  The name
+comes from being able to pivot it: put crops down the side and years across the top, then
+swap them, then add a third field, all by dragging.
 
-### Building One {.unnumbered}
+To build one: click a cell inside your data, then **Insert → PivotTable**, and put the result
+on a new sheet.  You get an empty table and a field list.  Drag a category into **Rows**,
+another into **Columns** if you want a two-way table, and the number you care about into
+**Values**.  Excel sums the values by default; click on the value to change it to Average,
+Count, Max or anything else.  **Filters** applies a condition to the whole table.
 
-Starting data: a long table where each row is one observation (e.g., one field's yield in one year), and the columns are attributes (year, region, variety, yield, acres).
+Then experiment.  Dragging fields in and out costs nothing and is the fastest way to find out
+what the data says.
 
-1. Click any cell inside the data.
-2. **Insert → PivotTable**. Excel proposes a range (usually correct) and asks where to put the result. Put it in a new worksheet.
-3. You now see the empty PivotTable and a "PivotTable Fields" panel on the right. Drag fields into four areas:
-   - **Rows**: categories that become row labels (e.g., Region).
-   - **Columns**: categories that become column labels (e.g., Year).
-   - **Values**: the number to summarize (e.g., Yield). By default, Excel will sum it; click the value to change to Average, Count, Max, etc.
-   - **Filters**: categories you want to filter the whole table by (e.g., Variety).
+A caution before you read anything into a comparison: check that the categories share a unit.
+A PivotTable will rank crops by average "yield" whether or not some are in bushels per acre
+and others in pounds, and the pounds crop will look enormously better for no reason at all.
 
-4. Experiment. Drag fields in and out until the table tells you what you want to know.
+A **PivotChart** is a chart tied to a PivotTable -- **PivotTable Analyze → PivotChart**.  It
+updates when the table does.
 
-**A word of caution before you compare categories: check the units.** A PivotTable will happily rank crops by average "yield" even if some crops are measured in bushels per acre and others in pounds per acre — and the pounds-per-acre crop will look enormously higher for no real reason. Before reading anything into a comparison, confirm that every category shares the same unit; if not, filter to a single unit first. Comparing numbers in different units is one of the most common ways to draw a completely wrong conclusion from a correct calculation.
-
-### Common Operations {.unnumbered}
-
-- **Change the aggregation**: right-click a value → **Summarize Values By** → Average / Max / Count / etc.
-- **Show as percent**: right-click → **Show Values As** → **% of Column Total** (or Row Total, or Grand Total).
-- **Refresh**: if the underlying data changes, click the PivotTable → **PivotTable Analyze → Refresh**.
-- **Group**: right-click a date row → **Group** to aggregate by month, quarter, year.
-- **Drill down**: double-click any cell in the PivotTable and Excel creates a new sheet with the underlying rows that make up that cell.
-
-### PivotCharts {.unnumbered}
-
-A **PivotChart** is a chart tied to a PivotTable. It updates automatically when you change the PivotTable, and filters on the chart filter the table. Make one with **PivotTable Analyze → PivotChart**.
+Other things worth knowing: right-click a value and **Summarize Values By** changes the
+aggregation, **Show Values As** turns it into a percentage of the row, column or total, and
+**Refresh** picks up changes to the underlying data.  Double-clicking any cell in the table
+creates a new sheet containing the rows that produced that number, which is the quickest way
+to check a figure that looks wrong.
 
 ::: {.callout-tip collapse="true"}
 ## Other resources — PivotTables
