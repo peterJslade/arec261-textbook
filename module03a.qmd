@@ -16,6 +16,7 @@ By the end of this chapter, you will be able to:
   harder to analyse
 - Recognize the trade-off between a workbook that looks good and one that is easy
   to compute with
+- Link between sheets, and protect the cells a reader should not change
 :::
 
 ## Who Is Going to Open This? {#sec-workbook-audience}
@@ -105,10 +106,73 @@ A practical tip: after you finish a draft, put it away for a day and come back t
 Sometimes your deliverable is an Excel workbook. Here are habits that will make the difference between a workbook your colleague can use and one they'll quietly throw away:
 
 - **Start with a README sheet.** What is this file? Who made it? When? What does each sheet contain? How often is it updated?
-- **Separate raw, cleaned, and analyzed data.** As discussed in Module 1. Lock the raw data sheet if you can, so nobody accidentally edits it.
+- **Separate raw, cleaned, and analyzed data.** As discussed in Module 1 — and consider protecting the raw sheet (@sec-locking-cells) so nobody edits it by accident.
 - **Use named cells for assumptions.** Every assumption in your model (discount rate, growth rate, cost per unit) should live in a labelled cell that is easy to find and change.
 - **Label everything.** Every column, every chart, every table header. "The reader should never have to ask 'what is this?'"
 - **Use conditional formatting sparingly.** It can be powerful, but it can also make a workbook look like a Christmas tree. Use it to highlight things that need attention, not to decorate.
 - **Freeze panes.** If you have a large table, freeze the header row so it stays visible when you scroll.
 - **Document your formulas.** At the top of an analysis column, write a cell explaining what the formula computes.
 - **Include the date you last updated it.** In the README.
+
+## Hyperlinks {#sec-hyperlinks}
+
+Once a workbook runs to more than three or four sheets, a reader has to hunt along the tabs
+at the bottom of the window to find anything.  A hyperlink fixes that: it turns a cell into
+something you can click to jump somewhere else.
+
+To make one, right-click a cell and choose **Link** (or press `Ctrl+K` / `⌘K`).  The dialog
+offers a few kinds:
+
+- **To a place in this document.**  Pick a sheet from the list, and optionally a cell
+  reference like `A1`.  This is the one that makes a README sheet worth having: list the
+  other sheets down the page and link each one, so a reader can jump straight to the part
+  they want.
+- **To a file or web page.**  Point at the source the data came from -- the SCIC page, the
+  StatCan table -- so the provenance is one click away rather than in an email somewhere.
+- **To an email address.**  Useful on a README: whose file is this, and who does a reader
+  ask about it.
+
+There is also a formula version, `HYPERLINK(target, friendly_name)`, which is handy when the
+destination is itself calculated:
+
+```
+=HYPERLINK("#'Summary'!A1", "Go to summary")
+=HYPERLINK("https://dashboard.saskatchewan.ca/agriculture/rm-yields/rm-yields-data",
+           "Source: Saskatchewan Dashboard")
+```
+
+Note the `#` for a destination inside the same workbook, and the single quotes around a
+sheet name that contains a space.
+
+One caveat worth knowing, because it will bite you.  **Links between sheets work in desktop
+Excel but often do nothing in Excel for the web**, and they are usually dead in the read-only
+preview windows that embed a workbook in a web page.  So use them, but do not rely on them
+as the only way to find something.  Name your tabs clearly, and if a README refers to
+another sheet, say its name in the text as well as linking it.
+
+## Locking Cells {#sec-locking-cells}
+
+If you hand someone a workbook where they are meant to type in their own numbers, you
+usually want them typing in *some* cells and not others.  The Crop Planning Guide from
+earlier is a good example: a producer fills in their own acres and prices, and the formulas
+that turn those into a cost per acre are none of their business.  If they overwrite one by
+accident the whole sheet quietly goes wrong.
+
+Excel handles this with two settings that have to be used together, which is the part people
+find confusing.  Every cell has a **Locked** property, switched on by default -- but it does
+nothing at all until you **protect the sheet**.  So the workflow runs backwards from what you
+might expect:
+
+1. Select the cells you want people to be able to edit -- the input cells.
+2. Right-click, **Format Cells → Protection**, and *untick* **Locked**.
+3. Then **Review → Protect Sheet**, and click OK.
+
+Everything you did not unlock is now read-only.  Typing in it gets you a polite refusal
+rather than a broken formula.  You can set a password, though for a teaching workbook or a
+file for a colleague there is rarely a reason to -- the point is to prevent accidents, not to
+keep secrets.  Anyone who really needs to change something can unprotect the sheet.
+
+Two things worth knowing.  Protection is per sheet, so a workbook with a raw-data tab and a
+working tab needs each protected separately.  And it is not security: a protected sheet
+without a password comes apart in a couple of clicks, and even with one it is not hard to
+get around.  Treat it as a guard rail, not a lock.
