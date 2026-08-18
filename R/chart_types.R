@@ -141,6 +141,66 @@ fig_stacked <- function(d) {
           legend.key.size = unit(0.8, "lines"))
 }
 
+# --- encoding a third variable --------------------------------------------
+# Wheat yield against barley yield by risk zone (as fig_scatter), with acres
+# seeded encoded as the size of the point. Three variables, one plot, and the
+# third one is read from an aesthetic the eye handles well enough for ranking.
+fig_bubble <- function(d) {
+  yr <- max(d$Year)
+  s  <- d[d$Year == yr & d$Crop %in% c("Spring wheat", "Barley"), ]
+  z  <- aggregate(cbind(num = s$Acres * s$Yield, den = s$Acres),
+                  by = list(Zone = s$Risk_Zone, Crop = s$Crop), FUN = sum)
+  z$Yield <- z$num / z$den
+  w <- merge(z[z$Crop == "Spring wheat", c("Zone", "Yield", "den")],
+             z[z$Crop == "Barley",       c("Zone", "Yield")],
+             by = "Zone", suffixes = c("_wheat", "_barley"))
+  w$Acres <- w$den / 1e3
+
+  ggplot(w, aes(x = Yield_wheat, y = Yield_barley, size = Acres)) +
+    geom_point(colour = prairie, alpha = 0.5) +
+    scale_size_area(max_size = 8, name = "Wheat acres\n(thousands)") +
+    labs(x = "Spring wheat yield (bu/ac)", y = "Barley yield (bu/ac)") +
+    theme_arec() +
+    theme(panel.grid.major.x = element_line(colour = "grey92", linewidth = 0.3),
+          legend.position = "right",
+          legend.title = element_text(colour = muted, size = 8),
+          legend.text = element_text(size = 8))
+}
+
+# --- the dual axis --------------------------------------------------------
+# Canola acres and canola yield share an x axis but nothing else. The right
+# axis is scaled arbitrarily, so where the lines cross -- and which appears to
+# lead the other -- is a choice the chart's author made, not a fact.
+fig_dual_axis <- function(d, scale_hi = TRUE) {
+  a <- by_crop_year(d)
+  a <- a[a$Crop == "Canola", c("Year", "Yield")]
+  ac <- aggregate(Acres ~ Year, data = d[d$Crop == "Canola", ], FUN = sum)
+  m <- merge(a, ac, by = "Year")
+  m$AcresM <- m$Acres / 1e6
+
+  # the arbitrary choice: how to map acres onto the yield axis
+  rng <- if (scale_hi) c(30, 50) else c(20, 62)
+  rescale <- function(x) {
+    (x - min(m$AcresM)) / diff(range(m$AcresM)) * diff(rng) + rng[1]
+  }
+  inv <- function(y) {
+    (y - rng[1]) / diff(rng) * diff(range(m$AcresM)) + min(m$AcresM)
+  }
+
+  ggplot(m, aes(x = Year)) +
+    geom_line(aes(y = Yield), colour = prairie, linewidth = 0.9) +
+    geom_line(aes(y = rescale(AcresM)), colour = clay, linewidth = 0.9,
+              linetype = "longdash") +
+    scale_y_continuous(
+      name = "Yield (bu/ac)",
+      sec.axis = sec_axis(~ inv(.), name = "Acres (millions)")) +
+    scale_x_continuous(breaks = sort(unique(m$Year))) +
+    labs(x = NULL) +
+    theme_arec() +
+    theme(axis.title.y.left  = element_text(colour = prairie),
+          axis.title.y.right = element_text(colour = clay))
+}
+
 # --- when not to use a chart ----------------------------------------------
 # World wheat production, 2024/25 marketing year, million tonnes. Approximate
 # USDA WASDE figures -- close enough for the teaching point, which is about
