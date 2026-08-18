@@ -116,6 +116,114 @@ fig_stacked <- function(d) {
           legend.key.size = unit(0.8, "lines"))
 }
 
+# --- clutter vs clean -----------------------------------------------------
+# The same line chart drawn twice. The cluttered version collects the defaults
+# and decorations Excel offers: heavy gridlines both ways, a tick every year on
+# both axes, a boxed legend, a drop shadow behind each line, markers on every
+# point, and a background fill. Nothing here adds information.
+fig_clutter <- function(d) {
+  a <- by_crop_year(d)
+  ggplot(a, aes(x = Year, y = Yield, colour = Crop, shape = Crop)) +
+    # a "drop shadow": the same line offset and greyed, as Excel would draw it
+    geom_line(aes(x = Year + 0.04, y = Yield - 1.1), colour = "grey55",
+              linewidth = 1.4, alpha = 0.5, show.legend = FALSE) +
+    geom_line(linewidth = 1.1) +
+    geom_point(size = 2.6, fill = "white", stroke = 1) +
+    scale_shape_manual(values = c(21, 22, 23, 24)) +
+    scale_colour_manual(values = c("Spring wheat" = "#c0392b", "Canola" = "#e67e22",
+                                   "Barley" = "#8e44ad", "Oats" = "#16a085")) +
+    scale_x_continuous(breaks = seq(2021, 2025, 1),
+                       minor_breaks = seq(2021, 2025, 0.25)) +
+    scale_y_continuous(breaks = seq(20, 120, 5),
+                       minor_breaks = seq(20, 120, 2.5)) +
+    labs(title = "A. Cluttered", x = "Year", y = "Yield (bu/ac)") +
+    theme_grey(base_size = 10) +
+    theme(
+      panel.background  = element_rect(fill = "#eef0f4", colour = NA),
+      panel.grid.major  = element_line(colour = "grey55", linewidth = 0.45),
+      panel.grid.minor  = element_line(colour = "grey70", linewidth = 0.3),
+      axis.ticks        = element_line(colour = "grey30", linewidth = 0.5),
+      axis.ticks.length = unit(3.5, "pt"),
+      legend.position   = "right",
+      legend.title      = element_blank(),
+      legend.background = element_rect(fill = "white", colour = "grey40"),
+      legend.key.size   = unit(0.8, "lines"),
+      plot.title        = element_text(size = 10, face = "bold", colour = ink),
+      plot.title.position = "plot"
+    )
+}
+
+fig_declutter <- function(d) {
+  a <- by_crop_year(d)
+  ends <- a[a$Year == max(a$Year), ]
+  ggplot(a, aes(x = Year, y = Yield, colour = Crop)) +
+    geom_line(linewidth = 0.8) +
+    geom_text(data = ends, aes(label = Crop), hjust = -0.12, size = 3.1) +
+    scale_colour_manual(values = c("Spring wheat" = prairie, "Canola" = wheat,
+                                   "Barley" = sky, "Oats" = clay)) +
+    scale_x_continuous(breaks = seq(2021, 2025, 2),
+                       expand = expansion(mult = c(0.03, 0.34))) +
+    labs(title = "B. Decluttered", x = NULL, y = "Yield (bu/ac)") +
+    theme_arec()
+}
+
+# --- patterned fills ------------------------------------------------------
+# Hatched fills date from monochrome printing, where they were the only way to
+# tell series apart. On screen they vibrate and hide the data. ggplot2 has no
+# pattern fill, so the hatching is drawn as line segments clipped to each bar.
+fig_pattern <- function(d) {
+  a <- by_crop_year(d)
+  a <- aggregate(Yield ~ Crop, data = a, FUN = mean)
+  a <- a[order(-a$Yield), ]
+  a$i <- seq_len(nrow(a))
+
+  # diagonal hatching: for bar i, a fan of segments across its width
+  hatch <- do.call(rbind, lapply(seq_len(nrow(a)), function(k) {
+    h <- a$Yield[k]; x0 <- a$i[k] - 0.33; x1 <- a$i[k] + 0.33
+    # spacing alternates per bar, as clip-art patterns do
+    step <- c(3.2, 5.0, 2.4, 4.0)[((k - 1) %% 4) + 1]
+    offs <- seq(-h, h, by = step)
+    data.frame(x = pmax(x0, x0), xend = x1,
+               y = pmin(pmax(offs, 0), h),
+               yend = pmin(pmax(offs + (x1 - x0) * 26, 0), h))
+  }))
+  hatch <- hatch[hatch$yend > hatch$y, ]
+
+  ggplot(a, aes(x = i, y = Yield)) +
+    geom_col(fill = "grey82", colour = "grey20", width = 0.66, linewidth = 0.5) +
+    geom_segment(data = hatch, aes(x = x, xend = xend, y = y, yend = yend),
+                 colour = "grey25", linewidth = 0.3, inherit.aes = FALSE) +
+    geom_col(fill = NA, colour = "grey20", width = 0.66, linewidth = 0.5) +
+    scale_x_continuous(breaks = a$i, labels = a$Crop) +
+    scale_y_continuous(breaks = seq(0, 100, 10),
+                       minor_breaks = seq(0, 100, 5)) +
+    labs(title = "A. Patterned fills", x = NULL, y = "Yield (bu/ac)") +
+    theme_grey(base_size = 10) +
+    theme(
+      panel.background = element_rect(fill = "#f2f2f2", colour = NA),
+      panel.grid.major = element_line(colour = "grey60", linewidth = 0.4),
+      panel.grid.minor = element_line(colour = "grey75", linewidth = 0.25),
+      axis.ticks       = element_line(colour = "grey30"),
+      axis.text.x      = element_text(size = 8),
+      plot.title       = element_text(size = 10, face = "bold", colour = ink),
+      plot.title.position = "plot"
+    )
+}
+
+fig_flat <- function(d) {
+  a <- by_crop_year(d)
+  a <- aggregate(Yield ~ Crop, data = a, FUN = mean)
+  a$Crop <- factor(a$Crop, levels = a$Crop[order(a$Yield)])
+  ggplot(a, aes(x = Yield, y = Crop)) +
+    geom_col(fill = prairie, width = 0.66) +
+    geom_text(aes(label = round(Yield)), hjust = -0.25, colour = ink, size = 3.1) +
+    scale_x_continuous(expand = expansion(mult = c(0, 0.14))) +
+    labs(title = "B. Flat fills", x = "Yield (bu/ac)", y = NULL) +
+    theme_arec() +
+    theme(panel.grid.major.y = element_blank(),
+          axis.text.y = element_text(size = 8))
+}
+
 # --- truncated vs zero baseline -------------------------------------------
 # Malting barley variety trial results, Saskatchewan Seed Guide. The spread is
 # only 11 bu/ac on yields of about 110, so a truncated axis exaggerates it
