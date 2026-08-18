@@ -145,40 +145,39 @@ LAST = FIRST + len(LOADS) - 1
 finish(ws, [("A", 24), ("B", 12), ("C", 12), ("D", 24)], LAST + 2, "A7")
 
 # ==========================================================================
-# 3 — ABSOLUTE, several crops: factors along row 4, locked with C$4
+# 3 — ABSOLUTE, two crops: each factor sits UNDER its own column, locked with B$14
 # ==========================================================================
 wb, ws = new_sheet(
     "Absolute references — several crops",
-    "Now each crop has its own conversion factor, sitting side by side in row 4.  We "
-    "want one formula that fills all three columns.  Writing $B7*C$4 locks the column "
-    "on the bushels (so every crop reads column B) and locks the row on the factors "
-    "(so every load reads row 4) — but leaves the other half of each free to move.",
+    "Now we have two crops, and each has its own conversion factor.  The factors sit in "
+    "row 14, directly underneath the column they belong to.  Writing B7*B$14 locks the "
+    "row (so every load reads row 14) but leaves the column free — so the wheat column "
+    "reads B14 and the barley column reads C14.",
     "Ex3 (absolute)", width=6)
 
-FACTOR_ROW = 4
-put(ws, FACTOR_ROW, 1, "Tonnes per bushel →", font=f_bold)
-put(ws, FACTOR_ROW, 2, "", font=f_body)
-for j, fac in enumerate([WHEAT_F, BARLEY_F, OATS_F]):
-    put(ws, FACTOR_ROW, 3 + j, fac, font=f_bold, fill=lock_fill,
-        fmt="0.00000", align=centre)
-
-header(ws, 6, ["Load", "Bushels", "wheat_tons", "barley_tons", "oats_tons",
-               "The formula in C"])
+FACTOR_ROW = 14
+header(ws, 6, ["Load", "Wheat_bu", "Barley_bu", "Wheat_tons", "Barley_tons",
+               "The formula in D"])
 FIRST = 7
-for i, bu in enumerate(LOADS):
+wheat_bu  = [500, 1000, 2500, 5000, 8000]
+barley_bu = [200,  300,  600,  800, 1500]
+for i in range(len(wheat_bu)):
     r = FIRST + i
     put(ws, r, 1, f"Load {chr(65+i)}")
-    put(ws, r, 2, bu, fmt="#,##0", align=centre)
-    for j in range(3):
-        col = 3 + j
-        letter = chr(64 + col)          # C, D, E
-        put(ws, r, col, f"=$B{r}*{letter}${FACTOR_ROW}", fmt="#,##0.0", align=centre)
-    put(ws, r, 6, f"={FT}(C{r})", font=f_form)
-LAST = FIRST + len(LOADS) - 1
+    put(ws, r, 2, wheat_bu[i],  fmt="#,##0", align=centre)
+    put(ws, r, 3, barley_bu[i], fmt="#,##0", align=centre)
+    put(ws, r, 4, f"=B{r}*B${FACTOR_ROW}", fmt="#,##0.0", align=centre)
+    put(ws, r, 5, f"=C{r}*C${FACTOR_ROW}", fmt="#,##0.0", align=centre)
+    put(ws, r, 6, f"={FT}(D{r})", font=f_form)
+LAST = FIRST + len(wheat_bu) - 1
 
+# the factors, each beneath the column it converts
+put(ws, FACTOR_ROW, 1, "Tons/bu", font=f_bold)
+put(ws, FACTOR_ROW, 2, WHEAT_F,  font=f_bold, fill=lock_fill, fmt="0.00000", align=centre)
+put(ws, FACTOR_ROW, 3, BARLEY_F, font=f_bold, fill=lock_fill, fmt="0.00000", align=centre)
 
-finish(ws, [("A", 12), ("B", 11), ("C", 13), ("D", 13), ("E", 12), ("F", 22)],
-       LAST + 2, "A7")
+finish(ws, [("A", 12), ("B", 12), ("C", 12), ("D", 13), ("E", 13), ("F", 24)],
+       FACTOR_ROW, "A7")
 
 # --- save the single workbook ---------------------------------------------
 OUT = "textbook_examples/mod01_references.xlsx"
