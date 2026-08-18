@@ -276,8 +276,51 @@ fig_stacked(yields)
 
 The catch is that only the bottom segment sits on a common baseline.  You can compare canola
 acres across years easily because they all start at zero; comparing the middle segments means
-judging the length of a floating block, which the eye does poorly.  If the components matter
-more than the total, use separate bars side by side instead.
+judging the length of a floating block, which the eye does poorly.
+
+### Grouped bars {.unnumbered}
+
+The obvious fix is to unstack the bars and set them side by side, so every bar starts at zero.
+
+```{r}
+#| label: fig-grouped
+#| eval: true
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 6.6
+#| fig-height: 2.9
+#| fig-cap: "The same acres, grouped rather than stacked."
+fig_grouped(yields)
+```
+
+This solves the baseline problem and introduces a different one.  There are now twenty bars,
+and the chart supports two comparisons at once: across crops within a year, and across years
+within a crop.  The second is the one you usually want, and it is the harder of the two --
+following canola from 2021 to 2025 means jumping over three other bars at every step.  The
+grouping does not help; it is in the way.
+
+Grouped bars work when there are only two or three series and few categories, so the eye can
+take in a group at once.  Past that they get busy quickly.  When you find yourself building
+one, it is worth asking whether the chart is really several charts.  Splitting it into a small
+panel per crop gives each series its own baseline and its own space:
+
+```{r}
+#| label: fig-facet
+#| eval: true
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 6.6
+#| fig-height: 2.2
+#| fig-cap: "The same acres again, one panel per crop."
+fig_facet(yields)
+```
+
+These are called **small multiples**, and they scale in a way that grouped bars do not: twelve
+crops would be twelve panels, still readable, where twelve series in a grouped bar chart would
+be unusable.  The trade is that comparing exact values across panels is harder, so use them
+when the shape of each series matters more than ranking them against each other.
 
 ### Pie charts: use sparingly {.unnumbered}
 
@@ -330,6 +373,7 @@ The short version:
 | How has this changed over time? | Line chart |
 | Are these two variables related? | Scatter plot |
 | What is this total made of? | Stacked bar, or a bar chart of the components |
+| How does each of several series move? | One panel per series |
 | How is a single variable distributed? | Histogram or box plot |
 
 When a chart does not obviously fit one of these, that is often a sign the question is not

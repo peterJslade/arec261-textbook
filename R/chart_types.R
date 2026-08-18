@@ -299,6 +299,42 @@ fig_truncated <- function(ymin = 100, labels = TRUE, title = NULL) {
     theme(axis.text.x = element_text(size = 8.2))
 }
 
+# --- grouped bars ---------------------------------------------------------
+# The same acres data as fig_stacked(), with the crops side by side instead of
+# stacked. Every bar now sits on the baseline, but there are 20 of them and the
+# reader has to decide which comparison the chart is for: across crops within a
+# year, or across years within a crop. Neither reads cleanly.
+fig_grouped <- function(d) {
+  a <- aggregate(Acres ~ Crop + Year, data = d, FUN = sum)
+  a$Acres <- a$Acres / 1e6
+  ggplot(a, aes(x = factor(Year), y = Acres, fill = Crop)) +
+    geom_col(position = position_dodge(width = 0.78), width = 0.72) +
+    scale_fill_manual(values = c("Spring wheat" = prairie, "Canola" = wheat,
+                                 "Barley" = sky, "Oats" = clay)) +
+    labs(title = NULL, x = NULL, y = "Acres (millions)") +
+    theme_arec() +
+    theme(legend.position = "right",
+          legend.title = element_blank(),
+          legend.key.size = unit(0.8, "lines"))
+}
+
+# The same numbers again, small multiples: one panel per crop. Each panel is a
+# simple line, so "how did canola move?" is answered without any decoding.
+fig_facet <- function(d) {
+  a <- aggregate(Acres ~ Crop + Year, data = d, FUN = sum)
+  a$Acres <- a$Acres / 1e6
+  ggplot(a, aes(x = Year, y = Acres)) +
+    geom_line(colour = prairie, linewidth = 0.7) +
+    geom_point(colour = prairie, size = 1.4) +
+    facet_wrap(~ Crop, nrow = 1) +
+    scale_x_continuous(breaks = c(2021, 2025), expand = expansion(mult = 0.14)) +
+    labs(title = NULL, x = NULL, y = "Acres (millions)") +
+    theme_arec() +
+    theme(strip.text = element_text(colour = ink, size = 9),
+          panel.grid.major.x = element_blank(),
+          panel.spacing.x = unit(1.1, "lines"))
+}
+
 # --- 5. the pie chart, and the same data as a bar -------------------------
 # Drawn as a matched pair so the comparison is direct: identical numbers, and
 # the bar version is the one you can actually read.
