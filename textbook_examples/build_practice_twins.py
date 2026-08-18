@@ -17,8 +17,6 @@ from openpyxl.utils import get_column_letter
 
 SOURCES = [
     "mod01_cell_formatting.xlsx",
-    "mod01_conditional.xlsx",
-    "mod01_lookup.xlsx",
     "mod01_references.xlsx",
     "mod01_sum.xlsx",
 ]
