@@ -1,200 +1,21 @@
-# Graphing in R {#sec-graphing-r}
+# Graphing in Excel {#sec-graphing-excel}
 
-Excel draws a chart from a selection.  R takes a different approach: you describe the chart
--- which variable goes on which axis, what shape to draw -- and `ggplot2` builds it.  That
-takes more typing for a single quick chart and far less for the twentieth one.
+Excel builds a chart from a selection: highlight the numbers, choose a chart type, and it
+draws one.  Getting a chart that is worth showing anyone takes a few more steps, and this
+chapter walks through them.
 
 ## Learning Objectives {.unnumbered}
 
 ::: {.objectives}
 By the end of this chapter, you will be able to:
 
-- Build a plot with `ggplot()`, an aesthetic mapping, and a geom
-- Choose the geom that suits your data
-- Tell the difference between mapping an aesthetic to a variable and setting it
-  to a constant
-- Add titles, axis labels and a theme
-- Split a plot into small multiples with facets, and save the result
+- Build a bar, line and scatter chart from a range of cells
+- Add and edit titles, axis labels and legends
+- Adjust an axis, and know when changing its range misleads
+- Save or copy a chart into a document
 :::
 
-## Why a New Grammar? {#sec-grammar}
+## Building a Chart {#sec-excel-chart-build}
 
-You know how to make charts in Excel (Module 1). Why learn another way?
-
-The short answer is that ggplot2 — R's most popular visualization package — produces charts that are *better* than Excel's by default, *more flexible* when you need to customize them, and *reproducible* because they are generated from code. The long answer is that ggplot2 is built on an idea called the **grammar of graphics** (from Leland Wilkinson's 1999 book of the same name), which organizes charts in a way that, once you understand it, makes making new kinds of charts feel like building with LEGO instead of hunting through menus.
-
-The grammar of graphics says that every chart is a combination of a few basic elements:
-
-- **Data** — the dataset being plotted.
-- **Aesthetics** — mappings from data columns to visual properties (x, y, color, size, shape).
-- **Geometries** — the shapes that appear on the page (points, lines, bars, boxes).
-- **Statistics** — transformations of the data done as part of plotting (binning for histograms, smoothing for trend lines).
-- **Scales** — how data values map to aesthetic values (linear vs log axes, color palettes).
-- **Coordinate systems** — Cartesian, polar, etc.
-- **Faceting** — splitting the chart into small multiples by a categorical variable.
-
-Every ggplot2 chart is built by adding these layers together. Once you understand the grammar, you can construct any chart you can imagine.
-
-## Your First ggplot {#sec-first-ggplot}
-
-ggplot2 is part of the tidyverse, so if you have loaded the tidyverse, it's already available.
-
-A basic scatter plot:
-
-```r
-ggplot(yields, aes(x = acres, y = yield_bu_acre)) +
-  geom_point()
-```
-
-Break it down:
-
-- `ggplot(yields, ...)` — start a new plot using the `yields` data frame.
-- `aes(x = acres, y = yield_bu_acre)` — the **aesthetic** mapping. The x position is mapped to the `acres` column, the y position to the `yield_bu_acre` column.
-- `+ geom_point()` — add a point geometry. Each row in the data becomes one point.
-
-Note the `+` — ggplot2 layers are added with `+`, not the pipe. A common beginner mistake is to use `|>` instead. Don't.
-
-## The Main Geoms {#sec-geoms}
-
-A tour of the most important `geom_` functions. In each case, you set the aesthetic mapping with `aes()` and the geom draws something based on those mappings.
-
-### `geom_point()` — Scatter Plots {.unnumbered}
-
-For showing the relationship between two continuous variables.
-
-```r
-ggplot(yields, aes(x = acres, y = yield_bu_acre)) +
-  geom_point(alpha = 0.5)  # alpha = transparency, helps when points overlap
-```
-
-### `geom_line()` — Line Charts {.unnumbered}
-
-For showing how a value changes over a continuous variable (usually time).
-
-```r
-annual_mean <- yields |>
-  group_by(year) |>
-  summarise(mean_yield = mean(yield_bu_acre, na.rm = TRUE))
-
-ggplot(annual_mean, aes(x = year, y = mean_yield)) +
-  geom_line() +
-  geom_point()
-```
-
-Notice that we summarized first, then plotted. ggplot2 does not have a built-in "line connecting the means" geom; you compute the means and then plot them.
-
-### `geom_col()` and `geom_bar()` — Bar Charts {.unnumbered}
-
-`geom_col()` plots bars with heights equal to values you give it. Use this when you have already computed the values.
-
-```r
-region_means <- yields |>
-  group_by(region) |>
-  summarise(mean_yield = mean(yield_bu_acre, na.rm = TRUE))
-
-ggplot(region_means, aes(x = region, y = mean_yield)) +
-  geom_col()
-```
-
-`geom_bar()` counts rows automatically. Use it when you have un-summarized data and want bar heights to be counts.
-
-```r
-ggplot(yields, aes(x = region)) + geom_bar()
-```
-
-These confuse new users constantly. Rule of thumb: if your data is already summarized, use `geom_col`; if you want ggplot to count things for you, use `geom_bar`.
-
-### `geom_histogram()` — Histograms {.unnumbered}
-
-For showing the distribution of a single continuous variable.
-
-```r
-ggplot(yields, aes(x = yield_bu_acre)) +
-  geom_histogram(bins = 30)
-```
-
-The `bins` argument controls how many bins to use. ggplot will print a warning if you don't set it, nudging you to think about bin width.
-
-### `geom_boxplot()` — Box Plots {.unnumbered}
-
-For comparing distributions across categories.
-
-```r
-ggplot(yields, aes(x = region, y = yield_bu_acre)) +
-  geom_boxplot()
-```
-
-This shows, for each region, the median, quartiles, and outliers of yield — side by side.
-
-### `geom_smooth()` — Trend Lines {.unnumbered}
-
-Adds a smoother to a scatter plot.
-
-```r
-ggplot(yields, aes(x = acres, y = yield_bu_acre)) +
-  geom_point(alpha = 0.3) +
-  geom_smooth(method = "lm")  # lm = linear regression
-```
-
-Use `method = "lm"` for a straight line; omit for a flexible nonparametric smoother. Useful for visual inspection of trends, but don't confuse a visual smoother for a rigorous model — that comes later.
-
-## Mapping vs Setting Aesthetics {#sec-mapping-vs-setting}
-
-A critical distinction. Consider these two:
-
-```r
-# Mapping: color depends on region
-ggplot(yields, aes(x = acres, y = yield_bu_acre, color = region)) +
-  geom_point()
-
-# Setting: all points are blue
-ggplot(yields, aes(x = acres, y = yield_bu_acre)) +
-  geom_point(color = "blue")
-```
-
-When you want an aesthetic to *depend on* the data (each region gets its own color), put it inside `aes()`. When you want to *set* it to a constant (all points blue), put it outside `aes()`. This trips people up. If you see colors that don't look right, check whether your `color` argument is in the right place.
-
-## Labels, Titles, and Themes {#sec-ggplot-polish}
-
-A bare ggplot is functional but ugly. Polish it with `labs()` and a `theme_`:
-
-```r
-ggplot(yields, aes(x = acres, y = yield_bu_acre, color = region)) +
-  geom_point(alpha = 0.6) +
-  labs(
-    title = "Canola yield by field size",
-    subtitle = "Saskatchewan, 2025",
-    x = "Field size (acres)",
-    y = "Yield (bu/acre)",
-    color = "Region",
-    caption = "Data: [TBD]"
-  ) +
-  theme_minimal()
-```
-
-`theme_minimal()` is a clean, publication-ready default. Other good ones: `theme_classic()`, `theme_bw()`. Avoid the default grey background for anything you will show in public.
-
-## Faceting {#sec-faceting}
-
-Often the most powerful thing you can do with ggplot is split the chart into small multiples:
-
-```r
-ggplot(yields, aes(x = yield_bu_acre)) +
-  geom_histogram(bins = 30) +
-  facet_wrap(~ region)
-```
-
-This produces one histogram per region, in a grid. Much easier to read than a single chart with overlapping histograms or legends.
-
-`facet_grid(region ~ variety)` makes a two-dimensional grid. Useful for comparing combinations.
-
-## Saving Plots {#sec-saving-plots}
-
-```r
-my_plot <- ggplot(yields, aes(x = region, y = yield_bu_acre)) +
-  geom_boxplot()
-
-ggsave("region_boxplot.png", plot = my_plot, width = 6, height = 4, dpi = 300)
-```
-
-Specify dimensions in inches and a DPI of 300 for print quality. PNG is fine for slides and web; PDF or SVG for publication.
+*(to write -- this chapter needs screenshots of the Insert Chart menu and the chart
+elements panel, and a worksheet with a few charts already built.)*
