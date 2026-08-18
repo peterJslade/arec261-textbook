@@ -116,6 +116,30 @@ fig_stacked <- function(d) {
           legend.key.size = unit(0.8, "lines"))
 }
 
+# --- truncated vs zero baseline -------------------------------------------
+# Malting barley variety trial results, Saskatchewan Seed Guide. The spread is
+# only 11 bu/ac on yields of about 110, so a truncated axis exaggerates it
+# dramatically -- which is exactly why seed marketing charts look the way they do.
+malting <- data.frame(
+  Variety    = c("AAC Connect", "AAC Synergy", "CDC Churchill",
+                 "CDC Copeland", "CDC Fraser"),
+  SiteYears  = c(46, 105, 46, 46, 43),
+  Yield      = c(109, 114, 114, 103, 110)
+)
+
+#' @param ymin where the y axis starts: 100 for the misleading version, 0 honest.
+fig_truncated <- function(ymin = 100, title = NULL) {
+  d <- malting
+  d$Variety <- factor(d$Variety, levels = d$Variety)
+  ggplot(d, aes(x = Variety, y = Yield)) +
+    geom_col(fill = prairie, width = 0.66) +
+    geom_text(aes(label = Yield), vjust = -0.5, colour = ink, size = 3.1) +
+    coord_cartesian(ylim = c(ymin, max(d$Yield) * 1.06)) +
+    labs(title = title, x = NULL, y = "Yield (bu/ac)") +
+    theme_arec() +
+    theme(axis.text.x = element_text(size = 8.2))
+}
+
 # --- 5. the pie chart, and the same data as a bar -------------------------
 # Drawn as a matched pair so the comparison is direct: identical numbers, and
 # the bar version is the one you can actually read.
