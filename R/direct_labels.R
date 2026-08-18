@@ -72,11 +72,19 @@ norm_name <- function(v) {
   gsub(" ", "", v)
 }
 
+## The raw acreage file spells some varieties both with and without their
+## institution prefix ("AAC Synergy" and "Synergy"). Aggregate on the
+## normalized code so each variety is one band, then take the longest raw
+## spelling as the display name.
+prov[, vc := norm_name(variety)]
+
+display_name <- prov[, .(variety = variety[which.max(nchar(variety))]), by = vc]
+
 total_by_year <- prov[, .(total_acres = sum(acres_inflated)), by = year]
-var_by_year <- prov[, .(var_acres = sum(acres_inflated)), by = .(year, variety)]
+var_by_year <- prov[, .(var_acres = sum(acres_inflated)), by = .(year, vc)]
 var_by_year <- merge(var_by_year, total_by_year, by = "year")
+var_by_year <- merge(var_by_year, display_name, by = "vc")
 var_by_year[, share := var_acres / total_acres]
-var_by_year[, vc := norm_name(variety)]
 var_by_year[, type := fifelse(vc %in% MALT_VARS, "malt", "feed")]
 
 # ==============================================================================
@@ -85,12 +93,13 @@ var_by_year[, type := fifelse(vc %in% MALT_VARS, "malt", "feed")]
 
 ## A variety stays named if it cleared the cutoff in either bookend year --
 ## that keeps both the varieties on their way out (big in 2008) and the ones
-## on their way in (big in 2024).
+## on their way in (big in 2024). "unknown" is a missing-data placeholder in
+## the acreage file rather than a variety, so it always folds into Other.
 endpoint_share <- var_by_year[year %in% CUTOFF_YEARS,
-  .(max_endpoint_share = max(share)), by = variety]
-named <- endpoint_share[max_endpoint_share >= SHARE_CUTOFF, variety]
+  .(max_endpoint_share = max(share)), by = vc]
+named <- endpoint_share[max_endpoint_share >= SHARE_CUTOFF & vc != "unknown", vc]
 
-var_by_year[, var_display := fifelse(variety %in% named, variety, "other")]
+var_by_year[, var_display := fifelse(vc %in% named, variety, "other")]
 var_shares <- var_by_year[, .(share = sum(share), type = type[1]),
   by = .(year, var_display)]
 
@@ -174,7 +183,7 @@ fig_direct <- ggplot(var_shares,
     xlim = c(max_yr, max_yr + 9),
     segment.size = 0.25, segment.color = "grey50",
     min.segment.length = 0, force = 3, max.overlaps = 30) +
-  labs(title = "A. Direct labels", x = NULL, y = "Share of barley acreage") +
+  labs(x = NULL, y = "Share of barley acreage") +
   theme_arec() +
   theme(panel.grid.major.y = element_blank()) +
   coord_cartesian(clip = "off")
@@ -194,7 +203,7 @@ fig_legend <- ggplot(var_shares,
     expand = expansion(mult = c(0, 0))) +
   scale_x_continuous(breaks = seq(2008, 2024, 4),
     expand = expansion(mult = c(0, 0))) +
-  labs(title = "B. Legend", x = NULL, y = "Share of barley acreage") +
+  labs(x = NULL, y = "Share of barley acreage") +
   theme_arec() +
   theme(
     panel.grid.major.y = element_blank(),
