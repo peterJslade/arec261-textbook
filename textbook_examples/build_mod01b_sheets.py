@@ -23,6 +23,7 @@ FORMULA = "2F5D46"
 LOCKFIL = "F6EFD9"
 
 FT = "_xlfn.FORMULATEXT"
+XL = "_xlfn.XLOOKUP"   # XLOOKUP is new enough to need the prefix too
 
 head_fill = PatternFill("solid", fgColor=PRAIRIE)
 lock_fill = PatternFill("solid", fgColor=LOCKFIL)
@@ -168,18 +169,18 @@ for i, (crop, price) in enumerate(prices):
 put(ws, 4, 5, "Price $/bu", font=f_head, fill=head_fill, align=centre)
 put(ws, 4, 6, "The formula in E", font=f_head, fill=head_fill, align=left)
 for r in range(D0, D1 + 1):
-    put(ws, r, 5, f"=XLOOKUP(B{r},$H$5:$H$7,$I$5:$I$7)", fmt='"$"#,##0.00', align=centre)
+    put(ws, r, 5, f"={XL}(B{r},$H$5:$H$7,$I$5:$I$7)", fmt='"$"#,##0.00', align=centre)
     put(ws, r, 6, f"={FT}(E{r})", font=f_form)
 
 Q = D1 + 2
 put(ws, Q, 1, "The same lookup, three ways", font=f_bold)
 ways = [
-    ("XLOOKUP (use this one)", f"=XLOOKUP(B{D0},$H$5:$H$7,$I$5:$I$7)"),
+    ("XLOOKUP (use this one)", f"={XL}(B{D0},$H$5:$H$7,$I$5:$I$7)"),
     ("VLOOKUP (older files)",  f"=VLOOKUP(B{D0},$H$5:$I$7,2,FALSE)"),
     ("INDEX/MATCH (older still)",
      f"=INDEX($I$5:$I$7,MATCH(B{D0},$H$5:$H$7,0))"),
     ("XLOOKUP, crop not in the list",
-     '=XLOOKUP("Lentils",$H$5:$H$7,$I$5:$I$7,"no price")'),
+     f'={XL}("Lentils",$H$5:$H$7,$I$5:$I$7,"no price")'),
 ]
 for i, (label, formula) in enumerate(ways):
     r = Q + 1 + i
@@ -202,47 +203,81 @@ wb.save("textbook_examples/mod01_lookup.xlsx")
 print("wrote mod01_lookup.xlsx")
 
 # ==========================================================================
-# 3 — WIDE VS LONG
+# 3 — WIDE VS LONG  (three tabs: an explanation, then each shape on its own sheet)
 # ==========================================================================
-wb = Workbook(); ws = wb.active; ws.title = "Wide and long"
-intro(ws, "The same data in two shapes",
-      "Both tables below hold exactly the same numbers.  In the WIDE table the crop is the "
-      "column heading.  In the LONG table the crop is a value in its own column, and every "
-      "yield is stacked into one column.  A PivotTable can only group by something that "
-      "lives in its own column.", 6)
+wb = Workbook()
+wb.remove(wb.active)
 
-wide = [(2023, 1, 50.8, 36.8, 53.0), (2023, 2, 48.5, 34.4, 50.5),
-        (2023, 3, 52.1, 38.9, 55.7)]
+wide_rows = [(2023, 1, 50.8, 36.8, 53.0),
+             (2023, 2, 48.5, 34.4, 50.5),
+             (2023, 3, 52.1, 38.9, 55.7)]
 
-put(ws, 4, 1, "WIDE — one row per RM", font=f_bold)
-head(ws, 5, ["Year", "RM", "Wheat", "Canola", "Barley"])
-for i, row in enumerate(wide):
+# --- tab 1: the explanation, with links to the other two -------------------
+ws = wb.create_sheet("Start here")
+ws.cell(1, 1, "The same data in two shapes").font = f_title
+c = ws.cell(2, 1,
+    "The next two tabs hold exactly the same numbers — three rural municipalities, three "
+    "crops, one year — laid out two different ways.  Open them side by side and compare.")
+c.font = f_sub; c.alignment = wrap
+ws.merge_cells(start_row=2, start_column=1, end_row=2, end_column=5)
+ws.row_dimensions[2].height = 32
+
+link = Font(name="Arial", size=11, bold=True, color="0563C1", underline="single")
+
+put(ws, 4, 1, "Wide", font=link).hyperlink = "#'Wide'!A1"
+put(ws, 4, 2, "One row per RM.  Each crop is its own column, so the crop name is a "
+              "column HEADING.", font=f_body)
+ws.merge_cells(start_row=4, start_column=2, end_row=4, end_column=5)
+
+put(ws, 6, 1, "Long", font=link).hyperlink = "#'Long'!A1"
+put(ws, 6, 2, "One row per RM and crop.  The crop is a VALUE in its own column, and every "
+              "yield is stacked into one column.", font=f_body)
+ws.merge_cells(start_row=6, start_column=2, end_row=6, end_column=5)
+
+put(ws, 8, 1,
+    "Neither is wrong; they suit different jobs.  Wide is easy to read and quick for "
+    "column-at-a-time arithmetic — average the Canola column and you are done.  Long is "
+    "what you need to summarize BY the stacked thing: a PivotTable can only group by a "
+    "field that lives in its own column, so to get average yield per crop, the crop has to "
+    "be a column of values rather than a set of headings.", font=f_note)
+ws.merge_cells(start_row=8, start_column=1, end_row=8, end_column=5)
+ws.row_dimensions[8].height = 60
+
+put(ws, 10, 1,
+    "Try it: on the Long tab you can build that PivotTable in one move.  On the Wide tab "
+    "there is no Crop field to drag anywhere.", font=f_note)
+ws.merge_cells(start_row=10, start_column=1, end_row=10, end_column=5)
+ws.row_dimensions[10].height = 32
+
+finish(ws, [("A", 12), ("B", 22), ("C", 18), ("D", 16), ("E", 16)], 11, freeze="A4")
+
+# --- tab 2: wide ------------------------------------------------------------
+ws = wb.create_sheet("Wide")
+intro(ws, "Wide — one row per RM",
+      "Three crops, three columns.  The crop name is a column heading, so it is part of "
+      "the layout rather than part of the data.", 5)
+head(ws, 4, ["Year", "RM", "Wheat", "Canola", "Barley"])
+for i, row in enumerate(wide_rows):
     for j, v in enumerate(row):
-        put(ws, 6 + i, 1 + j, v, fmt="0.0" if j >= 2 else "0", align=centre)
-WIDE_LAST = 5 + len(wide)
+        put(ws, 5 + i, 1 + j, v, fmt="0.0" if j >= 2 else "0", align=centre)
+finish(ws, [("A", 10), ("B", 8), ("C", 12), ("D", 12), ("E", 12)], 5 + len(wide_rows))
 
-L0 = WIDE_LAST + 2
-put(ws, L0, 1, "LONG — one row per RM and crop", font=f_bold)
-head(ws, L0 + 1, ["Year", "RM", "Crop", "Yield"])
-r = L0 + 2
-for (yr, rm, wheat, canola, barley) in wide:
+# --- tab 3: long ------------------------------------------------------------
+ws = wb.create_sheet("Long")
+intro(ws, "Long — one row per RM and crop",
+      "The same nine numbers.  Crop is now a column of values and every yield sits in a "
+      "single Yield column, which is the shape a PivotTable needs.", 4)
+head(ws, 4, ["Year", "RM", "Crop", "Yield"])
+r = 5
+for (yr, rm, wheat, canola, barley) in wide_rows:
     for crop, val in (("Wheat", wheat), ("Canola", canola), ("Barley", barley)):
         put(ws, r, 1, yr, align=centre)
         put(ws, r, 2, rm, align=centre)
         put(ws, r, 3, crop, align=centre)
         put(ws, r, 4, val, fmt="0.0", align=centre)
         r += 1
-LAST = r - 1
+finish(ws, [("A", 10), ("B", 8), ("C", 12), ("D", 12)], r - 1)
 
-put(ws, LAST + 2, 1,
-    "Ask for the average yield of each crop.  In the long table that is one PivotTable — "
-    "Crop on Rows, Yield in Values.  In the wide table you cannot do it in one move, "
-    "because there is no single Crop field to drag anywhere.", font=f_note)
-ws.merge_cells(start_row=LAST + 2, start_column=1, end_row=LAST + 2, end_column=6)
-ws.row_dimensions[LAST + 2].height = 32
-
-finish(ws, [("A", 10), ("B", 8), ("C", 12), ("D", 12), ("E", 12), ("F", 10)],
-       LAST + 2, freeze="A6")
 wb.save("textbook_examples/mod01_wide_long.xlsx")
 print("wrote mod01_wide_long.xlsx")
 
