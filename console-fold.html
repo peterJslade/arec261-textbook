@@ -32,4 +32,26 @@ document.addEventListener("DOMContentLoaded", function () {
     details.appendChild(out);
   });
 });
+
+// Split sidebar module labels ("Module 5: Probability and Random Variables")
+// into a small number line above the title, so the module number is scannable
+// and long titles stop wrapping mid-phrase. Quarto emits the whole label as one
+// text node, so the split has to happen here rather than in CSS.
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll(".sidebar-item-section .menu-text").forEach(function (el) {
+    if (el.querySelector(".module-label")) return;          // already split
+    var m = el.textContent.match(/^\s*Module\s+(\d+)\s*:\s*(.+)$/);
+    if (!m) return;                                          // not a module part
+
+    el.textContent = "";
+    var num = document.createElement("span");
+    num.className = "module-label";
+    num.textContent = "Module " + m[1];
+    var title = document.createElement("span");
+    title.className = "module-title";
+    title.textContent = m[2];
+    el.appendChild(num);
+    el.appendChild(title);
+  });
+});
 </script>
