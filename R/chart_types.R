@@ -60,6 +60,31 @@ fig_bar <- function(d) {
     theme(panel.grid.major.y = element_blank())
 }
 
+# --- 1b. the same bar chart, vertical -------------------------------------
+# Uses the barley varieties, whose names are long enough to show the problem:
+# vertical bars force the labels to rotate, overlap, or be truncated.
+fig_bar_vertical <- function() {
+  d <- malting
+  d$Variety <- factor(d$Variety, levels = d$Variety[order(-d$Yield)])
+  ggplot(d, aes(x = Variety, y = Yield)) +
+    geom_col(fill = prairie, width = 0.68) +
+    labs(title = "A. Vertical", x = NULL, y = "Yield (bu/ac)") +
+    theme_arec() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))
+}
+
+fig_bar_horizontal <- function() {
+  d <- malting
+  d$Variety <- factor(d$Variety, levels = d$Variety[order(d$Yield)])
+  ggplot(d, aes(x = Yield, y = Variety)) +
+    geom_col(fill = prairie, width = 0.68) +
+    scale_x_continuous(expand = expansion(mult = c(0, 0.08))) +
+    labs(title = "B. Horizontal", x = "Yield (bu/ac)", y = NULL) +
+    theme_arec() +
+    theme(panel.grid.major.y = element_blank(),
+          axis.text.y = element_text(size = 8))
+}
+
 # --- 2. line chart: change over time --------------------------------------
 fig_line <- function(d) {
   a <- by_crop_year(d)
@@ -159,6 +184,36 @@ fig_vote <- function(kind = c("pie", "bar")) {
       theme(panel.grid.major.y = element_blank(),
             axis.text.y = element_text(size = 8))
   }
+}
+
+# --- annotation -----------------------------------------------------------
+# One line, with a short note naming the thing the reader would otherwise have
+# to ask about: the 2021 drought. The annotation is the only text on the plot
+# beyond the axis labels, which is the point -- one note that answers the
+# obvious question, not a commentary on every feature.
+fig_annotated <- function(d, annotate = TRUE) {
+  a <- by_crop_year(d)
+  a <- a[a$Crop == "Spring wheat", ]
+  p <- ggplot(a, aes(x = Year, y = Yield)) +
+    geom_line(colour = prairie, linewidth = 0.8) +
+    geom_point(colour = prairie, size = 1.8) +
+    scale_x_continuous(breaks = sort(unique(a$Year)),
+                       expand = expansion(mult = c(0.08, 0.08))) +
+    scale_y_continuous(limits = c(30, 70)) +
+    labs(x = NULL, y = "Yield (bu/ac)") +
+    theme_arec()
+
+  if (annotate) {
+    y21 <- a$Yield[a$Year == 2021]
+    p <- p +
+      annotate("curve", x = 2021.72, xend = 2021.06, y = y21 + 8.5, yend = y21 + 1.6,
+               curvature = 0.3, linewidth = 0.3, colour = muted,
+               arrow = arrow(length = unit(0.055, "in"), type = "closed")) +
+      annotate("text", x = 2021.80, y = y21 + 9.6, hjust = 0, vjust = 0.5,
+               label = "2021: worst drought\nin over 30 years",
+               colour = muted, size = 3, lineheight = 0.95)
+  }
+  p
 }
 
 # --- clutter vs clean -----------------------------------------------------
