@@ -277,32 +277,54 @@ fig_vote <- function(kind = c("pie", "bar")) {
   }
 }
 
-# --- annotation -----------------------------------------------------------
-# One line, with a short note naming the thing the reader would otherwise have
-# to ask about: the 2021 drought. The annotation is the only text on the plot
-# beyond the axis labels, which is the point -- one note that answers the
-# obvious question, not a commentary on every feature.
-fig_annotated <- function(d, annotate = TRUE) {
-  a <- by_crop_year(d)
-  a <- a[a$Crop == "Spring wheat", ]
-  p <- ggplot(a, aes(x = Year, y = Yield)) +
+# --- annotation: nitrogen fertilizer prices -------------------------------
+# Approximate US Gulf urea price, USD per tonne, annual average. Indicative
+# figures assembled from published price commentary rather than a single
+# series -- the shape (2008 spike, 2020 trough, 2022 record) is what the
+# example needs, not the exact monthly numbers.
+urea <- data.frame(
+  Year  = 2000:2025,
+  Price = c(110, 125, 105, 150, 180, 230, 245, 310, 495, 250,
+            290, 400, 415, 340, 320, 275, 205, 215, 250, 235,
+            215, 480, 700, 380, 350, 365)
+)
+
+#' @param level "heavy" annotates everything; "light" annotates the one thing
+#'   a reader would actually stop at.
+fig_fertilizer <- function(level = c("light", "heavy")) {
+  level <- match.arg(level)
+  d <- urea
+  p <- ggplot(d, aes(x = Year, y = Price)) +
     geom_line(colour = prairie, linewidth = 0.8) +
-    geom_point(colour = prairie, size = 1.8) +
-    scale_x_continuous(breaks = sort(unique(a$Year)),
-                       expand = expansion(mult = c(0.08, 0.08))) +
-    scale_y_continuous(limits = c(30, 70)) +
-    labs(x = NULL, y = "Yield (bu/ac)") +
+    scale_x_continuous(breaks = seq(2000, 2025, 5)) +
+    scale_y_continuous(limits = c(0, 900),
+                       labels = function(x) paste0("$", x)) +
+    labs(x = NULL, y = "Urea price (USD/tonne)") +
     theme_arec()
 
-  if (annotate) {
-    y21 <- a$Yield[a$Year == 2021]
-    p <- p +
-      annotate("curve", x = 2021.72, xend = 2021.06, y = y21 + 8.5, yend = y21 + 1.6,
-               curvature = 0.3, linewidth = 0.3, colour = muted,
-               arrow = arrow(length = unit(0.055, "in"), type = "closed")) +
-      annotate("text", x = 2021.80, y = y21 + 9.6, hjust = 0, vjust = 0.5,
-               label = "2021: worst drought\nin over 30 years",
-               colour = muted, size = 3, lineheight = 0.95)
+  note <- function(p, x, y, lab, xend, yend, curv = 0.25, hj = 0, sz = 2.7) {
+    p +
+      annotate("curve", x = x, xend = xend, y = y, yend = yend,
+               curvature = curv, linewidth = 0.25, colour = muted,
+               arrow = arrow(length = unit(0.05, "in"), type = "closed")) +
+      annotate("text", x = x, y = y, label = lab, hjust = hj, vjust = 0.5,
+               colour = muted, size = sz, lineheight = 0.95)
+  }
+
+  if (level == "heavy") {
+    p <- note(p, 2001.2, 330, "prices drift\nthrough the\nearly 2000s", 2002.6, 140, 0.3)
+    p <- note(p, 2004.4, 430, "steady climb\nbegins",            2005.4, 250, -0.3)
+    p <- note(p, 2006.0, 620, "2008: demand and\nenergy costs spike", 2007.9, 505, -0.3)
+    p <- note(p, 2009.6, 120, "crash after the\nfinancial crisis", 2009.2, 235, 0.3)
+    p <- note(p, 2012.4, 560, "second peak",                     2012.0, 428, -0.3)
+    p <- note(p, 2015.5, 105, "long slide as new\ncapacity comes on", 2016.4, 192, 0.3)
+    p <- note(p, 2018.6, 430, "gentle recovery",                 2018.2, 262, -0.3)
+    p <- note(p, 2020.0, 60,  "COVID low",                       2020.2, 200, 0.3)
+    p <- note(p, 2013.6, 800, "2022: gas prices and\nthe war in Ukraine", 2021.7, 715, -0.18)
+    p <- note(p, 2017.4, 610, "falls back, but not\nto 2020 levels", 2023.6, 395, 0.22)
+  } else {
+    p <- note(p, 2002.0, 640, "2022: European gas prices\nand the war in Ukraine push\nurea to a record",
+              2021.6, 700, -0.20, sz = 2.9)
   }
   p
 }
