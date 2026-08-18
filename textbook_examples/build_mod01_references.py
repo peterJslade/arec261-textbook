@@ -98,7 +98,7 @@ wb, ws = new_sheet(
     "in bushels (col B) and price per bushel (col C).  We want to calculate the value "
     "of each load by multiplying bushels times price.  To do so, we can just write "
     "B5*C5 in cell D5 and the copy that equation into cells D6-D9.",
-    "Relative referencing example", width=5)
+    "Ex1 (relative)", width=5)
 
 header(ws, 4, ["Load", "Bushels", "Price ($/bu)", "Value ($)", "The formula in D"])
 FIRST = 5
@@ -124,7 +124,7 @@ wb, ws = new_sheet(
     "factor sits in one cell (B4), and every load needs that same cell.  If we write "
     "B7*B4 and copy it down, the B4 part drifts to B5, B6 and the answers go wrong.  "
     "Writing B7*$B$4 instead locks the factor in place while the bushels still move.",
-    "Absolute referencing example", width=4)
+    "Ex2 (absolute)", width=4)
 
 FACTOR_ROW = 4
 put(ws, FACTOR_ROW, 1, "Tonnes per bushel (wheat)", font=f_bold)
@@ -153,7 +153,7 @@ wb, ws = new_sheet(
     "want one formula that fills all three columns.  Writing $B7*C$4 locks the column "
     "on the bushels (so every crop reads column B) and locks the row on the factors "
     "(so every load reads row 4) — but leaves the other half of each free to move.",
-    "Absolute referencing example 2", width=6)
+    "Ex3 (absolute)", width=6)
 
 FACTOR_ROW = 4
 put(ws, FACTOR_ROW, 1, "Tonnes per bushel →", font=f_bold)
