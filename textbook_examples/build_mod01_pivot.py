@@ -78,13 +78,25 @@ def finish(ws, widths, last_row, freeze):
 
 
 # --- load and slice -------------------------------------------------------
+# The source data is broken out by risk zone.  We roll those up to PROVINCIAL
+# totals first: total acres, and an acreage-weighted average yield.  Without this
+# step every summary would be averaging across zones that farm wildly different
+# acreages, which weights a 500-acre zone the same as a 400,000-acre one.
 rows = [r for r in csv.DictReader(open("practice/data/sask_variety_yields.csv"))
         if r["Acres"].strip() and r["Yield"].strip() and r["Crop"] in MAIN]
-records = [(int(r["Risk_Zone"]), SHORT.get(r["Crop"], r["Crop"]), r["Variety"],
-            int(r["Year"]), float(r["Acres"]), float(r["Yield"])) for r in rows]
-records.sort(key=lambda t: (t[3], t[1], t[0]))
-crops = sorted({c for _, c, _, _, _, _ in records})
-years = sorted({y for _, _, _, y, _, _ in records})
+
+prov = defaultdict(lambda: [0.0, 0.0])          # (crop, variety, year) -> acres, acres*yield
+for r in rows:
+    key = (SHORT.get(r["Crop"], r["Crop"]), r["Variety"], int(r["Year"]))
+    acres, yld = float(r["Acres"]), float(r["Yield"])
+    prov[key][0] += acres
+    prov[key][1] += acres * yld
+
+records = [(crop, variety, year, acres, round(ay / acres, 1))
+           for (crop, variety, year), (acres, ay) in prov.items() if acres]
+records.sort(key=lambda t: (t[2], t[0], -t[3]))
+crops = sorted({c for c, _, _, _, _ in records})
+years = sorted({y for _, _, y, _, _ in records})
 
 wb = Workbook()
 wb.remove(wb.active)
@@ -96,9 +108,9 @@ ws = wb.create_sheet("Start here")
 ws.cell(1, 1, "Summarizing a big table").font = f_title
 c = ws.cell(2, 1,
     f"The Data tab holds {len(records):,} rows of real Saskatchewan crop data — one row for "
-    "every variety, in every risk zone, in every year from 2021 to 2025.  Far too much to "
-    "read.  A PivotTable turns it into a summary small enough to think about.  The other "
-    "four tabs are along the bottom of the window: Data, then three summaries.")
+    "every variety of six major crops, in every year from 2021 to 2025.  Too much to read.  "
+    "A PivotTable turns it into a summary small enough to think about.  The other four tabs "
+    "are along the bottom of the window: Data, then three summaries.")
 c.font = f_sub; c.alignment = wrap
 ws.merge_cells(start_row=2, start_column=1, end_row=2, end_column=6)
 ws.row_dimensions[2].height = 44
@@ -135,24 +147,23 @@ finish(ws, [("A", 13), ("B", 20), ("C", 16), ("D", 14), ("E", 12), ("F", 12)], 1
 ws = wb.create_sheet("Data")
 ws.cell(1, 1, "The data").font = f_title
 c = ws.cell(2, 1,
-    "One row per variety, risk zone and year.  This is long format: crop and year are "
-    "values in their own columns, which is what lets a PivotTable group by them.  All six "
-    "crops here are measured in bushels per acre, so averaging across them is fair.")
+    "One row per variety per year, for the whole province.  Acres are the provincial "
+    "total and the yield is an acreage-weighted average across all 21 risk zones, so "
+    "every row is directly comparable.  All six crops are measured in bushels per acre.")
 c.font = f_sub; c.alignment = wrap
 ws.merge_cells(start_row=2, start_column=1, end_row=2, end_column=6)
 ws.row_dimensions[2].height = 30
 
-head(ws, 4, ["Risk zone", "Crop", "Variety", "Year", "Acres", "Yield (bu/ac)"])
-for i, (zone, crop, variety, year, acres, yld) in enumerate(records):
+head(ws, 4, ["Crop", "Variety", "Year", "Acres", "Yield (bu/ac)"])
+for i, (crop, variety, year, acres, yld) in enumerate(records):
     r = 5 + i
-    put(ws, r, 1, zone, align=centre)
-    put(ws, r, 2, crop)
-    put(ws, r, 3, variety)
-    put(ws, r, 4, year, align=centre)
-    put(ws, r, 5, acres, fmt="#,##0", align=centre)
-    put(ws, r, 6, yld, fmt="0.0", align=centre)
+    put(ws, r, 1, crop)
+    put(ws, r, 2, variety)
+    put(ws, r, 3, year, align=centre)
+    put(ws, r, 4, round(acres), fmt="#,##0", align=centre)
+    put(ws, r, 5, yld, fmt="0.0", align=centre)
 DATA_LAST = 4 + len(records)
-finish(ws, [("A", 11), ("B", 15), ("C", 22), ("D", 8), ("E", 12), ("F", 14)],
+finish(ws, [("A", 15), ("B", 24), ("C", 8), ("D", 13), ("E", 14)],
        min(DATA_LAST, 60), "A5")
 
 # ==========================================================================
@@ -171,7 +182,7 @@ def wavg(items):
 by_crop = defaultdict(list)
 by_crop_year = defaultdict(list)
 acres_by_crop = defaultdict(float)
-for zone, crop, variety, year, acres, yld in records:
+for crop, variety, year, acres, yld in records:
     by_crop[crop].append((acres, yld))
     by_crop_year[(crop, year)].append((acres, yld))
     acres_by_crop[crop] += acres
