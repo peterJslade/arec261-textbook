@@ -141,6 +141,39 @@ fig_stacked <- function(d) {
           legend.key.size = unit(0.8, "lines"))
 }
 
+# --- when not to use a chart ----------------------------------------------
+# World wheat production, 2024/25 marketing year, million tonnes. Approximate
+# USDA WASDE figures -- close enough for the teaching point, which is about
+# whether a chart earns its place, not about the exact tonnages.
+wheat_world <- data.frame(
+  Country = c("China", "India", "Russia", "United States", "Australia",
+              "Canada", "Pakistan", "Ukraine", "Turkey", "Argentina",
+              "Germany", "France", "Kazakhstan", "United Kingdom", "Poland"),
+  Production = c(140.1, 113.3, 81.5, 53.7, 34.1, 34.9, 31.6, 22.4, 21.0,
+                 17.5, 20.8, 25.4, 15.0, 11.1, 12.2)
+)
+
+#' @param n how many countries to show. n = 2 gives the Canada/US comparison
+#'   that does not need a chart; n = 15 gives the one that does.
+fig_wheat <- function(n = 15) {
+  d <- wheat_world
+  if (n == 2) {
+    d <- d[d$Country %in% c("Canada", "United States"), ]
+  } else {
+    d <- d[order(-d$Production), ][seq_len(n), ]
+  }
+  d$Country <- factor(d$Country, levels = d$Country[order(d$Production)])
+  ggplot(d, aes(x = Production, y = Country,
+                fill = Country == "Canada")) +
+    geom_col(width = 0.68, show.legend = FALSE) +
+    scale_fill_manual(values = c("TRUE" = prairie, "FALSE" = "grey72")) +
+    scale_x_continuous(expand = expansion(mult = c(0, 0.1))) +
+    labs(x = "Production (million tonnes)", y = NULL) +
+    theme_arec() +
+    theme(panel.grid.major.y = element_blank(),
+          axis.text.y = element_text(size = 8))
+}
+
 # --- pie vs bar: 2021 Canadian federal election ---------------------------
 # Popular vote shares, Elections Canada official results. The Conservatives
 # outpolled the Liberals by about 0.6 points -- invisible as two adjacent
