@@ -1,0 +1,150 @@
+# AI Tools {#sec-ai-tools}
+
+You have been writing R for two modules now, and you have probably already asked an AI
+something about it.  This module is about doing that well.
+
+I said in the Introduction that you are encouraged to use these tools to learn, and that they
+are not permitted on tests.  That policy has not changed.  What follows is the practical
+version: what the tools are doing when they answer you, where they fail, and how to work in a
+way that catches the failures.
+
+## Learning Objectives {.unnumbered}
+
+::: {.objectives}
+By the end of this chapter, you will be able to:
+
+- Explain why an AI can be fluent and wrong at the same time
+- Recognize the failure modes that show up most often in data work
+- Say which tasks in this course AI is well suited to, and which it is not
+- State the course policy on AI and the reasoning behind it
+:::
+
+## What These Tools Are Doing {#sec-what-ai-does}
+
+A large language model predicts the next piece of text, given everything before it.  It was
+trained by doing this over an enormous amount of writing, including a great deal of R code,
+until it got good at continuing text in a way that resembles what a person would have
+written.
+
+That is the whole mechanism, and one consequence of it matters more than any other: the
+fluency of an answer and the accuracy of an answer come from the same process.  The model is
+not consulting a store of facts and then writing them up.  It is producing text that reads
+like a correct answer.  Most of the time text that reads like a correct answer *is* a correct
+answer, which is why these tools are useful.  But when it is wrong, it is wrong in the same
+confident register as when it is right.  Nothing in the tone tells you which one you are
+looking at.
+
+This is worth sitting with, because it runs against a habit most of us have.  When a person
+answers a question with hesitation, we discount it, and when they answer briskly and in
+detail we trust it more.  That instinct is useless here.
+
+## How This Shows Up {#sec-ai-failure-modes}
+
+Four failures account for most of the trouble in data work.
+
+**Invented functions and packages.**  You will be told to use a function that does not exist,
+in a package that does, or occasionally a package that does not exist either.  The name will
+be plausible — `read_excel_sheet()`, `summarise_by()` — because plausible names are exactly
+what the model is good at generating.  You find these immediately, because R throws an error.
+
+**Assumed column names.**  Ask for code to summarise your yield data and you will get
+something referring to `yield`, `crop`, and `year`, whether or not your file uses those
+names.  The model cannot see your data.  It is guessing from convention.
+
+**Out-of-date advice.**  Packages change.  A model trained before a change will confidently
+give you the old argument name or the deprecated function, and the version installed on your
+machine will disagree.
+
+**Confidently wrong numbers.**  If you paste in data and ask for a mean, you may get a number
+that is close to right and is not right.  Arithmetic is not what these tools do.  Ask for the
+code that computes the mean, and run it yourself.
+
+The first three announce themselves — the code fails, and you fix it.  The fourth does not,
+and neither does the fifth failure, which is the one to actually worry about.
+
+## The Failure That Matters {#sec-ai-silent-failure}
+
+Code that breaks is a nuisance.  Code that runs and answers a different question than the one
+you asked is a problem, because nothing tells you it happened.
+
+Suppose you ask for code to join your yield data to a table of prices.  You get a
+`left_join`, it runs, and you carry on.  What you did not notice is that four hundred rows
+had no matching price and are now `NA`, and your average is computed over the rows that
+survived.  The script ran cleanly.  The number it produced is wrong.  You will not find out
+unless you look.
+
+Nearly every serious mistake I have seen in student work — and in my own — has this shape.
+Not a crash, but a quiet mismatch between the question asked and the question answered.  AI
+makes it easier to produce a lot of code quickly, which means it makes this easier to do at
+volume.
+
+The habits that catch it are simple and are worth making automatic:
+
+1. Read every line before you run it.  If you cannot say what a line does, ask, or look it up.
+2. Check the row count after any join, filter, or group.  `nrow()` before and after.
+3. Run it first on data small enough to check by hand.
+4. Recompute one number a different way and see if it matches.
+
+## Where AI Earns Its Place {#sec-ai-good-uses}
+
+Being sceptical about these tools does not mean avoiding them.  They are genuinely good at
+several things you will do constantly in this course.
+
+- **Explaining error messages.**  R's errors are often opaque.  Pasting one in and asking what
+  it means is usually faster than searching, and this is the single best use of AI in this
+  course.
+- **Naming the function you want.**  You know what you want to do and cannot remember what it
+  is called.  Describe it and you will get the name.
+- **Boilerplate.**  Date formatting, regular expressions, long `case_when()` chains — tedious
+  to write, easy to check once written.
+- **A first draft of a script.**  Something to react to is easier than a blank file, as long as
+  you treat it as a draft rather than an answer.
+- **Explaining a concept a second way.**  If my explanation of standard deviation does not land,
+  asking for another one costs nothing.
+
+Notice what these have in common.  In each case you can tell quickly whether the answer is any
+good, either because R will tell you or because you know enough to judge.  That is the test for
+whether a task is a safe one to hand over.
+
+## Where It Does Not {#sec-ai-bad-uses}
+
+- **Deciding what analysis to do.**  The model will happily produce a regression when what the
+  question needed was a cross-tabulation.  It has no view on whether the analysis makes sense,
+  because it does not know what you are trying to find out.
+- **Anything about your specific data.**  It has not seen your file.  Everything it says about
+  your columns is inference from their names.
+- **Judging whether a result is plausible.**  A yield of 4,000 bushels per acre will not strike
+  it as odd.  It should strike you as odd.
+- **Learning the material for you.**  This one matters most on test day.
+
+## The Course Policy {#sec-ai-policy}
+
+You may use AI freely for the module practice and for the course project.  You may not use it
+on tests, where you will be working on your own.
+
+The reason is not suspicion.  It is that the tests are the one point where we find out whether
+*you* can read a data file, choose a summary, and tell whether the answer is sensible.  If the
+tool does that for you, neither of us learns anything from the result.  In your career the
+tools will be there; what will distinguish you is knowing what to ask for and being able to
+tell when the answer is wrong.
+
+There is one condition on assignment use that is worth stating plainly: **you must be able to
+explain every line you submit.**  If you cannot, it is not your work, and you have not learned
+what the exercise was for.
+
+## What the Rest of This Module Does {#sec-ai-module-plan}
+
+The next chapter sets up GitHub Copilot, which is the tool we will use in this course, and
+covers how to work with it inside Positron.  The chapter after that puts it to work on
+graphing — a good place to start, for reasons that will become obvious once you try it.
+
+::: {.callout-tip collapse="true"}
+## Other resources — how language models work
+
+- **3Blue1Brown**, [*But what is a GPT?*](https://www.youtube.com/watch?v=wjZofJX0v4M) — a
+  visual explanation of the prediction mechanism.  Longer and more technical than you need,
+  but the first ten minutes are the clearest version of this I know.
+- **Simon Willison's blog**, [simonwillison.net](https://simonwillison.net/) — a working
+  programmer writing carefully about what these tools can and cannot do.  Good antidote to
+  both the hype and the dismissal.
+:::
