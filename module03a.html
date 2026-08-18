@@ -413,6 +413,8 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#sec-aesthetics" id="toc-sec-aesthetics" class="nav-link" data-scroll-target="#sec-aesthetics"><span class="header-section-number">7.2</span> Aesthetics</a></li>
   <li><a href="#sec-audience-sympathy" id="toc-sec-audience-sympathy" class="nav-link" data-scroll-target="#sec-audience-sympathy"><span class="header-section-number">7.3</span> Sympathy for Your Audience</a></li>
   <li><a href="#sec-excel-formatting" id="toc-sec-excel-formatting" class="nav-link" data-scroll-target="#sec-excel-formatting"><span class="header-section-number">7.4</span> Formatting Excel Workbooks for Handoff</a></li>
+  <li><a href="#sec-hyperlinks" id="toc-sec-hyperlinks" class="nav-link" data-scroll-target="#sec-hyperlinks"><span class="header-section-number">7.5</span> Hyperlinks</a></li>
+  <li><a href="#sec-locking-cells" id="toc-sec-locking-cells" class="nav-link" data-scroll-target="#sec-locking-cells"><span class="header-section-number">7.6</span> Locking Cells</a></li>
   </ul>
 </nav>
     </div>
@@ -448,6 +450,7 @@ ul.task-list li input[type="checkbox"] {
 <li>Lay a workbook out so a reader can find their way around it</li>
 <li>Use shading, borders and labels to make a table readable without making it harder to analyse</li>
 <li>Recognize the trade-off between a workbook that looks good and one that is easy to compute with</li>
+<li>Link between sheets, and protect the cells a reader should not change</li>
 </ul>
 </div>
 </section>
@@ -559,7 +562,7 @@ ul.task-list li input[type="checkbox"] {
 <p>Sometimes your deliverable is an Excel workbook. Here are habits that will make the difference between a workbook your colleague can use and one they’ll quietly throw away:</p>
 <ul>
 <li><strong>Start with a README sheet.</strong> What is this file? Who made it? When? What does each sheet contain? How often is it updated?</li>
-<li><strong>Separate raw, cleaned, and analyzed data.</strong> As discussed in Module 1. Lock the raw data sheet if you can, so nobody accidentally edits it.</li>
+<li><strong>Separate raw, cleaned, and analyzed data.</strong> As discussed in Module 1 — and consider protecting the raw sheet (<a href="#sec-locking-cells" class="quarto-xref"><span>Section 7.6</span></a>) so nobody edits it by accident.</li>
 <li><strong>Use named cells for assumptions.</strong> Every assumption in your model (discount rate, growth rate, cost per unit) should live in a labelled cell that is easy to find and change.</li>
 <li><strong>Label everything.</strong> Every column, every chart, every table header. “The reader should never have to ask ‘what is this?’”</li>
 <li><strong>Use conditional formatting sparingly.</strong> It can be powerful, but it can also make a workbook look like a Christmas tree. Use it to highlight things that need attention, not to decorate.</li>
@@ -567,6 +570,34 @@ ul.task-list li input[type="checkbox"] {
 <li><strong>Document your formulas.</strong> At the top of an analysis column, write a cell explaining what the formula computes.</li>
 <li><strong>Include the date you last updated it.</strong> In the README.</li>
 </ul>
+</section>
+<section id="sec-hyperlinks" class="level2" data-number="7.5">
+<h2 data-number="7.5" class="anchored" data-anchor-id="sec-hyperlinks"><span class="header-section-number">7.5</span> Hyperlinks</h2>
+<p>Once a workbook runs to more than three or four sheets, a reader has to hunt along the tabs at the bottom of the window to find anything. A hyperlink fixes that: it turns a cell into something you can click to jump somewhere else.</p>
+<p>To make one, right-click a cell and choose <strong>Link</strong> (or press <code>Ctrl+K</code> / <code>⌘K</code>). The dialog offers a few kinds:</p>
+<ul>
+<li><strong>To a place in this document.</strong> Pick a sheet from the list, and optionally a cell reference like <code>A1</code>. This is the one that makes a README sheet worth having: list the other sheets down the page and link each one, so a reader can jump straight to the part they want.</li>
+<li><strong>To a file or web page.</strong> Point at the source the data came from – the SCIC page, the StatCan table – so the provenance is one click away rather than in an email somewhere.</li>
+<li><strong>To an email address.</strong> Useful on a README: whose file is this, and who does a reader ask about it.</li>
+</ul>
+<p>There is also a formula version, <code>HYPERLINK(target, friendly_name)</code>, which is handy when the destination is itself calculated:</p>
+<pre><code>=HYPERLINK("#'Summary'!A1", "Go to summary")
+=HYPERLINK("https://dashboard.saskatchewan.ca/agriculture/rm-yields/rm-yields-data",
+           "Source: Saskatchewan Dashboard")</code></pre>
+<p>Note the <code>#</code> for a destination inside the same workbook, and the single quotes around a sheet name that contains a space.</p>
+<p>One caveat worth knowing, because it will bite you. <strong>Links between sheets work in desktop Excel but often do nothing in Excel for the web</strong>, and they are usually dead in the read-only preview windows that embed a workbook in a web page. So use them, but do not rely on them as the only way to find something. Name your tabs clearly, and if a README refers to another sheet, say its name in the text as well as linking it.</p>
+</section>
+<section id="sec-locking-cells" class="level2" data-number="7.6">
+<h2 data-number="7.6" class="anchored" data-anchor-id="sec-locking-cells"><span class="header-section-number">7.6</span> Locking Cells</h2>
+<p>If you hand someone a workbook where they are meant to type in their own numbers, you usually want them typing in <em>some</em> cells and not others. The Crop Planning Guide from earlier is a good example: a producer fills in their own acres and prices, and the formulas that turn those into a cost per acre are none of their business. If they overwrite one by accident the whole sheet quietly goes wrong.</p>
+<p>Excel handles this with two settings that have to be used together, which is the part people find confusing. Every cell has a <strong>Locked</strong> property, switched on by default – but it does nothing at all until you <strong>protect the sheet</strong>. So the workflow runs backwards from what you might expect:</p>
+<ol type="1">
+<li>Select the cells you want people to be able to edit – the input cells.</li>
+<li>Right-click, <strong>Format Cells → Protection</strong>, and <em>untick</em> <strong>Locked</strong>.</li>
+<li>Then <strong>Review → Protect Sheet</strong>, and click OK.</li>
+</ol>
+<p>Everything you did not unlock is now read-only. Typing in it gets you a polite refusal rather than a broken formula. You can set a password, though for a teaching workbook or a file for a colleague there is rarely a reason to – the point is to prevent accidents, not to keep secrets. Anyone who really needs to change something can unprotect the sheet.</p>
+<p>Two things worth knowing. Protection is per sheet, so a workbook with a raw-data tab and a working tab needs each protected separately. And it is not security: a protected sheet without a password comes apart in a couple of clicks, and even with one it is not hard to get around. Treat it as a guard rail, not a lock.</p>
 
 
 </section>
