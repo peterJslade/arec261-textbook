@@ -23,6 +23,7 @@ FORMULA = "2F5D46"
 LOCKFIL = "F6EFD9"
 
 FT = "_xlfn.FORMULATEXT"
+XL = "_xlfn.XLOOKUP"   # XLOOKUP is new enough to need the prefix too
 
 head_fill = PatternFill("solid", fgColor=PRAIRIE)
 lock_fill = PatternFill("solid", fgColor=LOCKFIL)
@@ -168,18 +169,18 @@ for i, (crop, price) in enumerate(prices):
 put(ws, 4, 5, "Price $/bu", font=f_head, fill=head_fill, align=centre)
 put(ws, 4, 6, "The formula in E", font=f_head, fill=head_fill, align=left)
 for r in range(D0, D1 + 1):
-    put(ws, r, 5, f"=XLOOKUP(B{r},$H$5:$H$7,$I$5:$I$7)", fmt='"$"#,##0.00', align=centre)
+    put(ws, r, 5, f"={XL}(B{r},$H$5:$H$7,$I$5:$I$7)", fmt='"$"#,##0.00', align=centre)
     put(ws, r, 6, f"={FT}(E{r})", font=f_form)
 
 Q = D1 + 2
 put(ws, Q, 1, "The same lookup, three ways", font=f_bold)
 ways = [
-    ("XLOOKUP (use this one)", f"=XLOOKUP(B{D0},$H$5:$H$7,$I$5:$I$7)"),
+    ("XLOOKUP (use this one)", f"={XL}(B{D0},$H$5:$H$7,$I$5:$I$7)"),
     ("VLOOKUP (older files)",  f"=VLOOKUP(B{D0},$H$5:$I$7,2,FALSE)"),
     ("INDEX/MATCH (older still)",
      f"=INDEX($I$5:$I$7,MATCH(B{D0},$H$5:$H$7,0))"),
     ("XLOOKUP, crop not in the list",
-     '=XLOOKUP("Lentils",$H$5:$H$7,$I$5:$I$7,"no price")'),
+     f'={XL}("Lentils",$H$5:$H$7,$I$5:$I$7,"no price")'),
 ]
 for i, (label, formula) in enumerate(ways):
     r = Q + 1 + i
