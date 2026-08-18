@@ -235,13 +235,19 @@ malting <- data.frame(
   Yield      = c(109, 114, 114, 103, 110)
 )
 
-#' @param ymin where the y axis starts: 100 for the misleading version, 0 honest.
-fig_truncated <- function(ymin = 100, title = NULL) {
+#' @param ymin   where the y axis starts: 100 for the misleading version, 0 honest.
+#' @param labels print the value above each bar. Off for the truncated version:
+#'   without the numbers there is nothing to check the bar heights against, which
+#'   is how these charts usually appear in the wild.
+fig_truncated <- function(ymin = 100, labels = TRUE, title = NULL) {
   d <- malting
   d$Variety <- factor(d$Variety, levels = d$Variety)
-  ggplot(d, aes(x = Variety, y = Yield)) +
-    geom_col(fill = prairie, width = 0.66) +
-    geom_text(aes(label = Yield), vjust = -0.5, colour = ink, size = 3.1) +
+  p <- ggplot(d, aes(x = Variety, y = Yield)) +
+    geom_col(fill = prairie, width = 0.66)
+  if (labels) {
+    p <- p + geom_text(aes(label = Yield), vjust = -0.5, colour = ink, size = 3.1)
+  }
+  p +
     coord_cartesian(ylim = c(ymin, max(d$Yield) * 1.06)) +
     labs(title = title, x = NULL, y = "Yield (bu/ac)") +
     theme_arec() +
