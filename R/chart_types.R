@@ -116,6 +116,51 @@ fig_stacked <- function(d) {
           legend.key.size = unit(0.8, "lines"))
 }
 
+# --- pie vs bar: 2021 Canadian federal election ---------------------------
+# Popular vote shares, Elections Canada official results. The Conservatives
+# outpolled the Liberals by about 0.6 points -- invisible as two adjacent
+# wedges, obvious as two bars.
+election <- data.frame(
+  Party = c("Conservative", "Liberal", "NDP", "Bloc Québécois",
+            "People's Party", "Green", "Other"),
+  Share = c(33.7, 32.6, 17.8, 7.6, 4.9, 2.3, 1.1)
+)
+
+fig_vote <- function(kind = c("pie", "bar")) {
+  kind <- match.arg(kind)
+  d <- election
+  d$Party <- factor(d$Party, levels = d$Party)
+  cols <- c("Conservative" = "#1f4e8c", "Liberal" = "#c0392b",
+            "NDP" = "#e08214", "Bloc Québécois" = "#5aa5d6",
+            "People's Party" = "#4d4d9e", "Green" = "#4a7c59",
+            "Other" = "grey75")
+
+  if (kind == "pie") {
+    ggplot(d, aes(x = "", y = Share, fill = Party)) +
+      geom_col(width = 1, colour = "white", linewidth = 0.3) +
+      coord_polar(theta = "y", direction = -1) +
+      scale_fill_manual(values = cols) +
+      labs(title = "A. Pie chart") +
+      theme_void(base_size = 10) +
+      theme(plot.title = element_text(colour = ink, size = 10, face = "bold"),
+            legend.title = element_blank(),
+            legend.text = element_text(size = 8),
+            legend.key.size = unit(0.72, "lines"))
+  } else {
+    ggplot(d, aes(x = Share, y = factor(Party, levels = rev(levels(Party))),
+                  fill = Party)) +
+      geom_col(width = 0.68, show.legend = FALSE) +
+      geom_text(aes(label = sprintf("%.1f", Share)), hjust = -0.22,
+                colour = ink, size = 3) +
+      scale_fill_manual(values = cols) +
+      scale_x_continuous(expand = expansion(mult = c(0, 0.16))) +
+      labs(title = "B. Bar chart", x = "Share of the popular vote (%)", y = NULL) +
+      theme_arec() +
+      theme(panel.grid.major.y = element_blank(),
+            axis.text.y = element_text(size = 8))
+  }
+}
+
 # --- clutter vs clean -----------------------------------------------------
 # The same line chart drawn twice. The cluttered version collects the defaults
 # and decorations Excel offers: heavy gridlines both ways, a tick every year on
