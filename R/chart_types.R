@@ -268,10 +268,8 @@ fig_vote <- function(kind = c("pie", "bar")) {
     ggplot(d, aes(x = Share, y = factor(Party, levels = rev(levels(Party))),
                   fill = Party)) +
       geom_col(width = 0.68, show.legend = FALSE) +
-      geom_text(aes(label = sprintf("%.1f", Share)), hjust = -0.22,
-                colour = ink, size = 3) +
       scale_fill_manual(values = cols) +
-      scale_x_continuous(expand = expansion(mult = c(0, 0.16))) +
+      scale_x_continuous(expand = expansion(mult = c(0, 0.06))) +
       labs(title = "B. Bar chart", x = "Share of the popular vote (%)", y = NULL) +
       theme_arec() +
       theme(panel.grid.major.y = element_blank(),
@@ -505,9 +503,7 @@ fig_pie_vs_bar <- function(d) {
 
   bar <- ggplot(a, aes(x = share, y = factor(Crop, levels = rev(levels(Crop))))) +
     geom_col(fill = prairie, width = 0.66) +
-    geom_text(aes(label = paste0(round(share), "%")), hjust = -0.25,
-              colour = ink, size = 3.1) +
-    scale_x_continuous(expand = expansion(mult = c(0, 0.15))) +
+    scale_x_continuous(expand = expansion(mult = c(0, 0.06))) +
     labs(title = "B. As a bar chart", x = "Share of acres (%)", y = NULL) +
     theme_arec() +
     theme(panel.grid.major.y = element_blank())
