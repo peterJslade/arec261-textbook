@@ -60,6 +60,172 @@ Before we get into specific chart types, some general principles. These come fro
 - **Use colour purposefully.** Colour should encode information (the blue line is canola, the orange is wheat), not be decorative. Use a colour-blind-friendly palette — about 8% of men cannot distinguish red from green. Default Excel colours are mostly fine; avoid red-on-green combinations.
 - **Be wary of pie charts.** Humans judge angles and areas poorly; a bar chart almost always does the job better. If you do use one, keep it to three or four slices.
 
+## Types of Charts {#sec-chart-types}
+
+Most of the work in making a good chart is picking the right kind in the first place.  The
+choice follows from the comparison you want the reader to make, so it helps to state that
+comparison out loud before you open a chart menu.  All the figures below are drawn from the
+same Saskatchewan variety data, so you can see how differently the same numbers read.
+
+```{r}
+#| label: setup-charts
+#| eval: true
+#| echo: false
+#| message: false
+#| warning: false
+source("R/chart_types.R")
+yields <- load_yields()
+```
+
+### Bar charts: comparing categories {.unnumbered}
+
+A bar chart compares a value across categories -- yields by crop, acres by region, revenue by
+customer.  The eye is good at judging the length of a bar against its neighbours, which is why
+bar charts do so much of the work in practice.
+
+```{r}
+#| label: fig-bar
+#| eval: true
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 6.4
+#| fig-height: 2.6
+#| fig-cap: "A bar chart compares one value across categories."
+fig_bar(yields)
+```
+
+Two habits make bar charts better.  Sort the bars by size unless the categories have their own
+natural order, because a sorted chart answers "which is biggest?" instantly and an
+alphabetical one makes the reader hunt.  And start the axis at zero.  A bar encodes its value
+by length, so cutting the axis at 30 makes a 5% difference look like a doubling.  This is the
+single most common way a chart misleads, and it is usually the software's default rather than
+anyone's intent.
+
+### Line charts: change over time {.unnumbered}
+
+A line chart shows how something moves over a continuous scale, almost always time.  The line
+implies the values connect, which is exactly why you should not use one for categories: a line
+running from Barley to Canola to Oats suggests a progression that does not exist.
+
+```{r}
+#| label: fig-line
+#| eval: true
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 6.4
+#| fig-height: 2.9
+#| fig-cap: "A line chart shows movement over time. Labelling each line at its right-hand end saves the reader a trip to the legend."
+fig_line(yields)
+```
+
+Unlike bar charts, line charts do not need a zero baseline.  Nothing is encoded by length, so
+you are free to zoom in on the range where the action is -- but say so, and do not zoom so far
+that ordinary variation looks like a crisis.
+
+### Scatter plots: the relationship between two variables {.unnumbered}
+
+A scatter plot puts one variable on each axis and a point at every observation.  Use it when
+you want to know whether two things move together.
+
+```{r}
+#| label: fig-scatter
+#| eval: true
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 6.4
+#| fig-height: 2.8
+#| fig-cap: "A scatter plot asks whether two variables move together. Each point is one of Saskatchewan's 21 risk zones."
+fig_scatter(yields)
+```
+
+Each point is a risk zone, with its wheat yield on one axis and its barley yield on the other.
+The points run up and to the right, which says a zone that grew good wheat that year generally
+grew good barley too -- unsurprising, since both crops got the same rain.  A scatter showing
+*no* pattern would be just as informative.
+
+This is the workhorse of statistical analysis and it returns in Module 4, where we put a line
+through the cloud and start measuring how strong the relationship is.
+
+### Stacked bars: parts of a whole {.unnumbered}
+
+A stacked bar breaks each bar into components, showing both the total and its composition.
+
+```{r}
+#| label: fig-stacked
+#| eval: true
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 6.6
+#| fig-height: 2.9
+#| fig-cap: "A stacked bar shows the total and its composition at once."
+fig_stacked(yields)
+```
+
+The catch is that only the bottom segment sits on a common baseline.  You can compare canola
+acres across years easily because they all start at zero; comparing the middle segments means
+judging the length of a floating block, which the eye does poorly.  If the components matter
+more than the total, use separate bars side by side instead.
+
+### Pie charts: use sparingly {.unnumbered}
+
+A pie chart shows shares of a total.  It is the most criticized chart type in the field, and
+the reason is worth seeing rather than taking on faith.  @fig-pie shows the same four numbers
+twice.
+
+```{r}
+#| label: fig-pie
+#| eval: true
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 3.4
+#| fig-height: 2.7
+#| fig-cap: "The same four numbers, twice."
+#| fig-subcap:
+#|   - ""
+#|   - ""
+#| layout-ncol: 2
+pv <- fig_pie_vs_bar(yields)
+pv$pie
+pv$bar
+```
+
+In panel A, how much bigger is canola than spring wheat?  Most people guess a much wider gap
+than the real one, because the eye judges angle and area poorly.  Panel B gives you 47% and
+38% directly, and the answer takes no work at all.  The pie is not useless -- it does convey
+"canola is about half the acres" at a glance -- but any comparison finer than that is easier
+in a bar chart.
+
+If you use one, keep it to a handful of slices, label them directly, and never make it 3D.  A
+3D pie tilts the plane, which makes the near slices larger than the far ones for no reason but
+decoration.
+
+### Histograms and box plots {.unnumbered}
+
+These two describe the distribution of a single variable rather than comparing categories, and
+you met them in @sec-charts.  A histogram bins the values and shows the shape; a box plot
+compresses that shape into a median, a box holding the middle half of the data, and whiskers.
+Reach for them when the question is about spread rather than comparison.
+
+### Choosing {.unnumbered}
+
+The short version:
+
+| If the question is | Use |
+|---|---|
+| How does this value compare across categories? | Bar chart |
+| How has this changed over time? | Line chart |
+| Are these two variables related? | Scatter plot |
+| What is this total made of? | Stacked bar, or a bar chart of the components |
+| How is a single variable distributed? | Histogram or box plot |
+
+When a chart does not obviously fit one of these, that is often a sign the question is not
+sharp enough yet.
+
 ## Excel vs R for Charts {#sec-excel-vs-r-charts}
 
 I want to be honest about this: **Excel charts are fine for many purposes.** They are easy to make, they look acceptable with default settings, and they are immediately editable by non-technical colleagues. If you are making a one-off chart for an internal meeting, Excel may be the right choice.
