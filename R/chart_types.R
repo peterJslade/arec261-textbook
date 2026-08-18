@@ -329,6 +329,90 @@ fig_fertilizer <- function(level = c("light", "heavy")) {
   p
 }
 
+# --- a few extras ---------------------------------------------------------
+
+# Shaded range: the spread of zone-level yields behind the provincial average.
+# geom_ribbon draws the band; the line sits on top of it.
+fig_ribbon <- function(d) {
+  s <- d[d$Crop == "Spring wheat", ]
+  z <- aggregate(cbind(num = s$Acres * s$Yield, den = s$Acres),
+                 by = list(Zone = s$Risk_Zone, Year = s$Year), FUN = sum)
+  z$Yield <- z$num / z$den
+  b <- do.call(rbind, lapply(split(z, z$Year), function(g) data.frame(
+    Year = g$Year[1], lo = quantile(g$Yield, 0.1), hi = quantile(g$Yield, 0.9),
+    mid = mean(g$Yield))))
+
+  ggplot(b, aes(x = Year)) +
+    geom_ribbon(aes(ymin = lo, ymax = hi), fill = prairie, alpha = 0.18) +
+    geom_line(aes(y = mid), colour = prairie, linewidth = 0.8) +
+    scale_x_continuous(breaks = sort(unique(b$Year))) +
+    labs(x = NULL, y = "Yield (bu/ac)") +
+    theme_arec()
+}
+
+# Trend line: the same scatter with a fitted straight line through it.
+fig_trend <- function(d) {
+  yr <- max(d$Year)
+  s  <- d[d$Year == yr & d$Crop %in% c("Spring wheat", "Barley"), ]
+  z  <- aggregate(cbind(num = s$Acres * s$Yield, den = s$Acres),
+                  by = list(Zone = s$Risk_Zone, Crop = s$Crop), FUN = sum)
+  z$Yield <- z$num / z$den
+  w <- merge(z[z$Crop == "Spring wheat", c("Zone", "Yield")],
+             z[z$Crop == "Barley",       c("Zone", "Yield")],
+             by = "Zone", suffixes = c("_wheat", "_barley"))
+
+  ggplot(w, aes(x = Yield_wheat, y = Yield_barley)) +
+    geom_smooth(method = "lm", se = TRUE, colour = clay, fill = clay,
+                alpha = 0.12, linewidth = 0.6, formula = y ~ x) +
+    geom_point(colour = prairie, alpha = 0.75, size = 2.2) +
+    labs(x = "Spring wheat yield (bu/ac)", y = "Barley yield (bu/ac)") +
+    theme_arec() +
+    theme(panel.grid.major.x = element_line(colour = "grey92", linewidth = 0.3))
+}
+
+# Reference line: a horizontal average with the bars read against it.
+fig_refline <- function(d) {
+  a <- by_crop_year(d)
+  a <- a[a$Crop == "Canola", ]
+  m <- mean(a$Yield)
+  ggplot(a, aes(x = factor(Year), y = Yield)) +
+    geom_col(fill = prairie, width = 0.66) +
+    geom_hline(yintercept = m, linetype = "dashed", colour = clay,
+               linewidth = 0.5) +
+    annotate("text", x = 0.62, y = m + 2.4, hjust = 0,
+             label = paste0("five-year average, ", round(m), " bu/ac"),
+             colour = clay, size = 2.9) +
+    labs(x = NULL, y = "Canola yield (bu/ac)") +
+    theme_arec()
+}
+
+# Waterfall: how a starting figure becomes an ending one through gains and
+# losses. Built by hand -- ggplot has no waterfall geom, and Excel does.
+fig_waterfall <- function() {
+  d <- data.frame(
+    Item  = c("Gross revenue", "Seed", "Fertilizer", "Chemical",
+              "Machinery", "Land", "Other", "Net margin"),
+    Value = c(560, -55, -140, -60, -95, -120, -35, 55),
+    Kind  = c("total", rep("cost", 6), "total")
+  )
+  d$Item <- factor(d$Item, levels = d$Item)
+  # running position of each floating bar
+  end <- cumsum(ifelse(d$Kind == "total" & seq_len(nrow(d)) > 1, 0, d$Value))
+  d$ymax <- ifelse(d$Kind == "total" & seq_len(nrow(d)) > 1, d$Value, end)
+  d$ymin <- ifelse(d$Kind == "total", 0, end - d$Value)
+
+  ggplot(d, aes(x = Item, fill = Kind)) +
+    geom_rect(aes(xmin = as.numeric(Item) - 0.34,
+                  xmax = as.numeric(Item) + 0.34,
+                  ymin = ymin, ymax = ymax)) +
+    scale_fill_manual(values = c("total" = prairie, "cost" = clay)) +
+    scale_y_continuous(labels = function(x) paste0("$", x)) +
+    labs(x = NULL, y = "Per acre") +
+    theme_arec() +
+    theme(axis.text.x = element_text(angle = 40, hjust = 1, size = 7.6),
+          legend.position = "none")
+}
+
 # --- clutter vs clean -----------------------------------------------------
 # The same line chart drawn twice. The cluttered version collects the defaults
 # and decorations Excel offers: heavy gridlines both ways, a tick every year on
