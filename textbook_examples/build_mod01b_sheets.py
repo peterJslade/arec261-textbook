@@ -15,6 +15,7 @@ Run:  python3 textbook_examples/build_mod01b_sheets.py
 
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font, PatternFill, Alignment
+from openpyxl.worksheet.hyperlink import Hyperlink
 
 PRAIRIE = "4A7C59"
 INK     = "24302A"
@@ -216,20 +217,21 @@ wide_rows = [(2023, 1, 50.8, 36.8, 53.0),
 ws = wb.create_sheet("Start here")
 ws.cell(1, 1, "The same data in two shapes").font = f_title
 c = ws.cell(2, 1,
-    "The next two tabs hold exactly the same numbers — three rural municipalities, three "
-    "crops, one year — laid out two different ways.  Open them side by side and compare.")
+    "The next two tabs — Wide and Long — hold exactly the same numbers: three rural "
+    "municipalities, three crops, one year, laid out two different ways.  Use the tabs "
+    "along the bottom of the window to switch between them.")
 c.font = f_sub; c.alignment = wrap
 ws.merge_cells(start_row=2, start_column=1, end_row=2, end_column=5)
 ws.row_dimensions[2].height = 32
 
 link = Font(name="Arial", size=11, bold=True, color="0563C1", underline="single")
 
-put(ws, 4, 1, "Wide", font=link).hyperlink = "#'Wide'!A1"
+put(ws, 4, 1, "Wide", font=link).hyperlink = Hyperlink(ref="A4", location="'Wide'!A1")
 put(ws, 4, 2, "One row per RM.  Each crop is its own column, so the crop name is a "
               "column HEADING.", font=f_body)
 ws.merge_cells(start_row=4, start_column=2, end_row=4, end_column=5)
 
-put(ws, 6, 1, "Long", font=link).hyperlink = "#'Long'!A1"
+put(ws, 6, 1, "Long", font=link).hyperlink = Hyperlink(ref="A6", location="'Long'!A1")
 put(ws, 6, 2, "One row per RM and crop.  The crop is a VALUE in its own column, and every "
               "yield is stacked into one column.", font=f_body)
 ws.merge_cells(start_row=6, start_column=2, end_row=6, end_column=5)

@@ -20,6 +20,7 @@ import csv
 from collections import defaultdict
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font, PatternFill, Alignment
+from openpyxl.worksheet.hyperlink import Hyperlink
 
 PRAIRIE = "4A7C59"
 INK     = "24302A"
@@ -96,12 +97,13 @@ ws.cell(1, 1, "Summarizing a big table").font = f_title
 c = ws.cell(2, 1,
     f"The Data tab holds {len(records):,} rows of real Saskatchewan crop data — one row for "
     "every variety, in every risk zone, in every year from 2021 to 2025.  Far too much to "
-    "read.  A PivotTable turns it into a summary small enough to think about.")
+    "read.  A PivotTable turns it into a summary small enough to think about.  The other "
+    "four tabs are along the bottom of the window: Data, then three summaries.")
 c.font = f_sub; c.alignment = wrap
 ws.merge_cells(start_row=2, start_column=1, end_row=2, end_column=6)
 ws.row_dimensions[2].height = 44
 
-put(ws, 4, 1, "Data", font=f_link).hyperlink = "#'Data'!A1"
+put(ws, 4, 1, "Data", font=f_link).hyperlink = Hyperlink(ref="A4", location="'Data'!A1")
 put(ws, 4, 2, f"The full table: risk zone, crop, variety, year, acres, yield.")
 ws.merge_cells(start_row=4, start_column=2, end_row=4, end_column=6)
 
@@ -112,7 +114,8 @@ items = [
 ]
 for i, (tab, desc) in enumerate(items):
     r = 6 + i * 2
-    put(ws, r, 1, tab, font=f_link).hyperlink = f"#'{tab}'!A1"
+    put(ws, r, 1, tab, font=f_link).hyperlink = Hyperlink(
+        ref=f"A{r}", location=f"'{tab}'!A1")
     put(ws, r, 2, desc)
     ws.merge_cells(start_row=r, start_column=2, end_row=r, end_column=6)
 
