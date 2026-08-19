@@ -740,10 +740,44 @@ window.Quarto = {
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"field_yields.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Every example below assumes this <code>yields</code> data frame is loaded. Run <code>yields</code> on its own line to see it, or <code>glimpse(yields)</code> for a compact column-by-column view.</p>
 <p><strong>One crucial thing to understand before we start.</strong> Every <code>dplyr</code> verb <em>returns a new data frame</em> – it does <strong>not</strong> change the original. So this:</p>
+<div class="cell">
+<div class="cell-output-display">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">filter</span>(yield_bu_acre <span class="sc">&gt;</span> <span class="dv">50</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; yields |&gt; filter(yield_bu_acre &gt; 50)
+# A tibble: 14 × 8
+   field_id region  variety    acres yield_bu_acre  year seeding_date units
+   &lt;chr&gt;    &lt;chr&gt;   &lt;chr&gt;      &lt;dbl&gt;         &lt;dbl&gt; &lt;dbl&gt; &lt;date&gt;       &lt;chr&gt;
+ 1 F010     South   Clearfield   480          56.7  2024 2024-05-03   bu/ac
+ 2 F018     North   InVigor      120          54.2  2025 2025-04-26   bu/ac
+ 3 F019     South   InVigor      388          50.7  2024 2024-05-12   bu/ac
+ 4 F029     North   InVigor      270          53.4  2025 2025-05-24   bu/ac
+ 5 F035     North   InVigor      201          54.3  2024 2024-05-05   bu/ac
+ 6 F037     Central DKTC         454          51.1  2024 2024-04-27   bu/ac
+ 7 F042     Central DKTC         304          50.8  2024 2024-05-09   bu/ac
+ 8 F044     Central DKTC         268          60.7  2024 2024-05-14   bu/ac
+ 9 F045     North   InVigor      193          54.6  2025 2025-05-06   bu/ac
+10 F046     Central InVigor      383          53.1  2025 2025-05-22   bu/ac
+11 F047     Central InVigor      345          53.2  2025 2025-05-22   bu/ac
+12 F051     North   Clearfield   302          55.3  2025 2025-05-02   bu/ac
+13 F054     Central Clearfield   333          51.6  2025 2025-04-28   bu/ac
+14 F057     Central InVigor       94          53.9  2024 2024-05-11   bu/ac</code></pre>
+</div>
+</div>
+</div>
 <p>computes the filtered result and <em>prints it</em>, but <code>yields</code> itself is unchanged – the next time you use <code>yields</code>, all 60 rows are still there. If you want to <strong>keep</strong> a result, you must assign it to an object:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>big_fields <span class="ot">&lt;-</span> yields <span class="sc">|&gt;</span> <span class="fu">filter</span>(yield_bu_acre <span class="sc">&gt;</span> <span class="dv">50</span>)   <span class="co"># save the result</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>That is deliberate: your original data stays intact while you experiment. Throughout this chapter, when an example just shows a pipeline without <code>&lt;-</code>, assume we are looking at the result on screen; add <code>name &lt;-</code> in front when you want to save it.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>big_fields <span class="ot">&lt;-</span> yields <span class="sc">|&gt;</span> <span class="fu">filter</span>(yield_bu_acre <span class="sc">&gt;</span> <span class="dv">50</span>)   <span class="co"># save the result</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>That is deliberate: your original data stays intact while you experiment. You can see it – the filter above returned 14 rows, and <code>yields</code> still has all 60:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(yields)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; nrow(yields)
+[1] 60</code></pre>
+</div>
+</div>
+</div>
+<p>Throughout this chapter, when an example just shows a pipeline without <code>&lt;-</code>, assume we are looking at the result on screen; add <code>name &lt;-</code> in front when you want to save it.</p>
 <section id="a-note-on-the-pipe" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="a-note-on-the-pipe">A note on the pipe <code>|&gt;</code></h3>
 <p>You will see the symbol <code>|&gt;</code> in almost every example below. It is the <strong>pipe</strong>, and it does something simple: it takes whatever is on its <em>left</em> and feeds it as the first input to the function on its <em>right</em>. So <code>yields |&gt; filter(...)</code> reads as “take <code>yields</code>, then filter it.” You could write the same thing as <code>filter(yields, ...)</code>, but the pipe lets you chain several steps into a readable top-to-bottom sequence, which you will see shortly. Read <code>|&gt;</code> as the word <strong>“then.”</strong> (Older code uses <code>%&gt;%</code> for the same idea; <code>|&gt;</code> is the modern built-in version.)</p>
@@ -751,72 +785,167 @@ window.Quarto = {
 <section id="filter-keep-certain-rows" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="filter-keep-certain-rows"><code>filter()</code>: Keep Certain Rows</h3>
 <p><code>filter()</code> keeps rows where a condition is true.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">filter</span>(yield_bu_acre <span class="sc">&gt;</span> <span class="dv">50</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">filter</span>(yield_bu_acre <span class="sc">&gt;</span> <span class="dv">50</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>This keeps only rows where yield exceeds 50. You can combine conditions with <code>&amp;</code> (and), <code>|</code> (or), and <code>!</code> (not):</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">filter</span>(yield_bu_acre <span class="sc">&gt;</span> <span class="dv">50</span> <span class="sc">&amp;</span> region <span class="sc">==</span> <span class="st">"South"</span>)</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">filter</span>(region <span class="sc">==</span> <span class="st">"South"</span> <span class="sc">|</span> region <span class="sc">==</span> <span class="st">"Central"</span>)</span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(yield_bu_acre))  <span class="co"># drop rows with missing yield</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">filter</span>(yield_bu_acre <span class="sc">&gt;</span> <span class="dv">50</span> <span class="sc">&amp;</span> region <span class="sc">==</span> <span class="st">"South"</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">filter</span>(region <span class="sc">==</span> <span class="st">"South"</span> <span class="sc">|</span> region <span class="sc">==</span> <span class="st">"Central"</span>)</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(yield_bu_acre))  <span class="co"># drop rows with missing yield</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>A shortcut for “in this set of values”:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">filter</span>(region <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"South"</span>, <span class="st">"Central"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">filter</span>(region <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"South"</span>, <span class="st">"Central"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Important distinction: use <strong><code>==</code></strong> (two equals signs) to <em>test</em> whether two things are equal. A single <code>=</code> means something different in R – it is used for assigning values and naming arguments, not for testing equality – so writing <code>region = "South"</code> inside <code>filter()</code> will not do what you want. Always use <code>==</code> for comparisons. And note <code>"South"</code> – with quotes – is a <strong>string</strong> (a piece of text); <code>South</code> – without quotes – would be read as the name of an object, which probably doesn’t exist and would cause an error.</p>
 </section>
 <section id="select-keep-certain-columns" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="select-keep-certain-columns"><code>select()</code>: Keep Certain Columns</h3>
 <p><code>select()</code> keeps (or drops) columns.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">select</span>(field_id, region, yield_bu_acre)  <span class="co"># keep these three</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">select</span>(<span class="sc">-</span>field_id)                         <span class="co"># drop field_id</span></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">select</span>(<span class="fu">starts_with</span>(<span class="st">"yield"</span>))              <span class="co"># columns whose name starts with "yield"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">select</span>(field_id, region, yield_bu_acre)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; yields |&gt; select(field_id, region, yield_bu_acre)
+# A tibble: 60 × 3
+   field_id region  yield_bu_acre
+   &lt;chr&gt;    &lt;chr&gt;           &lt;dbl&gt;
+ 1 F001     North            48.3
+ 2 F002     Central          43.7
+ 3 F003     North            39.8
+ 4 F004     South            38.3
+ 5 F005     South            40.4
+ 6 F006     South            41.6
+ 7 F007     Central          NA  
+ 8 F008     Central          49.9
+ 9 F009     South            48.1
+10 F010     South            56.7
+# ℹ 50 more rows</code></pre>
+</div>
+</div>
+</div>
 <p>Useful when you have a wide dataset and want to focus on a few columns.</p>
 </section>
 <section id="mutate-add-or-modify-columns" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="mutate-add-or-modify-columns"><code>mutate()</code>: Add or Modify Columns</h3>
 <p><code>mutate()</code> creates new columns or modifies existing ones.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">yield_t_ha =</span> yield_bu_acre <span class="sc">*</span> <span class="fl">0.0560</span>)   <span class="co"># bu/acre to tonnes/ha for canola</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">yield_t_ha =</span> yield_bu_acre <span class="sc">*</span> <span class="fl">0.0560</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; yields |&gt; mutate(yield_t_ha = yield_bu_acre * 0.0560)
+# A tibble: 60 × 9
+   field_id region  variety    acres yield_bu_acre  year seeding_date units
+   &lt;chr&gt;    &lt;chr&gt;   &lt;chr&gt;      &lt;dbl&gt;         &lt;dbl&gt; &lt;dbl&gt; &lt;date&gt;       &lt;chr&gt;
+ 1 F001     North   DKTC         202          48.3  2025 2025-04-28   bu/ac
+ 2 F002     Central DKTC         429          43.7  2024 2024-04-20   bu/ac
+ 3 F003     North   Clearfield   165          39.8  2025 2025-05-25   bu/ac
+ 4 F004     South   DKTC         444          38.3  2025 2025-04-28   bu/ac
+ 5 F005     South   Clearfield   408          40.4  2024 2024-05-11   bu/ac
+ 6 F006     South   InVigor      133          41.6  2025 2025-04-22   bu/ac
+ 7 F007     Central InVigor      431          NA    2024 2024-05-05   bu/ac
+ 8 F008     Central DKTC         220          49.9  2024 2024-04-22   bu/ac
+ 9 F009     South   InVigor      467          48.1  2025 2025-05-14   bu/ac
+10 F010     South   Clearfield   480          56.7  2024 2024-05-03   bu/ac
+# ℹ 50 more rows
+# ℹ 1 more variable: yield_t_ha &lt;dbl&gt;</code></pre>
+</div>
+</div>
+</div>
 <p>The new column is computed from the existing ones. You can create multiple columns in one call, and later columns can use earlier ones:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">yield_t_ha =</span> yield_bu_acre <span class="sc">*</span> <span class="fl">0.0560</span>,</span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">above_average =</span> yield_bu_acre <span class="sc">&gt;</span> <span class="fu">mean</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">total_bu =</span> yield_bu_acre <span class="sc">*</span> acres</span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">yield_t_ha =</span> yield_bu_acre <span class="sc">*</span> <span class="fl">0.0560</span>,</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">above_average =</span> yield_bu_acre <span class="sc">&gt;</span> <span class="fu">mean</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">total_bu =</span> yield_bu_acre <span class="sc">*</span> acres</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="arrange-sort-rows" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="arrange-sort-rows"><code>arrange()</code>: Sort Rows</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">arrange</span>(yield_bu_acre)              <span class="co"># ascending</span></span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">arrange</span>(<span class="fu">desc</span>(yield_bu_acre))        <span class="co"># descending</span></span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">arrange</span>(region, <span class="fu">desc</span>(yield_bu_acre))  <span class="co"># sort by region, then by yield within region</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">arrange</span>(<span class="fu">desc</span>(yield_bu_acre))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; yields |&gt; arrange(desc(yield_bu_acre))
+# A tibble: 60 × 8
+   field_id region  variety    acres yield_bu_acre  year seeding_date units
+   &lt;chr&gt;    &lt;chr&gt;   &lt;chr&gt;      &lt;dbl&gt;         &lt;dbl&gt; &lt;dbl&gt; &lt;date&gt;       &lt;chr&gt;
+ 1 F044     Central DKTC         268          60.7  2024 2024-05-14   bu/ac
+ 2 F010     South   Clearfield   480          56.7  2024 2024-05-03   bu/ac
+ 3 F051     North   Clearfield   302          55.3  2025 2025-05-02   bu/ac
+ 4 F045     North   InVigor      193          54.6  2025 2025-05-06   bu/ac
+ 5 F035     North   InVigor      201          54.3  2024 2024-05-05   bu/ac
+ 6 F018     North   InVigor      120          54.2  2025 2025-04-26   bu/ac
+ 7 F057     Central InVigor       94          53.9  2024 2024-05-11   bu/ac
+ 8 F029     North   InVigor      270          53.4  2025 2025-05-24   bu/ac
+ 9 F047     Central InVigor      345          53.2  2025 2025-05-22   bu/ac
+10 F046     Central InVigor      383          53.1  2025 2025-05-22   bu/ac
+# ℹ 50 more rows</code></pre>
+</div>
+</div>
+</div>
+<p><code>arrange(yield_bu_acre)</code> sorts the other way, and you can give it more than one column – <code>arrange(region, desc(yield_bu_acre))</code> sorts by region, then by yield within each region.</p>
 </section>
 <section id="summarise-collapse-to-summary" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="summarise-collapse-to-summary"><code>summarise()</code>: Collapse to Summary</h3>
 <p><code>summarise()</code> computes summary statistics, reducing many rows to one.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span></span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_yield =</span> <span class="fu">mean</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">sd_yield =</span> <span class="fu">sd</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">n =</span> <span class="fu">n</span>()</span>
-<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_yield =</span> <span class="fu">mean</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">sd_yield =</span> <span class="fu">sd</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">n =</span> <span class="fu">n</span>()</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; yields |&gt;
++   summarise(
++     mean_yield = mean(yield_bu_acre, na.rm = TRUE),
++     sd_yield = sd(yield_bu_acre, na.rm = TRUE),
++     n = n()
++   )
+# A tibble: 1 × 3
+  mean_yield sd_yield     n
+       &lt;dbl&gt;    &lt;dbl&gt; &lt;int&gt;
+1       45.9     6.35    60</code></pre>
+</div>
+</div>
+</div>
 <p>The result is a data frame with one row containing the requested summaries.</p>
 </section>
 <section id="group_by-do-the-above-by-group" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="group_by-do-the-above-by-group"><code>group_by()</code>: Do the Above by Group</h3>
 <p>This is where things get powerful. <code>group_by()</code> doesn’t change the data – but it tells subsequent operations to apply <em>per group</em>.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span></span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(region) <span class="sc">|&gt;</span></span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_yield =</span> <span class="fu">mean</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">sd_yield =</span> <span class="fu">sd</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">n =</span> <span class="fu">n</span>()</span>
-<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(region) <span class="sc">|&gt;</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_yield =</span> <span class="fu">mean</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">sd_yield =</span> <span class="fu">sd</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">n =</span> <span class="fu">n</span>()</span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; yields |&gt;
++   group_by(region) |&gt;
++   summarise(
++     mean_yield = mean(yield_bu_acre, na.rm = TRUE),
++     sd_yield = sd(yield_bu_acre, na.rm = TRUE),
++     n = n()
++   )
+# A tibble: 3 × 4
+  region  mean_yield sd_yield     n
+  &lt;chr&gt;        &lt;dbl&gt;    &lt;dbl&gt; &lt;int&gt;
+1 Central       47.6     6.04    21
+2 North         47.3     5.22    20
+3 South         42.7     6.80    19</code></pre>
+</div>
+</div>
+</div>
 <p>The result is a data frame with one row per region, containing the summary statistics for that region. This is the R equivalent of a PivotTable. You can group by multiple columns:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span></span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(region, variety) <span class="sc">|&gt;</span></span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield =</span> <span class="fu">mean</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(region, variety) <span class="sc">|&gt;</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield =</span> <span class="fu">mean</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>After you are done summarising, it is good practice to <code>ungroup()</code> – otherwise the grouping persists and can surprise you later:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span></span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(region) <span class="sc">|&gt;</span></span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield =</span> <span class="fu">mean</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(region) <span class="sc">|&gt;</span></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield =</span> <span class="fu">mean</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 </section>
 <section id="sec-unit-conversion" class="level2" data-number="5.4">
@@ -826,54 +955,67 @@ window.Quarto = {
 \text{yield (t/ha)} = \text{yield (bu/ac)} \times 0.0560
 \]</span></p>
 <p>This factor comes from two facts: a bushel of canola weighs about 22.68 kg (canola’s standard 50-lb bushel), and an acre is about 0.4047 ha. So one bu/ac is <span class="math inline">\(22.68 \div 0.4047 \div 1000 \approx 0.0560\)</span> t/ha. (The exact factor depends on the crop’s bushel weight – a wheat or corn bushel is 60 or 56 lb and gives a different number – so in a real analysis you would look up the right bushel weight for your crop and cite your source.)</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>yields_converted <span class="ot">&lt;-</span> yields <span class="sc">|&gt;</span></span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">yield_t_ha =</span> yield_bu_acre <span class="sc">*</span> <span class="fl">0.0560</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>yields_converted <span class="ot">&lt;-</span> yields <span class="sc">|&gt;</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">yield_t_ha =</span> yield_bu_acre <span class="sc">*</span> <span class="fl">0.0560</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Now suppose your dataset is really messy – some rows are in bu/ac and some are already in t/ha, and there is a <code>units</code> column telling you which. You can use <code>case_when</code>:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>yields_converted <span class="ot">&lt;-</span> yields <span class="sc">|&gt;</span></span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">yield_t_ha =</span> <span class="fu">case_when</span>(</span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>      units <span class="sc">==</span> <span class="st">"bu/ac"</span> <span class="sc">~</span> yield_bu_acre <span class="sc">*</span> <span class="fl">0.0560</span>,   <span class="co"># convert the bu/ac rows</span></span>
-<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>      units <span class="sc">==</span> <span class="st">"t/ha"</span>  <span class="sc">~</span> yield_bu_acre,             <span class="co"># already metric: leave as-is</span></span>
-<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span>             <span class="sc">~</span> <span class="cn">NA_real_</span>                    <span class="co"># anything else becomes missing</span></span>
-<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>yields_converted <span class="ot">&lt;-</span> yields <span class="sc">|&gt;</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">yield_t_ha =</span> <span class="fu">case_when</span>(</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>      units <span class="sc">==</span> <span class="st">"bu/ac"</span> <span class="sc">~</span> yield_bu_acre <span class="sc">*</span> <span class="fl">0.0560</span>,   <span class="co"># convert the bu/ac rows</span></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>      units <span class="sc">==</span> <span class="st">"t/ha"</span>  <span class="sc">~</span> yield_bu_acre,             <span class="co"># already metric: leave as-is</span></span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span>             <span class="sc">~</span> <span class="cn">NA_real_</span>                    <span class="co"># anything else becomes missing</span></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>(Here we assume the value lives in a <code>yield_bu_acre</code> column and a separate <code>units</code> column records the unit of each row. <code>NA_real_</code> is just R’s way of writing a missing <em>numeric</em> value – the numeric version of <code>NA</code>.)</p>
 <p><code>case_when</code> is the R analogue of nested <code>IF</code>s in Excel. Each line is a condition and a value. The first matching condition wins. The <code>TRUE ~ ...</code> line is the catch-all “else.” Use <code>case_when</code> whenever you have multi-way conditions; it is much cleaner than nested <code>if_else</code>.</p>
 </section>
 <section id="sec-missing-values" class="level2" data-number="5.5">
 <h2 data-number="5.5" class="anchored" data-anchor-id="sec-missing-values"><span class="header-section-number">5.5</span> Handling Missing Values</h2>
 <p>In R, missing values are represented as <code>NA</code>. They are sneaky because most operations <em>propagate</em> them – any operation involving <code>NA</code> returns <code>NA</code>:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="cn">NA</span>) <span class="sc">+</span> <span class="dv">1</span>   <span class="co"># c(2, 3, NA)</span></span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="cn">NA</span>)) <span class="co"># NA</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="cn">NA</span>) <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="cn">NA</span>))</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="cn">NA</span>), <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; c(1, 2, NA) + 1
+[1]  2  3 NA
+&gt; mean(c(1, 2, NA))
+[1] NA
+&gt; mean(c(1, 2, NA), na.rm = TRUE)
+[1] 1.5</code></pre>
+</div>
+</div>
+</div>
 <p>This is actually the right default behavior – silently treating missing values as zero (as Excel often does) is a recipe for bugs. But it means you need to deal with <code>NA</code>s explicitly.</p>
 <p>A few patterns:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check for missing values</span></span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="fu">is.na</span>(yields<span class="sc">$</span>yield)              <span class="co"># logical vector</span></span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(<span class="fu">is.na</span>(yields<span class="sc">$</span>yield))          <span class="co"># count of NAs</span></span>
-<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(<span class="fu">is.na</span>(yields<span class="sc">$</span>yield))         <span class="co"># fraction of NAs</span></span>
-<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove rows with any missing values</span></span>
-<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>yields_clean <span class="ot">&lt;-</span> yields <span class="sc">|&gt;</span> <span class="fu">drop_na</span>()</span>
-<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove rows with missing values in specific columns</span></span>
-<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>yields_clean <span class="ot">&lt;-</span> yields <span class="sc">|&gt;</span> <span class="fu">drop_na</span>(yield_bu_acre)</span>
-<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute a statistic ignoring NAs</span></span>
-<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(yields<span class="sc">$</span>yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Replace NAs with a value</span></span>
-<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">yield_bu_acre =</span> <span class="fu">replace_na</span>(yield_bu_acre, <span class="dv">0</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check for missing values</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="fu">is.na</span>(yields<span class="sc">$</span>yield)              <span class="co"># logical vector</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(<span class="fu">is.na</span>(yields<span class="sc">$</span>yield))          <span class="co"># count of NAs</span></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(<span class="fu">is.na</span>(yields<span class="sc">$</span>yield))         <span class="co"># fraction of NAs</span></span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove rows with any missing values</span></span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>yields_clean <span class="ot">&lt;-</span> yields <span class="sc">|&gt;</span> <span class="fu">drop_na</span>()</span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove rows with missing values in specific columns</span></span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a>yields_clean <span class="ot">&lt;-</span> yields <span class="sc">|&gt;</span> <span class="fu">drop_na</span>(yield_bu_acre)</span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute a statistic ignoring NAs</span></span>
+<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(yields<span class="sc">$</span>yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Replace NAs with a value</span></span>
+<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">yield_bu_acre =</span> <span class="fu">replace_na</span>(yield_bu_acre, <span class="dv">0</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><strong>When is it safe to drop missing values and when is it dangerous?</strong> It depends on <em>why</em> they are missing. If data is missing completely at random (e.g., a sensor failed arbitrarily), dropping missing values gives you unbiased estimates, just with less data. If data is missing for a reason related to the value itself (e.g., only high-yielding fields were reported), dropping them can bias your results – you will systematically overestimate yields.</p>
 <p>The honest answer to “what should I do with missing values” is almost always: <em>think about why they are missing</em>, and <em>document what you decided to do</em>. There is no universal fix.</p>
 </section>
 <section id="sec-writing-output" class="level2" data-number="5.6">
 <h2 data-number="5.6" class="anchored" data-anchor-id="sec-writing-output"><span class="header-section-number">5.6</span> Writing Output to a File</h2>
 <p>To save a data frame back to a CSV, pass the object you want to save and the filename to write it to. For example, if you have built a summary table and stored it in an object called <code>region_summary</code>:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write_csv</span>(region_summary, <span class="st">"region_summary_2026-09-15.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write_csv</span>(region_summary, <span class="st">"region_summary_2026-09-15.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>To save a plot (after making one with ggplot2, which comes in Module 4):</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="st">"yield_histogram.png"</span>, <span class="at">width =</span> <span class="dv">6</span>, <span class="at">height =</span> <span class="dv">4</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="st">"yield_histogram.png"</span>, <span class="at">width =</span> <span class="dv">6</span>, <span class="at">height =</span> <span class="dv">4</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>And to save the R <strong>environment</strong> (all the objects in memory) so you can pick up where you left off:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">save.image</span>(<span class="st">"session_2026-09-15.RData"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">save.image</span>(<span class="st">"session_2026-09-15.RData"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>(Honestly, I rarely do that last one. If your script is reproducible, you should be able to re-run it from scratch to get back to where you were.)</p>
 </section>
 <section id="sec-good-scripts" class="level2" data-number="5.7">
@@ -889,35 +1031,35 @@ window.Quarto = {
 <li><strong>Test on a subset first.</strong> For large datasets, develop your analysis on the first 1000 rows until it works, then run on the full data.</li>
 </ol>
 <p>A template:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ---</span></span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Title: Canola yield summary by region</span></span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Author: Your Name</span></span>
-<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Date: 2026-09-15</span></span>
-<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Input: canola_yields_2025.csv</span></span>
-<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Output: region_summary_2026-09-15.csv</span></span>
-<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Description:</span></span>
-<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a><span class="co">#   Reads the 2025 canola yield data, filters to fields over</span></span>
-<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a><span class="co">#   100 acres, and computes mean yield per region.</span></span>
-<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a><span class="co"># ---</span></span>
-<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Load data</span></span>
-<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a>yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"canola_yields_2025.csv"</span>)</span>
-<span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-17"><a href="#cb30-17" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Explore</span></span>
-<span id="cb30-18"><a href="#cb30-18" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(yields)</span>
-<span id="cb30-19"><a href="#cb30-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-20"><a href="#cb30-20" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Summarise by region (only fields &gt; 100 acres)</span></span>
-<span id="cb30-21"><a href="#cb30-21" aria-hidden="true" tabindex="-1"></a>region_summary <span class="ot">&lt;-</span> yields <span class="sc">|&gt;</span></span>
-<span id="cb30-22"><a href="#cb30-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(acres <span class="sc">&gt;</span> <span class="dv">100</span>) <span class="sc">|&gt;</span></span>
-<span id="cb30-23"><a href="#cb30-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(region) <span class="sc">|&gt;</span></span>
-<span id="cb30-24"><a href="#cb30-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield =</span> <span class="fu">mean</span>(yield, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb30-25"><a href="#cb30-25" aria-hidden="true" tabindex="-1"></a>            <span class="at">n =</span> <span class="fu">n</span>()) <span class="sc">|&gt;</span></span>
-<span id="cb30-26"><a href="#cb30-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(mean_yield))</span>
-<span id="cb30-27"><a href="#cb30-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-28"><a href="#cb30-28" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. Save output</span></span>
-<span id="cb30-29"><a href="#cb30-29" aria-hidden="true" tabindex="-1"></a><span class="fu">write_csv</span>(region_summary, <span class="st">"region_summary_2026-09-15.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ---</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Title: Canola yield summary by region</span></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Author: Your Name</span></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Date: 2026-09-15</span></span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Input: canola_yields_2025.csv</span></span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Output: region_summary_2026-09-15.csv</span></span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Description:</span></span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a><span class="co">#   Reads the 2025 canola yield data, filters to fields over</span></span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a><span class="co">#   100 acres, and computes mean yield per region.</span></span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a><span class="co"># ---</span></span>
+<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-14"><a href="#cb39-14" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Load data</span></span>
+<span id="cb39-15"><a href="#cb39-15" aria-hidden="true" tabindex="-1"></a>yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"canola_yields_2025.csv"</span>)</span>
+<span id="cb39-16"><a href="#cb39-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-17"><a href="#cb39-17" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Explore</span></span>
+<span id="cb39-18"><a href="#cb39-18" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(yields)</span>
+<span id="cb39-19"><a href="#cb39-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-20"><a href="#cb39-20" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Summarise by region (only fields &gt; 100 acres)</span></span>
+<span id="cb39-21"><a href="#cb39-21" aria-hidden="true" tabindex="-1"></a>region_summary <span class="ot">&lt;-</span> yields <span class="sc">|&gt;</span></span>
+<span id="cb39-22"><a href="#cb39-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(acres <span class="sc">&gt;</span> <span class="dv">100</span>) <span class="sc">|&gt;</span></span>
+<span id="cb39-23"><a href="#cb39-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(region) <span class="sc">|&gt;</span></span>
+<span id="cb39-24"><a href="#cb39-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield =</span> <span class="fu">mean</span>(yield, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb39-25"><a href="#cb39-25" aria-hidden="true" tabindex="-1"></a>            <span class="at">n =</span> <span class="fu">n</span>()) <span class="sc">|&gt;</span></span>
+<span id="cb39-26"><a href="#cb39-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(mean_yield))</span>
+<span id="cb39-27"><a href="#cb39-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-28"><a href="#cb39-28" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. Save output</span></span>
+<span id="cb39-29"><a href="#cb39-29" aria-hidden="true" tabindex="-1"></a><span class="fu">write_csv</span>(region_summary, <span class="st">"region_summary_2026-09-15.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Six months from now you can read this and know what it does.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
