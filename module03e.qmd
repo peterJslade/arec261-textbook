@@ -1,5 +1,12 @@
 # Graphing in R {#sec-graphing-r}
 
+```{r}
+#| include: false
+#| eval: true
+suppressMessages({library(ggplot2); library(dplyr); library(readr)})
+yields <- readr::read_csv("practice/data/field_yields.csv", show_col_types = FALSE)
+```
+
 Excel draws a chart from a selection.  R takes a different approach: you describe the chart
 -- which variable goes on which axis, what shape to draw -- and `ggplot2` builds it.  That
 takes more typing for a single quick chart and far less for the twentieth one.
@@ -45,7 +52,14 @@ ggplot2 is part of the tidyverse, so if you have loaded the tidyverse, it's alre
 
 A basic scatter plot:
 
-```r
+```{r}
+#| label: fig-e-scatter
+#| eval: true
+#| echo: true
+#| message: false
+#| warning: false
+#| fig-width: 4.8
+#| fig-height: 2.8
 ggplot(yields, aes(x = acres, y = yield_bu_acre)) +
   geom_point()
 ```
@@ -66,7 +80,14 @@ A tour of the most important `geom_` functions. In each case, you set the aesthe
 
 For showing the relationship between two continuous variables.
 
-```r
+```{r}
+#| label: fig-e-alpha
+#| eval: true
+#| echo: true
+#| message: false
+#| warning: false
+#| fig-width: 4.8
+#| fig-height: 2.8
 ggplot(yields, aes(x = acres, y = yield_bu_acre)) +
   geom_point(alpha = 0.5)  # alpha = transparency, helps when points overlap
 ```
@@ -75,7 +96,14 @@ ggplot(yields, aes(x = acres, y = yield_bu_acre)) +
 
 For showing how a value changes over a continuous variable (usually time).
 
-```r
+```{r}
+#| label: fig-e-line
+#| eval: true
+#| echo: true
+#| message: false
+#| warning: false
+#| fig-width: 4.8
+#| fig-height: 2.6
 annual_mean <- yields |>
   group_by(year) |>
   summarise(mean_yield = mean(yield_bu_acre, na.rm = TRUE))
@@ -91,7 +119,14 @@ Notice that we summarized first, then plotted. ggplot2 does not have a built-in 
 
 `geom_col()` plots bars with heights equal to values you give it. Use this when you have already computed the values.
 
-```r
+```{r}
+#| label: fig-e-col
+#| eval: true
+#| echo: true
+#| message: false
+#| warning: false
+#| fig-width: 4.8
+#| fig-height: 2.6
 region_means <- yields |>
   group_by(region) |>
   summarise(mean_yield = mean(yield_bu_acre, na.rm = TRUE))
@@ -102,7 +137,14 @@ ggplot(region_means, aes(x = region, y = mean_yield)) +
 
 `geom_bar()` counts rows automatically. Use it when you have un-summarized data and want bar heights to be counts.
 
-```r
+```{r}
+#| label: fig-e-bar
+#| eval: true
+#| echo: true
+#| message: false
+#| warning: false
+#| fig-width: 4.4
+#| fig-height: 2.4
 ggplot(yields, aes(x = region)) + geom_bar()
 ```
 
@@ -112,7 +154,14 @@ Rule of thumb: if your data is already summarized, use `geom_col`; if you want g
 
 For showing the distribution of a single continuous variable.
 
-```r
+```{r}
+#| label: fig-e-hist
+#| eval: true
+#| echo: true
+#| message: false
+#| warning: false
+#| fig-width: 4.8
+#| fig-height: 2.6
 ggplot(yields, aes(x = yield_bu_acre)) +
   geom_histogram(bins = 30)
 ```
@@ -123,7 +172,14 @@ The `bins` argument controls how many bins to use. ggplot will print a warning i
 
 For comparing distributions across categories.
 
-```r
+```{r}
+#| label: fig-e-box
+#| eval: true
+#| echo: true
+#| message: false
+#| warning: false
+#| fig-width: 4.8
+#| fig-height: 2.6
 ggplot(yields, aes(x = region, y = yield_bu_acre)) +
   geom_boxplot()
 ```

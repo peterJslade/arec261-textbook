@@ -1,5 +1,13 @@
 # Tidy Data {#sec-tidy-data-chapter}
 
+```{r}
+#| include: false
+#| eval: true
+source("_console.R")
+suppressMessages({library(dplyr); library(readr); library(tidyr)})
+yields <- readr::read_csv("practice/data/field_yields.csv", show_col_types = FALSE)
+```
+
 The verbs in the last chapter assume your data arrives in a sensible shape. Real data
 often does not. This chapter is about what "tidy" data means, why the tidyverse cares so
 much about it, and how to clean up a dataset that shows up messy.
@@ -50,7 +58,10 @@ For now the point is: when you are reading in a dataset, *look at the shape*. Is
 
 Let's do something realistic. Suppose we want to answer: "For each region, what was the mean yield (in t/ha) of fields larger than 100 acres, in 2025, for the top three varieties by total production?"
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
 yields |>
   filter(year == 2025, acres > 100) |>
   mutate(yield_t_ha = yield_bu_acre * 0.0560,
@@ -64,6 +75,7 @@ yields |>
             n_fields = n(),
             .groups = "drop") |>
   arrange(region, desc(mean_yield_t_ha))
+')
 ```
 
 Read it top to bottom and notice how each step does one thing:

@@ -1,5 +1,17 @@
 # Loading Data and the Tidyverse {#sec-tidyverse}
 
+```{r}
+#| include: false
+#| eval: true
+# console() renders a code listing plus the console session it produces.
+source("_console.R")
+suppressMessages({library(dplyr); library(readr); library(tidyr)})
+# Every example in this chapter runs against this data frame. Students load it
+# themselves with read_csv("field_yields.csv"); the path differs here because
+# the book renders from the project root.
+yields <- readr::read_csv("practice/data/field_yields.csv", show_col_types = FALSE)
+```
+
 With R installed and the basics in hand, this chapter is about getting *real* data into
 R and reshaping it: loading the tidyverse, reading a CSV, and using the small set of
 `dplyr` verbs that covers most of the data manipulation you will ever need.
@@ -155,8 +167,12 @@ line to see it, or `glimpse(yields)` for a compact column-by-column view.
 **One crucial thing to understand before we start.** Every `dplyr` verb *returns a new
 data frame* -- it does **not** change the original. So this:
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
 yields |> filter(yield_bu_acre > 50)
+')
 ```
 
 computes the filtered result and *prints it*, but `yields` itself is unchanged -- the next
@@ -167,10 +183,19 @@ must assign it to an object:
 big_fields <- yields |> filter(yield_bu_acre > 50)   # save the result
 ```
 
-That is deliberate: your original data stays intact while you
-experiment. Throughout this chapter, when an example just shows a pipeline without `<-`,
-assume we are looking at the result on screen; add `name <- ` in front when you want to
-save it.
+That is deliberate: your original data stays intact while you experiment.  You can see it --
+the filter above returned 14 rows, and `yields` still has all 60:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+nrow(yields)
+')
+```
+
+Throughout this chapter, when an example just shows a pipeline without `<-`, assume we are
+looking at the result on screen; add `name <- ` in front when you want to save it.
 
 ### A note on the pipe `|>` {.unnumbered}
 
@@ -204,10 +229,12 @@ Important distinction: use **`==`** (two equals signs) to *test* whether two thi
 
 `select()` keeps (or drops) columns.
 
-```r
-yields |> select(field_id, region, yield_bu_acre)  # keep these three
-yields |> select(-field_id)                         # drop field_id
-yields |> select(starts_with("yield"))              # columns whose name starts with "yield"
+```{r}
+#| eval: true
+#| echo: false
+console('
+yields |> select(field_id, region, yield_bu_acre)
+')
 ```
 
 Useful when you have a wide dataset and want to focus on a few columns.
@@ -216,9 +243,12 @@ Useful when you have a wide dataset and want to focus on a few columns.
 
 `mutate()` creates new columns or modifies existing ones.
 
-```r
-yields |>
-  mutate(yield_t_ha = yield_bu_acre * 0.0560)   # bu/acre to tonnes/ha for canola
+```{r}
+#| eval: true
+#| echo: false
+console('
+yields |> mutate(yield_t_ha = yield_bu_acre * 0.0560)
+')
 ```
 
 The new column is computed from the existing ones. You can create multiple columns in one call, and later columns can use earlier ones:
@@ -234,23 +264,32 @@ yields |>
 
 ### `arrange()`: Sort Rows {.unnumbered}
 
-```r
-yields |> arrange(yield_bu_acre)              # ascending
-yields |> arrange(desc(yield_bu_acre))        # descending
-yields |> arrange(region, desc(yield_bu_acre))  # sort by region, then by yield within region
+```{r}
+#| eval: true
+#| echo: false
+console('
+yields |> arrange(desc(yield_bu_acre))
+')
 ```
+
+`arrange(yield_bu_acre)` sorts the other way, and you can give it more than one column --
+`arrange(region, desc(yield_bu_acre))` sorts by region, then by yield within each region.
 
 ### `summarise()`: Collapse to Summary {.unnumbered}
 
 `summarise()` computes summary statistics, reducing many rows to one.
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
 yields |>
   summarise(
     mean_yield = mean(yield_bu_acre, na.rm = TRUE),
     sd_yield = sd(yield_bu_acre, na.rm = TRUE),
     n = n()
   )
+')
 ```
 
 The result is a data frame with one row containing the requested summaries.
@@ -259,7 +298,10 @@ The result is a data frame with one row containing the requested summaries.
 
 This is where things get powerful. `group_by()` doesn't change the data -- but it tells subsequent operations to apply *per group*.
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
 yields |>
   group_by(region) |>
   summarise(
@@ -267,6 +309,7 @@ yields |>
     sd_yield = sd(yield_bu_acre, na.rm = TRUE),
     n = n()
   )
+')
 ```
 
 The result is a data frame with one row per region, containing the summary statistics for that region. This is the R equivalent of a PivotTable. You can group by multiple columns:
@@ -323,9 +366,14 @@ yields_converted <- yields |>
 
 In R, missing values are represented as `NA`. They are sneaky because most operations *propagate* them -- any operation involving `NA` returns `NA`:
 
-```r
-c(1, 2, NA) + 1   # c(2, 3, NA)
-mean(c(1, 2, NA)) # NA
+```{r}
+#| eval: true
+#| echo: false
+console('
+c(1, 2, NA) + 1
+mean(c(1, 2, NA))
+mean(c(1, 2, NA), na.rm = TRUE)
+')
 ```
 
 This is actually the right default behavior -- silently treating missing values as zero (as Excel often does) is a recipe for bugs. But it means you need to deal with `NA`s explicitly.
