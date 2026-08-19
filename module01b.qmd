@@ -121,13 +121,11 @@ The broader lesson is that a lookup needs enough information to uniquely identif
 
 
 ## Sorting and Filtering {#sec-sort-filter}
+Sorting and filtering are different from the functions we have used so far. Rather than calculating a new value, they change how the data in a worksheet are displayed and organized. The examples below use the same eight fields as before.
 
-Sorting and filtering are not formulas -- they are things you do to the sheet itself, so this
-section is mostly pictures of where to click.  The examples use the same eight fields as
-before.
+### Sorting {.unnumbered}
 
-**Sorting** reorders the rows.  Click any cell in the column you want to sort by, then use
-**Sort & Filter** on the Home tab (or the Data tab, which has the same buttons):
+**Sorting** changes the order of the rows in a dataset. Click any cell in the column you want to sort by, then use **Sort & Filter** on the Home tab (or the corresponding buttons on the Data tab):
 
 ![The Sort & Filter menu. Ascending, descending, or Custom Sort for more than one
 column.](images/sort_menu.png){#fig-sort-menu}
@@ -137,23 +135,24 @@ Sorting by Acres, smallest to largest, gives this:
 ![Sorted by acres. Every row has moved as a unit -- Airport still has its own crop and
 yield.](images/sort_result.png){#fig-sort-result}
 
+
 That last point is the one to be careful about.  Excel moved whole rows because the cursor
 was sitting inside the table.  If you instead select a single column and sort *that*, Excel
-reorders those cells and leaves every other column where it was, so each row ends up holding
-some other field\'s numbers.  Nothing warns you.  Click one cell inside the data and let
-Excel work out the extent of the table.
+reorders the cells in that columen and leaves every other column in the same order (usually Excel will catch you and ask if you want to "Expand the selection" before doing this). 
 
-**Filtering** hides the rows you are not interested in.  Turn it on from the same menu:
+### Filtering {.unnumbered}
+
+**Filtering** temporarily hides observations that do not meet a condition. Turn filtering on from the same menu:
 
 ![Choosing Filter puts a dropdown arrow on every column
 heading.](images/filter_turn_on.png){#fig-filter-on}
 
-Clicking one of those arrows opens a panel listing every value in the column, all ticked:
+Clicking one of those arrows opens a panel containing the values in that column:
 
 ![The filter panel for the Crop column, with all three crops
 showing.](images/filter_dropdown.png){#fig-filter-dropdown}
 
-Untick everything except Canola and the other rows disappear:
+If we select only Canola, Excel hides the other observations:
 
 ![Filtering to Canola only.](images/filter_choosing.png){#fig-filter-choosing}
 
@@ -161,23 +160,23 @@ Untick everything except Canola and the other rows disappear:
 rows, the numbers have turned blue, and the Crop heading now shows a funnel
 icon.](images/filter_applied.png){#fig-filter-applied}
 
-Those blue, non-consecutive row numbers are worth learning to notice.  They are the only
-sign that you are looking at part of a table rather than all of it, and forgetting a filter
-is on is a common way to get a wrong answer.  Nothing has been deleted -- clearing the
-filter brings everything back.  `Ctrl+Shift+L` on Windows or `⌘⇧F` on a Mac toggles filters
-on and off.
+Notice that the row numbers are no longer consecutive. The gaps indicate that some rows are hidden by the filter. This is an easy way to tell that you are viewing only part of the dataset. Nothing has been deleted – clearing the filter makes all of the observations visible again.
+
+`Ctrl+Shift+L` on Windows or `⌘⇧F` on a Mac toggles filters on and off.
+
 
 ::: {.callout-warning}
 ## Filters hide rows from *you*, not from your formulas
-If you filter a column to show only 2023 and then write `=AVERAGE(E2:E10650)`, Excel **still averages every row** — including the hidden ones. Ordinary functions (`AVERAGE`, `SUM`, `MEDIAN`, `STDEV.S`, `QUARTILE.INC`, …) ignore the filter completely. You would get the 1990–2025 average, not the 2023 average, and never notice.
 
-To compute a statistic on a *subset*, do one of these:
+If you filter a column to show only 2023 and then write `=AVERAGE(E2:E10650)`, Excel **still averages every row** -- including the hidden ones. Filtering changes which rows you can see; it does not change the range used by an ordinary formula. You could therefore get the 1990--2025 average when you thought you were calculating the average for 2023.
 
-- **Copy the visible rows to a new sheet, then compute there** (the recommended workflow for this course). After filtering, select the visible data, copy, and paste into a fresh sheet — only the visible rows come along — then run your formulas on that clean subset.
-- Or use a conditional function that does the filtering itself: `AVERAGEIF`, `SUMIF`, `COUNTIF` (covered above), which never rely on hidden rows.
-- Or use `SUBTOTAL` / `AGGREGATE`, which are the two functions that *do* respect filters (optional, more advanced).
+To calculate a statistic for a *subset* of the data, you have several options:
 
-Whenever a task says "for the 2023 data, compute …," your first move should be to isolate that subset — do not just filter and point a formula at the whole column.
+- **Use a conditional function** such as `AVERAGEIF`, `SUMIF`, or `COUNTIF`. For example, `=AVERAGEIF(A2:A10650,2023,E2:E10650)` calculates the average of column E only for observations from 2023.
+- **Copy the filtered observations to a new sheet** if you actually need a separate dataset containing only those observations. But be careful about creating unnecessary copies of your data.
+- `SUBTOTAL` and `AGGREGATE` are functions that can calculate using only visible rows and therefore respond to filters. We will not cover them in this course.
+
+The important distinction is that **filtering and calculating are separate operations**. Filtering is useful for exploring a subset of your data, but do not assume that a formula uses only the rows you can see.
 :::
 
 ::: {.callout-tip collapse="true"}
