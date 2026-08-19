@@ -18,25 +18,19 @@ By the end of this chapter, you will be able to:
 
 ## Conditional Functions {#sec-conditional-functions}
 
-Every formula so far has done the same thing to every row, and every calculation has applied
-to a whole range. Conditional functions change that. They let a formula make a decision, or
-apply a calculation to only the rows that meet some condition.
+So far, our formulas have performed calculations without making decisions: multiply these two values, add this range, calculate its average. **Conditional functions** change that. They let a formula make a decision, or apply a calculation only when some condition is met.
 
 ### `IF` {#sec-if .unnumbered}
 
-`IF` is the one that makes a decision. It looks at a condition and returns one of two things
-depending on whether that condition is true.
+`IF` is the function that makes a decision. It looks at a condition and returns one of two values depending on whether that condition is true. The `IF` function has three arguments: (1) the condition to test, (2) the value to return if the condition is true, and (3) the value to return if the condition is false. Both the condition and the values returned can reference other cells.
+
+In the following example, `IF` tests whether the value in D5 is greater than 50. If the condition is true, it returns the value in D6; if the condition is false, it returns the text No.
 
 ```
-=IF(D5>50, "Yes", "No")
+=IF(D5>50, D6, "No")
 ```
 
-Three arguments, separated by commas: the test, what to return if it is true, and what to
-return if it is false. Here, if the yield in `D5` is over 50 the cell reads `Yes`, otherwise
-`No`. The results can be text, as here, or numbers, or other formulas.
-
-The worksheet below has eight fields. Column E uses `IF` to label each one, and column F shows
-the formula so you can see how it works.
+Column E of the workbook below uses `IF` to label each field `"Yes"` or `"No"`. Note the quotation marks: text inside a formula always needs them, and numbers never do.
 
 ::: {.workbook-callout}
 ::: {.excel-embed}
@@ -46,44 +40,25 @@ the formula so you can see how it works.
 [Download this workbook](textbook_examples/mod01_conditional.xlsx) · [blank version to fill in yourself](textbook_examples/mod01_conditional_practice.xlsx) · [Open online](https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7B914bfd54-1893-4ea6-a069-8c393ea9a169%7D&action=default) (File → Save a Copy to view formulas and edit)
 :::
 
-Note the quotation marks around `"Yes"` and `"No"`. Text inside a formula always needs them;
-numbers never do. Writing `=IF(D5>50, Yes, No)` makes Excel look for objects named `Yes` and
-`No`, find nothing, and return an error.
 
 ### `COUNTIF`, `SUMIF`, and `AVERAGEIF` {#sec-conditional-family .unnumbered}
 
-`COUNT`, `SUM`, and `AVERAGE` calculated across an entire range. Each has a conditional
-version that calculates over only the rows that match -- the average yield on the canola
-fields, say, or the number of fields yielding more than 60 bushels per acre. Each takes the range to test and the
-condition to test for, and `SUMIF` and `AVERAGEIF` take a third argument: the range holding
-the numbers you actually want.
+COUNT, SUM, and AVERAGE calculate across an entire range. Each has a conditional version that performs the calculation using only observations that meet a specified condition – the average yield on canola fields, for example, or the number of fields yielding more than 60 bushels per acre.
+
+COUNTIF takes two arguments: the range to test and the condition to test for. SUMIF and AVERAGEIF take a third argument: the range containing the values to sum or average.
 
 ```
 =COUNTIF(B5:B12, "Canola")
 =SUMIF(B5:B12, "Canola", C5:C12)
 =AVERAGEIF(B5:B12, "Canola", D5:D12)
 ```
+The first formula counts the fields where column B contains Canola. The second identifies those same fields and adds up their acres from column C. For example, if B6 and B8 both contain Canola, the SUMIF formula will return C6+C8. AVERAGEIF works in the same way, except that it averages the corresponding values rather than adding them.
 
-The first counts the canola fields. The second adds up their acres. The third averages their
-yields -- testing column B, but averaging column D.
+The two ranges must be the same size, but they do not technically need to contain the same row numbers. Excel matches the cells by their position within each range. For example, you could write: `=SUMIF(B5:B12, "Canola", D15:D22)`.  Here, B5 is paired with D15, B6 with D16, B7 with D17, and so on. If B6 and B8 contain Canola, Excel would therefore add D16+D18.
 
-The block underneath the table in the worksheet above answers six questions of this kind, with
-the formulas in column C.
+In practice, the ranges will usually cover the same rows of a dataset. The important point is that Excel matches their relative positions, not their row numbers.
 
-The last row of that block is the one worth studying. When the number you are comparing
-against has to be calculated -- "how many fields beat the average?" -- you cannot write
-`">AVERAGE(D5:D12)"`, because everything inside quotation marks is treated as literal text.
-Excel would go looking for a cell containing those characters. Instead you glue the `>` onto
-the calculated number with `&`:
-
-```
-=COUNTIF(D5:D12,">"&AVERAGE(D5:D12))
-```
-
-Two more things that come up constantly. `COUNT` counts cells containing numbers; `COUNTA`
-counts any cell that is not empty, text included. And a blank cell is not a zero: `AVERAGE`,
-`COUNT` and `MEDIAN` skip blanks, which is nearly always what you want. If you fill the blanks
-with zeros first, those zeros become real measurements and drag the average down.
+Examples of these functions are in rows 15-20 of the workbook above.
 
 ::: {.callout-tip collapse="true"}
 ## Other resources — conditional functions (IF, COUNTIF, SUMIF, …)
