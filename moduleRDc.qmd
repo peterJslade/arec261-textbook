@@ -1,0 +1,285 @@
+# Joining and Cleaning {#sec-joining-cleaning}
+
+Data arrives in pieces.  Yields in one file, prices in another, weather in a third.  And it
+arrives dirty: duplicated, misspelled, in mixed units, with values that cannot be true.  This
+chapter is about putting the pieces together and finding out what is wrong with them.
+
+## Learning Objectives {.unnumbered}
+
+::: {.objectives}
+By the end of this chapter you should be able to:
+
+1. Join two tables on a shared key with `left_join()` and friends.
+2. Say what happens to rows that do not match, and check for them.
+3. Explain why a join can return more rows than it started with.
+4. Find duplicates, impossible values, inconsistent categories and mixed units in a new file.
+:::
+
+## Joining Two Tables {#sec-joins}
+
+You did this in Excel with `XLOOKUP` (@sec-lookup): you had yields in one table and prices in
+another, and you pulled the price across.  The R equivalent is a **join**, and it is both easier
+and more honest about what it is doing.
+
+```r
+library(tidyverse)
+
+yields <- read_csv("data/field_yields.csv")
+prices <- read_csv("data/crop_prices.csv")
+
+yields |>
+  left_join(prices, by = "crop")
+```
+
+The `by` argument names the **key**: the column both tables share, used to decide which row
+matches which.  Everything about joins comes back to the key.
+
+### The four joins you need {.unnumbered}
+
+They differ only in which rows survive.
+
+- **`left_join(a, b)`** keeps every row of `a`, and fills in `NA` where `b` has no match. This
+  is the one you want almost always: your data stays intact and the extra columns come along.
+- **`inner_join(a, b)`** keeps only rows that matched in both. Silently drops the rest.
+- **`full_join(a, b)`** keeps everything from both, with `NA` wherever either side is missing.
+- **`anti_join(a, b)`** keeps rows of `a` with *no* match in `b`. It returns no columns from
+  `b` at all, which sounds useless until you realise it is the fastest way to find out what
+  failed to match.
+
+### Always check what did not match {.unnumbered}
+
+This is the step people skip, and it is where joins go wrong.  `left_join` does not complain
+when nothing matches -- it hands you a column of `NA` and lets you carry on.
+
+Use `anti_join` to look:
+
+```r
+yields |>
+  anti_join(prices, by = "crop") |>
+  distinct(crop)
+```
+
+Run that on real Saskatchewan data and you find the problem immediately.  The variety trial
+data calls it `"Canola/Rapeseed"`; the price list says `"Canola"`.  The trial says
+`"Soybean"`, the prices say `"Soybeans"`.  Neither is wrong.  They are just different files
+written by different people, and a join matches on exact text, so every canola row comes back
+with a missing price.
+
+The fix belongs in @sec-cleaning below: reconcile the categories first, then join.  The habit
+to build is checking rather than assuming.
+
+### The row-count trap {.unnumbered}
+
+A join can hand you back more rows than you started with, and if you are not watching, you
+will not notice.
+
+It happens when the key is not unique in the second table.  If `prices` has one row per crop,
+each yield row matches exactly one price and the row count is unchanged.  But if `prices` has
+one row per crop *per year* and you join only on crop, every yield row matches several price
+rows, and R returns all the combinations.  Sixty fields become two hundred and forty.
+
+Every summary computed afterwards is then wrong, usually in a way that looks plausible.  So
+check the count:
+
+```r
+nrow(yields)                                    # before
+joined <- yields |> left_join(prices, by = "crop")
+nrow(joined)                                    # after -- should be the same
+```
+
+If it grew, your key is incomplete.  Join on everything that identifies a row:
+
+```r
+yields |> left_join(prices, by = c("crop", "year"))
+```
+
+This is the same idea as the composite key you built in Excel with `&` (@sec-lookup), where
+RM and year had to be glued together to identify a row.  R lets you name several key columns
+instead of manufacturing a single one.
+
+## Cleaning a New File {#sec-cleaning}
+
+When a file arrives, assume it is broken until you have checked.  Not because people are
+careless, but because data is entered by tired humans, exported by software with opinions, and
+combined from sources that disagree.
+
+The examples below use `grain_deliveries_messy.csv`, a small file of grain deliveries with
+every defect this section describes.
+
+```r
+deliveries <- read_csv("data/grain_deliveries_messy.csv")
+glimpse(deliveries)
+```
+
+### Duplicates {.unnumbered}
+
+Two kinds, and the second is worse.
+
+An **exact duplicate** is the same row entered twice:
+
+```r
+deliveries |> filter(duplicated(deliveries))     # show them
+deliveries |> distinct()                          # drop them
+```
+
+A **conflicting duplicate** is the same identifier carrying different values -- ticket `T0030`
+appearing twice with two different weights.  `distinct()` will not help, because the rows are
+not identical.  Find them by counting:
+
+```r
+deliveries |>
+  count(ticket_id) |>
+  filter(n > 1)
+```
+
+There is no code that fixes this one.  Somebody entered the delivery twice, or corrected it and
+left both rows.  You have to find out which is right, and if you cannot, say so in your write-up
+and explain what you did.
+
+### Impossible values {.unnumbered}
+
+Every variable has values it cannot take.  A weight cannot be negative.  A moisture percentage
+cannot be 250.  A delivery of exactly zero tonnes is possible but suspicious.
+
+`summary()` catches most of it in one line, because impossible values show up in the min and
+max:
+
+```r
+summary(deliveries)
+```
+
+Then look at the offenders rather than deleting them blind:
+
+```r
+deliveries |> filter(weight_tonnes <= 0 | moisture_pct > 100)
+```
+
+A negative weight is probably a sign error or a reversed transaction.  A moisture of 250 is
+probably 25.0 with a lost decimal point.  Both are guesses -- record them as such.  What you
+must not do is drop the rows quietly.
+
+### Inconsistent categories {.unnumbered}
+
+The same thing spelled several ways is the most common defect in real data, and the easiest to
+miss because every individual value looks fine.  Count the categories:
+
+```r
+deliveries |> count(crop)
+```
+
+```
+  crop            n
+  "CANOLA"        2
+  "Canola"        6
+  "canola"        4
+  "Spring Wheat"  2
+  "Spring wheat"  8
+  "spring wheat"  5
+  ...
+```
+
+Three spellings of canola and three of spring wheat, which `group_by(crop)` will treat as six
+different crops.
+
+Fix the mechanical cases first:
+
+```r
+deliveries <- deliveries |>
+  mutate(crop = str_trim(crop),        # strip stray spaces
+         crop = str_to_title(crop))    # "CANOLA" and "canola" -> "Canola"
+```
+
+`str_to_title` handles capitalisation.  `str_trim` is belt-and-braces here -- `read_csv` strips
+surrounding spaces on import -- but other readers do not, and a space you cannot see is a
+match you cannot explain, so it is worth keeping in the pipeline.  Genuine synonyms --
+`"Canola"` and `"Canola/Rapeseed"` -- are a judgement call, and belong in an explicit recode
+where a reader can see the decision:
+
+```r
+deliveries <- deliveries |>
+  mutate(crop = case_when(
+    crop == "Canola/Rapeseed" ~ "Canola",
+    crop == "Soybean"         ~ "Soybeans",
+    TRUE                      ~ crop
+  ))
+```
+
+### Mixed units {.unnumbered}
+
+Worse than a wrong value is a right value in the wrong unit, because nothing looks broken.  In
+the deliveries file most moisture readings are percentages around 9.5, but a few were entered
+as decimals: 0.094 instead of 9.4.
+
+No error, no warning.  The mean quietly comes out too low.
+
+The way to catch it is to know what range the variable should occupy and check:
+
+```r
+deliveries |> filter(moisture_pct < 1)
+```
+
+If grain moisture is normally 8 to 16 percent, anything under 1 is in the wrong unit.  Convert
+rather than drop:
+
+```r
+deliveries <- deliveries |>
+  mutate(moisture_pct = if_else(moisture_pct < 1, moisture_pct * 100, moisture_pct))
+```
+
+This is the argument for the `units` column you saw in @sec-unit-conversion.  A file that
+records its own units lets you convert with `case_when` instead of guessing from magnitude.
+
+### Missing values in disguise {.unnumbered}
+
+You met `NA` in @sec-missing-values.  The complication in real files is that missing data
+arrives wearing several costumes: an empty cell, the text `"NA"`, `"N/A"`, `"-"`, `"."`, or
+`-999`.  R recognises the blank and `NA`; the rest come in as ordinary text and quietly turn
+their column into `<chr>`.
+
+Tell `read_csv` what counts as missing:
+
+```r
+deliveries <- read_csv("data/grain_deliveries_messy.csv",
+                       na = c("", "NA", "N/A", "-", "."))
+```
+
+Then count what you have, before deciding anything:
+
+```r
+deliveries |> summarise(across(everything(), ~ sum(is.na(.))))
+```
+
+A numeric code like `-999` is the dangerous one, because it will not turn the column to text --
+it will just be included in the mean as a number. That is one more reason to run `summary()`
+on arrival and look at the minimum.
+
+### A checklist {.unnumbered}
+
+Run through this on every new file:
+
+1. `glimpse()` -- are the column types what you expect?
+2. `summary()` -- are the minimums and maximums possible?
+3. `count()` each categorical column -- are the categories consistent?
+4. Count rows, and check for duplicated identifiers.
+5. Count `NA`s per column -- and ask whether the missingness is random.
+6. Check the range of each numeric column against what the unit should be.
+
+None of this is analysis.  All of it is the reason your analysis can be believed.
+
+## Test Bank Sample {#sec-module3-clean-test}
+
+1. (Joins.) What is the difference between `left_join` and `inner_join`, and which is safer when you are not sure the keys match?
+2. (Diagnosis.) After a join, a column you expected to be full is entirely `NA`. What is the most likely cause, and which function finds it?
+3. (Row counts.) You join 60 yield rows to a price table and get 240 rows. Explain what happened and how to fix it.
+4. (Duplicates.) Distinguish an exact duplicate from a conflicting duplicate. Why does `distinct()` only solve one of them?
+5. (Categories.) Give three ways the same crop name can appear in a file, and say what `group_by(crop)` would do with them.
+6. (Units.) Why is a value in the wrong unit harder to catch than a value that is simply wrong?
+
+## Practice Exercises {#sec-module3-clean-practice}
+
+1. Join the variety trial yields to `crop_prices.csv`. Use `anti_join` to find the crops that did not match, and list them.
+2. Reconcile the crop names so the join succeeds, then compute revenue per acre by crop.
+3. Read `grain_deliveries_messy.csv` and find every duplicated `ticket_id`. How many are exact duplicates and how many conflict?
+4. Find the impossible values in the file. For each, say what you think the intended value was and why.
+5. Count the spellings of each crop. Clean them with `str_trim` and `str_to_title`, then check the count again.
+6. Three moisture readings are in the wrong unit. Find them, convert them, and say how you knew.

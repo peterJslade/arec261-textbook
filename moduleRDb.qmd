@@ -1,0 +1,163 @@
+# Getting Data {#sec-getting-data}
+
+Every dataset you have used so far arrived as a tidy CSV with a header row and sensible column
+names.  That is not what real files look like.  This chapter is about getting data out of the
+places it actually lives and into R.
+
+## Learning Objectives {.unnumbered}
+
+::: {.objectives}
+By the end of this chapter you should be able to:
+
+1. Read an Excel workbook into R, including a specific sheet.
+2. Handle a file whose header does not start on the first row.
+3. Check what R guessed about your column types, and correct it.
+4. Download a table from Statistics Canada and get it into a usable shape.
+:::
+
+## Excel Files {#sec-readxl}
+
+Agricultural data arrives as `.xlsx` more often than as `.csv`.  The tidyverse package for
+reading it is **readxl**.  It installs with the tidyverse but, unlike the core packages, is not
+loaded by `library(tidyverse)`, so load it explicitly:
+
+```r
+library(tidyverse)
+library(readxl)
+
+deliveries <- read_excel("data/deliveries.xlsx")
+```
+
+The immediate difference from a CSV is that a workbook can hold several sheets, and
+`read_excel` takes the first one unless you say otherwise.  Find out what is in there before
+you assume:
+
+```r
+excel_sheets("data/deliveries.xlsx")
+```
+
+```
+[1] "Notes"  "2024"  "2025"  "Summary"
+```
+
+The first sheet is a page of notes.  Reading the file without checking would have handed you
+that, not the data.  Ask for the one you want, by name or by number:
+
+```r
+deliveries <- read_excel("data/deliveries.xlsx", sheet = "2025")
+```
+
+## When the Header Is Not on Row 1 {#sec-skip-rows}
+
+Spreadsheets made by people usually have something above the table: a title, a logo, a note
+about units, a couple of blank rows.  R does not know that, so it takes the first row as column
+names and produces something like this:
+
+```
+# A tibble: 62 x 6
+  `Saskatchewan grain deliveries` ...2   ...3   ...4
+  <chr>                           <chr>  <chr>  <chr>
+1 NA                              NA     NA     NA
+2 Ticket                          Date   Crop   Weight
+```
+
+The giveaway is column names like `...2` and a first row of `NA`.  The real header is further
+down.  Count the rows above it and skip them:
+
+```r
+deliveries <- read_excel("data/deliveries.xlsx", sheet = "2025", skip = 3)
+```
+
+The same argument works for `read_csv`.  Always print the object after reading it -- the shape
+of what comes back is the fastest check that you read the right thing.
+
+## Check What R Guessed {#sec-col-types}
+
+`read_csv` and `read_excel` guess each column's type from the first few hundred values.  The
+guess is usually right and occasionally wrong in a way that matters.
+
+The classic failure is a numeric column that contains one text value -- a weight typed as
+`"38.2 t"` with the unit in the cell, an `"N/A"`, a footnote marker.  One such value and the
+whole column comes in as text, which means `mean()` fails and, worse, `arrange()` sorts it alphabetically:
+100 lands between 10 and 11.
+
+Look at what you got:
+
+```r
+glimpse(deliveries)
+```
+
+Every column is labelled: `<dbl>` for numbers, `<chr>` for text, `<date>` for dates.  If
+something you expect to be numeric says `<chr>`, find out which value caused it:
+
+```r
+deliveries |>
+  filter(is.na(as.numeric(weight_tonnes))) |>
+  select(ticket_id, weight_tonnes)
+```
+
+That returns the rows R could not read as a number, which is where the problem is.  Fixing it
+belongs in @sec-cleaning; the point here is to notice it on arrival rather than three steps
+later when a summary comes back wrong.
+
+You can also state the types instead of letting R guess:
+
+```r
+deliveries <- read_csv("data/deliveries.csv",
+                       col_types = cols(
+                         delivery_date = col_date("%Y-%m-%d"),
+                         weight_tonnes = col_double()
+                       ))
+```
+
+This is worth doing for a file you will read repeatedly.  It documents what you expect, and it
+fails loudly when the file changes rather than silently doing something else.
+
+## Statistics Canada {#sec-statcan}
+
+Most Canadian agricultural data starts at Statistics Canada.  Their tables are free, and the
+interface takes some getting used to.
+
+The route that works: find the table you want, use **Add/Remove data** to choose the years,
+geographies and commodities you need, then **Download** as CSV.  Two things to know before you
+do.
+
+**Download the whole table, filter in R.**  It is tempting to narrow the selection on the
+website so the file is small.  Do the opposite where you can: download generously and filter in
+your script.  Then the selection is written down in code rather than in a series of clicks you
+will not remember, and re-running with different years means editing one line.
+
+**Record the date.** StatCan revises past figures as better information arrives, so the same
+table downloaded twice can differ.  Put the download date in your README (@sec-readme).  When
+your numbers disagree with someone else's, this is usually why.
+
+The files themselves need work.  Expect metadata rows above and below the table, column names
+with spaces and units in them, footnote markers glued to numbers, and a shape that is long
+where you want wide or the reverse.  The tools from @sec-tidy-data and the cleaning in
+@sec-cleaning are exactly for this.
+
+There is also an R package, **cansim**, that pulls tables directly by number:
+
+```r
+library(cansim)
+wheat <- get_cansim("32-10-0359-01")
+```
+
+This skips the download step entirely and records which table you used in the script itself.
+It is the better habit once you are comfortable, and it makes the analysis re-runnable when the
+data is revised.
+
+## Test Bank Sample {#sec-module3-getting-test}
+
+1. (Sheets.) You read an Excel file and get one column of notes. What went wrong, and which function tells you what is in the file?
+2. (Header.) You read a spreadsheet and the columns are called `...2`, `...3`. What does that mean and how do you fix it?
+3. (Types.) A numeric column imports as text. Give two values that would cause this, and say what breaks as a result.
+4. (Provenance.) Why does the date you downloaded a StatCan table matter?
+5. (Workflow.) Why is it usually better to download a wide selection and filter in R than to narrow the selection on the website?
+
+## Practice Exercises {#sec-module3-getting-practice}
+
+1. Read a multi-sheet Excel workbook. List its sheets, then read the second one.
+2. Read a file whose header starts on row 4. Confirm the column names are right before going further.
+3. Run `glimpse()` on a dataset you did not create. Is every column the type you expected?
+4. Download a crop yield table from Statistics Canada for Saskatchewan. Get it into R, filter to one crop, and record in a README where it came from and when.
