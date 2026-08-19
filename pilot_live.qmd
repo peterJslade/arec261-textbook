@@ -1,0 +1,99 @@
+---
+title: "Interactive R — pilot"
+format:
+  live-html:
+    toc: true
+engine: knitr
+webr:
+  packages:
+    - ggplot2
+    - dplyr
+resources:
+  - practice/data/sask_variety_yields.csv
+---
+
+{{< include _extensions/r-wasm/live/_knitr.qmd >}}
+
+This page is a demonstration, not a chapter.  It runs **real R in your browser** — no
+installation, no server.  The first cell takes a few seconds to start while R loads; after
+that it is quick.
+
+Everything below is editable.  Change a number, press *Run Code*, and see what happens.
+
+## 1. A cell you can edit
+
+The simplest case: a few yields, and a mean.  Try changing one of the numbers, or adding
+another, and re-running.
+
+```{webr}
+yields <- c(48, 52, 47, 55, 50)
+mean(yields)
+```
+
+## 2. Building a chart one layer at a time
+
+This is the sort of thing that is hard to teach on a printed page.  Run it, then add
+`+ geom_smooth(method = "lm")` on a new line and run it again.
+
+```{webr}
+#| setup: true
+#| exercise: plot1
+library(ggplot2)
+library(dplyr)
+d <- read.csv("practice/data/sask_variety_yields.csv")
+d <- d[!is.na(d$Yield) & !is.na(d$Acres) & d$Year == 2025, ]
+```
+
+```{webr}
+#| exercise: plot1
+ggplot(d[d$Crop == "Barley", ], aes(x = Acres, y = Yield)) +
+  geom_point(colour = "#4a7c59", alpha = 0.6) +
+  labs(x = "Acres seeded", y = "Yield (bu/ac)") +
+  theme_minimal()
+```
+
+## 3. An exercise with a hint
+
+Compute the mean barley yield for 2025.  The data frame `d` is already loaded and filtered
+to 2025.
+
+```{webr}
+#| exercise: ex_mean
+barley <- d[d$Crop == "Barley", ]
+______
+```
+
+::: { .hint exercise="ex_mean" }
+You want `mean()` of the `Yield` column.  Remember `$` selects a column.
+:::
+
+::: { .solution exercise="ex_mean" }
+```r
+mean(barley$Yield)
+```
+:::
+
+## 4. Seeing a mistake happen
+
+The silent-join failure from @sec-ai-silent-failure, live.  Run this and look at how many
+rows come back with a price.
+
+```{webr}
+#| exercise: join1
+prices <- data.frame(
+  Crop = c("Canola", "Spring wheat", "Barley", "Oats"),
+  Price = c(14.00, 8.00, 5.50, 4.50)
+)
+
+j <- merge(d, prices, by = "Crop", all.x = TRUE)
+sum(!is.na(j$Price))   # how many rows found a price?
+nrow(j)                # out of how many?
+```
+
+Now fix it: change `"Canola"` to `"Canola/Rapeseed"` in the price table and run it again.
+
+## What this costs
+
+The R runtime downloads once per visitor (a few MB, cached afterwards), and each package
+adds to that.  ggplot2 and dplyr are the two that matter for this course.  Pages without
+`{webr}` cells are unaffected.
