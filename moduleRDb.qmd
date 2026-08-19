@@ -1,8 +1,8 @@
 # Getting Data {#sec-getting-data}
 
-Every dataset you have used so far arrived as a tidy CSV with a header row and sensible column
-names.  That is not what real files look like.  This chapter is about getting data out of the
-places it actually lives and into R.
+Agricultural data usually arrives as an Excel workbook rather than a CSV, often with a title
+and a couple of blank rows above the table.  This chapter covers reading those files, and
+getting data out of Statistics Canada.
 
 ## Learning Objectives {.unnumbered}
 
@@ -17,9 +17,8 @@ By the end of this chapter you should be able to:
 
 ## Excel Files {#sec-readxl}
 
-Agricultural data arrives as `.xlsx` more often than as `.csv`.  The tidyverse package for
-reading it is **readxl**.  It installs with the tidyverse but, unlike the core packages, is not
-loaded by `library(tidyverse)`, so load it explicitly:
+The tidyverse package for reading `.xlsx` files is **readxl**.  It installs with the tidyverse
+but is not loaded by `library(tidyverse)`, so load it separately:
 
 ```r
 library(tidyverse)
@@ -28,9 +27,8 @@ library(readxl)
 deliveries <- read_excel("data/deliveries.xlsx")
 ```
 
-The immediate difference from a CSV is that a workbook can hold several sheets, and
-`read_excel` takes the first one unless you say otherwise.  Find out what is in there before
-you assume:
+A workbook can hold several sheets, and `read_excel` takes the first one unless you say
+otherwise.  Check what is in the file before assuming:
 
 ```r
 excel_sheets("data/deliveries.xlsx")
@@ -40,8 +38,8 @@ excel_sheets("data/deliveries.xlsx")
 [1] "Notes"  "2024"  "2025"  "Summary"
 ```
 
-The first sheet is a page of notes.  Reading the file without checking would have handed you
-that, not the data.  Ask for the one you want, by name or by number:
+The first sheet here is a page of notes, so reading the file without checking would hand you
+that instead of the data.  Ask for the sheet you want, by name or number:
 
 ```r
 deliveries <- read_excel("data/deliveries.xlsx", sheet = "2025")
@@ -49,9 +47,9 @@ deliveries <- read_excel("data/deliveries.xlsx", sheet = "2025")
 
 ## When the Header Is Not on Row 1 {#sec-skip-rows}
 
-Spreadsheets made by people usually have something above the table: a title, a logo, a note
-about units, a couple of blank rows.  R does not know that, so it takes the first row as column
-names and produces something like this:
+Spreadsheets built by people usually have something above the table: a title, a note about
+units, a blank row or two.  R takes the first row as column names regardless, which produces
+something like this:
 
 ```
 # A tibble: 62 x 6
@@ -61,25 +59,25 @@ names and produces something like this:
 2 Ticket                          Date   Crop   Weight
 ```
 
-The giveaway is column names like `...2` and a first row of `NA`.  The real header is further
-down.  Count the rows above it and skip them:
+Column names like `...2` and a first row of `NA` mean the real header is further down.  Count
+the rows above it and skip them:
 
 ```r
 deliveries <- read_excel("data/deliveries.xlsx", sheet = "2025", skip = 3)
 ```
 
-The same argument works for `read_csv`.  Always print the object after reading it -- the shape
-of what comes back is the fastest check that you read the right thing.
+`read_csv` takes the same argument.  Print the object after reading it either way; the shape of
+what comes back is the quickest check that you read the right thing.
 
 ## Check What R Guessed {#sec-col-types}
 
 `read_csv` and `read_excel` guess each column's type from the first few hundred values.  The
-guess is usually right and occasionally wrong in a way that matters.
+guess is usually right, and wrong in one particular way that matters.
 
-The classic failure is a numeric column that contains one text value -- a weight typed as
-`"38.2 t"` with the unit in the cell, an `"N/A"`, a footnote marker.  One such value and the
-whole column comes in as text, which means `mean()` fails and, worse, `arrange()` sorts it alphabetically:
-100 lands between 10 and 11.
+A numeric column that contains a single text value comes in as text.  A weight typed as
+`"38.2 t"` with the unit in the cell will do it, as will `"N/A"` or a footnote marker.  Once
+the column is text, `mean()` fails, and `arrange()` sorts alphabetically, which puts 100
+between 10 and 11.
 
 Look at what you got:
 
@@ -88,7 +86,7 @@ glimpse(deliveries)
 ```
 
 Every column is labelled: `<dbl>` for numbers, `<chr>` for text, `<date>` for dates.  If
-something you expect to be numeric says `<chr>`, find out which value caused it:
+something you expect to be numeric says `<chr>`, find the value that caused it:
 
 ```r
 deliveries |>
@@ -96,9 +94,8 @@ deliveries |>
   select(ticket_id, weight_tonnes)
 ```
 
-That returns the rows R could not read as a number, which is where the problem is.  Fixing it
-belongs in @sec-cleaning; the point here is to notice it on arrival rather than three steps
-later when a summary comes back wrong.
+That returns the rows R could not read as a number.  Fixing them is @sec-cleaning; the point
+here is to notice on arrival rather than three steps later, when a summary comes back wrong.
 
 You can also state the types instead of letting R guess:
 
@@ -110,42 +107,40 @@ deliveries <- read_csv("data/deliveries.csv",
                        ))
 ```
 
-This is worth doing for a file you will read repeatedly.  It documents what you expect, and it
-fails loudly when the file changes rather than silently doing something else.
+For a file you read repeatedly this is worth doing.  It documents what you expect, and it fails
+loudly when the file changes rather than quietly doing something else.
 
 ## Statistics Canada {#sec-statcan}
 
-Most Canadian agricultural data starts at Statistics Canada.  Their tables are free, and the
-interface takes some getting used to.
+Most Canadian agricultural data starts at Statistics Canada.  The tables are free, and the
+interface takes some getting used to: find the table you want, use **Add/Remove data** to
+choose years, geographies and commodities, then **Download** as CSV.
 
-The route that works: find the table you want, use **Add/Remove data** to choose the years,
-geographies and commodities you need, then **Download** as CSV.  Two things to know before you
-do.
+Two things are worth knowing before you do.
 
-**Download the whole table, filter in R.**  It is tempting to narrow the selection on the
-website so the file is small.  Do the opposite where you can: download generously and filter in
-your script.  Then the selection is written down in code rather than in a series of clicks you
-will not remember, and re-running with different years means editing one line.
+Download the whole table and filter in R.  Narrowing the selection on the website makes a
+smaller file, but the selection then lives in a series of clicks you will not remember.  In a
+script it is written down, and re-running with different years means editing one line.
 
-**Record the date.** StatCan revises past figures as better information arrives, so the same
-table downloaded twice can differ.  Put the download date in your README (@sec-readme).  When
-your numbers disagree with someone else's, this is usually why.
+Record the date you downloaded it.  StatCan revises past figures as better information arrives,
+so the same table downloaded twice can differ.  Put the date in your README (@sec-readme).
+When your numbers disagree with somebody else's, this is usually why.
 
-The files themselves need work.  Expect metadata rows above and below the table, column names
-with spaces and units in them, footnote markers glued to numbers, and a shape that is long
-where you want wide or the reverse.  The tools from @sec-tidy-data and the cleaning in
-@sec-cleaning are exactly for this.
+The files need work once you have them.  Expect metadata rows above and below the table, column
+names with spaces and units in them, footnote markers stuck to numbers, and a shape that is
+long where you want wide.  The reshaping tools in @sec-tidy-data and the cleaning in
+@sec-cleaning are what these files need.
 
-There is also an R package, **cansim**, that pulls tables directly by number:
+There is also an R package, **cansim**, that pulls tables by number:
 
 ```r
 library(cansim)
 wheat <- get_cansim("32-10-0359-01")
 ```
 
-This skips the download step entirely and records which table you used in the script itself.
-It is the better habit once you are comfortable, and it makes the analysis re-runnable when the
-data is revised.
+This skips the download and records which table you used in the script itself, which makes the
+analysis re-runnable when the data is revised.  It is the better habit once you are comfortable
+with the tables.
 
 ## Test Bank Sample {#sec-module3-getting-test}
 
