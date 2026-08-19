@@ -534,7 +534,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#sec-joins" id="toc-sec-joins" class="nav-link" data-scroll-target="#sec-joins"><span class="header-section-number">9.1</span> Joining Two Tables</a>
   <ul>
   <li><a href="#the-four-joins-you-need" id="toc-the-four-joins-you-need" class="nav-link" data-scroll-target="#the-four-joins-you-need">The four joins you need</a></li>
-  <li><a href="#always-check-what-did-not-match" id="toc-always-check-what-did-not-match" class="nav-link" data-scroll-target="#always-check-what-did-not-match">Always check what did not match</a></li>
+  <li><a href="#check-what-did-not-match" id="toc-check-what-did-not-match" class="nav-link" data-scroll-target="#check-what-did-not-match">Check what did not match</a></li>
   <li><a href="#the-row-count-trap" id="toc-the-row-count-trap" class="nav-link" data-scroll-target="#the-row-count-trap">The row-count trap</a></li>
   </ul></li>
   <li><a href="#sec-cleaning" id="toc-sec-cleaning" class="nav-link" data-scroll-target="#sec-cleaning"><span class="header-section-number">9.2</span> Cleaning a New File</a>
@@ -573,7 +573,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>Data arrives in pieces. Yields in one file, prices in another, weather in a third. And it arrives dirty: duplicated, misspelled, in mixed units, with values that cannot be true. This chapter is about putting the pieces together and finding out what is wrong with them.</p>
+<p>Data arrives in pieces: yields in one file, prices in another, weather in a third. It also arrives with problems that nobody mentions. This chapter covers putting the pieces together and finding out what is wrong with them.</p>
 <section id="learning-objectives" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="learning-objectives">Learning Objectives</h2>
 <div class="objectives">
@@ -588,7 +588,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="sec-joins" class="level2" data-number="9.1">
 <h2 data-number="9.1" class="anchored" data-anchor-id="sec-joins"><span class="header-section-number">9.1</span> Joining Two Tables</h2>
-<p>You did this in Excel with <code>XLOOKUP</code> (<a href="module01b.html#sec-lookup" class="quarto-xref"><span>Section 2.2</span></a>): you had yields in one table and prices in another, and you pulled the price across. The R equivalent is a <strong>join</strong>, and it is both easier and more honest about what it is doing.</p>
+<p><code>XLOOKUP</code> (<a href="module01b.html#sec-lookup" class="quarto-xref"><span>Section 2.2</span></a>) pulled a price across from a second table in Excel. The R equivalent is a <strong>join</strong>:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/field_yields.csv"</span>)</span>
@@ -596,70 +596,70 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span></span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(prices, <span class="at">by =</span> <span class="st">"crop"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>The <code>by</code> argument names the <strong>key</strong>: the column both tables share, used to decide which row matches which. Everything about joins comes back to the key.</p>
+<p>The <code>by</code> argument names the <strong>key</strong>, the column both tables share, which decides which row matches which. Everything about joins comes back to the key.</p>
 <section id="the-four-joins-you-need" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="the-four-joins-you-need">The four joins you need</h3>
-<p>They differ only in which rows survive.</p>
+<p>They differ in which rows survive.</p>
 <ul>
-<li><strong><code>left_join(a, b)</code></strong> keeps every row of <code>a</code>, and fills in <code>NA</code> where <code>b</code> has no match. This is the one you want almost always: your data stays intact and the extra columns come along.</li>
-<li><strong><code>inner_join(a, b)</code></strong> keeps only rows that matched in both. Silently drops the rest.</li>
+<li><strong><code>left_join(a, b)</code></strong> keeps every row of <code>a</code> and fills in <code>NA</code> where <code>b</code> has no match. This is usually the one you want: your data stays intact and the extra columns come along.</li>
+<li><strong><code>inner_join(a, b)</code></strong> keeps only rows that matched in both, and drops the rest without saying so.</li>
 <li><strong><code>full_join(a, b)</code></strong> keeps everything from both, with <code>NA</code> wherever either side is missing.</li>
-<li><strong><code>anti_join(a, b)</code></strong> keeps rows of <code>a</code> with <em>no</em> match in <code>b</code>. It returns no columns from <code>b</code> at all, which sounds useless until you realise it is the fastest way to find out what failed to match.</li>
+<li><strong><code>anti_join(a, b)</code></strong> keeps rows of <code>a</code> with no match in <code>b</code>. It returns no columns from <code>b</code> at all, which sounds useless until you need to find out what failed to match.</li>
 </ul>
 </section>
-<section id="always-check-what-did-not-match" class="level3 unnumbered">
-<h3 class="unnumbered anchored" data-anchor-id="always-check-what-did-not-match">Always check what did not match</h3>
-<p>This is the step people skip, and it is where joins go wrong. <code>left_join</code> does not complain when nothing matches – it hands you a column of <code>NA</code> and lets you carry on.</p>
-<p>Use <code>anti_join</code> to look:</p>
+<section id="check-what-did-not-match" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="check-what-did-not-match">Check what did not match</h3>
+<p><code>left_join</code> does not complain when nothing matches. It hands you a column of <code>NA</code> and lets you carry on, so a join can fail completely without producing an error.</p>
+<p><code>anti_join</code> is how you look:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(prices, <span class="at">by =</span> <span class="st">"crop"</span>) <span class="sc">|&gt;</span></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(crop)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Run that on real Saskatchewan data and you find the problem immediately. The variety trial data calls it <code>"Canola/Rapeseed"</code>; the price list says <code>"Canola"</code>. The trial says <code>"Soybean"</code>, the prices say <code>"Soybeans"</code>. Neither is wrong. They are just different files written by different people, and a join matches on exact text, so every canola row comes back with a missing price.</p>
-<p>The fix belongs in <a href="#sec-cleaning" class="quarto-xref"><span>Section 9.2</span></a> below: reconcile the categories first, then join. The habit to build is checking rather than assuming.</p>
+<p>Run that on real Saskatchewan data and the problem shows up straight away. The variety trial data calls it <code>"Canola/Rapeseed"</code> and the price list says <code>"Canola"</code>. The trial says <code>"Soybean"</code>, the prices say <code>"Soybeans"</code>. Neither file is wrong. They were written by different people, and a join matches on exact text, so every canola row comes back with a missing price.</p>
+<p>Reconciling the categories is <a href="#sec-cleaning" class="quarto-xref"><span>Section 9.2</span></a> below. Checking before you assume the join worked is the habit worth building.</p>
 </section>
 <section id="the-row-count-trap" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="the-row-count-trap">The row-count trap</h3>
-<p>A join can hand you back more rows than you started with, and if you are not watching, you will not notice.</p>
-<p>It happens when the key is not unique in the second table. If <code>prices</code> has one row per crop, each yield row matches exactly one price and the row count is unchanged. But if <code>prices</code> has one row per crop <em>per year</em> and you join only on crop, every yield row matches several price rows, and R returns all the combinations. Sixty fields become two hundred and forty.</p>
-<p>Every summary computed afterwards is then wrong, usually in a way that looks plausible. So check the count:</p>
+<p>A join can return more rows than it started with.</p>
+<p>This happens when the key is not unique in the second table. If <code>prices</code> has one row per crop, each yield row matches one price and the row count does not change. If <code>prices</code> has one row per crop <em>per year</em> and you join on crop alone, every yield row matches several price rows and R returns all the combinations. Sixty fields become two hundred and forty, and every summary computed afterwards is wrong in a way that still looks plausible.</p>
+<p>Check the count:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(yields)                                    <span class="co"># before</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>joined <span class="ot">&lt;-</span> yields <span class="sc">|&gt;</span> <span class="fu">left_join</span>(prices, <span class="at">by =</span> <span class="st">"crop"</span>)</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(joined)                                    <span class="co"># after -- should be the same</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>If it grew, your key is incomplete. Join on everything that identifies a row:</p>
+<p>If it grew, the key is incomplete. Join on everything that identifies a row:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">left_join</span>(prices, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"crop"</span>, <span class="st">"year"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>This is the same idea as the composite key you built in Excel with <code>&amp;</code> (<a href="module01b.html#sec-lookup" class="quarto-xref"><span>Section 2.2</span></a>), where RM and year had to be glued together to identify a row. R lets you name several key columns instead of manufacturing a single one.</p>
+<p>This is the composite key from <a href="module01b.html#sec-lookup" class="quarto-xref"><span>Section 2.2</span></a>, where RM and year had to be glued together with <code>&amp;</code> to identify a row. R lets you name several key columns instead of building one.</p>
 </section>
 </section>
 <section id="sec-cleaning" class="level2" data-number="9.2">
 <h2 data-number="9.2" class="anchored" data-anchor-id="sec-cleaning"><span class="header-section-number">9.2</span> Cleaning a New File</h2>
-<p>When a file arrives, assume it is broken until you have checked. Not because people are careless, but because data is entered by tired humans, exported by software with opinions, and combined from sources that disagree.</p>
-<p>The examples below use <code>grain_deliveries_messy.csv</code>, a small file of grain deliveries with every defect this section describes.</p>
+<p>Assume a new file is broken until you have checked. Data gets entered by tired people, exported by software with opinions, and combined from sources that disagree with each other.</p>
+<p>The examples below use <code>grain_deliveries_messy.csv</code>, a small file of grain deliveries carrying every defect in this section.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/grain_deliveries_messy.csv"</span>)</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(deliveries)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <section id="duplicates" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="duplicates">Duplicates</h3>
-<p>Two kinds, and the second is worse.</p>
+<p>There are two kinds, and the second is the harder one.</p>
 <p>An <strong>exact duplicate</strong> is the same row entered twice:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span> <span class="fu">filter</span>(<span class="fu">duplicated</span>(deliveries))     <span class="co"># show them</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span> <span class="fu">distinct</span>()                          <span class="co"># drop them</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>A <strong>conflicting duplicate</strong> is the same identifier carrying different values – ticket <code>T0030</code> appearing twice with two different weights. <code>distinct()</code> will not help, because the rows are not identical. Find them by counting:</p>
+<p>A <strong>conflicting duplicate</strong> is the same identifier with different values: ticket <code>T0030</code> appearing twice with two different weights. <code>distinct()</code> leaves these alone, because the rows are not identical. Count to find them:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(ticket_id) <span class="sc">|&gt;</span></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(n <span class="sc">&gt;</span> <span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>There is no code that fixes this one. Somebody entered the delivery twice, or corrected it and left both rows. You have to find out which is right, and if you cannot, say so in your write-up and explain what you did.</p>
+<p>No code fixes this one. Somebody entered the delivery twice, or corrected it and left both rows, and you have to find out which is right. If you cannot, say so in the write-up and explain what you did.</p>
 </section>
 <section id="impossible-values" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="impossible-values">Impossible values</h3>
-<p>Every variable has values it cannot take. A weight cannot be negative. A moisture percentage cannot be 250. A delivery of exactly zero tonnes is possible but suspicious.</p>
-<p><code>summary()</code> catches most of it in one line, because impossible values show up in the min and max:</p>
+<p>Every variable has values it cannot take. A weight cannot be negative, a moisture percentage cannot be 250, and a delivery of exactly zero tonnes is possible but odd.</p>
+<p><code>summary()</code> catches most of this in one line, because impossible values turn up in the minimum and maximum:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(deliveries)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Then look at the offenders rather than deleting them blind:</p>
+<p>Then look at the offending rows:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span> <span class="fu">filter</span>(weight_tonnes <span class="sc">&lt;=</span> <span class="dv">0</span> <span class="sc">|</span> moisture_pct <span class="sc">&gt;</span> <span class="dv">100</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>A negative weight is probably a sign error or a reversed transaction. A moisture of 250 is probably 25.0 with a lost decimal point. Both are guesses – record them as such. What you must not do is drop the rows quietly.</p>
+<p>A negative weight is probably a sign error or a reversed transaction. A moisture of 250 is probably 25.0 with a lost decimal point. Both of those are guesses, so record them as guesses. Dropping the rows without saying anything is the thing to avoid.</p>
 </section>
 <section id="inconsistent-categories" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="inconsistent-categories">Inconsistent categories</h3>
-<p>The same thing spelled several ways is the most common defect in real data, and the easiest to miss because every individual value looks fine. Count the categories:</p>
+<p>The same thing spelled several ways is the most common defect I run into, and it is easy to miss because every individual value looks fine. Count the categories:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span> <span class="fu">count</span>(crop)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <pre><code>  crop            n
   "CANOLA"        2
@@ -669,12 +669,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   "Spring wheat"  8
   "spring wheat"  5
   ...</code></pre>
-<p>Three spellings of canola and three of spring wheat, which <code>group_by(crop)</code> will treat as six different crops.</p>
+<p>Three spellings of canola and three of spring wheat, which <code>group_by(crop)</code> reads as six different crops.</p>
 <p>Fix the mechanical cases first:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> deliveries <span class="sc">|&gt;</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">crop =</span> <span class="fu">str_trim</span>(crop),        <span class="co"># strip stray spaces</span></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">crop =</span> <span class="fu">str_to_title</span>(crop))    <span class="co"># "CANOLA" and "canola" -&gt; "Canola"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p><code>str_to_title</code> handles capitalisation. <code>str_trim</code> is belt-and-braces here – <code>read_csv</code> strips surrounding spaces on import – but other readers do not, and a space you cannot see is a match you cannot explain, so it is worth keeping in the pipeline. Genuine synonyms – <code>"Canola"</code> and <code>"Canola/Rapeseed"</code> – are a judgement call, and belong in an explicit recode where a reader can see the decision:</p>
+<p><code>str_to_title</code> handles capitalisation. <code>read_csv</code> already strips surrounding spaces, so <code>str_trim</code> is belt-and-braces here, but other readers do not, and a space you cannot see is a match you cannot explain.</p>
+<p>Genuine synonyms like <code>"Canola"</code> and <code>"Canola/Rapeseed"</code> are a judgement call, so put them in an explicit recode where a reader can see the decision:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> deliveries <span class="sc">|&gt;</span></span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">crop =</span> <span class="fu">case_when</span>(</span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    crop <span class="sc">==</span> <span class="st">"Canola/Rapeseed"</span> <span class="sc">~</span> <span class="st">"Canola"</span>,</span>
@@ -684,24 +685,23 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="mixed-units" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="mixed-units">Mixed units</h3>
-<p>Worse than a wrong value is a right value in the wrong unit, because nothing looks broken. In the deliveries file most moisture readings are percentages around 9.5, but a few were entered as decimals: 0.094 instead of 9.4.</p>
-<p>No error, no warning. The mean quietly comes out too low.</p>
-<p>The way to catch it is to know what range the variable should occupy and check:</p>
+<p>A right value in the wrong unit is harder to catch than a wrong value, because nothing looks broken. In the deliveries file most moisture readings are percentages around 9.5, but a few were entered as decimals: 0.094 rather than 9.4. No error, no warning, and the mean comes out too low.</p>
+<p>Knowing what range the variable should occupy is what catches it:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span> <span class="fu">filter</span>(moisture_pct <span class="sc">&lt;</span> <span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>If grain moisture is normally 8 to 16 percent, anything under 1 is in the wrong unit. Convert rather than drop:</p>
+<p>Grain moisture is normally 8 to 16 percent, so anything under 1 is in the wrong unit. Convert rather than drop:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> deliveries <span class="sc">|&gt;</span></span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">moisture_pct =</span> <span class="fu">if_else</span>(moisture_pct <span class="sc">&lt;</span> <span class="dv">1</span>, moisture_pct <span class="sc">*</span> <span class="dv">100</span>, moisture_pct))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>This is the argument for the <code>units</code> column you saw in <a href="module02b.html#sec-unit-conversion" class="quarto-xref"><span>Section 5.4</span></a>. A file that records its own units lets you convert with <code>case_when</code> instead of guessing from magnitude.</p>
+<p>A file that records its own units, like the <code>units</code> column in <a href="module02b.html#sec-unit-conversion" class="quarto-xref"><span>Section 5.4</span></a>, lets you convert with <code>case_when</code> instead of inferring from magnitude.</p>
 </section>
 <section id="missing-values-in-disguise" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="missing-values-in-disguise">Missing values in disguise</h3>
-<p>You met <code>NA</code> in <a href="module02b.html#sec-missing-values" class="quarto-xref"><span>Section 5.5</span></a>. The complication in real files is that missing data arrives wearing several costumes: an empty cell, the text <code>"NA"</code>, <code>"N/A"</code>, <code>"-"</code>, <code>"."</code>, or <code>-999</code>. R recognises the blank and <code>NA</code>; the rest come in as ordinary text and quietly turn their column into <code>&lt;chr&gt;</code>.</p>
+<p>Missing data (<a href="module02b.html#sec-missing-values" class="quarto-xref"><span>Section 5.5</span></a>) arrives in real files wearing several costumes: an empty cell, the text <code>"NA"</code>, <code>"N/A"</code>, <code>"-"</code>, <code>"."</code>, or <code>-999</code>. R recognises the blank and <code>NA</code>. The rest come in as ordinary text and turn their column into <code>&lt;chr&gt;</code>.</p>
 <p>Tell <code>read_csv</code> what counts as missing:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/grain_deliveries_messy.csv"</span>,</span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>                       <span class="at">na =</span> <span class="fu">c</span>(<span class="st">""</span>, <span class="st">"NA"</span>, <span class="st">"N/A"</span>, <span class="st">"-"</span>, <span class="st">"."</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Then count what you have, before deciding anything:</p>
+<p>Then count what you have before deciding anything:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span> <span class="fu">summarise</span>(<span class="fu">across</span>(<span class="fu">everything</span>(), <span class="sc">~</span> <span class="fu">sum</span>(<span class="fu">is.na</span>(.))))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>A numeric code like <code>-999</code> is the dangerous one, because it will not turn the column to text – it will just be included in the mean as a number. That is one more reason to run <code>summary()</code> on arrival and look at the minimum.</p>
+<p>A numeric code like <code>-999</code> is the dangerous one. It will not turn the column to text; it will just be included in the mean as a number, which is another reason to run <code>summary()</code> on arrival and look at the minimum.</p>
 </section>
 <section id="a-checklist" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="a-checklist">A checklist</h3>
@@ -711,10 +711,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><code>summary()</code> – are the minimums and maximums possible?</li>
 <li><code>count()</code> each categorical column – are the categories consistent?</li>
 <li>Count rows, and check for duplicated identifiers.</li>
-<li>Count <code>NA</code>s per column – and ask whether the missingness is random.</li>
+<li>Count <code>NA</code>s per column, and ask whether the missingness is random.</li>
 <li>Check the range of each numeric column against what the unit should be.</li>
 </ol>
-<p>None of this is analysis. All of it is the reason your analysis can be believed.</p>
 </section>
 </section>
 <section id="sec-module3-clean-test" class="level2" data-number="9.3">

@@ -562,7 +562,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>Every dataset you have used so far arrived as a tidy CSV with a header row and sensible column names. That is not what real files look like. This chapter is about getting data out of the places it actually lives and into R.</p>
+<p>Agricultural data usually arrives as an Excel workbook rather than a CSV, often with a title and a couple of blank rows above the table. This chapter covers reading those files, and getting data out of Statistics Canada.</p>
 <section id="learning-objectives" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="learning-objectives">Learning Objectives</h2>
 <div class="objectives">
@@ -577,59 +577,59 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="sec-readxl" class="level2" data-number="8.1">
 <h2 data-number="8.1" class="anchored" data-anchor-id="sec-readxl"><span class="header-section-number">8.1</span> Excel Files</h2>
-<p>Agricultural data arrives as <code>.xlsx</code> more often than as <code>.csv</code>. The tidyverse package for reading it is <strong>readxl</strong>. It installs with the tidyverse but, unlike the core packages, is not loaded by <code>library(tidyverse)</code>, so load it explicitly:</p>
+<p>The tidyverse package for reading <code>.xlsx</code> files is <strong>readxl</strong>. It installs with the tidyverse but is not loaded by <code>library(tidyverse)</code>, so load it separately:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readxl)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(<span class="st">"data/deliveries.xlsx"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>The immediate difference from a CSV is that a workbook can hold several sheets, and <code>read_excel</code> takes the first one unless you say otherwise. Find out what is in there before you assume:</p>
+<p>A workbook can hold several sheets, and <code>read_excel</code> takes the first one unless you say otherwise. Check what is in the file before assuming:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">excel_sheets</span>(<span class="st">"data/deliveries.xlsx"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <pre><code>[1] "Notes"  "2024"  "2025"  "Summary"</code></pre>
-<p>The first sheet is a page of notes. Reading the file without checking would have handed you that, not the data. Ask for the one you want, by name or by number:</p>
+<p>The first sheet here is a page of notes, so reading the file without checking would hand you that instead of the data. Ask for the sheet you want, by name or number:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(<span class="st">"data/deliveries.xlsx"</span>, <span class="at">sheet =</span> <span class="st">"2025"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="sec-skip-rows" class="level2" data-number="8.2">
 <h2 data-number="8.2" class="anchored" data-anchor-id="sec-skip-rows"><span class="header-section-number">8.2</span> When the Header Is Not on Row 1</h2>
-<p>Spreadsheets made by people usually have something above the table: a title, a logo, a note about units, a couple of blank rows. R does not know that, so it takes the first row as column names and produces something like this:</p>
+<p>Spreadsheets built by people usually have something above the table: a title, a note about units, a blank row or two. R takes the first row as column names regardless, which produces something like this:</p>
 <pre><code># A tibble: 62 x 6
   `Saskatchewan grain deliveries` ...2   ...3   ...4
   &lt;chr&gt;                           &lt;chr&gt;  &lt;chr&gt;  &lt;chr&gt;
 1 NA                              NA     NA     NA
 2 Ticket                          Date   Crop   Weight</code></pre>
-<p>The giveaway is column names like <code>...2</code> and a first row of <code>NA</code>. The real header is further down. Count the rows above it and skip them:</p>
+<p>Column names like <code>...2</code> and a first row of <code>NA</code> mean the real header is further down. Count the rows above it and skip them:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(<span class="st">"data/deliveries.xlsx"</span>, <span class="at">sheet =</span> <span class="st">"2025"</span>, <span class="at">skip =</span> <span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>The same argument works for <code>read_csv</code>. Always print the object after reading it – the shape of what comes back is the fastest check that you read the right thing.</p>
+<p><code>read_csv</code> takes the same argument. Print the object after reading it either way; the shape of what comes back is the quickest check that you read the right thing.</p>
 </section>
 <section id="sec-col-types" class="level2" data-number="8.3">
 <h2 data-number="8.3" class="anchored" data-anchor-id="sec-col-types"><span class="header-section-number">8.3</span> Check What R Guessed</h2>
-<p><code>read_csv</code> and <code>read_excel</code> guess each column’s type from the first few hundred values. The guess is usually right and occasionally wrong in a way that matters.</p>
-<p>The classic failure is a numeric column that contains one text value – a weight typed as <code>"38.2 t"</code> with the unit in the cell, an <code>"N/A"</code>, a footnote marker. One such value and the whole column comes in as text, which means <code>mean()</code> fails and, worse, <code>arrange()</code> sorts it alphabetically: 100 lands between 10 and 11.</p>
+<p><code>read_csv</code> and <code>read_excel</code> guess each column’s type from the first few hundred values. The guess is usually right, and wrong in one particular way that matters.</p>
+<p>A numeric column that contains a single text value comes in as text. A weight typed as <code>"38.2 t"</code> with the unit in the cell will do it, as will <code>"N/A"</code> or a footnote marker. Once the column is text, <code>mean()</code> fails, and <code>arrange()</code> sorts alphabetically, which puts 100 between 10 and 11.</p>
 <p>Look at what you got:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(deliveries)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Every column is labelled: <code>&lt;dbl&gt;</code> for numbers, <code>&lt;chr&gt;</code> for text, <code>&lt;date&gt;</code> for dates. If something you expect to be numeric says <code>&lt;chr&gt;</code>, find out which value caused it:</p>
+<p>Every column is labelled: <code>&lt;dbl&gt;</code> for numbers, <code>&lt;chr&gt;</code> for text, <code>&lt;date&gt;</code> for dates. If something you expect to be numeric says <code>&lt;chr&gt;</code>, find the value that caused it:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">is.na</span>(<span class="fu">as.numeric</span>(weight_tonnes))) <span class="sc">|&gt;</span></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(ticket_id, weight_tonnes)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>That returns the rows R could not read as a number, which is where the problem is. Fixing it belongs in <a href="moduleRDc.html#sec-cleaning" class="quarto-xref"><span>Section 9.2</span></a>; the point here is to notice it on arrival rather than three steps later when a summary comes back wrong.</p>
+<p>That returns the rows R could not read as a number. Fixing them is <a href="moduleRDc.html#sec-cleaning" class="quarto-xref"><span>Section 9.2</span></a>; the point here is to notice on arrival rather than three steps later, when a summary comes back wrong.</p>
 <p>You can also state the types instead of letting R guess:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/deliveries.csv"</span>,</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>                       <span class="at">col_types =</span> <span class="fu">cols</span>(</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>                         <span class="at">delivery_date =</span> <span class="fu">col_date</span>(<span class="st">"%Y-%m-%d"</span>),</span>
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>                         <span class="at">weight_tonnes =</span> <span class="fu">col_double</span>()</span>
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>                       ))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>This is worth doing for a file you will read repeatedly. It documents what you expect, and it fails loudly when the file changes rather than silently doing something else.</p>
+<p>For a file you read repeatedly this is worth doing. It documents what you expect, and it fails loudly when the file changes rather than quietly doing something else.</p>
 </section>
 <section id="sec-statcan" class="level2" data-number="8.4">
 <h2 data-number="8.4" class="anchored" data-anchor-id="sec-statcan"><span class="header-section-number">8.4</span> Statistics Canada</h2>
-<p>Most Canadian agricultural data starts at Statistics Canada. Their tables are free, and the interface takes some getting used to.</p>
-<p>The route that works: find the table you want, use <strong>Add/Remove data</strong> to choose the years, geographies and commodities you need, then <strong>Download</strong> as CSV. Two things to know before you do.</p>
-<p><strong>Download the whole table, filter in R.</strong> It is tempting to narrow the selection on the website so the file is small. Do the opposite where you can: download generously and filter in your script. Then the selection is written down in code rather than in a series of clicks you will not remember, and re-running with different years means editing one line.</p>
-<p><strong>Record the date.</strong> StatCan revises past figures as better information arrives, so the same table downloaded twice can differ. Put the download date in your README (<a href="moduleRDa.html#sec-readme" class="quarto-xref"><span>Section 7.3</span></a>). When your numbers disagree with someone else’s, this is usually why.</p>
-<p>The files themselves need work. Expect metadata rows above and below the table, column names with spaces and units in them, footnote markers glued to numbers, and a shape that is long where you want wide or the reverse. The tools from <a href="module02c.html#sec-tidy-data" class="quarto-xref"><span>Section 6.2</span></a> and the cleaning in <a href="moduleRDc.html#sec-cleaning" class="quarto-xref"><span>Section 9.2</span></a> are exactly for this.</p>
-<p>There is also an R package, <strong>cansim</strong>, that pulls tables directly by number:</p>
+<p>Most Canadian agricultural data starts at Statistics Canada. The tables are free, and the interface takes some getting used to: find the table you want, use <strong>Add/Remove data</strong> to choose years, geographies and commodities, then <strong>Download</strong> as CSV.</p>
+<p>Two things are worth knowing before you do.</p>
+<p>Download the whole table and filter in R. Narrowing the selection on the website makes a smaller file, but the selection then lives in a series of clicks you will not remember. In a script it is written down, and re-running with different years means editing one line.</p>
+<p>Record the date you downloaded it. StatCan revises past figures as better information arrives, so the same table downloaded twice can differ. Put the date in your README (<a href="moduleRDa.html#sec-readme" class="quarto-xref"><span>Section 7.3</span></a>). When your numbers disagree with somebody else’s, this is usually why.</p>
+<p>The files need work once you have them. Expect metadata rows above and below the table, column names with spaces and units in them, footnote markers stuck to numbers, and a shape that is long where you want wide. The reshaping tools in <a href="module02c.html#sec-tidy-data" class="quarto-xref"><span>Section 6.2</span></a> and the cleaning in <a href="moduleRDc.html#sec-cleaning" class="quarto-xref"><span>Section 9.2</span></a> are what these files need.</p>
+<p>There is also an R package, <strong>cansim</strong>, that pulls tables by number:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(cansim)</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>wheat <span class="ot">&lt;-</span> <span class="fu">get_cansim</span>(<span class="st">"32-10-0359-01"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>This skips the download step entirely and records which table you used in the script itself. It is the better habit once you are comfortable, and it makes the analysis re-runnable when the data is revised.</p>
+<p>This skips the download and records which table you used in the script itself, which makes the analysis re-runnable when the data is revised. It is the better habit once you are comfortable with the tables.</p>
 </section>
 <section id="sec-module3-getting-test" class="level2" data-number="8.5">
 <h2 data-number="8.5" class="anchored" data-anchor-id="sec-module3-getting-test"><span class="header-section-number">8.5</span> Test Bank Sample</h2>
