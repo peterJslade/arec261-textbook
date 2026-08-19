@@ -73,13 +73,19 @@ Examples of these functions are in rows 15-20 of the workbook above.
 
 ## Lookup Functions {#sec-lookup}
 
-Data usually arrives split across tables.  You have yields by field in one place and crop
-prices in another, and you need them together.  Pulling a value from the second table into
-the first is a **lookup**.
+Data often arrive split across tables. You might have yields by field in one table and crop prices in another, but need both pieces of information for your analysis. A lookup lets us use information in one table to bring a corresponding value into another.
 
-`XLOOKUP` takes three things: the value to find, the column to search in, and the column to
-return from.  The worksheet below has a price list off to the side in H4:I7, and column E
-looks up each field\'s crop to bring back its price.
+`XLOOKUP` is a function that allows us to look up a value. It takes three main arguments: the value to find, the range to search, and the range containing the value to return. For example:
+
+```
+=XLOOKUP(B11, $A$5:$A$7, $B$5:$B$7)
+```
+
+Excel searches `$A$5:$A$7` for whatever crop is named in `B11`, finds the matching position, and returns the value from the same position in `$B$5:$B$7`. Note the `$` signs: the crop being looked up changes from row to row, but the price table stays put, so its ranges are locked.
+
+If there are multiple matches -- if Canola appeared twice in the price list -- `XLOOKUP` returns the value associated with the first match. This means that the value you are looking up should ideally identify a unique observation in the lookup table.
+
+The workbook below has two tables: a short crop price list at the top, and the field data underneath. Column E uses `XLOOKUP` to find the price for each field's crop and bring it across, with the formula shown in column F.
 
 ::: {.workbook-callout}
 ::: {.excel-embed}
@@ -89,24 +95,19 @@ looks up each field\'s crop to bring back its price.
 [Download this workbook](textbook_examples/mod01_lookup.xlsx) · [blank version to fill in yourself](textbook_examples/mod01_lookup_practice.xlsx) · [Open online](https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7B1dc1b36e-393e-462b-b395-b6bd1fe4eae0%7D&action=default) (File → Save a Copy to view formulas and edit)
 :::
 
-Underneath, the same lookup is written three ways.  `XLOOKUP` is the one to use.  `VLOOKUP`
-is older and still everywhere, so you need to be able to read it, but it has two traps: it
-can only search the *first* column of its table, and its last argument defaults to
-approximate matching.  Leave that argument off and Excel will happily return a wrong answer
-without complaint, so always pass `FALSE`.  `INDEX`/`MATCH` was the workaround before
-`XLOOKUP` existed and turns up in older workbooks.
+Sometimes one column is not enough to uniquely identify a row. Suppose each row represents one rural municipality in one year. RM 1 appears once for every year in the dataset, so looking up RM 1 alone will return whichever match appears first. To identify a particular observation, we need both the RM and the year.
 
-Sometimes one column is not enough to identify a row.  If each row is one rural municipality
-in one year, then RM 1 appears many times over and looking up "RM 1" finds only whichever
-year happens to come first.  You need to match on RM *and* year.  The trick is to join them
-into a single key with a separator:
+One way to do this in Excel is to combine the two values into a single key and use that key for the lookup:
 
 ```
 =XLOOKUP(1 & "|" & 2023, B2:B10650 & "|" & A2:A10650, E2:E10650)
 ```
 
-The separator matters.  Without it, RM 1 in 2023 and RM 12 in 023 would both collapse
-to `12023`.
+Here, Excel effectively creates identifiers such as 1|2023, 1|2024, and 2|2023, and then looks for the one we requested. The | is simply a separator between the two pieces of information.
+
+The separator is important. Without one, different combinations can accidentally produce the same identifier. For example, 1 and 2023 would become 12023, but so would 12 and 023.
+
+The broader lesson is that a lookup needs enough information to uniquely identify the observation you want. Sometimes one variable is enough; sometimes you need a combination of variables. We will return to this idea when we learn how to join datasets later in the course.
 
 ::: {.callout-tip collapse="true"}
 ## Other resources — lookup functions (VLOOKUP, XLOOKUP, INDEX/MATCH)
