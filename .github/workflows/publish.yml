@@ -33,9 +33,22 @@ jobs:
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
-      - name: Render and publish to gh-pages
+      - name: Render the book
+        run: quarto render
+
+      # The webR pilot uses format: live-html, which cannot be mixed into an html
+      # book, so it renders separately and is copied into the built site. Remove
+      # this step and pilot_live.qmd once the in-browser R decision is made.
+      - name: Render the webR pilot into the site
+        run: |
+          quarto render pilot_live.qmd --to live-html
+          cp pilot_live.html _book/
+          cp -r pilot_live_files _book/pilot_live_files
+
+      - name: Publish to gh-pages
         uses: quarto-dev/quarto-actions/publish@v2
         with:
           target: gh-pages
+          render: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
