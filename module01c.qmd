@@ -62,24 +62,24 @@ Use the mean to describe the centre of reasonably symmetric data; be cautious wh
 
 The ordinary mean treats every value as equally important. But often the values represent things of very different **size**, and treating them equally gives a misleading answer. When that happens you want a **weighted average**: each value is counted in proportion to how much it should "count."
 
-Return to the nine barley varieties from the [`SUM` example](module01a.qmd#sec-sum), with acres in `B2:B10` and yields in `C2:C10`. Suppose you want to answer: *what was the average barley yield in this zone?*
+Return to the five wheat fields from the [ranges and functions section](module01a.qmd#sec-sum), with acres in `B5:B9` and yields in `C5:C9`. Suppose you want to answer: *what was the average yield across the whole farm?*
 
-The tempting move is a plain `=AVERAGE(C2:C10)`, which gives about **48.1 bu/ac**. But that treats a variety grown on 406 acres exactly the same as one grown on 18,677 acres — as if each variety were one "vote." That is not what "the average yield of barley in the zone" means. A variety planted on tens of thousands of acres should count far more toward the zone's average than a niche variety on a few hundred acres.
+The tempting move is a plain `=AVERAGE(C5:C9)`, which gives **52.5 bu/ac**. But that treats the 95-acre Creek field exactly the same as the 310-acre Home field -- as if each field were one "vote." That is not what "the average yield across the farm" means. A field three times the size should count three times as much.
 
-The right calculation weights each yield by its acres: multiply each variety's yield by its acres, add those up (that is total production, in bushels), and divide by the total acres:
+The right calculation weights each yield by its acres: multiply each field's yield by its acres, add those up (that is total production, in bushels), and divide by the total acres:
 
 $$
 \bar{x}_w = \frac{\sum w_i\, x_i}{\sum w_i}
 = \frac{\text{total bushels}}{\text{total acres}}
 $$
 
-where $x_i$ is each variety's yield and $w_i$ is its acres (the **weight**). You already know both pieces from [the `SUM` section](module01a.qmd#sec-sum) — it is `SUMPRODUCT` over `SUM`:
+where $x_i$ is each field's yield and $w_i$ is its acres (the **weight**). The workbook in @sec-sum already does this the simple way, dividing total bushels by total acres. `SUMPRODUCT` does the multiplying and adding in one step, which is handy when you have no bushels column:
 
 ```
-=SUMPRODUCT(C2:C10, B2:B10) / SUM(B2:B10)
+=SUMPRODUCT(C5:C9, B5:B9) / SUM(B5:B9)
 ```
 
-This comes out to roughly **46.6 bu/ac** — noticeably *below* the simple 48.1. The gap is telling you that the biggest-acreage varieties yielded a bit below the small-acreage ones, so counting every variety equally overstated the zone's real average. Same data, two different "averages," and the weighted one is the honest answer to the question actually asked.
+This comes out to **52.0 bu/ac**, a little *below* the plain 52.5. The gap is telling you that the bigger fields yielded slightly below the smaller ones, so counting every field equally overstated the farm's real average. Same data, two different "averages," and the weighted one answers the question actually asked.
 
 **This is not just an agriculture trick.** Any time you average numbers that stand for different-sized quantities, you weight. A classic example is a **course grade**: if the midterm is worth 30% and the final 70%, and you score 80 and 90, your grade is *not* the plain average 85. It is the weighted average $0.30 \times 80 + 0.70 \times 90 = 87$ — the final counts more because it carries more weight. Grade-point averages (weighting each course's grade by its credit hours), price indexes, and portfolio returns all work the same way.
 
