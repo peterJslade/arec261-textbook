@@ -1,38 +1,37 @@
-# Going Further with Excel {#sec-excel-further}
+# Working with Data in Excel {#sec-excel-further}
 
-The first chapter covered how a spreadsheet works.  This one covers the functions that make
-Excel worth using on real data: calculations that apply to only part of a table, pulling
-values in from a second table, and summarizing a long table by category.
+The first chapter covered how a spreadsheet works. This chapter moves from simple calculations to working with real data in Excel: calculating statistics for subsets of observations, pulling information from one table into another, sorting and filtering data, and summarizing large datasets by category.
 
 ## Learning Objectives {.unnumbered}
 
 ::: {.objectives}
 By the end of this chapter, you will be able to:
 
-- Calculate on part of a table with `IF`, `COUNTIF`, `SUMIF` and `AVERAGEIF`
-- Build a criterion from a value you have to calculate first
-- Pull a value in from a second table with `XLOOKUP`, and read the older `VLOOKUP`
-  and `INDEX`/`MATCH` versions when you meet them
-- Sort and filter a table without corrupting it, and know why a filter does not
-  change what a formula returns
-- Recognize wide and long data, and say which one a task needs
-- Summarize a table by category with a PivotTable
+- Use `IF` to return one of two results depending on a condition
+- Calculate statistics for subsets of data using `COUNTIF`, `SUMIF`, and `AVERAGEIF`
+- Pull information from one table into another using XLOOKUP
+- Sort and filter data without changing or corrupting the underlying dataset
+- Explain how filtering affects what you see and what Excel formulas calculate
+- Recognize wide and long data and identify which structure is appropriate for a task
+- Summarize and compare groups of observations using a PivotTable
 :::
 
-## Conditional Functions {#sec-conditional-functions}
+## The `IF` Function {#sec-if}
 
-Everything so far has applied to a whole column.  Just as often you want an answer about
-part of it -- the average yield on the canola fields, the number of fields over 60 bushels.
-Excel handles this with a family of functions that take a condition alongside the range.
+Every formula so far has done the same thing to every row. `IF` is the first one that makes a
+decision: it looks at a condition and returns one of two things depending on whether the
+condition is true.
 
-`COUNTIF` counts the rows that match, `SUMIF` adds them up, and `AVERAGEIF` averages them.
-Each takes the range to test, the condition to test for, and (for `SUMIF` and `AVERAGEIF`)
-the range holding the numbers you actually want.  `IF` is the simpler cousin: it looks at one
-cell and returns one of two things.
+```
+=IF(D5>50, "Yes", "No")
+```
 
-The worksheet works through all of them on eight fields.  Column E labels each field with
-`IF`, and the block underneath answers six questions about subsets.  Column F and column C
-show the formulas.
+Three arguments, separated by commas: the test, what to return if it is true, and what to
+return if it is false. Here, if the yield in `D5` is over 50 the cell reads `Yes`, otherwise
+`No`. The results can be text, as here, or numbers, or other formulas.
+
+The worksheet below has eight fields. Column E uses `IF` to label each one, and column F shows
+the formula so you can see how it works.
 
 ::: {.workbook-callout}
 ::: {.excel-embed}
@@ -42,20 +41,46 @@ show the formulas.
 [Download this workbook](textbook_examples/mod01_conditional.xlsx) · [blank version to fill in yourself](textbook_examples/mod01_conditional_practice.xlsx) · [Open online](https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7B914bfd54-1893-4ea6-a069-8c393ea9a169%7D&action=default) (File → Save a Copy to view formulas and edit)
 :::
 
-The last row of that worksheet is the one worth studying.  When the number you are comparing
+Note the quotation marks around `"Yes"` and `"No"`. Text inside a formula always needs them;
+numbers never do. Writing `=IF(D5>50, Yes, No)` makes Excel look for objects named `Yes` and
+`No`, find nothing, and return an error.
+
+## Conditional Functions {#sec-conditional-functions}
+
+In the previous chapter, we used `COUNT`, `SUM`, and `AVERAGE` to calculate across an entire
+range. Just as often we want the same calculation for only part of the data -- the average
+yield on the canola fields, or the number of fields yielding more than 60 bushels per acre.
+
+Excel provides conditional versions of all three. Each takes the range to test and the
+condition to test for, and `SUMIF` and `AVERAGEIF` take a third argument: the range holding
+the numbers you actually want.
+
+```
+=COUNTIF(B5:B12, "Canola")
+=SUMIF(B5:B12, "Canola", C5:C12)
+=AVERAGEIF(B5:B12, "Canola", D5:D12)
+```
+
+The first counts the canola fields. The second adds up their acres. The third averages their
+yields -- testing column B, but averaging column D.
+
+The block underneath the table in the worksheet above answers six questions of this kind, with
+the formulas in column C.
+
+The last row of that block is the one worth studying. When the number you are comparing
 against has to be calculated -- "how many fields beat the average?" -- you cannot write
 `">AVERAGE(D5:D12)"`, because everything inside quotation marks is treated as literal text.
-Excel would go looking for a cell containing those characters.  Instead you glue the `>` onto
+Excel would go looking for a cell containing those characters. Instead you glue the `>` onto
 the calculated number with `&`:
 
 ```
 =COUNTIF(D5:D12,">"&AVERAGE(D5:D12))
 ```
 
-Two more that come up constantly.  `COUNT` counts cells containing numbers; `COUNTA` counts
-any cell that is not empty, text included.  And a blank cell is not a zero: `AVERAGE`,
-`COUNT` and `MEDIAN` skip blanks, which is nearly always what you want.  If you fill the
-blanks with zeros first, those zeros become real measurements and drag the average down.
+Two more things that come up constantly. `COUNT` counts cells containing numbers; `COUNTA`
+counts any cell that is not empty, text included. And a blank cell is not a zero: `AVERAGE`,
+`COUNT` and `MEDIAN` skip blanks, which is nearly always what you want. If you fill the blanks
+with zeros first, those zeros become real measurements and drag the average down.
 
 ::: {.callout-tip collapse="true"}
 ## Other resources — conditional functions (IF, COUNTIF, SUMIF, …)
