@@ -129,21 +129,88 @@ the sort of local convention no model will guess.
 
 That last one deserves more caution than the first three.  An invented function name stops your
 script.  A yield converted with the wrong constant runs perfectly and hands you an answer that
-is off by a factor of fifty.
+is off by a factor of fifty — @fig-units is the same 2025 canola crop written three ways.
 
-The first three announce themselves — the code fails, and you fix it.  The fourth does not,
-and neither does the fifth failure, which is the one to actually worry about.
+```{r}
+#| label: fig-units
+#| eval: true
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 5.0
+#| fig-height: 2.0
+#| fig-cap: "The same canola yield in the three units it gets quoted in."
+source("R/ai_failures.R")
+fig_units()
+```
+
+Sorting the five failures by how loudly they announce themselves gives @fig-spectrum.  Your
+attention is limited, and it belongs on the right-hand end.
+
+```{r}
+#| label: fig-spectrum
+#| eval: true
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 6.0
+#| fig-height: 2.2
+#| fig-cap: "The five failures, by whether anything stops you."
+fig_failure_spectrum()
+```
 
 ## The Failure That Matters {#sec-ai-silent-failure}
 
 Code that breaks is a nuisance.  Code that runs and answers a different question than the one
 you asked is a problem, because nothing tells you it happened.
 
-Suppose you ask for code to join your yield data to a table of prices.  You get a
-`left_join`, it runs, and you carry on.  What you did not notice is that four hundred rows
-had no matching price and are now `NA`, and your average is computed over the rows that
-survived.  The script ran cleanly.  The number it produced is wrong.  You will not find out
-unless you look.
+Here is one you can run yourself.  Both files ship with this book.  Ask for average revenue per
+acre for the four main crops in 2025 — yields in one file, prices in the other — and you will
+get something close to this:
+
+```r
+d   <- read.csv("practice/data/sask_variety_yields.csv")
+p   <- read.csv("practice/data/crop_prices.csv")
+
+d25 <- d |> filter(Year == 2025,
+                   Crop %in% c("Wheat - Hard Red Spring", "Canola/Rapeseed",
+                               "Barley", "Oats"),
+                   !is.na(Yield), Acres > 0)
+
+j <- d25 |> left_join(p, by = "Crop") |>
+            mutate(Revenue = Yield * Price_per_bu)
+
+weighted.mean(j$Revenue, j$Acres, na.rm = TRUE)
+#> 476.79
+```
+
+It runs.  No error, no warning.  $476.79 an acre is an entirely plausible figure and you would
+have no particular reason to doubt it.
+
+It is wrong.  The two files do not spell the crops the same way: the price table says `Canola`
+and `Spring wheat`, the yield data says `Canola/Rapeseed` and `Wheat - Hard Red Spring`.  Only
+barley and oats happen to match.  Of the 1,416 rows, **1,051 came out of the join with no
+price**, and `na.rm = TRUE` — which you learned to add in Module 2, and which the model adds
+by reflex — quietly dropped every one of them.
+
+```{r}
+#| label: fig-join-loss
+#| eval: true
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 5.4
+#| fig-height: 2.5
+#| fig-cap: "Rows in the 2025 data, by whether the join found a price for them."
+fig_join_loss()
+```
+
+The average was computed over barley and oats, which between them are the two smallest crops on
+the list.  Canola, the most valuable one, contributed nothing.  Fix the names and rejoin, and
+the answer is **$571.17** — ninety-four dollars an acre higher.
+
+Both numbers look like answers.  Nothing about $476.79 announces itself as the average of the
+wrong subset.
 
 Nearly every serious mistake I have seen in student work — and in my own — has this shape.
 Not a crash, but a quiet mismatch between the question asked and the question answered.  AI
