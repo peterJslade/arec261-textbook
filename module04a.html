@@ -26,6 +26,41 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -48,6 +83,9 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="site_libs/bootstrap/bootstrap-dd9f1a1ea7e10f665f6ac8b99e51d056.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -539,13 +577,72 @@ ul.task-list li input[type="checkbox"] {
 <p><strong>Out-of-date advice.</strong> Packages change. A model trained before a change will confidently give you the old argument name or the deprecated function, and the version installed on your machine will disagree.</p>
 <p><strong>Confidently wrong numbers.</strong> If you paste in data and ask for a mean, you may get a number that is close to right and is not right. Some chatbots now run code behind the scenes to do arithmetic and get it right; some produce the number the same way they produce everything else. You cannot tell from the answer which one happened. Ask for the code that computes the mean, and run it yourself.</p>
 <p><strong>American defaults.</strong> The training data is dominated by US agriculture, so the model’s plausible guess is a plausible <em>American</em> guess. It will reach for corn and soybeans, quote county-level figures where you want rural municipalities, cite USDA where Statistics Canada is the source, and describe crop insurance that works nothing like SCIC. Units are the sharpest version of this: canola is quoted in bushels per acre here, pounds per acre in some datasets, and kilograms per hectare in others, and a model asked for “typical canola yield” may answer in any of them without saying which. Our own dataset labels the crop <code>Canola/Rapeseed</code>, which is the sort of local convention no model will guess.</p>
-<p>That last one deserves more caution than the first three. An invented function name stops your script. A yield converted with the wrong constant runs perfectly and hands you an answer that is off by a factor of fifty.</p>
-<p>The first three announce themselves — the code fails, and you fix it. The fourth does not, and neither does the fifth failure, which is the one to actually worry about.</p>
+<p>That last one deserves more caution than the first three. An invented function name stops your script. A yield converted with the wrong constant runs perfectly and hands you an answer that is off by a factor of fifty — <a href="#fig-units" class="quarto-xref">Figure&nbsp;<span>12.1</span></a> is the same 2025 canola crop written three ways.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-units" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-units-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="module04a_files/figure-html/fig-units-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;12.1: The same canola yield in the three units it gets quoted in."><img src="module04a_files/figure-html/fig-units-1.png" class="img-fluid figure-img" width="480"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-units-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;12.1: The same canola yield in the three units it gets quoted in.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Sorting the five failures by how loudly they announce themselves gives <a href="#fig-spectrum" class="quarto-xref">Figure&nbsp;<span>12.2</span></a>. Your attention is limited, and it belongs on the right-hand end.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-spectrum" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-spectrum-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="module04a_files/figure-html/fig-spectrum-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;12.2: The five failures, by whether anything stops you."><img src="module04a_files/figure-html/fig-spectrum-1.png" class="img-fluid figure-img" width="576"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-spectrum-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;12.2: The five failures, by whether anything stops you.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
 </section>
 <section id="sec-ai-silent-failure" class="level2" data-number="12.5">
 <h2 data-number="12.5" class="anchored" data-anchor-id="sec-ai-silent-failure"><span class="header-section-number">12.5</span> The Failure That Matters</h2>
 <p>Code that breaks is a nuisance. Code that runs and answers a different question than the one you asked is a problem, because nothing tells you it happened.</p>
-<p>Suppose you ask for code to join your yield data to a table of prices. You get a <code>left_join</code>, it runs, and you carry on. What you did not notice is that four hundred rows had no matching price and are now <code>NA</code>, and your average is computed over the rows that survived. The script ran cleanly. The number it produced is wrong. You will not find out unless you look.</p>
+<p>Here is one you can run yourself. Both files ship with this book. Ask for average revenue per acre for the four main crops in 2025 — yields in one file, prices in the other — and you will get something close to this:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>d   <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"practice/data/sask_variety_yields.csv"</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>p   <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"practice/data/crop_prices.csv"</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>d25 <span class="ot">&lt;-</span> d <span class="sc">|&gt;</span> <span class="fu">filter</span>(Year <span class="sc">==</span> <span class="dv">2025</span>,</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>                   Crop <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Wheat - Hard Red Spring"</span>, <span class="st">"Canola/Rapeseed"</span>,</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>                               <span class="st">"Barley"</span>, <span class="st">"Oats"</span>),</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>                   <span class="sc">!</span><span class="fu">is.na</span>(Yield), Acres <span class="sc">&gt;</span> <span class="dv">0</span>)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>j <span class="ot">&lt;-</span> d25 <span class="sc">|&gt;</span> <span class="fu">left_join</span>(p, <span class="at">by =</span> <span class="st">"Crop"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>            <span class="fu">mutate</span>(<span class="at">Revenue =</span> Yield <span class="sc">*</span> Price_per_bu)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="fu">weighted.mean</span>(j<span class="sc">$</span>Revenue, j<span class="sc">$</span>Acres, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 476.79</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>It runs. No error, no warning. $476.79 an acre is an entirely plausible figure and you would have no particular reason to doubt it.</p>
+<p>It is wrong. The two files do not spell the crops the same way: the price table says <code>Canola</code> and <code>Spring wheat</code>, the yield data says <code>Canola/Rapeseed</code> and <code>Wheat - Hard Red Spring</code>. Only barley and oats happen to match. Of the 1,416 rows, <strong>1,051 came out of the join with no price</strong>, and <code>na.rm = TRUE</code> — which you learned to add in Module 2, and which the model adds by reflex — quietly dropped every one of them.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-join-loss" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-join-loss-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="module04a_files/figure-html/fig-join-loss-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;12.3: Rows in the 2025 data, by whether the join found a price for them."><img src="module04a_files/figure-html/fig-join-loss-1.png" class="img-fluid figure-img" width="518"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-join-loss-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;12.3: Rows in the 2025 data, by whether the join found a price for them.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The average was computed over barley and oats, which between them are the two smallest crops on the list. Canola, the most valuable one, contributed nothing. Fix the names and rejoin, and the answer is <strong>$571.17</strong> — ninety-four dollars an acre higher.</p>
+<p>Both numbers look like answers. Nothing about $476.79 announces itself as the average of the wrong subset.</p>
 <p>Nearly every serious mistake I have seen in student work — and in my own — has this shape. Not a crash, but a quiet mismatch between the question asked and the question answered. AI makes it easier to produce a lot of code quickly, which means it makes this easier to do at volume.</p>
 <p>Nothing about this failure is exotic, and the habits that catch it are dull: read the code, count the rows, test on something small, check one number by hand. <a href="module04b.html#sec-copilot-verify" class="quarto-xref"><span>Section 13.6</span></a> sets them out properly, once you have a tool in front of you.</p>
 </section>
@@ -1089,6 +1186,38 @@ document.addEventListener("DOMContentLoaded", function () {
   </div>
 </nav>
 </div> <!-- /content -->
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
 
 
 

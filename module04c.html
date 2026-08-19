@@ -48,6 +48,9 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="site_libs/bootstrap/bootstrap-dd9f1a1ea7e10f665f6ac8b99e51d056.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -493,7 +496,7 @@ ul.task-list li input[type="checkbox"] {
 
 <p>This chapter is mostly exercises. Before them, a word on why graphing is where I want you to start.</p>
 <p>ggplot2 is a good tool with a fussy surface. The grammar is consistent once you know it, but the details — placing an annotation, putting labels at the ends of lines instead of in a legend, controlling where the axis breaks fall — involve arguments nobody remembers. I have written the figures in this book and I still look up <code>annotate()</code> every time. This is exactly the sort of work an AI is good at.</p>
-<p>It is also the safest place to learn the habit, because <strong>a chart checks itself.</strong> If the annotation points at the wrong year, you see it. If a panel is missing, you count them. If the axis cuts off the top of the data, it is right there. Compare that to a join that silently drops four hundred rows and produces a number that looks perfectly reasonable. In graphing, the mistakes are visible.</p>
+<p>It is also the safest place to learn the habit, because <strong>a chart checks itself.</strong> If the annotation points at the wrong year, you see it. If a panel is missing, you count them. If the axis cuts off the top of the data, it is right there. Compare that to the join in <a href="module04a.html#sec-ai-silent-failure" class="quarto-xref"><span>Section 12.5</span></a>, which dropped a thousand rows and produced a number that looked perfectly reasonable. In graphing, the mistakes are visible.</p>
 <section id="learning-objectives" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="learning-objectives">Learning Objectives</h2>
 <div class="objectives">
@@ -511,7 +514,22 @@ ul.task-list li input[type="checkbox"] {
 <p>The chart tells you whether the <em>drawing</em> is right. It says nothing about whether the data going in was right.</p>
 <p>A chart of the wrong subset looks exactly as convincing as a chart of the right one. If your code filtered to 2024 when you meant 2025, or dropped every row with a missing acreage figure when you meant to keep them, the result is a clean, well-labelled, entirely wrong figure.</p>
 <p>So the check has two halves. Before plotting, look at what you are plotting: how many rows, how many groups, what range. After plotting, look at the chart. Both, every time.</p>
-<p>The dataset for these exercises makes the point. <code>sask_variety_yields.csv</code> has 13,625 rows, and 4,186 of them have no yield recorded. Any code that quietly drops those is making a decision on your behalf, and the chart will not tell you it happened.</p>
+<p>The dataset for these exercises makes the point. <code>sask_variety_yields.csv</code> has 13,625 rows, and 4,186 of them have no yield recorded — but not evenly.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-missing" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-missing-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="module04c_files/figure-html/fig-missing-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;14.1: Rows with and without a recorded yield, by year."><img src="module04c_files/figure-html/fig-missing-1.png" class="img-fluid figure-img" width="480"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-missing-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;14.1: Rows with and without a recorded yield, by year.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Half of 2021 is missing and almost none of 2025. So a chart of 2021 rests on half the data a chart of 2025 does, and nothing on either chart says so. Any code that quietly drops those rows is making a decision on your behalf.</p>
 </section>
 <section id="sec-ai-graph-exercises" class="level2" data-number="14.2">
 <h2 data-number="14.2" class="anchored" data-anchor-id="sec-ai-graph-exercises"><span class="header-section-number">14.2</span> The Exercises</h2>
@@ -1048,6 +1066,38 @@ document.addEventListener("DOMContentLoaded", function () {
   </div>
 </nav>
 </div> <!-- /content -->
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
 
 
 
