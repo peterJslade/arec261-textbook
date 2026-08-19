@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>11&nbsp; Graphing in R – Agricultural Data Analytics</title>
+<title>16&nbsp; Correlation – Agricultural Data Analytics</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -71,8 +71,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./module04a.html" rel="next">
-<link href="./module03d.html" rel="prev">
+<link href="./module06c.html" rel="next">
+<link href="./module06a.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
@@ -111,6 +111,35 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
@@ -147,7 +176,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./module03a.html">Module 3: Communication and Graphing</a></li><li class="breadcrumb-item"><a href="./module03e.html"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Graphing in R</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./module06a.html">Module 5: Relationships Between Variables</a></li><li class="breadcrumb-item"><a href="./module06b.html"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Correlation</span></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -239,13 +268,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false">
  <span class="menu-text">Module 3: Communication and Graphing</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./module03a.html" class="sidebar-item-text sidebar-link">
@@ -272,7 +301,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./module03e.html" class="sidebar-item-text sidebar-link active">
+  <a href="./module03e.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Graphing in R</span></span></a>
   </div>
 </li>
@@ -309,13 +338,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
  <span class="menu-text">Module 5: Relationships Between Variables</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 ">  
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./module06a.html" class="sidebar-item-text sidebar-link">
@@ -324,7 +353,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./module06b.html" class="sidebar-item-text sidebar-link">
+  <a href="./module06b.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Correlation</span></span></a>
   </div>
 </li>
@@ -491,30 +520,25 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
    
   <ul>
   <li><a href="#learning-objectives" id="toc-learning-objectives" class="nav-link active" data-scroll-target="#learning-objectives">Learning Objectives</a></li>
-  <li><a href="#sec-grammar" id="toc-sec-grammar" class="nav-link" data-scroll-target="#sec-grammar"><span class="header-section-number">11.1</span> Why a New Grammar?</a></li>
-  <li><a href="#sec-first-ggplot" id="toc-sec-first-ggplot" class="nav-link" data-scroll-target="#sec-first-ggplot"><span class="header-section-number">11.2</span> Your First ggplot</a></li>
-  <li><a href="#sec-geoms" id="toc-sec-geoms" class="nav-link" data-scroll-target="#sec-geoms"><span class="header-section-number">11.3</span> The Main Geoms</a>
+  <li><a href="#sec-correlation" id="toc-sec-correlation" class="nav-link" data-scroll-target="#sec-correlation"><span class="header-section-number">16.1</span> Covariance and Correlation</a>
   <ul>
-  <li><a href="#geom_point-scatter-plots" id="toc-geom_point-scatter-plots" class="nav-link" data-scroll-target="#geom_point-scatter-plots"><code>geom_point()</code> — Scatter Plots</a></li>
-  <li><a href="#geom_line-line-charts" id="toc-geom_line-line-charts" class="nav-link" data-scroll-target="#geom_line-line-charts"><code>geom_line()</code> — Line Charts</a></li>
-  <li><a href="#geom_col-and-geom_bar-bar-charts" id="toc-geom_col-and-geom_bar-bar-charts" class="nav-link" data-scroll-target="#geom_col-and-geom_bar-bar-charts"><code>geom_col()</code> and <code>geom_bar()</code> — Bar Charts</a></li>
-  <li><a href="#geom_histogram-histograms" id="toc-geom_histogram-histograms" class="nav-link" data-scroll-target="#geom_histogram-histograms"><code>geom_histogram()</code> — Histograms</a></li>
-  <li><a href="#geom_boxplot-box-plots" id="toc-geom_boxplot-box-plots" class="nav-link" data-scroll-target="#geom_boxplot-box-plots"><code>geom_boxplot()</code> — Box Plots</a></li>
-  <li><a href="#geom_smooth-trend-lines" id="toc-geom_smooth-trend-lines" class="nav-link" data-scroll-target="#geom_smooth-trend-lines"><code>geom_smooth()</code> — Trend Lines</a></li>
+  <li><a href="#the-intuition" id="toc-the-intuition" class="nav-link" data-scroll-target="#the-intuition">The Intuition</a></li>
+  <li><a href="#the-formula" id="toc-the-formula" class="nav-link" data-scroll-target="#the-formula">The Formula</a></li>
+  <li><a href="#in-excel-and-r" id="toc-in-excel-and-r" class="nav-link" data-scroll-target="#in-excel-and-r">In Excel and R</a></li>
+  <li><a href="#what-correlation-does-not-measure" id="toc-what-correlation-does-not-measure" class="nav-link" data-scroll-target="#what-correlation-does-not-measure">What Correlation Does Not Measure</a></li>
   </ul></li>
-  <li><a href="#sec-mapping-vs-setting" id="toc-sec-mapping-vs-setting" class="nav-link" data-scroll-target="#sec-mapping-vs-setting"><span class="header-section-number">11.4</span> Mapping vs Setting Aesthetics</a></li>
-  <li><a href="#sec-ggplot-polish" id="toc-sec-ggplot-polish" class="nav-link" data-scroll-target="#sec-ggplot-polish"><span class="header-section-number">11.5</span> Labels, Titles, and Themes</a></li>
-  <li><a href="#sec-faceting" id="toc-sec-faceting" class="nav-link" data-scroll-target="#sec-faceting"><span class="header-section-number">11.6</span> Faceting</a></li>
-  <li><a href="#sec-saving-plots" id="toc-sec-saving-plots" class="nav-link" data-scroll-target="#sec-saving-plots"><span class="header-section-number">11.7</span> Saving Plots</a></li>
+  <li><a href="#sec-correlation-causation" id="toc-sec-correlation-causation" class="nav-link" data-scroll-target="#sec-correlation-causation"><span class="header-section-number">16.2</span> Correlation Is Not Causation</a></li>
+  <li><a href="#sec-module5b-test" id="toc-sec-module5b-test" class="nav-link" data-scroll-target="#sec-module5b-test"><span class="header-section-number">16.3</span> Test Bank Sample</a></li>
+  <li><a href="#sec-module5b-practice" id="toc-sec-module5b-practice" class="nav-link" data-scroll-target="#sec-module5b-practice"><span class="header-section-number">16.4</span> Practice Exercises</a></li>
   </ul>
 </nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./module03a.html">Module 3: Communication and Graphing</a></li><li class="breadcrumb-item"><a href="./module03e.html"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Graphing in R</span></a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./module06a.html">Module 5: Relationships Between Variables</a></li><li class="breadcrumb-item"><a href="./module06b.html"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Correlation</span></a></li></ol></nav>
 <div class="quarto-title">
-<h1 class="title"><span id="sec-graphing-r" class="quarto-section-identifier"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Graphing in R</span></span></h1>
+<h1 class="title"><span id="sec-correlation-chapter" class="quarto-section-identifier"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Correlation</span></span></h1>
 </div>
 
 
@@ -531,151 +555,98 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>Excel draws a chart from a selection. R takes a different approach: you describe the chart – which variable goes on which axis, what shape to draw – and <code>ggplot2</code> builds it. That takes more typing for a single quick chart and far less for the twentieth one.</p>
+<p>The last chapter was about looking. This one puts a number on what you saw: how strongly do two variables move together, and in which direction.</p>
 <section id="learning-objectives" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="learning-objectives">Learning Objectives</h2>
 <div class="objectives">
-<p>By the end of this chapter, you will be able to:</p>
-<ul>
-<li>Build a plot with <code>ggplot()</code>, an aesthetic mapping, and a geom</li>
-<li>Choose the geom that suits your data</li>
-<li>Tell the difference between mapping an aesthetic to a variable and setting it to a constant</li>
-<li>Add titles, axis labels and a theme</li>
-<li>Split a plot into small multiples with facets, and save the result</li>
-</ul>
+<p>By the end of this chapter you should be able to:</p>
+<ol type="1">
+<li>Compute and interpret a correlation coefficient.</li>
+<li>Explain what correlation does not measure.</li>
+<li>Distinguish correlation from causation, and name the ways they come apart.</li>
+</ol>
 </div>
 </section>
-<section id="sec-grammar" class="level2" data-number="11.1">
-<h2 data-number="11.1" class="anchored" data-anchor-id="sec-grammar"><span class="header-section-number">11.1</span> Why a New Grammar?</h2>
-<p>You know how to make charts in Excel (Module 1). Why learn another way?</p>
-<p>The short answer is that ggplot2 — R’s most popular visualization package — produces charts that are <em>better</em> than Excel’s by default, <em>more flexible</em> when you need to customize them, and <em>reproducible</em> because they are generated from code. The long answer is that ggplot2 is built on an idea called the <strong>grammar of graphics</strong> (from Leland Wilkinson’s 1999 book of the same name), which organizes charts in a way that, once you understand it, makes making new kinds of charts feel like building with LEGO instead of hunting through menus.</p>
-<p>The grammar of graphics says that every chart is a combination of a few basic elements:</p>
+<section id="sec-correlation" class="level2" data-number="16.1">
+<h2 data-number="16.1" class="anchored" data-anchor-id="sec-correlation"><span class="header-section-number">16.1</span> Covariance and Correlation</h2>
+<section id="the-intuition" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="the-intuition">The Intuition</h3>
+<p>Suppose you have two variables — say, fertilizer rate and yield — measured across 100 fields. You make a scatter plot. What does it look like?</p>
 <ul>
-<li><strong>Data</strong> — the dataset being plotted.</li>
-<li><strong>Aesthetics</strong> — mappings from data columns to visual properties (x, y, color, size, shape).</li>
-<li><strong>Geometries</strong> — the shapes that appear on the page (points, lines, bars, boxes).</li>
-<li><strong>Statistics</strong> — transformations of the data done as part of plotting (binning for histograms, smoothing for trend lines).</li>
-<li><strong>Scales</strong> — how data values map to aesthetic values (linear vs log axes, color palettes).</li>
-<li><strong>Coordinate systems</strong> — Cartesian, polar, etc.</li>
-<li><strong>Faceting</strong> — splitting the chart into small multiples by a categorical variable.</li>
+<li>If the points form an upward-sloping cloud, yield tends to increase with fertilizer.</li>
+<li>If they form a downward-sloping cloud, yield tends to decrease with fertilizer.</li>
+<li>If they are a shapeless blob, there is no obvious relationship.</li>
+<li>If they form a tight line, the relationship is strong.</li>
+<li>If they are widely scattered, the relationship is weak.</li>
 </ul>
-<p>Every ggplot2 chart is built by adding these layers together. Once you understand the grammar, you can construct any chart you can imagine.</p>
+<p>The <strong>correlation coefficient</strong> turns this visual intuition into a single number between -1 and +1.</p>
 </section>
-<section id="sec-first-ggplot" class="level2" data-number="11.2">
-<h2 data-number="11.2" class="anchored" data-anchor-id="sec-first-ggplot"><span class="header-section-number">11.2</span> Your First ggplot</h2>
-<p>ggplot2 is part of the tidyverse, so if you have loaded the tidyverse, it’s already available.</p>
-<p>A basic scatter plot:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(yields, <span class="fu">aes</span>(<span class="at">x =</span> acres, <span class="at">y =</span> yield_bu_acre)) <span class="sc">+</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Break it down:</p>
+<section id="the-formula" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="the-formula">The Formula</h3>
+<p>First, the <strong>covariance</strong> between two variables <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>, for a sample of size <span class="math inline">\(n\)</span>:</p>
+<p><span class="math display">\[
+\text{Cov}(X, Y) = \frac{1}{n-1} \sum_{i=1}^{n} (x_i - \bar{x})(y_i - \bar{y})
+\]</span></p>
+<p>The covariance is positive when <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> tend to be above (or below) their means together, and negative when one is above while the other is below. But its magnitude depends on the units of both variables, which makes it hard to interpret directly.</p>
+<p>The <strong>(Pearson) correlation coefficient</strong> normalizes the covariance by the standard deviations:</p>
+<p><span class="math display">\[
+r = \frac{\text{Cov}(X, Y)}{s_X \, s_Y}
+\]</span></p>
+<p>The result is always between -1 and +1, regardless of units.</p>
 <ul>
-<li><code>ggplot(yields, ...)</code> — start a new plot using the <code>yields</code> data frame.</li>
-<li><code>aes(x = acres, y = yield_bu_acre)</code> — the <strong>aesthetic</strong> mapping. The x position is mapped to the <code>acres</code> column, the y position to the <code>yield_bu_acre</code> column.</li>
-<li><code>+ geom_point()</code> — add a point geometry. Each row in the data becomes one point.</li>
+<li><span class="math inline">\(r = +1\)</span>: perfect positive linear relationship.</li>
+<li><span class="math inline">\(r = 0\)</span>: no linear relationship.</li>
+<li><span class="math inline">\(r = -1\)</span>: perfect negative linear relationship.</li>
+<li><span class="math inline">\(|r|\)</span> between 0 and 1 measures the strength of the (linear!) relationship.</li>
 </ul>
-<p>Note the <code>+</code> — ggplot2 layers are added with <code>+</code>, not the pipe. A common beginner mistake is to use <code>|&gt;</code> instead. Don’t.</p>
 </section>
-<section id="sec-geoms" class="level2" data-number="11.3">
-<h2 data-number="11.3" class="anchored" data-anchor-id="sec-geoms"><span class="header-section-number">11.3</span> The Main Geoms</h2>
-<p>A tour of the most important <code>geom_</code> functions. In each case, you set the aesthetic mapping with <code>aes()</code> and the geom draws something based on those mappings.</p>
-<section id="geom_point-scatter-plots" class="level3 unnumbered">
-<h3 class="unnumbered anchored" data-anchor-id="geom_point-scatter-plots"><code>geom_point()</code> — Scatter Plots</h3>
-<p>For showing the relationship between two continuous variables.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(yields, <span class="fu">aes</span>(<span class="at">x =</span> acres, <span class="at">y =</span> yield_bu_acre)) <span class="sc">+</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>)  <span class="co"># alpha = transparency, helps when points overlap</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="in-excel-and-r" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="in-excel-and-r">In Excel and R</h3>
+<p>Excel:</p>
+<pre><code>=CORREL(A2:A101, B2:B101)</code></pre>
+<p>R:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cor</span>(trial<span class="sc">$</span>fertilizer_kg_ha, trial<span class="sc">$</span>yield_bu_acre)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Or every pair at once:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cor</span>(trial[, <span class="fu">c</span>(<span class="st">"fertilizer_kg_ha"</span>, <span class="st">"rainfall_mm"</span>, <span class="st">"yield_bu_acre"</span>)])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>That last one is worth running on the trial data. Yield correlates with fertilizer, and it correlates with rainfall – but fertilizer and rainfall also correlate with <em>each other</em>, at about 0.47. Hold on to that number; it is the whole subject of <a href="module06c.html#sec-multiple-regression" class="quarto-xref"><span>Section 17.6</span></a>.</p>
 </section>
-<section id="geom_line-line-charts" class="level3 unnumbered">
-<h3 class="unnumbered anchored" data-anchor-id="geom_line-line-charts"><code>geom_line()</code> — Line Charts</h3>
-<p>For showing how a value changes over a continuous variable (usually time).</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>annual_mean <span class="ot">&lt;-</span> yields <span class="sc">|&gt;</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(year) <span class="sc">|&gt;</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield =</span> <span class="fu">mean</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>))</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(annual_mean, <span class="fu">aes</span>(<span class="at">x =</span> year, <span class="at">y =</span> mean_yield)) <span class="sc">+</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Notice that we summarized first, then plotted. ggplot2 does not have a built-in “line connecting the means” geom; you compute the means and then plot them.</p>
-</section>
-<section id="geom_col-and-geom_bar-bar-charts" class="level3 unnumbered">
-<h3 class="unnumbered anchored" data-anchor-id="geom_col-and-geom_bar-bar-charts"><code>geom_col()</code> and <code>geom_bar()</code> — Bar Charts</h3>
-<p><code>geom_col()</code> plots bars with heights equal to values you give it. Use this when you have already computed the values.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>region_means <span class="ot">&lt;-</span> yields <span class="sc">|&gt;</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(region) <span class="sc">|&gt;</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield =</span> <span class="fu">mean</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>))</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(region_means, <span class="fu">aes</span>(<span class="at">x =</span> region, <span class="at">y =</span> mean_yield)) <span class="sc">+</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p><code>geom_bar()</code> counts rows automatically. Use it when you have un-summarized data and want bar heights to be counts.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(yields, <span class="fu">aes</span>(<span class="at">x =</span> region)) <span class="sc">+</span> <span class="fu">geom_bar</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>These confuse new users constantly. Rule of thumb: if your data is already summarized, use <code>geom_col</code>; if you want ggplot to count things for you, use <code>geom_bar</code>.</p>
-</section>
-<section id="geom_histogram-histograms" class="level3 unnumbered">
-<h3 class="unnumbered anchored" data-anchor-id="geom_histogram-histograms"><code>geom_histogram()</code> — Histograms</h3>
-<p>For showing the distribution of a single continuous variable.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(yields, <span class="fu">aes</span>(<span class="at">x =</span> yield_bu_acre)) <span class="sc">+</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">bins =</span> <span class="dv">30</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>The <code>bins</code> argument controls how many bins to use. ggplot will print a warning if you don’t set it, nudging you to think about bin width.</p>
-</section>
-<section id="geom_boxplot-box-plots" class="level3 unnumbered">
-<h3 class="unnumbered anchored" data-anchor-id="geom_boxplot-box-plots"><code>geom_boxplot()</code> — Box Plots</h3>
-<p>For comparing distributions across categories.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(yields, <span class="fu">aes</span>(<span class="at">x =</span> region, <span class="at">y =</span> yield_bu_acre)) <span class="sc">+</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>This shows, for each region, the median, quartiles, and outliers of yield — side by side.</p>
-</section>
-<section id="geom_smooth-trend-lines" class="level3 unnumbered">
-<h3 class="unnumbered anchored" data-anchor-id="geom_smooth-trend-lines"><code>geom_smooth()</code> — Trend Lines</h3>
-<p>Adds a smoother to a scatter plot.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(yields, <span class="fu">aes</span>(<span class="at">x =</span> acres, <span class="at">y =</span> yield_bu_acre)) <span class="sc">+</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.3</span>) <span class="sc">+</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>)  <span class="co"># lm = linear regression</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Use <code>method = "lm"</code> for a straight line; omit for a flexible nonparametric smoother. Useful for visual inspection of trends, but don’t confuse a visual smoother for a rigorous model — that comes later.</p>
+<section id="what-correlation-does-not-measure" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="what-correlation-does-not-measure">What Correlation Does Not Measure</h3>
+<p>Correlation measures <em>linear</em> relationships. If the true relationship between <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> is a curve — say, <span class="math inline">\(Y\)</span> rises with <span class="math inline">\(X\)</span> and then falls — the correlation can be zero even though there is a very strong relationship. This is why you should <strong>always plot your data</strong> before computing a correlation. A single scatter plot tells you more than a single number.</p>
+<p>Anscombe’s quartet in <a href="module06a.html#sec-anscombe" class="quarto-xref"><span>Section 15.3</span></a> makes the point concretely: four datasets with identical correlations that look nothing alike.</p>
 </section>
 </section>
-<section id="sec-mapping-vs-setting" class="level2" data-number="11.4">
-<h2 data-number="11.4" class="anchored" data-anchor-id="sec-mapping-vs-setting"><span class="header-section-number">11.4</span> Mapping vs Setting Aesthetics</h2>
-<p>A critical distinction. Consider these two:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Mapping: color depends on region</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(yields, <span class="fu">aes</span>(<span class="at">x =</span> acres, <span class="at">y =</span> yield_bu_acre, <span class="at">color =</span> region)) <span class="sc">+</span></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>()</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Setting: all points are blue</span></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(yields, <span class="fu">aes</span>(<span class="at">x =</span> acres, <span class="at">y =</span> yield_bu_acre)) <span class="sc">+</span></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">color =</span> <span class="st">"blue"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>When you want an aesthetic to <em>depend on</em> the data (each region gets its own color), put it inside <code>aes()</code>. When you want to <em>set</em> it to a constant (all points blue), put it outside <code>aes()</code>. This trips people up. If you see colors that don’t look right, check whether your <code>color</code> argument is in the right place.</p>
+<section id="sec-correlation-causation" class="level2" data-number="16.2">
+<h2 data-number="16.2" class="anchored" data-anchor-id="sec-correlation-causation"><span class="header-section-number">16.2</span> Correlation Is Not Causation</h2>
+<p>If you remember nothing else from this course, remember this sentence. <strong>Correlation does not imply causation.</strong></p>
+<p>There are several reasons two variables can be correlated without one causing the other:</p>
+<ol type="1">
+<li><strong>Coincidence.</strong> If you look at enough pairs of variables, some will be correlated by chance alone. There is a famous website (tylervigen.com) that collects absurd correlations: per-capita cheese consumption correlates with deaths by bedsheet entanglement. Neither causes the other. They are both just trending over time.</li>
+<li><strong>Reverse causation.</strong> You observe that people who exercise more have lower weights. Does exercise cause low weight, or do people with low weight exercise more? Usually a bit of both.</li>
+<li><strong>Confounding.</strong> A third variable causes both. Ice cream sales correlate with drowning deaths. Does ice cream cause drowning? No.&nbsp;Both are caused by summer.</li>
+<li><strong>Selection.</strong> The dataset was assembled in a way that induces a spurious correlation. (We will see examples of this when we get to sampling.)</li>
+</ol>
+<p>To establish causation, you generally need either a controlled experiment (randomly assign treatment and control) or some clever reasoning about the source of variation. This is the domain of <strong>causal inference</strong>, which you will meet in AREC 262.</p>
+<p>For AREC 261, the point is: <strong>any time you see a correlation, the first question should be “is there a plausible causal story, and what else could explain this?”</strong> The second question should be “could it be the reverse direction?” And the third should be “what could be confounding this?”</p>
 </section>
-<section id="sec-ggplot-polish" class="level2" data-number="11.5">
-<h2 data-number="11.5" class="anchored" data-anchor-id="sec-ggplot-polish"><span class="header-section-number">11.5</span> Labels, Titles, and Themes</h2>
-<p>A bare ggplot is functional but ugly. Polish it with <code>labs()</code> and a <code>theme_</code>:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(yields, <span class="fu">aes</span>(<span class="at">x =</span> acres, <span class="at">y =</span> yield_bu_acre, <span class="at">color =</span> region)) <span class="sc">+</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Canola yield by field size"</span>,</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Saskatchewan, 2025"</span>,</span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Field size (acres)"</span>,</span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Yield (bu/acre)"</span>,</span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"Region"</span>,</span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">caption =</span> <span class="st">"Data: [TBD]"</span></span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p><code>theme_minimal()</code> is a clean, publication-ready default. Other good ones: <code>theme_classic()</code>, <code>theme_bw()</code>. Avoid the default grey background for anything you will show in public.</p>
+<section id="sec-module5b-test" class="level2" data-number="16.3">
+<h2 data-number="16.3" class="anchored" data-anchor-id="sec-module5b-test"><span class="header-section-number">16.3</span> Test Bank Sample</h2>
+<ol type="1">
+<li>(Concept.) You find a correlation of 0.6 between two variables. What does that mean? What doesn’t it mean?</li>
+<li>(Formula.) Write the formula for the Pearson correlation coefficient.</li>
+<li>(Limits.) Give an example of two variables with a strong relationship but a correlation near zero.</li>
+<li>(Correlation vs causation.) Give an example of two variables that are correlated but where neither causes the other.</li>
+<li>(Confounding.) In the trial data, fertilizer and rainfall are themselves correlated. Why does that complicate the claim that fertilizer raises yield?</li>
+</ol>
 </section>
-<section id="sec-faceting" class="level2" data-number="11.6">
-<h2 data-number="11.6" class="anchored" data-anchor-id="sec-faceting"><span class="header-section-number">11.6</span> Faceting</h2>
-<p>Often the most powerful thing you can do with ggplot is split the chart into small multiples:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(yields, <span class="fu">aes</span>(<span class="at">x =</span> yield_bu_acre)) <span class="sc">+</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">bins =</span> <span class="dv">30</span>) <span class="sc">+</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> region)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>This produces one histogram per region, in a grid. Much easier to read than a single chart with overlapping histograms or legends.</p>
-<p><code>facet_grid(region ~ variety)</code> makes a two-dimensional grid. Useful for comparing combinations.</p>
-</section>
-<section id="sec-saving-plots" class="level2" data-number="11.7">
-<h2 data-number="11.7" class="anchored" data-anchor-id="sec-saving-plots"><span class="header-section-number">11.7</span> Saving Plots</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>my_plot <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(yields, <span class="fu">aes</span>(<span class="at">x =</span> region, <span class="at">y =</span> yield_bu_acre)) <span class="sc">+</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>()</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="st">"region_boxplot.png"</span>, <span class="at">plot =</span> my_plot, <span class="at">width =</span> <span class="dv">6</span>, <span class="at">height =</span> <span class="dv">4</span>, <span class="at">dpi =</span> <span class="dv">300</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Specify dimensions in inches and a DPI of 300 for print quality. PNG is fine for slides and web; PDF or SVG for publication.</p>
+<section id="sec-module5b-practice" class="level2" data-number="16.4">
+<h2 data-number="16.4" class="anchored" data-anchor-id="sec-module5b-practice"><span class="header-section-number">16.4</span> Practice Exercises</h2>
+<ol type="1">
+<li>Compute the correlation between <code>fertilizer_kg_ha</code> and <code>yield_bu_acre</code> in the trial data. Interpret it in a sentence.</li>
+<li>Compute the correlation between <code>rainfall_mm</code> and <code>yield_bu_acre</code>. Which predictor is more strongly related to yield?</li>
+<li>Compute the correlation between the two predictors themselves. What does that tell you about the trial?</li>
+<li>Compute the correlation of each pair in Anscombe’s quartet, then plot them. What is the lesson?</li>
+</ol>
 
 
 </section>
@@ -1140,13 +1111,13 @@ document.addEventListener("DOMContentLoaded", function () {
   </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="./module03d.html" class="pagination-link" aria-label="Graphing in Excel">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Graphing in Excel</span></span>
+      <a href="./module06a.html" class="pagination-link" aria-label="Seeing Relationships">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Seeing Relationships</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./module04a.html" class="pagination-link" aria-label="AI Tools">
-        <span class="nav-page-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">AI Tools</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./module06c.html" class="pagination-link" aria-label="Linear Models">
+        <span class="nav-page-text"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">Linear Models</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

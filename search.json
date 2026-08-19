@@ -1338,891 +1338,1035 @@
     ]
   },
   {
-    "objectID": "module06.html",
-    "href": "module06.html",
-    "title": "15  Relationships Between Variables",
+    "objectID": "module06a.html",
+    "href": "module06a.html",
+    "title": "15  Seeing Relationships",
     "section": "",
-    "text": "Learning Objectives",
+    "text": "Learning Objectives\nModules 1 to 4 were about one variable at a time: how is yield distributed, what is the mean, what is the spread. This module is about pairs of variables: does yield change with fertilizer, does price move with quality, do two crops rise and fall together.\nAlmost every interesting question in data analysis is a question about a relationship. The rest of the course is, in one way or another, about formalizing these questions.",
     "crumbs": [
       "Feedback",
       "Module 5: Relationships Between Variables",
-      "<span class='chapter-number'>15</span>  <span class='chapter-title'>Relationships Between Variables</span>"
+      "<span class='chapter-number'>15</span>  <span class='chapter-title'>Seeing Relationships</span>"
     ]
   },
   {
-    "objectID": "module06.html#learning-objectives",
-    "href": "module06.html#learning-objectives",
-    "title": "15  Relationships Between Variables",
+    "objectID": "module06a.html#learning-objectives",
+    "href": "module06a.html#learning-objectives",
+    "title": "15  Seeing Relationships",
     "section": "",
-    "text": "By the end of this module you should be able to:\n\nCompute and interpret a correlation coefficient.\nDistinguish correlation from causation.\nFit a simple linear regression and interpret the slope and intercept.\nCheck a regression visually with a scatter plot and trend line.\nExplain the difference between \\(R^2\\) and correlation.\nRecognize when a linear model is not appropriate.",
+    "text": "By the end of this chapter you should be able to:\n\nRead a scatter plot before computing anything from it.\nSay whether a relationship looks linear, curved, or absent.\nSpot outliers and explain why one point can move a fitted line.\nRecognize spread that grows across the plot, and hidden subgroups.",
     "crumbs": [
       "Feedback",
       "Module 5: Relationships Between Variables",
-      "<span class='chapter-number'>15</span>  <span class='chapter-title'>Relationships Between Variables</span>"
+      "<span class='chapter-number'>15</span>  <span class='chapter-title'>Seeing Relationships</span>"
     ]
   },
   {
-    "objectID": "module06.html#sec-two-variables",
-    "href": "module06.html#sec-two-variables",
-    "title": "15  Relationships Between Variables",
-    "section": "15.1 From One Variable to Two",
-    "text": "15.1 From One Variable to Two\nModules 1-4 were about one variable at a time: how is yield distributed? what is the mean? the spread? With Module 5 we start asking about relationships: how does yield change with acres? does fertilizer application predict yield? is price related to quality?\nAlmost every interesting question in data analysis is a question about a relationship between variables. The rest of this course is, in one way or another, about formalizing these questions.",
+    "objectID": "module06a.html#sec-look-first",
+    "href": "module06a.html#sec-look-first",
+    "title": "15  Seeing Relationships",
+    "section": "15.1 Look First",
+    "text": "15.1 Look First\nYou met the scatter plot in Chapter 9: one variable on each axis, a point for every observation. Here we use it for a different purpose. There it was a way to show a relationship to a reader. Now it is a way to find out what the relationship is, before you put a number on it.\nThe order matters. Every summary in this module – the correlation, the fitted line – is a single number standing in for a whole cloud of points. Each one assumes something about the shape of that cloud, and each one will hand you an answer whether or not the assumption holds. The plot is how you check.\nLoad the trial data we will use for the rest of the module:\nlibrary(tidyverse)\n\ntrial &lt;- read_csv(\"canola_trial.csv\")\nIt has 120 canola fields, each with a nitrogen rate (fertilizer_kg_ha), growing-season rainfall (rainfall_mm), the variety grown, and the yield_bu_acre harvested.\nggplot(trial, aes(x = fertilizer_kg_ha, y = yield_bu_acre)) +\n  geom_point()",
     "crumbs": [
       "Feedback",
       "Module 5: Relationships Between Variables",
-      "<span class='chapter-number'>15</span>  <span class='chapter-title'>Relationships Between Variables</span>"
+      "<span class='chapter-number'>15</span>  <span class='chapter-title'>Seeing Relationships</span>"
     ]
   },
   {
-    "objectID": "module06.html#sec-correlation",
-    "href": "module06.html#sec-correlation",
-    "title": "15  Relationships Between Variables",
-    "section": "15.2 Covariance and Correlation",
-    "text": "15.2 Covariance and Correlation\n\nThe Intuition\nSuppose you have two variables — say, fertilizer rate and yield — measured across 100 fields. You make a scatter plot. What does it look like?\n\nIf the points form an upward-sloping cloud, yield tends to increase with fertilizer.\nIf they form a downward-sloping cloud, yield tends to decrease with fertilizer.\nIf they are a shapeless blob, there is no obvious relationship.\nIf they form a tight line, the relationship is strong.\nIf they are widely scattered, the relationship is weak.\n\nThe correlation coefficient turns this visual intuition into a single number between -1 and +1.\n\n\nThe Formula\nFirst, the covariance between two variables \\(X\\) and \\(Y\\), for a sample of size \\(n\\):\n\\[\n\\text{Cov}(X, Y) = \\frac{1}{n-1} \\sum_{i=1}^{n} (x_i - \\bar{x})(y_i - \\bar{y})\n\\]\nThe covariance is positive when \\(X\\) and \\(Y\\) tend to be above (or below) their means together, and negative when one is above while the other is below. But its magnitude depends on the units of both variables, which makes it hard to interpret directly.\nThe (Pearson) correlation coefficient normalizes the covariance by the standard deviations:\n\\[\nr = \\frac{\\text{Cov}(X, Y)}{s_X \\, s_Y}\n\\]\nThe result is always between -1 and +1, regardless of units.\n\n\\(r = +1\\): perfect positive linear relationship.\n\\(r = 0\\): no linear relationship.\n\\(r = -1\\): perfect negative linear relationship.\n\\(|r|\\) between 0 and 1 measures the strength of the (linear!) relationship.\n\n\n\nIn Excel and R\nExcel:\n=CORREL(A2:A101, B2:B101)\nR:\ncor(yields$fertilizer, yields$yield_bu_acre)\nOr for a whole data frame:\ncor(yields[, c(\"fertilizer\", \"acres\", \"yield_bu_acre\")])\n\n\nWhat Correlation Does Not Measure\nCorrelation measures linear relationships. If the true relationship between \\(X\\) and \\(Y\\) is a curve — say, \\(Y\\) rises with \\(X\\) and then falls — the correlation can be zero even though there is a very strong relationship. This is why you should always plot your data before computing a correlation. A single scatter plot tells you more than a single number.\nThere is a famous dataset called Anscombe’s Quartet — four datasets that all have the same mean, standard deviation, correlation, and regression line, but look completely different when plotted. We will discuss them in the worked example.",
+    "objectID": "module06a.html#sec-what-to-look-for",
+    "href": "module06a.html#sec-what-to-look-for",
+    "title": "15  Seeing Relationships",
+    "section": "15.2 Four Things to Look For",
+    "text": "15.2 Four Things to Look For\n\nIs it a line, or a curve?\nThe methods in this module fit straight lines. If the cloud bends, a straight line will still be fitted, and it will still report a slope, and the slope will be misleading.\nCurvature is common in agronomy. Fertilizer response is the standard case: the first 50 kg/ha of nitrogen buys a lot of yield, the next 50 buys less, and past some point more nitrogen does nothing. That is a curve, and forcing a line through it understates the effect at low rates and overstates it at high ones.\n\n\nIs one point running the show?\nA single observation far from the rest can pull a fitted line a long way, particularly if it sits at the far left or right of the plot. A point out at the edge has leverage: it is a long way from the centre of the data, so tilting the line toward it costs little elsewhere.\nWhen you see one, find out what it is before you decide what to do. A field that yielded 9 bu/ac because it was hailed out is a real observation, but it is not telling you about the fertilizer response, and it does not belong in a regression that is meant to. A yield of 340 bu/ac is a data-entry error. Neither should be dropped silently – say what you removed and why.\n\n\nDoes the spread stay the same?\nLook at how tightly the points hug the trend at the left of the plot, and compare it with the right. If the scatter fans out – tight at low values, wide at high ones – the relationship is less predictable at one end than the other.\nThe fitted line can still be a reasonable summary. What breaks is the uncertainty around it, which is calculated assuming the scatter is even. We will not do anything about that in this module; Modules 9 to 11 are where uncertainty gets treated properly. For now, notice it and say so.\n\n\nIs the cloud actually two clouds?\nSometimes what looks like one relationship is two groups sitting in different places. Two varieties with different yield potential, two soil zones, two years with different weather. Colour the points by a third variable and the structure appears:\nggplot(trial, aes(x = fertilizer_kg_ha, y = yield_bu_acre, colour = variety)) +\n  geom_point()\nThis matters more than it looks. A relationship computed across mixed groups can be quite different from the relationship within each one – occasionally it even points the other way. That is a real phenomenon with a name, Simpson’s paradox, and the multiple regression in Section 17.6 is one way of dealing with it.",
     "crumbs": [
       "Feedback",
       "Module 5: Relationships Between Variables",
-      "<span class='chapter-number'>15</span>  <span class='chapter-title'>Relationships Between Variables</span>"
+      "<span class='chapter-number'>15</span>  <span class='chapter-title'>Seeing Relationships</span>"
     ]
   },
   {
-    "objectID": "module06.html#sec-correlation-causation",
-    "href": "module06.html#sec-correlation-causation",
-    "title": "15  Relationships Between Variables",
-    "section": "15.3 Correlation Is Not Causation",
-    "text": "15.3 Correlation Is Not Causation\nIf you remember nothing else from this course, remember this sentence. Correlation does not imply causation.\nThere are several reasons two variables can be correlated without one causing the other:\n\nCoincidence. If you look at enough pairs of variables, some will be correlated by chance alone. There is a famous website (tylervigen.com) that collects absurd correlations: per-capita cheese consumption correlates with deaths by bedsheet entanglement. Neither causes the other. They are both just trending over time.\nReverse causation. You observe that people who exercise more have lower weights. Does exercise cause low weight, or do people with low weight exercise more? Usually a bit of both.\nConfounding. A third variable causes both. Ice cream sales correlate with drowning deaths. Does ice cream cause drowning? No. Both are caused by summer.\nSelection. The dataset was assembled in a way that induces a spurious correlation. (We will see examples of this in Module 9.)\n\nTo establish causation, you generally need either a controlled experiment (randomly assign treatment and control) or some clever reasoning about the source of variation. This is the domain of causal inference, which you will meet in AREC 262.\nFor AREC 261, the point is: any time you see a correlation, the first question should be “is there a plausible causal story, and what else could explain this?” The second question should be “could it be the reverse direction?” And the third should be “what could be confounding this?”",
+    "objectID": "module06a.html#sec-anscombe",
+    "href": "module06a.html#sec-anscombe",
+    "title": "15  Seeing Relationships",
+    "section": "15.3 Anscombe’s Quartet",
+    "text": "15.3 Anscombe’s Quartet\nThe argument for plotting first has a famous demonstration. Frank Anscombe built four small datasets that share almost every summary statistic: the same means, the same standard deviations, the same correlation, the same fitted line. Plotted, they look nothing alike – one is a tidy linear relationship, one is a clean curve, one is a perfect line with a single outlier dragging it, and one is a vertical stack with one point off to the side.\nIt ships with R, so you can see it yourself:\nanscombe\nFour numbers agreed on four datasets that have nothing in common. Any of the summaries in this module can be computed on data it has no business describing. Plot first.",
     "crumbs": [
       "Feedback",
       "Module 5: Relationships Between Variables",
-      "<span class='chapter-number'>15</span>  <span class='chapter-title'>Relationships Between Variables</span>"
+      "<span class='chapter-number'>15</span>  <span class='chapter-title'>Seeing Relationships</span>"
     ]
   },
   {
-    "objectID": "module06.html#sec-simple-regression",
-    "href": "module06.html#sec-simple-regression",
-    "title": "15  Relationships Between Variables",
-    "section": "15.4 Simple Linear Regression",
-    "text": "15.4 Simple Linear Regression\nCorrelation summarizes the strength and direction of a linear relationship. Linear regression goes one step further: it estimates the equation of the line.\n\nThe Model\nWe write the simple linear regression model as:\n\\[\ny_i = \\beta_0 + \\beta_1 x_i + \\varepsilon_i\n\\]\nwhere:\n\n\\(y_i\\) is the response variable (the thing we want to predict), for observation \\(i\\).\n\\(x_i\\) is the predictor variable (the thing we’re using to predict), for observation \\(i\\).\n\\(\\beta_0\\) is the intercept — the expected value of \\(y\\) when \\(x = 0\\).\n\\(\\beta_1\\) is the slope — the expected change in \\(y\\) per unit change in \\(x\\).\n\\(\\varepsilon_i\\) is the error term — the deviation of the actual \\(y_i\\) from the line. Accounts for everything that affects \\(y\\) but isn’t captured by \\(x\\).\n\nThe goal is to estimate \\(\\beta_0\\) and \\(\\beta_1\\) from data. The standard method is ordinary least squares (OLS), which picks the values that minimize the sum of squared residuals:\n\\[\n\\sum_{i=1}^{n} (y_i - \\hat{y}_i)^2 = \\sum_{i=1}^{n} (y_i - (\\hat{\\beta}_0 + \\hat{\\beta}_1 x_i))^2\n\\]\nYou don’t need to memorize the derivation. The formulas turn out to be:\n\\[\n\\hat{\\beta}_1 = \\frac{\\text{Cov}(X, Y)}{\\text{Var}(X)} = r \\cdot \\frac{s_Y}{s_X}\n\\]\n\\[\n\\hat{\\beta}_0 = \\bar{y} - \\hat{\\beta}_1 \\bar{x}\n\\]\nNotice that the slope involves the correlation, scaled by the ratio of standard deviations. And the intercept is chosen so that the line passes through the point \\((\\bar{x}, \\bar{y})\\).\n\n\nIn Excel\nFor a simple regression, you can use =SLOPE(y_range, x_range) and =INTERCEPT(y_range, x_range). Or add a trendline to a scatter plot (right-click a series → Add Trendline → Linear → check “Display equation”).\nFor more detail, use the Data Analysis ToolPak (File → Options → Add-ins → Analysis ToolPak). Once enabled, Data → Data Analysis → Regression gives you a full regression output with standard errors, \\(R^2\\), and so on.\n\n\nIn R\nmodel &lt;- lm(yield_bu_acre ~ fertilizer, data = yields)\nsummary(model)\nThe lm() function fits a linear model. The formula y ~ x means “\\(y\\) as a function of \\(x\\).” summary() prints the estimated coefficients, standard errors, \\(t\\)-statistics, \\(p\\)-values, and \\(R^2\\).\nYou can extract pieces of the model:\ncoef(model)           # the coefficients\nfitted(model)         # the predicted values\nresiduals(model)      # the residuals\npredict(model, newdata = data.frame(fertilizer = 100))  # predict for new data",
+    "objectID": "module06a.html#sec-module5a-test",
+    "href": "module06a.html#sec-module5a-test",
+    "title": "15  Seeing Relationships",
+    "section": "15.4 Test Bank Sample",
+    "text": "15.4 Test Bank Sample\n\n(Reading.) You plot yield against seeding rate and the points bend downward at high rates. What does fitting a straight line get wrong?\n(Outliers.) A single field sits far to the right of every other point. Why does its position on the x axis matter, not just how unusual its yield is?\n(Spread.) What does it mean if the scatter fans out from left to right, and what does it affect?\n(Subgroups.) Give an agricultural example where one relationship across a whole dataset could differ from the relationship within each group.",
     "crumbs": [
       "Feedback",
       "Module 5: Relationships Between Variables",
-      "<span class='chapter-number'>15</span>  <span class='chapter-title'>Relationships Between Variables</span>"
+      "<span class='chapter-number'>15</span>  <span class='chapter-title'>Seeing Relationships</span>"
     ]
   },
   {
-    "objectID": "module06.html#sec-interpreting-regression",
-    "href": "module06.html#sec-interpreting-regression",
-    "title": "15  Relationships Between Variables",
-    "section": "15.5 Interpreting the Output",
-    "text": "15.5 Interpreting the Output\nSuppose you fit yield_bu_acre ~ fertilizer and get:\nCoefficients:\n            Estimate Std. Error t value Pr(&gt;|t|)\n(Intercept)   30.2      2.1       14.3   &lt;2e-16 ***\nfertilizer     0.15     0.02       7.5   1.2e-10 ***\nInterpretation:\n\nIntercept (30.2): the expected yield when fertilizer is zero. Sometimes this is meaningful (what would yield be with no fertilizer?) and sometimes it is an extrapolation to a region you do not have data for. Be careful.\nSlope (0.15): for every additional unit of fertilizer, expected yield increases by 0.15 bushels per acre. The units matter. If fertilizer is in kg/ha and yield is in bu/ac, the slope is in (bu/ac) per (kg/ha).\n\nAlways state the interpretation in words that include the units. “Yield goes up by 0.15” is vague and wrong. “Each additional kilogram per hectare of fertilizer is associated with an expected 0.15 bu/ac increase in yield” is the kind of sentence you should be writing.\nNote the careful word “associated.” I did not say “causes.” Whether a regression coefficient measures a causal effect is a separate question that depends on how the data was collected — see Section 15.3.",
+    "objectID": "module06a.html#sec-module5a-practice",
+    "href": "module06a.html#sec-module5a-practice",
+    "title": "15  Seeing Relationships",
+    "section": "15.5 Practice Exercises",
+    "text": "15.5 Practice Exercises\n\nPlot yield_bu_acre against fertilizer_kg_ha for the trial data. Describe the shape in one sentence before computing anything.\nColour the same plot by variety. Does the picture change?\nPlot yield against rainfall_mm. Which of the two predictors looks more strongly related to yield?\nLoad anscombe and plot all four pairs. Compute the correlation of each. Explain what the exercise is for.",
     "crumbs": [
       "Feedback",
       "Module 5: Relationships Between Variables",
-      "<span class='chapter-number'>15</span>  <span class='chapter-title'>Relationships Between Variables</span>"
+      "<span class='chapter-number'>15</span>  <span class='chapter-title'>Seeing Relationships</span>"
     ]
   },
   {
-    "objectID": "module06.html#sec-r-squared",
-    "href": "module06.html#sec-r-squared",
-    "title": "15  Relationships Between Variables",
-    "section": "15.6 \\(R^2\\): How Well Does the Line Fit?",
-    "text": "15.6 \\(R^2\\): How Well Does the Line Fit?\nThe regression line is the “best” line in the least-squares sense, but “best” does not mean “good.” A dataset where the points are scattered all over the place still has a best line; the question is whether the line explains any meaningful fraction of the variation.\n\\(R^2\\) (pronounced “R squared”) measures the fraction of the variance in \\(Y\\) that is explained by the regression. It ranges from 0 (the line explains nothing) to 1 (the line explains everything, meaning all points lie exactly on the line).\nFor a simple regression, \\(R^2 = r^2\\) — the square of the correlation coefficient. So a correlation of 0.7 gives \\(R^2 = 0.49\\): about half the variance in \\(Y\\) is accounted for by \\(X\\).\nIn R, summary(model) reports it as Multiple R-squared (and also Adjusted R-squared, which you will meet in AREC 262). In Excel, it’s shown on the regression trendline if you check “Display R-squared value.”\nRough rules of thumb (very rough; context matters):\n\n\\(R^2 &lt; 0.1\\): the relationship explains very little.\n\\(R^2 \\approx 0.3\\): a noticeable but modest relationship.\n\\(R^2 \\approx 0.5\\): a strong relationship.\n\\(R^2 &gt; 0.8\\): either a very strong true relationship, or you are overfitting.\n\nAgricultural yield data often has \\(R^2\\) in the 0.2-0.5 range for any single predictor, because yields depend on many things. Don’t be disappointed by a modest \\(R^2\\) if the model is nonetheless useful.",
+    "objectID": "module06b.html",
+    "href": "module06b.html",
+    "title": "16  Correlation",
+    "section": "",
+    "text": "Learning Objectives\nThe last chapter was about looking. This one puts a number on what you saw: how strongly do two variables move together, and in which direction.",
     "crumbs": [
       "Feedback",
       "Module 5: Relationships Between Variables",
-      "<span class='chapter-number'>15</span>  <span class='chapter-title'>Relationships Between Variables</span>"
+      "<span class='chapter-number'>16</span>  <span class='chapter-title'>Correlation</span>"
     ]
   },
   {
-    "objectID": "module06.html#sec-regression-assumptions",
-    "href": "module06.html#sec-regression-assumptions",
-    "title": "15  Relationships Between Variables",
-    "section": "15.7 When Linear Regression Is (and Isn’t) Appropriate",
-    "text": "15.7 When Linear Regression Is (and Isn’t) Appropriate\nLinear regression makes assumptions. The main ones:\n\nThe relationship is approximately linear. If the true relationship is curved, a straight line will fit badly. Check with a scatter plot.\nObservations are independent. If you have repeated measurements on the same field, or fields in the same farm, the observations are not independent and your standard errors will be wrong. (Fixing this needs more advanced methods you will meet in AREC 262.)\nResiduals have constant variance. If the scatter around the line grows as \\(X\\) grows (a “fan shape”), this assumption is violated.\nResiduals are roughly normal. Matters for small samples; less important for large ones.\nNo extreme outliers driving the result. A single weird point can dramatically change the slope.\n\nAlways make a scatter plot with the regression line on top before trusting a regression. If the data looks nothing like a line, don’t report a linear regression.",
+    "objectID": "module06b.html#learning-objectives",
+    "href": "module06b.html#learning-objectives",
+    "title": "16  Correlation",
+    "section": "",
+    "text": "By the end of this chapter you should be able to:\n\nCompute and interpret a correlation coefficient.\nExplain what correlation does not measure.\nDistinguish correlation from causation, and name the ways they come apart.",
     "crumbs": [
       "Feedback",
       "Module 5: Relationships Between Variables",
-      "<span class='chapter-number'>15</span>  <span class='chapter-title'>Relationships Between Variables</span>"
+      "<span class='chapter-number'>16</span>  <span class='chapter-title'>Correlation</span>"
     ]
   },
   {
-    "objectID": "module06.html#sec-module6-example",
-    "href": "module06.html#sec-module6-example",
-    "title": "15  Relationships Between Variables",
-    "section": "15.8 Worked Example: Fertilizer and Yield",
-    "text": "15.8 Worked Example: Fertilizer and Yield\n[TBD: walk through a complete example with a canola fertilizer trial dataset, showing the scatter plot, correlation, regression, interpretation, and a sensible written summary of the findings.]",
+    "objectID": "module06b.html#sec-correlation",
+    "href": "module06b.html#sec-correlation",
+    "title": "16  Correlation",
+    "section": "16.1 Covariance and Correlation",
+    "text": "16.1 Covariance and Correlation\n\nThe Intuition\nSuppose you have two variables — say, fertilizer rate and yield — measured across 100 fields. You make a scatter plot. What does it look like?\n\nIf the points form an upward-sloping cloud, yield tends to increase with fertilizer.\nIf they form a downward-sloping cloud, yield tends to decrease with fertilizer.\nIf they are a shapeless blob, there is no obvious relationship.\nIf they form a tight line, the relationship is strong.\nIf they are widely scattered, the relationship is weak.\n\nThe correlation coefficient turns this visual intuition into a single number between -1 and +1.\n\n\nThe Formula\nFirst, the covariance between two variables \\(X\\) and \\(Y\\), for a sample of size \\(n\\):\n\\[\n\\text{Cov}(X, Y) = \\frac{1}{n-1} \\sum_{i=1}^{n} (x_i - \\bar{x})(y_i - \\bar{y})\n\\]\nThe covariance is positive when \\(X\\) and \\(Y\\) tend to be above (or below) their means together, and negative when one is above while the other is below. But its magnitude depends on the units of both variables, which makes it hard to interpret directly.\nThe (Pearson) correlation coefficient normalizes the covariance by the standard deviations:\n\\[\nr = \\frac{\\text{Cov}(X, Y)}{s_X \\, s_Y}\n\\]\nThe result is always between -1 and +1, regardless of units.\n\n\\(r = +1\\): perfect positive linear relationship.\n\\(r = 0\\): no linear relationship.\n\\(r = -1\\): perfect negative linear relationship.\n\\(|r|\\) between 0 and 1 measures the strength of the (linear!) relationship.\n\n\n\nIn Excel and R\nExcel:\n=CORREL(A2:A101, B2:B101)\nR:\ncor(trial$fertilizer_kg_ha, trial$yield_bu_acre)\nOr every pair at once:\ncor(trial[, c(\"fertilizer_kg_ha\", \"rainfall_mm\", \"yield_bu_acre\")])\nThat last one is worth running on the trial data. Yield correlates with fertilizer, and it correlates with rainfall – but fertilizer and rainfall also correlate with each other, at about 0.47. Hold on to that number; it is the whole subject of Section 17.6.\n\n\nWhat Correlation Does Not Measure\nCorrelation measures linear relationships. If the true relationship between \\(X\\) and \\(Y\\) is a curve — say, \\(Y\\) rises with \\(X\\) and then falls — the correlation can be zero even though there is a very strong relationship. This is why you should always plot your data before computing a correlation. A single scatter plot tells you more than a single number.\nAnscombe’s quartet in Section 15.3 makes the point concretely: four datasets with identical correlations that look nothing alike.",
     "crumbs": [
       "Feedback",
       "Module 5: Relationships Between Variables",
-      "<span class='chapter-number'>15</span>  <span class='chapter-title'>Relationships Between Variables</span>"
+      "<span class='chapter-number'>16</span>  <span class='chapter-title'>Correlation</span>"
     ]
   },
   {
-    "objectID": "module06.html#sec-module6-test",
-    "href": "module06.html#sec-module6-test",
-    "title": "15  Relationships Between Variables",
-    "section": "15.9 Test Bank Sample",
-    "text": "15.9 Test Bank Sample\n\n(Concept.) You find a correlation of 0.6 between two variables. What does that mean? What doesn’t it mean?\n(Formula.) Write the formula for the Pearson correlation coefficient.\n(Correlation vs causation.) Give an example of two variables that are correlated but where neither causes the other.\n(Regression.) You fit yield ~ fertilizer and get a slope of 0.2. Write a one-sentence interpretation.\n(R-squared.) Your regression has \\(R^2 = 0.35\\). What does this tell you?\n(Diagnostics.) Name three things you should check before trusting a regression result.",
+    "objectID": "module06b.html#sec-correlation-causation",
+    "href": "module06b.html#sec-correlation-causation",
+    "title": "16  Correlation",
+    "section": "16.2 Correlation Is Not Causation",
+    "text": "16.2 Correlation Is Not Causation\nIf you remember nothing else from this course, remember this sentence. Correlation does not imply causation.\nThere are several reasons two variables can be correlated without one causing the other:\n\nCoincidence. If you look at enough pairs of variables, some will be correlated by chance alone. There is a famous website (tylervigen.com) that collects absurd correlations: per-capita cheese consumption correlates with deaths by bedsheet entanglement. Neither causes the other. They are both just trending over time.\nReverse causation. You observe that people who exercise more have lower weights. Does exercise cause low weight, or do people with low weight exercise more? Usually a bit of both.\nConfounding. A third variable causes both. Ice cream sales correlate with drowning deaths. Does ice cream cause drowning? No. Both are caused by summer.\nSelection. The dataset was assembled in a way that induces a spurious correlation. (We will see examples of this when we get to sampling.)\n\nTo establish causation, you generally need either a controlled experiment (randomly assign treatment and control) or some clever reasoning about the source of variation. This is the domain of causal inference, which you will meet in AREC 262.\nFor AREC 261, the point is: any time you see a correlation, the first question should be “is there a plausible causal story, and what else could explain this?” The second question should be “could it be the reverse direction?” And the third should be “what could be confounding this?”",
     "crumbs": [
       "Feedback",
       "Module 5: Relationships Between Variables",
-      "<span class='chapter-number'>15</span>  <span class='chapter-title'>Relationships Between Variables</span>"
+      "<span class='chapter-number'>16</span>  <span class='chapter-title'>Correlation</span>"
     ]
   },
   {
-    "objectID": "module06.html#sec-module6-practice",
-    "href": "module06.html#sec-module6-practice",
-    "title": "15  Relationships Between Variables",
-    "section": "15.10 Practice Exercises",
-    "text": "15.10 Practice Exercises\n\nCompute the correlation between two variables in the canola dataset. Interpret.\nFit a simple linear regression and interpret the coefficients.\nReproduce Anscombe’s quartet. What does it teach you?\n[TBD: a regression exercise with a deliberately misleading dataset.]",
+    "objectID": "module06b.html#sec-module5b-test",
+    "href": "module06b.html#sec-module5b-test",
+    "title": "16  Correlation",
+    "section": "16.3 Test Bank Sample",
+    "text": "16.3 Test Bank Sample\n\n(Concept.) You find a correlation of 0.6 between two variables. What does that mean? What doesn’t it mean?\n(Formula.) Write the formula for the Pearson correlation coefficient.\n(Limits.) Give an example of two variables with a strong relationship but a correlation near zero.\n(Correlation vs causation.) Give an example of two variables that are correlated but where neither causes the other.\n(Confounding.) In the trial data, fertilizer and rainfall are themselves correlated. Why does that complicate the claim that fertilizer raises yield?",
     "crumbs": [
       "Feedback",
       "Module 5: Relationships Between Variables",
-      "<span class='chapter-number'>15</span>  <span class='chapter-title'>Relationships Between Variables</span>"
+      "<span class='chapter-number'>16</span>  <span class='chapter-title'>Correlation</span>"
+    ]
+  },
+  {
+    "objectID": "module06b.html#sec-module5b-practice",
+    "href": "module06b.html#sec-module5b-practice",
+    "title": "16  Correlation",
+    "section": "16.4 Practice Exercises",
+    "text": "16.4 Practice Exercises\n\nCompute the correlation between fertilizer_kg_ha and yield_bu_acre in the trial data. Interpret it in a sentence.\nCompute the correlation between rainfall_mm and yield_bu_acre. Which predictor is more strongly related to yield?\nCompute the correlation between the two predictors themselves. What does that tell you about the trial?\nCompute the correlation of each pair in Anscombe’s quartet, then plot them. What is the lesson?",
+    "crumbs": [
+      "Feedback",
+      "Module 5: Relationships Between Variables",
+      "<span class='chapter-number'>16</span>  <span class='chapter-title'>Correlation</span>"
+    ]
+  },
+  {
+    "objectID": "module06c.html",
+    "href": "module06c.html",
+    "title": "17  Linear Models",
+    "section": "",
+    "text": "Learning Objectives\nCorrelation says how tightly two variables move together. A linear model goes further and estimates the equation of the line, which lets you say how much yield changes per unit of fertilizer, and predict yield at a rate you did not observe.",
+    "crumbs": [
+      "Feedback",
+      "Module 5: Relationships Between Variables",
+      "<span class='chapter-number'>17</span>  <span class='chapter-title'>Linear Models</span>"
+    ]
+  },
+  {
+    "objectID": "module06c.html#learning-objectives",
+    "href": "module06c.html#learning-objectives",
+    "title": "17  Linear Models",
+    "section": "",
+    "text": "By the end of this chapter you should be able to:\n\nFit a simple linear regression and interpret the slope and intercept in units.\nExplain what \\(R^2\\) measures and what it does not.\nRecognize when a linear model is not appropriate.\nPredict from a fitted model, and say why extrapolation is dangerous.\nFit a model with more than one predictor, and explain why a coefficient changes when you add one.",
+    "crumbs": [
+      "Feedback",
+      "Module 5: Relationships Between Variables",
+      "<span class='chapter-number'>17</span>  <span class='chapter-title'>Linear Models</span>"
+    ]
+  },
+  {
+    "objectID": "module06c.html#sec-simple-regression",
+    "href": "module06c.html#sec-simple-regression",
+    "title": "17  Linear Models",
+    "section": "17.1 Simple Linear Regression",
+    "text": "17.1 Simple Linear Regression\nCorrelation summarizes the strength and direction of a linear relationship. Linear regression goes one step further: it estimates the equation of the line.\n\nThe Model\nWe write the simple linear regression model as:\n\\[\ny_i = \\beta_0 + \\beta_1 x_i + \\varepsilon_i\n\\]\nwhere:\n\n\\(y_i\\) is the response variable (the thing we want to predict), for observation \\(i\\).\n\\(x_i\\) is the predictor variable (the thing we’re using to predict), for observation \\(i\\).\n\\(\\beta_0\\) is the intercept — the expected value of \\(y\\) when \\(x = 0\\).\n\\(\\beta_1\\) is the slope — the expected change in \\(y\\) per unit change in \\(x\\).\n\\(\\varepsilon_i\\) is the error term — the deviation of the actual \\(y_i\\) from the line. Accounts for everything that affects \\(y\\) but isn’t captured by \\(x\\).\n\nThe goal is to estimate \\(\\beta_0\\) and \\(\\beta_1\\) from data. The standard method is ordinary least squares (OLS), which picks the values that minimize the sum of squared residuals:\n\\[\n\\sum_{i=1}^{n} (y_i - \\hat{y}_i)^2 = \\sum_{i=1}^{n} (y_i - (\\hat{\\beta}_0 + \\hat{\\beta}_1 x_i))^2\n\\]\nYou don’t need to memorize the derivation. The formulas turn out to be:\n\\[\n\\hat{\\beta}_1 = \\frac{\\text{Cov}(X, Y)}{\\text{Var}(X)} = r \\cdot \\frac{s_Y}{s_X}\n\\]\n\\[\n\\hat{\\beta}_0 = \\bar{y} - \\hat{\\beta}_1 \\bar{x}\n\\]\nNotice that the slope involves the correlation, scaled by the ratio of standard deviations. And the intercept is chosen so that the line passes through the point \\((\\bar{x}, \\bar{y})\\).\n\n\nIn Excel\nFor a simple regression, you can use =SLOPE(y_range, x_range) and =INTERCEPT(y_range, x_range). Or add a trendline to a scatter plot (right-click a series → Add Trendline → Linear → check “Display equation”).\nFor more detail, use the Data Analysis ToolPak (File → Options → Add-ins → Analysis ToolPak). Once enabled, Data → Data Analysis → Regression gives you a full regression output with standard errors, \\(R^2\\), and so on.\n\n\nIn R\nmodel &lt;- lm(yield_bu_acre ~ fertilizer, data = yields)\nsummary(model)\nThe lm() function fits a linear model. The formula y ~ x means “\\(y\\) as a function of \\(x\\).” summary() prints the estimated coefficients, standard errors, \\(t\\)-statistics, \\(p\\)-values, and \\(R^2\\).\nYou can extract pieces of the model:\ncoef(model)           # the coefficients\nfitted(model)         # the predicted values\nresiduals(model)      # the residuals\npredict(model, newdata = data.frame(fertilizer = 100))  # predict for new data",
+    "crumbs": [
+      "Feedback",
+      "Module 5: Relationships Between Variables",
+      "<span class='chapter-number'>17</span>  <span class='chapter-title'>Linear Models</span>"
+    ]
+  },
+  {
+    "objectID": "module06c.html#sec-interpreting-regression",
+    "href": "module06c.html#sec-interpreting-regression",
+    "title": "17  Linear Models",
+    "section": "17.2 Interpreting the Output",
+    "text": "17.2 Interpreting the Output\nFit the trial data and summary(model) gives you this:\nCoefficients:\n                 Estimate Std. Error t value Pr(&gt;|t|)\n(Intercept)      30.6981     1.8558   16.54   &lt;2e-16 ***\nfertilizer_kg_ha  0.1814     0.0146   12.45   &lt;2e-16 ***\nInterpretation:\n\nIntercept (30.7): the expected yield when fertilizer is zero. Sometimes this is meaningful (what would yield be with no fertilizer?) and sometimes it is an extrapolation to a region you do not have data for. Be careful.\nSlope (0.181): for every additional kilogram per hectare of nitrogen, expected yield increases by 0.181 bushels per acre. The units matter. The slope is in (bu/ac) per (kg/ha).\n\nThe other three columns. Std. Error, t value and Pr(&gt;|t|) are all about how sure we are of the estimate. The slope 0.181 came from 120 particular fields; a different 120 fields would have produced a slightly different number, and those columns describe how much it would move around. Answering that properly needs sampling distributions, which is what Modules 9 to 11 are about. Until then, read the Estimate column and leave the other three alone. You are not missing a trick – the tools genuinely come later.\nAlways state the interpretation in words that include the units. “Yield goes up by 0.18” is vague and wrong. “Each additional kilogram per hectare of nitrogen is associated with an expected 0.18 bu/ac increase in yield” is the kind of sentence you should be writing.\nNote the careful word “associated.” I did not say “causes.” Whether a regression coefficient measures a causal effect is a separate question that depends on how the data was collected — see Section 16.2.",
+    "crumbs": [
+      "Feedback",
+      "Module 5: Relationships Between Variables",
+      "<span class='chapter-number'>17</span>  <span class='chapter-title'>Linear Models</span>"
+    ]
+  },
+  {
+    "objectID": "module06c.html#sec-r-squared",
+    "href": "module06c.html#sec-r-squared",
+    "title": "17  Linear Models",
+    "section": "17.3 \\(R^2\\): How Well Does the Line Fit?",
+    "text": "17.3 \\(R^2\\): How Well Does the Line Fit?\nThe regression line is the “best” line in the least-squares sense, but “best” does not mean “good.” A dataset where the points are scattered all over the place still has a best line; the question is whether the line explains any meaningful fraction of the variation.\n\\(R^2\\) (pronounced “R squared”) measures the fraction of the variance in \\(Y\\) that is explained by the regression. It ranges from 0 (the line explains nothing) to 1 (the line explains everything, meaning all points lie exactly on the line).\nFor a simple regression, \\(R^2 = r^2\\) — the square of the correlation coefficient. The trial regression above has \\(R^2 = 0.57\\), and indeed the correlation between fertilizer and yield was 0.754, whose square is 0.57. About 57% of the variation in yield across these fields is accounted for by nitrogen rate.\nIn R, summary(model) reports it as Multiple R-squared (and also Adjusted R-squared, which you will meet in AREC 262). In Excel, it’s shown on the regression trendline if you check “Display R-squared value.”\nRough rules of thumb (very rough; context matters):\n\n\\(R^2 &lt; 0.1\\): the relationship explains very little.\n\\(R^2 \\approx 0.3\\): a noticeable but modest relationship.\n\\(R^2 \\approx 0.5\\): a strong relationship.\n\\(R^2 &gt; 0.8\\): either a very strong true relationship, or you are overfitting.\n\nAgricultural yield data often has \\(R^2\\) in the 0.2-0.5 range for any single predictor, because yields depend on many things. Don’t be disappointed by a modest \\(R^2\\) if the model is nonetheless useful.",
+    "crumbs": [
+      "Feedback",
+      "Module 5: Relationships Between Variables",
+      "<span class='chapter-number'>17</span>  <span class='chapter-title'>Linear Models</span>"
+    ]
+  },
+  {
+    "objectID": "module06c.html#sec-regression-assumptions",
+    "href": "module06c.html#sec-regression-assumptions",
+    "title": "17  Linear Models",
+    "section": "17.4 When Linear Regression Is (and Isn’t) Appropriate",
+    "text": "17.4 When Linear Regression Is (and Isn’t) Appropriate\nLinear regression makes assumptions. The main ones:\n\nThe relationship is approximately linear. If the true relationship is curved, a straight line will fit badly. Check with a scatter plot.\nObservations are independent. If you have repeated measurements on the same field, or fields in the same farm, the observations are not independent and your standard errors will be wrong. (Fixing this needs more advanced methods you will meet in AREC 262.)\nResiduals have constant variance. If the scatter around the line grows as \\(X\\) grows (a “fan shape”), this assumption is violated.\nResiduals are roughly normal. Matters for small samples; less important for large ones.\nNo extreme outliers driving the result. A single weird point can dramatically change the slope.\n\nAlways make a scatter plot with the regression line on top before trusting a regression. If the data looks nothing like a line, don’t report a linear regression.",
+    "crumbs": [
+      "Feedback",
+      "Module 5: Relationships Between Variables",
+      "<span class='chapter-number'>17</span>  <span class='chapter-title'>Linear Models</span>"
+    ]
+  },
+  {
+    "objectID": "module06c.html#sec-prediction",
+    "href": "module06c.html#sec-prediction",
+    "title": "17  Linear Models",
+    "section": "17.5 Predicting From the Model",
+    "text": "17.5 Predicting From the Model\nA fitted line is also a prediction rule. Give it a nitrogen rate and it returns the expected yield at that rate:\npredict(model, newdata = data.frame(fertilizer_kg_ha = 120))\nWith the trial data that returns about 52.5 bu/ac. You can read the same thing off the equation: \\(30.70 + 0.1814 \\times 120 = 52.5\\).\nTwo cautions.\nA prediction is an average, not a promise. The model says fields at 120 kg/ha average about 52.5 bu/ac. Individual fields scatter around that by several bushels, and the model is silent about which ones. Predicting the average well and predicting any particular field well are different problems, and only the first is easy.\nDo not run off the end of your data. The fields in this trial were fertilized between about 60 and 190 kg/ha. Ask the model what happens at 400 kg/ha and it will cheerfully answer 103 bu/ac, because a straight line has no idea it is supposed to stop. Agronomically this is nonsense: nitrogen response flattens and then reverses. The model never saw a field at 400, so its answer there is arithmetic, not evidence.\nThis is extrapolation, and it is the most common way a regression gets misused. Inside the range of your data the line is a summary of something you observed. Outside it, the line is a guess with a decimal point on it. Say what range your data covers, and stay in it.",
+    "crumbs": [
+      "Feedback",
+      "Module 5: Relationships Between Variables",
+      "<span class='chapter-number'>17</span>  <span class='chapter-title'>Linear Models</span>"
+    ]
+  },
+  {
+    "objectID": "module06c.html#sec-multiple-regression",
+    "href": "module06c.html#sec-multiple-regression",
+    "title": "17  Linear Models",
+    "section": "17.6 More Than One Predictor",
+    "text": "17.6 More Than One Predictor\nYield does not depend only on nitrogen. It depends on rain, on variety, on soil, on when the crop went in. A multiple regression puts several predictors in the same model:\n\\[\ny_i = \\beta_0 + \\beta_1 x_{1i} + \\beta_2 x_{2i} + \\varepsilon_i\n\\]\nIn R you add terms with +:\nmodel2 &lt;- lm(yield_bu_acre ~ fertilizer_kg_ha + rainfall_mm, data = trial)\nsummary(model2)\nCoefficients:\n                 Estimate Std. Error t value Pr(&gt;|t|)\n(Intercept)      24.0629     1.9458   12.37   &lt;2e-16 ***\nfertilizer_kg_ha  0.1397     0.0144    9.69   &lt;2e-16 ***\nrainfall_mm       0.0520     0.0085    6.15   2.4e-08 ***\nLook at what happened to the fertilizer coefficient. On its own it was 0.181. With rainfall in the model it is 0.140 – about a quarter smaller. Nothing about the fields changed. What changed is the question the number answers.\n\nWhat a coefficient means now\nIn the simple regression, 0.181 was the average yield difference between fields that differ by one kg/ha of nitrogen – any two such fields. But in this trial, fields with more nitrogen also tended to get more rain: the correlation between the two was 0.47, which you computed in Chapter 16. Farmers put fertilizer where they expect it to pay, and that means the better-watered land. So a heavily fertilized field was, on average, also a wetter field, and the 0.181 was quietly crediting nitrogen with some of the rain’s work.\nThe multiple regression separates them. Its 0.140 is the expected yield difference between two fields that differ by one kg/ha of nitrogen and get the same rainfall. That is the number you want if you are deciding how much nitrogen to buy.\nThis is the confounding from Section 16.2, now with something to be done about it. Correlation could only warn you that a third variable might be responsible. A regression lets you put the third variable in the model and ask the question again holding it fixed.\nThe caveat is that this only works for confounders you have measured and included. There is no way to control for soil type if nobody recorded soil type. Adding predictors improves the answer; it does not turn observational data into an experiment.\n\n\nAdjusted \\(R^2\\)\nAdding a predictor can never lower \\(R^2\\). Even a column of random numbers will nudge it up a little, because the fitting has one more knob to turn. That makes raw \\(R^2\\) useless for deciding whether a predictor earned its place.\nAdjusted \\(R^2\\) applies a penalty for each predictor, so it only rises when the new variable does more than a random column would. The trial models:\n\n\n\n\n\\(R^2\\)\nAdjusted \\(R^2\\)\n\n\n\n\nyield ~ fertilizer\n0.568\n0.564\n\n\nyield ~ fertilizer + rainfall\n0.674\n0.668\n\n\n\nRainfall earned its place. When you are comparing models with different numbers of predictors, compare the adjusted figure.",
+    "crumbs": [
+      "Feedback",
+      "Module 5: Relationships Between Variables",
+      "<span class='chapter-number'>17</span>  <span class='chapter-title'>Linear Models</span>"
+    ]
+  },
+  {
+    "objectID": "module06c.html#sec-module5-example",
+    "href": "module06c.html#sec-module5-example",
+    "title": "17  Linear Models",
+    "section": "17.7 Worked Example: Fertilizer and Yield",
+    "text": "17.7 Worked Example: Fertilizer and Yield\nPutting the chapter together on the trial data.\n1. Plot first.\nlibrary(tidyverse)\ntrial &lt;- read_csv(\"canola_trial.csv\")\n\nggplot(trial, aes(x = fertilizer_kg_ha, y = yield_bu_acre)) +\n  geom_point() +\n  geom_smooth(method = \"lm\")\nUpward, roughly linear, no obvious curve, spread reasonably even, no point far off on its own. A straight line is a defensible summary.\n2. Correlate.\ncor(trial$fertilizer_kg_ha, trial$yield_bu_acre)   # 0.754\nStrong and positive.\n3. Fit the simple model.\nmodel &lt;- lm(yield_bu_acre ~ fertilizer_kg_ha, data = trial)\nsummary(model)\nSlope 0.181 bu/ac per kg/ha, \\(R^2 = 0.568\\).\n4. Ask what else could explain it.\ncor(trial$fertilizer_kg_ha, trial$rainfall_mm)     # 0.470\nFertilizer and rainfall move together in this trial, and rainfall affects yield too. The simple slope is therefore suspect.\n5. Control for it.\nmodel2 &lt;- lm(yield_bu_acre ~ fertilizer_kg_ha + rainfall_mm, data = trial)\nsummary(model2)\nThe nitrogen coefficient falls to 0.140 and adjusted \\(R^2\\) improves from 0.564 to 0.668.\n6. Write it down.\n\nAcross 120 canola fields, nitrogen rate and yield were strongly correlated (\\(r = 0.75\\)). A simple regression put the association at 0.18 bu/ac per kg/ha of N. However, nitrogen rate was itself correlated with growing-season rainfall (\\(r = 0.47\\)), so this figure conflates the two. Holding rainfall fixed, the estimated nitrogen effect is 0.14 bu/ac per kg/ha (adjusted \\(R^2 = 0.67\\)). Fields in this trial received between 58 and 187 kg/ha, and the estimate should not be extended beyond that range. Because nitrogen was not randomly assigned, these are associations; an unmeasured variable could still be driving both.\n\nThat last sentence is the one students leave out. Write it anyway.",
+    "crumbs": [
+      "Feedback",
+      "Module 5: Relationships Between Variables",
+      "<span class='chapter-number'>17</span>  <span class='chapter-title'>Linear Models</span>"
+    ]
+  },
+  {
+    "objectID": "module06c.html#sec-module5c-test",
+    "href": "module06c.html#sec-module5c-test",
+    "title": "17  Linear Models",
+    "section": "17.8 Test Bank Sample",
+    "text": "17.8 Test Bank Sample\n\n(Regression.) You fit yield ~ fertilizer and get a slope of 0.2. Write a one-sentence interpretation, with units.\n(R-squared.) Your regression has \\(R^2 = 0.35\\). What does this tell you, and what does it not?\n(Diagnostics.) Name three things you should check before trusting a regression result.\n(Extrapolation.) Your data covers seeding rates from 40 to 90 lb/ac. Why should you not use the model to predict yield at 150 lb/ac?\n(Multiple regression.) Adding rainfall to a model drops the fertilizer coefficient from 0.18 to 0.14. Explain what changed, in terms of what the coefficient means.\n(Adjusted \\(R^2\\).) Why does adding any predictor raise \\(R^2\\), and what does adjusted \\(R^2\\) do about it?",
+    "crumbs": [
+      "Feedback",
+      "Module 5: Relationships Between Variables",
+      "<span class='chapter-number'>17</span>  <span class='chapter-title'>Linear Models</span>"
+    ]
+  },
+  {
+    "objectID": "module06c.html#sec-module5c-practice",
+    "href": "module06c.html#sec-module5c-practice",
+    "title": "17  Linear Models",
+    "section": "17.9 Practice Exercises",
+    "text": "17.9 Practice Exercises\n\nFit yield_bu_acre ~ rainfall_mm on the trial data. Interpret the slope in units.\nPredict yield at 100 kg/ha of nitrogen. Then predict at 500 and explain why you should not report the second number.\nFit the two-predictor model and compare the fertilizer coefficient with the simple model. Explain the difference.\nAdd variety to the model (+ variety). What happens to the fertilizer coefficient, and what do the variety coefficients mean?\nReproduce Anscombe’s quartet, fit a regression to each, and explain why identical output can describe four different datasets.",
+    "crumbs": [
+      "Feedback",
+      "Module 5: Relationships Between Variables",
+      "<span class='chapter-number'>17</span>  <span class='chapter-title'>Linear Models</span>"
     ]
   },
   {
     "objectID": "module07.html",
     "href": "module07.html",
-    "title": "16  Probability and Random Variables",
+    "title": "18  Probability and Random Variables",
     "section": "",
     "text": "Learning Objectives",
     "crumbs": [
       "Feedback",
       "Module 6: Probability and Random Variables",
-      "<span class='chapter-number'>16</span>  <span class='chapter-title'>Probability and Random Variables</span>"
+      "<span class='chapter-number'>18</span>  <span class='chapter-title'>Probability and Random Variables</span>"
     ]
   },
   {
     "objectID": "module07.html#learning-objectives",
     "href": "module07.html#learning-objectives",
-    "title": "16  Probability and Random Variables",
+    "title": "18  Probability and Random Variables",
     "section": "",
     "text": "By the end of this module you should be able to:\n\nDefine probability and distinguish between frequentist and subjective interpretations.\nCompute basic probabilities using addition and multiplication rules.\nDefine a random variable and distinguish discrete from continuous ones.\nWork with probability mass functions (PMFs) and probability density functions (PDFs).\nCompute expected value and variance for simple random variables.\nRecognize the normal, uniform, binomial, and Poisson distributions.",
     "crumbs": [
       "Feedback",
       "Module 6: Probability and Random Variables",
-      "<span class='chapter-number'>16</span>  <span class='chapter-title'>Probability and Random Variables</span>"
+      "<span class='chapter-number'>18</span>  <span class='chapter-title'>Probability and Random Variables</span>"
     ]
   },
   {
     "objectID": "module07.html#sec-what-is-probability",
     "href": "module07.html#sec-what-is-probability",
-    "title": "16  Probability and Random Variables",
-    "section": "16.1 What Is Probability?",
-    "text": "16.1 What Is Probability?\nProbability is the mathematics of uncertainty. You need it whenever you want to make a statement about something that hasn’t happened yet, or a statement about something whose outcome you don’t know.\nThere are two main ways to interpret probability, and although the mathematics is the same either way, it helps to be aware of both.\nFrequentist interpretation: the probability of an event is the long-run fraction of times it occurs if you repeat the experiment many times. “The probability of rain tomorrow is 30%” means: in a large number of days with conditions like tomorrow’s, it rains on about 30% of them.\nSubjective (Bayesian) interpretation: the probability of an event is a measure of your degree of belief that it will occur. “The probability of rain tomorrow is 30%” means: I am 30% confident that it will rain tomorrow. This works even for one-off events where “long-run frequencies” don’t literally make sense (like “the probability that this particular tractor will break down next month”).\nFor almost everything in this course the two interpretations will give the same answer, so you can pick whichever feels more intuitive. Just know that there are debates between statisticians about which is “right,” and when you encounter them in the wild, you now know what they are arguing about.",
+    "title": "18  Probability and Random Variables",
+    "section": "18.1 What Is Probability?",
+    "text": "18.1 What Is Probability?\nProbability is the mathematics of uncertainty. You need it whenever you want to make a statement about something that hasn’t happened yet, or a statement about something whose outcome you don’t know.\nThere are two main ways to interpret probability, and although the mathematics is the same either way, it helps to be aware of both.\nFrequentist interpretation: the probability of an event is the long-run fraction of times it occurs if you repeat the experiment many times. “The probability of rain tomorrow is 30%” means: in a large number of days with conditions like tomorrow’s, it rains on about 30% of them.\nSubjective (Bayesian) interpretation: the probability of an event is a measure of your degree of belief that it will occur. “The probability of rain tomorrow is 30%” means: I am 30% confident that it will rain tomorrow. This works even for one-off events where “long-run frequencies” don’t literally make sense (like “the probability that this particular tractor will break down next month”).\nFor almost everything in this course the two interpretations will give the same answer, so you can pick whichever feels more intuitive. Just know that there are debates between statisticians about which is “right,” and when you encounter them in the wild, you now know what they are arguing about.",
     "crumbs": [
       "Feedback",
       "Module 6: Probability and Random Variables",
-      "<span class='chapter-number'>16</span>  <span class='chapter-title'>Probability and Random Variables</span>"
+      "<span class='chapter-number'>18</span>  <span class='chapter-title'>Probability and Random Variables</span>"
     ]
   },
   {
     "objectID": "module07.html#sec-probability-rules",
     "href": "module07.html#sec-probability-rules",
-    "title": "16  Probability and Random Variables",
-    "section": "16.2 Basic Rules of Probability",
-    "text": "16.2 Basic Rules of Probability\nWe write \\(P(A)\\) for the probability of event \\(A\\). The basic rules:\n\nProbabilities are between 0 and 1: \\(0 \\leq P(A) \\leq 1\\).\nCertain events have probability 1: \\(P(\\text{something happens}) = 1\\).\nImpossible events have probability 0: \\(P(\\text{nothing happens}) = 0\\).\nComplement: \\(P(\\text{not } A) = 1 - P(A)\\).\nAddition for disjoint events: if \\(A\\) and \\(B\\) cannot both happen, \\(P(A \\text{ or } B) = P(A) + P(B)\\).\nGeneral addition: \\(P(A \\text{ or } B) = P(A) + P(B) - P(A \\text{ and } B)\\).\nMultiplication for independent events: if \\(A\\) and \\(B\\) are independent (one doesn’t affect the probability of the other), \\(P(A \\text{ and } B) = P(A) \\cdot P(B)\\).\nConditional probability: \\(P(A \\mid B) = P(A \\text{ and } B) / P(B)\\). Read “\\(P(A\\) given \\(B)\\).”\n\nWorked example: you roll two fair six-sided dice. What is the probability the total is 7?\n\nThe sample space has \\(6 \\times 6 = 36\\) equally likely outcomes.\nOutcomes that sum to 7: (1,6), (2,5), (3,4), (4,3), (5,2), (6,1) — six of them.\n\\(P(\\text{sum} = 7) = 6/36 = 1/6\\).\n\nWorked example: a field has an 80% chance of getting enough rain in June. The chance of enough rain in June and July, if those months are independent, is \\(0.8 \\times 0.8 = 0.64\\). In practice the months are probably not independent — a drought in June often means a drought in July — so this calculation is optimistic.",
+    "title": "18  Probability and Random Variables",
+    "section": "18.2 Basic Rules of Probability",
+    "text": "18.2 Basic Rules of Probability\nWe write \\(P(A)\\) for the probability of event \\(A\\). The basic rules:\n\nProbabilities are between 0 and 1: \\(0 \\leq P(A) \\leq 1\\).\nCertain events have probability 1: \\(P(\\text{something happens}) = 1\\).\nImpossible events have probability 0: \\(P(\\text{nothing happens}) = 0\\).\nComplement: \\(P(\\text{not } A) = 1 - P(A)\\).\nAddition for disjoint events: if \\(A\\) and \\(B\\) cannot both happen, \\(P(A \\text{ or } B) = P(A) + P(B)\\).\nGeneral addition: \\(P(A \\text{ or } B) = P(A) + P(B) - P(A \\text{ and } B)\\).\nMultiplication for independent events: if \\(A\\) and \\(B\\) are independent (one doesn’t affect the probability of the other), \\(P(A \\text{ and } B) = P(A) \\cdot P(B)\\).\nConditional probability: \\(P(A \\mid B) = P(A \\text{ and } B) / P(B)\\). Read “\\(P(A\\) given \\(B)\\).”\n\nWorked example: you roll two fair six-sided dice. What is the probability the total is 7?\n\nThe sample space has \\(6 \\times 6 = 36\\) equally likely outcomes.\nOutcomes that sum to 7: (1,6), (2,5), (3,4), (4,3), (5,2), (6,1) — six of them.\n\\(P(\\text{sum} = 7) = 6/36 = 1/6\\).\n\nWorked example: a field has an 80% chance of getting enough rain in June. The chance of enough rain in June and July, if those months are independent, is \\(0.8 \\times 0.8 = 0.64\\). In practice the months are probably not independent — a drought in June often means a drought in July — so this calculation is optimistic.",
     "crumbs": [
       "Feedback",
       "Module 6: Probability and Random Variables",
-      "<span class='chapter-number'>16</span>  <span class='chapter-title'>Probability and Random Variables</span>"
+      "<span class='chapter-number'>18</span>  <span class='chapter-title'>Probability and Random Variables</span>"
     ]
   },
   {
     "objectID": "module07.html#sec-random-variables",
     "href": "module07.html#sec-random-variables",
-    "title": "16  Probability and Random Variables",
-    "section": "16.3 Random Variables",
-    "text": "16.3 Random Variables\nA random variable is a number whose value depends on the outcome of a random process. We usually write them with capital letters: \\(X\\), \\(Y\\), \\(Z\\).\nExamples:\n\n\\(X\\) = the yield of a randomly selected field, in bu/ac.\n\\(Y\\) = the number of calves born alive to a randomly selected cow in her next calving.\n\\(Z\\) = the price of canola futures at a random moment next week.\n\nRandom variables come in two flavors: discrete and continuous.\nDiscrete random variables take values from a countable set — usually integers. Examples: number of calves, number of rainy days in a month, number of fields with a yield above 50.\nContinuous random variables can take any value in some range. Examples: yield in bu/ac (in principle can be any real number), rainfall in mm, temperature.\nThe distinction matters because the math is different.",
+    "title": "18  Probability and Random Variables",
+    "section": "18.3 Random Variables",
+    "text": "18.3 Random Variables\nA random variable is a number whose value depends on the outcome of a random process. We usually write them with capital letters: \\(X\\), \\(Y\\), \\(Z\\).\nExamples:\n\n\\(X\\) = the yield of a randomly selected field, in bu/ac.\n\\(Y\\) = the number of calves born alive to a randomly selected cow in her next calving.\n\\(Z\\) = the price of canola futures at a random moment next week.\n\nRandom variables come in two flavors: discrete and continuous.\nDiscrete random variables take values from a countable set — usually integers. Examples: number of calves, number of rainy days in a month, number of fields with a yield above 50.\nContinuous random variables can take any value in some range. Examples: yield in bu/ac (in principle can be any real number), rainfall in mm, temperature.\nThe distinction matters because the math is different.",
     "crumbs": [
       "Feedback",
       "Module 6: Probability and Random Variables",
-      "<span class='chapter-number'>16</span>  <span class='chapter-title'>Probability and Random Variables</span>"
+      "<span class='chapter-number'>18</span>  <span class='chapter-title'>Probability and Random Variables</span>"
     ]
   },
   {
     "objectID": "module07.html#sec-discrete-rvs",
     "href": "module07.html#sec-discrete-rvs",
-    "title": "16  Probability and Random Variables",
-    "section": "16.4 Discrete Random Variables",
-    "text": "16.4 Discrete Random Variables\nFor a discrete random variable \\(X\\), we describe it with its probability mass function (PMF):\n\\[\np(x) = P(X = x)\n\\]\nThe PMF gives the probability that \\(X\\) takes each particular value. It has to satisfy two things:\n\n\\(p(x) \\geq 0\\) for all \\(x\\).\n\\(\\sum_x p(x) = 1\\) (the probabilities sum to 1 over all possible values).\n\nExample: \\(X\\) = the result of rolling a fair die. \\(p(1) = p(2) = \\ldots = p(6) = 1/6\\). Sum is 1.\n\nExpected Value and Variance\nThe expected value (or mean) of a discrete random variable is:\n\\[\nE[X] = \\sum_x x \\cdot p(x)\n\\]\nThis is the long-run average if you repeated the experiment many times. For a fair die, \\(E[X] = 1/6 \\cdot (1 + 2 + 3 + 4 + 5 + 6) = 21/6 = 3.5\\).\nThe variance is:\n\\[\n\\text{Var}(X) = E[(X - E[X])^2] = \\sum_x (x - E[X])^2 \\cdot p(x)\n\\]\nAnd the standard deviation is \\(\\sqrt{\\text{Var}(X)}\\). Same units as \\(X\\).\n\n\nThe Binomial Distribution\nSuppose you do \\(n\\) independent trials, each with a probability \\(p\\) of “success.” The number of successes is a random variable called the binomial distribution, written \\(\\text{Binomial}(n, p)\\).\nExample: you plant 10 seeds, each with a 90% chance of germinating. The number that germinate follows \\(\\text{Binomial}(10, 0.9)\\).\nThe PMF is:\n\\[\nP(X = k) = \\binom{n}{k} p^k (1-p)^{n-k}\n\\]\nwhere \\(\\binom{n}{k} = \\frac{n!}{k!(n-k)!}\\) is the binomial coefficient (“\\(n\\) choose \\(k\\)”).\nYou don’t need to compute this by hand. In R:\ndbinom(8, size = 10, prob = 0.9)   # P(X = 8)\npbinom(8, size = 10, prob = 0.9)   # P(X &lt;= 8)\nIn Excel: =BINOM.DIST(8, 10, 0.9, FALSE) for the PMF, TRUE for the CDF.\nThe mean of \\(\\text{Binomial}(n, p)\\) is \\(np\\), and the variance is \\(np(1-p)\\). So for 10 seeds with 90% germination, you expect \\(10 \\times 0.9 = 9\\) to germinate, with variance \\(10 \\times 0.9 \\times 0.1 = 0.9\\) (standard deviation \\(\\approx 0.95\\)).\n\n\nThe Poisson Distribution\nIf events happen at an average rate \\(\\lambda\\) per unit (time, area, etc.), and each event is independent of the others, the number of events in a unit follows the Poisson distribution, \\(\\text{Poisson}(\\lambda)\\).\nExample: weed seeds in a field arrive at an average density of 5 per square meter. The number of seeds in a randomly chosen square meter follows \\(\\text{Poisson}(5)\\).\nThe PMF:\n\\[\nP(X = k) = \\frac{\\lambda^k e^{-\\lambda}}{k!}\n\\]\nThe mean and variance of \\(\\text{Poisson}(\\lambda)\\) are both \\(\\lambda\\).\nIn R: dpois(3, lambda = 5), ppois(3, lambda = 5). In Excel: =POISSON.DIST(3, 5, FALSE).\nPoisson distributions show up whenever you are counting rare-ish events in a time or space interval.",
+    "title": "18  Probability and Random Variables",
+    "section": "18.4 Discrete Random Variables",
+    "text": "18.4 Discrete Random Variables\nFor a discrete random variable \\(X\\), we describe it with its probability mass function (PMF):\n\\[\np(x) = P(X = x)\n\\]\nThe PMF gives the probability that \\(X\\) takes each particular value. It has to satisfy two things:\n\n\\(p(x) \\geq 0\\) for all \\(x\\).\n\\(\\sum_x p(x) = 1\\) (the probabilities sum to 1 over all possible values).\n\nExample: \\(X\\) = the result of rolling a fair die. \\(p(1) = p(2) = \\ldots = p(6) = 1/6\\). Sum is 1.\n\nExpected Value and Variance\nThe expected value (or mean) of a discrete random variable is:\n\\[\nE[X] = \\sum_x x \\cdot p(x)\n\\]\nThis is the long-run average if you repeated the experiment many times. For a fair die, \\(E[X] = 1/6 \\cdot (1 + 2 + 3 + 4 + 5 + 6) = 21/6 = 3.5\\).\nThe variance is:\n\\[\n\\text{Var}(X) = E[(X - E[X])^2] = \\sum_x (x - E[X])^2 \\cdot p(x)\n\\]\nAnd the standard deviation is \\(\\sqrt{\\text{Var}(X)}\\). Same units as \\(X\\).\n\n\nThe Binomial Distribution\nSuppose you do \\(n\\) independent trials, each with a probability \\(p\\) of “success.” The number of successes is a random variable called the binomial distribution, written \\(\\text{Binomial}(n, p)\\).\nExample: you plant 10 seeds, each with a 90% chance of germinating. The number that germinate follows \\(\\text{Binomial}(10, 0.9)\\).\nThe PMF is:\n\\[\nP(X = k) = \\binom{n}{k} p^k (1-p)^{n-k}\n\\]\nwhere \\(\\binom{n}{k} = \\frac{n!}{k!(n-k)!}\\) is the binomial coefficient (“\\(n\\) choose \\(k\\)”).\nYou don’t need to compute this by hand. In R:\ndbinom(8, size = 10, prob = 0.9)   # P(X = 8)\npbinom(8, size = 10, prob = 0.9)   # P(X &lt;= 8)\nIn Excel: =BINOM.DIST(8, 10, 0.9, FALSE) for the PMF, TRUE for the CDF.\nThe mean of \\(\\text{Binomial}(n, p)\\) is \\(np\\), and the variance is \\(np(1-p)\\). So for 10 seeds with 90% germination, you expect \\(10 \\times 0.9 = 9\\) to germinate, with variance \\(10 \\times 0.9 \\times 0.1 = 0.9\\) (standard deviation \\(\\approx 0.95\\)).\n\n\nThe Poisson Distribution\nIf events happen at an average rate \\(\\lambda\\) per unit (time, area, etc.), and each event is independent of the others, the number of events in a unit follows the Poisson distribution, \\(\\text{Poisson}(\\lambda)\\).\nExample: weed seeds in a field arrive at an average density of 5 per square meter. The number of seeds in a randomly chosen square meter follows \\(\\text{Poisson}(5)\\).\nThe PMF:\n\\[\nP(X = k) = \\frac{\\lambda^k e^{-\\lambda}}{k!}\n\\]\nThe mean and variance of \\(\\text{Poisson}(\\lambda)\\) are both \\(\\lambda\\).\nIn R: dpois(3, lambda = 5), ppois(3, lambda = 5). In Excel: =POISSON.DIST(3, 5, FALSE).\nPoisson distributions show up whenever you are counting rare-ish events in a time or space interval.",
     "crumbs": [
       "Feedback",
       "Module 6: Probability and Random Variables",
-      "<span class='chapter-number'>16</span>  <span class='chapter-title'>Probability and Random Variables</span>"
+      "<span class='chapter-number'>18</span>  <span class='chapter-title'>Probability and Random Variables</span>"
     ]
   },
   {
     "objectID": "module07.html#sec-continuous-rvs",
     "href": "module07.html#sec-continuous-rvs",
-    "title": "16  Probability and Random Variables",
-    "section": "16.5 Continuous Random Variables",
-    "text": "16.5 Continuous Random Variables\nFor a continuous random variable the mass function becomes a probability density function (PDF), written \\(f(x)\\). The key difference: for a continuous variable, \\(P(X = x) = 0\\) for any specific value (there are infinitely many possible values, so each one gets zero probability). Instead, probabilities come from areas under the PDF:\n\\[\nP(a &lt; X &lt; b) = \\int_a^b f(x) \\, dx\n\\]\nThe PDF must satisfy:\n\n\\(f(x) \\geq 0\\) for all \\(x\\).\n\\(\\int_{-\\infty}^{\\infty} f(x) \\, dx = 1\\).\n\nDon’t worry if the integral notation is unfamiliar. Conceptually, the PDF is a curve, and the probability that \\(X\\) falls in an interval is the area under the curve over that interval. You will compute these with tables or with R functions; we will not do integration by hand.\nThe cumulative distribution function (CDF) is:\n\\[\nF(x) = P(X \\leq x) = \\int_{-\\infty}^{x} f(t) \\, dt\n\\]\nIt gives the probability that \\(X\\) is at most \\(x\\). It always starts at 0 (for very negative \\(x\\)) and ends at 1 (for very positive \\(x\\)).\n\nThe Normal Distribution\nThe most important continuous distribution is the normal distribution, also called the Gaussian. You have probably seen its bell-shaped curve.\nA normal distribution is specified by two parameters: the mean \\(\\mu\\) and the standard deviation \\(\\sigma\\). We write \\(X \\sim N(\\mu, \\sigma^2)\\) (the second parameter is the variance, not the standard deviation, by convention).\nThe PDF is:\n\\[\nf(x) = \\frac{1}{\\sigma \\sqrt{2\\pi}} \\exp\\left(-\\frac{(x - \\mu)^2}{2\\sigma^2}\\right)\n\\]\nYou do not need to memorize this. What you need to know:\n\nThe curve is symmetric around \\(\\mu\\).\nAbout 68% of the area lies within \\(\\mu \\pm \\sigma\\) (one standard deviation).\nAbout 95% within \\(\\mu \\pm 2\\sigma\\).\nAbout 99.7% within \\(\\mu \\pm 3\\sigma\\).\n\nThis “68-95-99.7 rule” is worth memorizing. It tells you, for any normal distribution, roughly how likely extreme values are.\nThe standard normal distribution is \\(N(0, 1)\\): mean zero, standard deviation one. Any normal can be converted to a standard normal by the transformation:\n\\[\nZ = \\frac{X - \\mu}{\\sigma}\n\\]\nThis is called a \\(z\\)-score. It measures how many standard deviations above (or below) the mean an observation is. \\(Z\\)-scores are useful for comparing values from different normal distributions, and they are the basis of a lot of classical inference (which you will meet in AREC 262).\nIn R:\ndnorm(2, mean = 0, sd = 1)     # PDF at x = 2\npnorm(2, mean = 0, sd = 1)     # CDF at x = 2 (P(Z &lt;= 2))\nqnorm(0.95, mean = 0, sd = 1)  # inverse CDF: value where CDF = 0.95\nrnorm(100, mean = 0, sd = 1)   # 100 random draws from the distribution\nIn Excel: NORM.DIST, NORM.INV, NORM.S.DIST (for standard normal), etc.\nThe normal distribution is ubiquitous in statistics for two reasons. First, it shows up naturally in many real-world measurements (heights, test scores, measurement errors). Second, and more importantly, the Central Limit Theorem says that the sample mean of many independent observations — regardless of what distribution they came from — is approximately normal for large samples. We will come back to this in Module 10.\n\n\nThe Uniform Distribution\n\\(\\text{Uniform}(a, b)\\) has constant density between \\(a\\) and \\(b\\) and zero outside. It is the “nothing is more likely than anything else” distribution on an interval. Useful for simulation.",
+    "title": "18  Probability and Random Variables",
+    "section": "18.5 Continuous Random Variables",
+    "text": "18.5 Continuous Random Variables\nFor a continuous random variable the mass function becomes a probability density function (PDF), written \\(f(x)\\). The key difference: for a continuous variable, \\(P(X = x) = 0\\) for any specific value (there are infinitely many possible values, so each one gets zero probability). Instead, probabilities come from areas under the PDF:\n\\[\nP(a &lt; X &lt; b) = \\int_a^b f(x) \\, dx\n\\]\nThe PDF must satisfy:\n\n\\(f(x) \\geq 0\\) for all \\(x\\).\n\\(\\int_{-\\infty}^{\\infty} f(x) \\, dx = 1\\).\n\nDon’t worry if the integral notation is unfamiliar. Conceptually, the PDF is a curve, and the probability that \\(X\\) falls in an interval is the area under the curve over that interval. You will compute these with tables or with R functions; we will not do integration by hand.\nThe cumulative distribution function (CDF) is:\n\\[\nF(x) = P(X \\leq x) = \\int_{-\\infty}^{x} f(t) \\, dt\n\\]\nIt gives the probability that \\(X\\) is at most \\(x\\). It always starts at 0 (for very negative \\(x\\)) and ends at 1 (for very positive \\(x\\)).\n\nThe Normal Distribution\nThe most important continuous distribution is the normal distribution, also called the Gaussian. You have probably seen its bell-shaped curve.\nA normal distribution is specified by two parameters: the mean \\(\\mu\\) and the standard deviation \\(\\sigma\\). We write \\(X \\sim N(\\mu, \\sigma^2)\\) (the second parameter is the variance, not the standard deviation, by convention).\nThe PDF is:\n\\[\nf(x) = \\frac{1}{\\sigma \\sqrt{2\\pi}} \\exp\\left(-\\frac{(x - \\mu)^2}{2\\sigma^2}\\right)\n\\]\nYou do not need to memorize this. What you need to know:\n\nThe curve is symmetric around \\(\\mu\\).\nAbout 68% of the area lies within \\(\\mu \\pm \\sigma\\) (one standard deviation).\nAbout 95% within \\(\\mu \\pm 2\\sigma\\).\nAbout 99.7% within \\(\\mu \\pm 3\\sigma\\).\n\nThis “68-95-99.7 rule” is worth memorizing. It tells you, for any normal distribution, roughly how likely extreme values are.\nThe standard normal distribution is \\(N(0, 1)\\): mean zero, standard deviation one. Any normal can be converted to a standard normal by the transformation:\n\\[\nZ = \\frac{X - \\mu}{\\sigma}\n\\]\nThis is called a \\(z\\)-score. It measures how many standard deviations above (or below) the mean an observation is. \\(Z\\)-scores are useful for comparing values from different normal distributions, and they are the basis of a lot of classical inference (which you will meet in AREC 262).\nIn R:\ndnorm(2, mean = 0, sd = 1)     # PDF at x = 2\npnorm(2, mean = 0, sd = 1)     # CDF at x = 2 (P(Z &lt;= 2))\nqnorm(0.95, mean = 0, sd = 1)  # inverse CDF: value where CDF = 0.95\nrnorm(100, mean = 0, sd = 1)   # 100 random draws from the distribution\nIn Excel: NORM.DIST, NORM.INV, NORM.S.DIST (for standard normal), etc.\nThe normal distribution is ubiquitous in statistics for two reasons. First, it shows up naturally in many real-world measurements (heights, test scores, measurement errors). Second, and more importantly, the Central Limit Theorem says that the sample mean of many independent observations — regardless of what distribution they came from — is approximately normal for large samples. We will come back to this in Module 10.\n\n\nThe Uniform Distribution\n\\(\\text{Uniform}(a, b)\\) has constant density between \\(a\\) and \\(b\\) and zero outside. It is the “nothing is more likely than anything else” distribution on an interval. Useful for simulation.",
     "crumbs": [
       "Feedback",
       "Module 6: Probability and Random Variables",
-      "<span class='chapter-number'>16</span>  <span class='chapter-title'>Probability and Random Variables</span>"
+      "<span class='chapter-number'>18</span>  <span class='chapter-title'>Probability and Random Variables</span>"
     ]
   },
   {
     "objectID": "module07.html#sec-module7-practice-note",
     "href": "module07.html#sec-module7-practice-note",
-    "title": "16  Probability and Random Variables",
-    "section": "16.6 In Practice",
-    "text": "16.6 In Practice\nYou do not need to memorize any formulas beyond the conceptual understanding. In this course, you will use R (or Excel) to compute probabilities and percentiles. The point of the formal definitions is to understand what those functions are doing under the hood.\nThe key intuitions to keep:\n\nA random variable is a number whose value depends on a random process.\nDiscrete variables have PMFs; continuous ones have PDFs.\nExpected value is the long-run average; variance measures spread.\nThe binomial counts successes in independent trials.\nThe Poisson counts rare events per unit time/area.\nThe normal distribution shows up everywhere, and its standard form uses \\(z\\)-scores.",
+    "title": "18  Probability and Random Variables",
+    "section": "18.6 In Practice",
+    "text": "18.6 In Practice\nYou do not need to memorize any formulas beyond the conceptual understanding. In this course, you will use R (or Excel) to compute probabilities and percentiles. The point of the formal definitions is to understand what those functions are doing under the hood.\nThe key intuitions to keep:\n\nA random variable is a number whose value depends on a random process.\nDiscrete variables have PMFs; continuous ones have PDFs.\nExpected value is the long-run average; variance measures spread.\nThe binomial counts successes in independent trials.\nThe Poisson counts rare events per unit time/area.\nThe normal distribution shows up everywhere, and its standard form uses \\(z\\)-scores.",
     "crumbs": [
       "Feedback",
       "Module 6: Probability and Random Variables",
-      "<span class='chapter-number'>16</span>  <span class='chapter-title'>Probability and Random Variables</span>"
+      "<span class='chapter-number'>18</span>  <span class='chapter-title'>Probability and Random Variables</span>"
     ]
   },
   {
     "objectID": "module07.html#sec-module7-test",
     "href": "module07.html#sec-module7-test",
-    "title": "16  Probability and Random Variables",
-    "section": "16.7 Test Bank Sample",
-    "text": "16.7 Test Bank Sample\n\n(Probability rules.) A field has a 70% chance of surviving a drought and a 90% chance of surviving hail. Assuming these are independent, what is the probability it survives both?\n(Discrete.) A hen lays eggs at a rate of 6 per week. Modeled as Poisson, what is the probability she lays exactly 5 in a given week?\n(Continuous.) Canola yields in a region are approximately normal with mean 45 and standard deviation 8 bu/ac. What is the probability that a randomly selected field has a yield above 55?\n(Interpretation.) What does it mean for a random variable to have expected value 50?\n(R/Excel.) Write the R or Excel function call that computes \\(P(Z &lt; 1.5)\\) where \\(Z\\) is standard normal.\n(Concept.) Explain the 68-95-99.7 rule and give an example of when it is useful.",
+    "title": "18  Probability and Random Variables",
+    "section": "18.7 Test Bank Sample",
+    "text": "18.7 Test Bank Sample\n\n(Probability rules.) A field has a 70% chance of surviving a drought and a 90% chance of surviving hail. Assuming these are independent, what is the probability it survives both?\n(Discrete.) A hen lays eggs at a rate of 6 per week. Modeled as Poisson, what is the probability she lays exactly 5 in a given week?\n(Continuous.) Canola yields in a region are approximately normal with mean 45 and standard deviation 8 bu/ac. What is the probability that a randomly selected field has a yield above 55?\n(Interpretation.) What does it mean for a random variable to have expected value 50?\n(R/Excel.) Write the R or Excel function call that computes \\(P(Z &lt; 1.5)\\) where \\(Z\\) is standard normal.\n(Concept.) Explain the 68-95-99.7 rule and give an example of when it is useful.",
     "crumbs": [
       "Feedback",
       "Module 6: Probability and Random Variables",
-      "<span class='chapter-number'>16</span>  <span class='chapter-title'>Probability and Random Variables</span>"
+      "<span class='chapter-number'>18</span>  <span class='chapter-title'>Probability and Random Variables</span>"
     ]
   },
   {
     "objectID": "module07.html#sec-module7-practice",
     "href": "module07.html#sec-module7-practice",
-    "title": "16  Probability and Random Variables",
-    "section": "16.8 Practice Exercises",
-    "text": "16.8 Practice Exercises\n\nSimulate 1000 rolls of two dice in R or Excel. Plot a histogram of the sums and verify that the distribution peaks at 7.\nFor \\(\\text{Binomial}(20, 0.3)\\), compute the mean, variance, and the probability of at most 5 successes.\nFor a \\(N(100, 15^2)\\) distribution, find the value \\(x\\) such that \\(P(X &lt; x) = 0.9\\).\n[TBD: an ag-relevant probability problem.]",
+    "title": "18  Probability and Random Variables",
+    "section": "18.8 Practice Exercises",
+    "text": "18.8 Practice Exercises\n\nSimulate 1000 rolls of two dice in R or Excel. Plot a histogram of the sums and verify that the distribution peaks at 7.\nFor \\(\\text{Binomial}(20, 0.3)\\), compute the mean, variance, and the probability of at most 5 successes.\nFor a \\(N(100, 15^2)\\) distribution, find the value \\(x\\) such that \\(P(X &lt; x) = 0.9\\).\n[TBD: an ag-relevant probability problem.]",
     "crumbs": [
       "Feedback",
       "Module 6: Probability and Random Variables",
-      "<span class='chapter-number'>16</span>  <span class='chapter-title'>Probability and Random Variables</span>"
+      "<span class='chapter-number'>18</span>  <span class='chapter-title'>Probability and Random Variables</span>"
     ]
   },
   {
     "objectID": "module08.html",
     "href": "module08.html",
-    "title": "17  Probability and Simulation I",
+    "title": "19  Probability and Simulation I",
     "section": "",
     "text": "Learning Objectives",
     "crumbs": [
       "Feedback",
       "Module 7: Probability and Simulation I",
-      "<span class='chapter-number'>17</span>  <span class='chapter-title'>Probability and Simulation I</span>"
+      "<span class='chapter-number'>19</span>  <span class='chapter-title'>Probability and Simulation I</span>"
     ]
   },
   {
     "objectID": "module08.html#learning-objectives",
     "href": "module08.html#learning-objectives",
-    "title": "17  Probability and Simulation I",
+    "title": "19  Probability and Simulation I",
     "section": "",
     "text": "By the end of this module you should be able to:\n\nExplain what simulation is and why it is useful.\nSimulate random variables from the normal and uniform distributions in R and Excel.\nEstimate probabilities by simulation.\nUnderstand the difference between theoretical and simulated probabilities.\nUse set.seed() to make simulations reproducible.",
     "crumbs": [
       "Feedback",
       "Module 7: Probability and Simulation I",
-      "<span class='chapter-number'>17</span>  <span class='chapter-title'>Probability and Simulation I</span>"
+      "<span class='chapter-number'>19</span>  <span class='chapter-title'>Probability and Simulation I</span>"
     ]
   },
   {
     "objectID": "module08.html#sec-simulation-idea",
     "href": "module08.html#sec-simulation-idea",
-    "title": "17  Probability and Simulation I",
-    "section": "17.1 The Idea of Simulation",
-    "text": "17.1 The Idea of Simulation\nModule 7 gave you the theory: random variables, distributions, formulas for probabilities. For simple questions those formulas are enough. “What is the probability that a normal random variable exceeds 2?” is 1 - pnorm(2), and you’re done.\nBut many real questions are too complex for closed-form formulas. What is the expected revenue from growing three crops with uncertain yields and uncertain prices, if I allocate 200 acres between them? There is no neat formula. But you can simulate it: pretend to run the experiment a thousand times, record what happens each time, and summarize the results.\nThis is simulation, or Monte Carlo methods (named after the casino). It is one of the most powerful and underused tools in applied statistics.\nThe idea is simple:\n\nBuild a mathematical model of the process.\nUse a computer to generate random draws from the model.\nRepeat many times (usually thousands or millions).\nSummarize the results to answer your question.\n\nThe beauty is that you can replace clever math with computing power. If you can describe the process, you can simulate it.",
+    "title": "19  Probability and Simulation I",
+    "section": "19.1 The Idea of Simulation",
+    "text": "19.1 The Idea of Simulation\nModule 7 gave you the theory: random variables, distributions, formulas for probabilities. For simple questions those formulas are enough. “What is the probability that a normal random variable exceeds 2?” is 1 - pnorm(2), and you’re done.\nBut many real questions are too complex for closed-form formulas. What is the expected revenue from growing three crops with uncertain yields and uncertain prices, if I allocate 200 acres between them? There is no neat formula. But you can simulate it: pretend to run the experiment a thousand times, record what happens each time, and summarize the results.\nThis is simulation, or Monte Carlo methods (named after the casino). It is one of the most powerful and underused tools in applied statistics.\nThe idea is simple:\n\nBuild a mathematical model of the process.\nUse a computer to generate random draws from the model.\nRepeat many times (usually thousands or millions).\nSummarize the results to answer your question.\n\nThe beauty is that you can replace clever math with computing power. If you can describe the process, you can simulate it.",
     "crumbs": [
       "Feedback",
       "Module 7: Probability and Simulation I",
-      "<span class='chapter-number'>17</span>  <span class='chapter-title'>Probability and Simulation I</span>"
+      "<span class='chapter-number'>19</span>  <span class='chapter-title'>Probability and Simulation I</span>"
     ]
   },
   {
     "objectID": "module08.html#sec-set-seed",
     "href": "module08.html#sec-set-seed",
-    "title": "17  Probability and Simulation I",
-    "section": "17.2 Reproducible Randomness: set.seed()",
-    "text": "17.2 Reproducible Randomness: set.seed()\nComputers do not generate “truly” random numbers — they generate pseudo-random numbers from a deterministic algorithm. Each time you start the algorithm at a different place (“seed”), you get a different sequence. Each time you start it at the same seed, you get the same sequence.\nThis is actually extremely useful. If you set the seed at the top of your script:\nset.seed(123)\nThen every time you run the script, the “random” numbers will be the same. Your simulation is reproducible — someone else running your code gets exactly the same answer.\nAlways set a seed at the top of any script with randomness. The specific number doesn’t matter (I use 42 or 2026 out of habit); the point is to fix it.",
+    "title": "19  Probability and Simulation I",
+    "section": "19.2 Reproducible Randomness: set.seed()",
+    "text": "19.2 Reproducible Randomness: set.seed()\nComputers do not generate “truly” random numbers — they generate pseudo-random numbers from a deterministic algorithm. Each time you start the algorithm at a different place (“seed”), you get a different sequence. Each time you start it at the same seed, you get the same sequence.\nThis is actually extremely useful. If you set the seed at the top of your script:\nset.seed(123)\nThen every time you run the script, the “random” numbers will be the same. Your simulation is reproducible — someone else running your code gets exactly the same answer.\nAlways set a seed at the top of any script with randomness. The specific number doesn’t matter (I use 42 or 2026 out of habit); the point is to fix it.",
     "crumbs": [
       "Feedback",
       "Module 7: Probability and Simulation I",
-      "<span class='chapter-number'>17</span>  <span class='chapter-title'>Probability and Simulation I</span>"
+      "<span class='chapter-number'>19</span>  <span class='chapter-title'>Probability and Simulation I</span>"
     ]
   },
   {
     "objectID": "module08.html#sec-simulating-distributions",
     "href": "module08.html#sec-simulating-distributions",
-    "title": "17  Probability and Simulation I",
-    "section": "17.3 Simulating from a Distribution",
-    "text": "17.3 Simulating from a Distribution\nR has four core functions for every distribution, following a pattern:\n\nd — density (PDF or PMF). dnorm, dbinom, dpois, etc.\np — cumulative distribution function. pnorm, pbinom, etc.\nq — quantile (inverse CDF). qnorm, qbinom, etc.\nr — random draws. rnorm, rbinom, etc.\n\nTo simulate, you use the r* functions.\nset.seed(42)\nrnorm(10, mean = 50, sd = 8)     # 10 normal draws\nrunif(10, min = 0, max = 100)    # 10 uniform draws\nrbinom(10, size = 20, prob = 0.3)  # 10 binomial draws\nrpois(10, lambda = 5)             # 10 Poisson draws\nEach call returns a vector of random draws. You can make the vector as long as you want:\nbig_sample &lt;- rnorm(10000, mean = 50, sd = 8)\nmean(big_sample)      # close to 50\nsd(big_sample)        # close to 8\nhist(big_sample)      # looks like a bell curve\nThis is a good sanity check: the empirical statistics of a large random sample should be close to the theoretical values of the distribution.\nIn Excel, you can generate random normal draws with =NORM.INV(RAND(), mean, sd), random uniform with =RAND()*(max-min)+min. The trouble with Excel is that these recalculate every time anything in the sheet changes, so you can’t easily lock in a simulation. For serious simulation work, R is much better.",
+    "title": "19  Probability and Simulation I",
+    "section": "19.3 Simulating from a Distribution",
+    "text": "19.3 Simulating from a Distribution\nR has four core functions for every distribution, following a pattern:\n\nd — density (PDF or PMF). dnorm, dbinom, dpois, etc.\np — cumulative distribution function. pnorm, pbinom, etc.\nq — quantile (inverse CDF). qnorm, qbinom, etc.\nr — random draws. rnorm, rbinom, etc.\n\nTo simulate, you use the r* functions.\nset.seed(42)\nrnorm(10, mean = 50, sd = 8)     # 10 normal draws\nrunif(10, min = 0, max = 100)    # 10 uniform draws\nrbinom(10, size = 20, prob = 0.3)  # 10 binomial draws\nrpois(10, lambda = 5)             # 10 Poisson draws\nEach call returns a vector of random draws. You can make the vector as long as you want:\nbig_sample &lt;- rnorm(10000, mean = 50, sd = 8)\nmean(big_sample)      # close to 50\nsd(big_sample)        # close to 8\nhist(big_sample)      # looks like a bell curve\nThis is a good sanity check: the empirical statistics of a large random sample should be close to the theoretical values of the distribution.\nIn Excel, you can generate random normal draws with =NORM.INV(RAND(), mean, sd), random uniform with =RAND()*(max-min)+min. The trouble with Excel is that these recalculate every time anything in the sheet changes, so you can’t easily lock in a simulation. For serious simulation work, R is much better.",
     "crumbs": [
       "Feedback",
       "Module 7: Probability and Simulation I",
-      "<span class='chapter-number'>17</span>  <span class='chapter-title'>Probability and Simulation I</span>"
+      "<span class='chapter-number'>19</span>  <span class='chapter-title'>Probability and Simulation I</span>"
     ]
   },
   {
     "objectID": "module08.html#sec-estimating-by-simulation",
     "href": "module08.html#sec-estimating-by-simulation",
-    "title": "17  Probability and Simulation I",
-    "section": "17.4 Estimating Probabilities by Simulation",
-    "text": "17.4 Estimating Probabilities by Simulation\nSuppose you want to know: for a normal distribution with mean 50 and standard deviation 8, what is \\(P(X &gt; 55)\\)?\nYou could use the formula: 1 - pnorm(55, mean = 50, sd = 8), which gives about 0.266.\nOr you could simulate:\nset.seed(42)\nn_sims &lt;- 100000\nsims &lt;- rnorm(n_sims, mean = 50, sd = 8)\nmean(sims &gt; 55)    # fraction of draws greater than 55\nThe result should be close to 0.266, but not exactly — simulation introduces its own random error, called Monte Carlo error. The error shrinks with the number of simulations (like \\(1/\\sqrt{n}\\)), so to get one more digit of accuracy, you need 100 times more simulations.\nFor this particular problem, the formula is clearly better. But what if you wanted \\(P(X &gt; 55 \\text{ and } Y &lt; 100)\\) where \\(X\\) and \\(Y\\) are correlated in a complicated way? The formula might be intractable. The simulation is still easy.",
+    "title": "19  Probability and Simulation I",
+    "section": "19.4 Estimating Probabilities by Simulation",
+    "text": "19.4 Estimating Probabilities by Simulation\nSuppose you want to know: for a normal distribution with mean 50 and standard deviation 8, what is \\(P(X &gt; 55)\\)?\nYou could use the formula: 1 - pnorm(55, mean = 50, sd = 8), which gives about 0.266.\nOr you could simulate:\nset.seed(42)\nn_sims &lt;- 100000\nsims &lt;- rnorm(n_sims, mean = 50, sd = 8)\nmean(sims &gt; 55)    # fraction of draws greater than 55\nThe result should be close to 0.266, but not exactly — simulation introduces its own random error, called Monte Carlo error. The error shrinks with the number of simulations (like \\(1/\\sqrt{n}\\)), so to get one more digit of accuracy, you need 100 times more simulations.\nFor this particular problem, the formula is clearly better. But what if you wanted \\(P(X &gt; 55 \\text{ and } Y &lt; 100)\\) where \\(X\\) and \\(Y\\) are correlated in a complicated way? The formula might be intractable. The simulation is still easy.",
     "crumbs": [
       "Feedback",
       "Module 7: Probability and Simulation I",
-      "<span class='chapter-number'>17</span>  <span class='chapter-title'>Probability and Simulation I</span>"
+      "<span class='chapter-number'>19</span>  <span class='chapter-title'>Probability and Simulation I</span>"
     ]
   },
   {
     "objectID": "module08.html#sec-module8-example",
     "href": "module08.html#sec-module8-example",
-    "title": "17  Probability and Simulation I",
-    "section": "17.5 Simulating a Simple Agricultural Problem",
-    "text": "17.5 Simulating a Simple Agricultural Problem\nHere is a classic problem: I am a canola farmer with 500 acres. My yield is normally distributed with mean 45 bu/ac and standard deviation 8. The price is uniformly distributed between $10 and $16 per bushel. Yield and price are independent (a dubious assumption, but go with it). What is the distribution of my revenue?\nset.seed(42)\nn_sims &lt;- 10000\n\nyield &lt;- rnorm(n_sims, mean = 45, sd = 8)\nprice &lt;- runif(n_sims, min = 10, max = 16)\nrevenue &lt;- 500 * yield * price\n\nmean(revenue)    # expected revenue\nsd(revenue)      # standard deviation of revenue\nquantile(revenue, c(0.05, 0.5, 0.95))  # 5th, 50th, 95th percentiles\n\nhist(revenue, breaks = 50,\n     main = \"Simulated revenue distribution\",\n     xlab = \"Revenue ($)\")\nA few things to notice:\n\nThe expected revenue is not just 500 * 45 * 13 (where 13 is the midpoint of the price distribution). It is close to that because \\(E[XY] = E[X]E[Y]\\) when \\(X\\) and \\(Y\\) are independent, but for correlated variables this would not hold.\nThe distribution of revenue is not normal, even though yield is. Multiplying two random variables usually gives a non-normal result.\nThe 5th percentile tells you a “reasonable worst case” — 5% of the time, revenue is below this value. Useful for planning.\nThe 95th percentile is the corresponding “reasonable best case.”\n\nChange one assumption — say, make yield and price negatively correlated (which they usually are — bumper crops make prices fall) — and the picture changes dramatically. Simulation lets you explore these scenarios easily.",
+    "title": "19  Probability and Simulation I",
+    "section": "19.5 Simulating a Simple Agricultural Problem",
+    "text": "19.5 Simulating a Simple Agricultural Problem\nHere is a classic problem: I am a canola farmer with 500 acres. My yield is normally distributed with mean 45 bu/ac and standard deviation 8. The price is uniformly distributed between $10 and $16 per bushel. Yield and price are independent (a dubious assumption, but go with it). What is the distribution of my revenue?\nset.seed(42)\nn_sims &lt;- 10000\n\nyield &lt;- rnorm(n_sims, mean = 45, sd = 8)\nprice &lt;- runif(n_sims, min = 10, max = 16)\nrevenue &lt;- 500 * yield * price\n\nmean(revenue)    # expected revenue\nsd(revenue)      # standard deviation of revenue\nquantile(revenue, c(0.05, 0.5, 0.95))  # 5th, 50th, 95th percentiles\n\nhist(revenue, breaks = 50,\n     main = \"Simulated revenue distribution\",\n     xlab = \"Revenue ($)\")\nA few things to notice:\n\nThe expected revenue is not just 500 * 45 * 13 (where 13 is the midpoint of the price distribution). It is close to that because \\(E[XY] = E[X]E[Y]\\) when \\(X\\) and \\(Y\\) are independent, but for correlated variables this would not hold.\nThe distribution of revenue is not normal, even though yield is. Multiplying two random variables usually gives a non-normal result.\nThe 5th percentile tells you a “reasonable worst case” — 5% of the time, revenue is below this value. Useful for planning.\nThe 95th percentile is the corresponding “reasonable best case.”\n\nChange one assumption — say, make yield and price negatively correlated (which they usually are — bumper crops make prices fall) — and the picture changes dramatically. Simulation lets you explore these scenarios easily.",
     "crumbs": [
       "Feedback",
       "Module 7: Probability and Simulation I",
-      "<span class='chapter-number'>17</span>  <span class='chapter-title'>Probability and Simulation I</span>"
+      "<span class='chapter-number'>19</span>  <span class='chapter-title'>Probability and Simulation I</span>"
     ]
   },
   {
     "objectID": "module08.html#sec-verifying-simulation",
     "href": "module08.html#sec-verifying-simulation",
-    "title": "17  Probability and Simulation I",
-    "section": "17.6 Verifying a Known Result",
-    "text": "17.6 Verifying a Known Result\nBefore you trust a simulation for a hard problem, test it on an easy one. If you are simulating the normal distribution, check that the mean and standard deviation of your simulated sample match what they should be. If you are simulating a coin flip, check that about half come up heads.\nThis is the “calibration” step. It catches bugs (wrong argument order, typo in the formula) before they mislead you.",
+    "title": "19  Probability and Simulation I",
+    "section": "19.6 Verifying a Known Result",
+    "text": "19.6 Verifying a Known Result\nBefore you trust a simulation for a hard problem, test it on an easy one. If you are simulating the normal distribution, check that the mean and standard deviation of your simulated sample match what they should be. If you are simulating a coin flip, check that about half come up heads.\nThis is the “calibration” step. It catches bugs (wrong argument order, typo in the formula) before they mislead you.",
     "crumbs": [
       "Feedback",
       "Module 7: Probability and Simulation I",
-      "<span class='chapter-number'>17</span>  <span class='chapter-title'>Probability and Simulation I</span>"
+      "<span class='chapter-number'>19</span>  <span class='chapter-title'>Probability and Simulation I</span>"
     ]
   },
   {
     "objectID": "module08.html#sec-module8-test",
     "href": "module08.html#sec-module8-test",
-    "title": "17  Probability and Simulation I",
-    "section": "17.7 Test Bank Sample",
-    "text": "17.7 Test Bank Sample\n\n(Concept.) Why do we use simulation when analytical formulas exist?\n(R.) Write R code to generate 1000 random draws from \\(N(100, 15^2)\\) and compute their mean.\n(Reproducibility.) Why should you call set.seed() before running a simulation?\n(Estimation.) How would you estimate \\(P(X &gt; 75)\\) where \\(X \\sim N(50, 10^2)\\) using simulation?\n(Monte Carlo error.) Why do simulated probabilities differ slightly from theoretical ones?",
+    "title": "19  Probability and Simulation I",
+    "section": "19.7 Test Bank Sample",
+    "text": "19.7 Test Bank Sample\n\n(Concept.) Why do we use simulation when analytical formulas exist?\n(R.) Write R code to generate 1000 random draws from \\(N(100, 15^2)\\) and compute their mean.\n(Reproducibility.) Why should you call set.seed() before running a simulation?\n(Estimation.) How would you estimate \\(P(X &gt; 75)\\) where \\(X \\sim N(50, 10^2)\\) using simulation?\n(Monte Carlo error.) Why do simulated probabilities differ slightly from theoretical ones?",
     "crumbs": [
       "Feedback",
       "Module 7: Probability and Simulation I",
-      "<span class='chapter-number'>17</span>  <span class='chapter-title'>Probability and Simulation I</span>"
+      "<span class='chapter-number'>19</span>  <span class='chapter-title'>Probability and Simulation I</span>"
     ]
   },
   {
     "objectID": "module08.html#sec-module8-practice",
     "href": "module08.html#sec-module8-practice",
-    "title": "17  Probability and Simulation I",
-    "section": "17.8 Practice Exercises",
-    "text": "17.8 Practice Exercises\n\nSimulate 10,000 draws from a normal distribution and verify the 68-95-99.7 rule empirically.\nRepeat the canola revenue simulation with different assumptions about yield variance.\nSimulate the sum of two dice 10,000 times and compare to the theoretical distribution.\n[TBD: an insurance payout simulation.]",
+    "title": "19  Probability and Simulation I",
+    "section": "19.8 Practice Exercises",
+    "text": "19.8 Practice Exercises\n\nSimulate 10,000 draws from a normal distribution and verify the 68-95-99.7 rule empirically.\nRepeat the canola revenue simulation with different assumptions about yield variance.\nSimulate the sum of two dice 10,000 times and compare to the theoretical distribution.\n[TBD: an insurance payout simulation.]",
     "crumbs": [
       "Feedback",
       "Module 7: Probability and Simulation I",
-      "<span class='chapter-number'>17</span>  <span class='chapter-title'>Probability and Simulation I</span>"
+      "<span class='chapter-number'>19</span>  <span class='chapter-title'>Probability and Simulation I</span>"
     ]
   },
   {
     "objectID": "module09.html",
     "href": "module09.html",
-    "title": "18  Probability and Simulation II",
+    "title": "20  Probability and Simulation II",
     "section": "",
     "text": "Learning Objectives",
     "crumbs": [
       "Feedback",
       "Module 8: Probability and Simulation II",
-      "<span class='chapter-number'>18</span>  <span class='chapter-title'>Probability and Simulation II</span>"
+      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Probability and Simulation II</span>"
     ]
   },
   {
     "objectID": "module09.html#learning-objectives",
     "href": "module09.html#learning-objectives",
-    "title": "18  Probability and Simulation II",
+    "title": "20  Probability and Simulation II",
     "section": "",
     "text": "By the end of this module you should be able to:\n\nSimulate from empirical distributions by sampling with replacement.\nSimulate multivariate processes with correlated inputs.\nUse simulation to answer more complex questions (crop revenue with multiple crops, risk analysis, etc.).\nBuild simulations that others can read and modify.\nExplain the limitations of simulation.",
     "crumbs": [
       "Feedback",
       "Module 8: Probability and Simulation II",
-      "<span class='chapter-number'>18</span>  <span class='chapter-title'>Probability and Simulation II</span>"
+      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Probability and Simulation II</span>"
     ]
   },
   {
     "objectID": "module09.html#sec-empirical-sim",
     "href": "module09.html#sec-empirical-sim",
-    "title": "18  Probability and Simulation II",
-    "section": "18.1 Simulating from Empirical Distributions",
-    "text": "18.1 Simulating from Empirical Distributions\nIn Module 8 you simulated from distributions with known parametric forms (normal, uniform). Sometimes you don’t know the distribution — but you have historical data. You can simulate directly from that data by sampling with replacement.\n“Sampling with replacement” means: each draw is chosen at random from the historical data, and it can be the same value twice. This is different from “sampling without replacement,” where each value can only appear once. With replacement is the right choice for simulation because it preserves the frequency of common values.\nIn R:\n# Historical yield data for the past 30 years\nhistorical_yields &lt;- c(38, 42, 45, 33, 50, 47, 41, 49, ...)  # etc.\n\n# Simulate 10000 future yields by sampling from the past\nsimulated_yields &lt;- sample(historical_yields, size = 10000, replace = TRUE)\n\nmean(simulated_yields)\nhist(simulated_yields)\nThis approach, sometimes called empirical simulation or the bootstrap, has two big advantages over parametric simulation:\n\nYou don’t have to assume a distribution. The historical data already “contains” the true distribution, warts and all. Extreme years are represented in proportion to how often they happened.\nIt naturally preserves weird features — skewness, bimodality, outliers — that a normal distribution would miss.\n\nThe big disadvantage: you can only simulate what has happened before. If the future is different from the past (climate change, new varieties, new policies), empirical simulation will not capture that. Use it with care.",
+    "title": "20  Probability and Simulation II",
+    "section": "20.1 Simulating from Empirical Distributions",
+    "text": "20.1 Simulating from Empirical Distributions\nIn Module 8 you simulated from distributions with known parametric forms (normal, uniform). Sometimes you don’t know the distribution — but you have historical data. You can simulate directly from that data by sampling with replacement.\n“Sampling with replacement” means: each draw is chosen at random from the historical data, and it can be the same value twice. This is different from “sampling without replacement,” where each value can only appear once. With replacement is the right choice for simulation because it preserves the frequency of common values.\nIn R:\n# Historical yield data for the past 30 years\nhistorical_yields &lt;- c(38, 42, 45, 33, 50, 47, 41, 49, ...)  # etc.\n\n# Simulate 10000 future yields by sampling from the past\nsimulated_yields &lt;- sample(historical_yields, size = 10000, replace = TRUE)\n\nmean(simulated_yields)\nhist(simulated_yields)\nThis approach, sometimes called empirical simulation or the bootstrap, has two big advantages over parametric simulation:\n\nYou don’t have to assume a distribution. The historical data already “contains” the true distribution, warts and all. Extreme years are represented in proportion to how often they happened.\nIt naturally preserves weird features — skewness, bimodality, outliers — that a normal distribution would miss.\n\nThe big disadvantage: you can only simulate what has happened before. If the future is different from the past (climate change, new varieties, new policies), empirical simulation will not capture that. Use it with care.",
     "crumbs": [
       "Feedback",
       "Module 8: Probability and Simulation II",
-      "<span class='chapter-number'>18</span>  <span class='chapter-title'>Probability and Simulation II</span>"
+      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Probability and Simulation II</span>"
     ]
   },
   {
     "objectID": "module09.html#sec-multivariate-sim",
     "href": "module09.html#sec-multivariate-sim",
-    "title": "18  Probability and Simulation II",
-    "section": "18.2 Simulating Multiple Correlated Variables",
-    "text": "18.2 Simulating Multiple Correlated Variables\nReal-world variables are rarely independent. When canola yields are high, soybean yields tend to be high too (shared weather). When yields are high, prices tend to be low (supply). Modeling these correlations is essential for realistic simulations.\nThe simplest way to handle correlation is bootstrap multivariate sampling: instead of simulating each variable separately, you sample rows of historical data that contain all the variables together.\nhistorical &lt;- data.frame(\n  year = 1995:2024,\n  canola_yield = c(...),\n  wheat_yield = c(...),\n  canola_price = c(...),\n  wheat_price = c(...)\n)\n\n# Sample 10000 years by sampling rows with replacement\nsampled_rows &lt;- sample(nrow(historical), size = 10000, replace = TRUE)\nsims &lt;- historical[sampled_rows, ]\n\nhead(sims)\nEach simulated year contains the canola yield, wheat yield, canola price, and wheat price as they actually co-occurred in some historical year. The correlations are preserved automatically, because you didn’t break them apart.\nFor parametric multivariate simulation (normal distributions with a specified correlation structure), you can use MASS::mvrnorm(), but that’s more than we need for this course.",
+    "title": "20  Probability and Simulation II",
+    "section": "20.2 Simulating Multiple Correlated Variables",
+    "text": "20.2 Simulating Multiple Correlated Variables\nReal-world variables are rarely independent. When canola yields are high, soybean yields tend to be high too (shared weather). When yields are high, prices tend to be low (supply). Modeling these correlations is essential for realistic simulations.\nThe simplest way to handle correlation is bootstrap multivariate sampling: instead of simulating each variable separately, you sample rows of historical data that contain all the variables together.\nhistorical &lt;- data.frame(\n  year = 1995:2024,\n  canola_yield = c(...),\n  wheat_yield = c(...),\n  canola_price = c(...),\n  wheat_price = c(...)\n)\n\n# Sample 10000 years by sampling rows with replacement\nsampled_rows &lt;- sample(nrow(historical), size = 10000, replace = TRUE)\nsims &lt;- historical[sampled_rows, ]\n\nhead(sims)\nEach simulated year contains the canola yield, wheat yield, canola price, and wheat price as they actually co-occurred in some historical year. The correlations are preserved automatically, because you didn’t break them apart.\nFor parametric multivariate simulation (normal distributions with a specified correlation structure), you can use MASS::mvrnorm(), but that’s more than we need for this course.",
     "crumbs": [
       "Feedback",
       "Module 8: Probability and Simulation II",
-      "<span class='chapter-number'>18</span>  <span class='chapter-title'>Probability and Simulation II</span>"
+      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Probability and Simulation II</span>"
     ]
   },
   {
     "objectID": "module09.html#sec-whole-farm-sim",
     "href": "module09.html#sec-whole-farm-sim",
-    "title": "18  Probability and Simulation II",
-    "section": "18.3 A More Complex Example: Whole-Farm Revenue",
-    "text": "18.3 A More Complex Example: Whole-Farm Revenue\nLet’s put it all together. A farmer has 1000 acres. She will allocate them between canola and wheat. Historical data gives yields and prices for both crops over 30 years. The question: what is the distribution of total revenue under different allocation strategies?\nset.seed(42)\n\n# Historical data (load from CSV in practice)\nhistorical &lt;- data.frame(\n  canola_yield = c(...),\n  canola_price = c(...),\n  wheat_yield = c(...),\n  wheat_price = c(...)\n)\n\n# Function to simulate revenue for a given allocation\nsimulate_revenue &lt;- function(acres_canola, acres_wheat, n_sims = 10000) {\n  sampled &lt;- historical[sample(nrow(historical), n_sims, replace = TRUE), ]\n  revenue &lt;- acres_canola * sampled$canola_yield * sampled$canola_price +\n             acres_wheat  * sampled$wheat_yield  * sampled$wheat_price\n  revenue\n}\n\n# Compare three strategies\nall_canola    &lt;- simulate_revenue(1000, 0)\nall_wheat     &lt;- simulate_revenue(0, 1000)\nhalf_and_half &lt;- simulate_revenue(500, 500)\n\n# Summarise\ndata.frame(\n  strategy = c(\"All canola\", \"All wheat\", \"Half and half\"),\n  mean     = c(mean(all_canola), mean(all_wheat), mean(half_and_half)),\n  sd       = c(sd(all_canola),   sd(all_wheat),   sd(half_and_half)),\n  p05      = c(quantile(all_canola, 0.05),\n               quantile(all_wheat, 0.05),\n               quantile(half_and_half, 0.05))\n)\nThe interesting result (for most datasets) is that diversification reduces the worst case. The half-and-half strategy usually has a lower mean than all-canola but a much better 5th percentile — because bad years for canola are often okay years for wheat. This is the mathematical basis for crop rotation and for the general wisdom of “don’t put all your eggs in one basket.”\nTry varying the allocation to find the one that maximizes the 5th percentile revenue (a risk-averse criterion). This kind of analysis would be extremely hard to do analytically. With simulation it is a few lines of code.",
+    "title": "20  Probability and Simulation II",
+    "section": "20.3 A More Complex Example: Whole-Farm Revenue",
+    "text": "20.3 A More Complex Example: Whole-Farm Revenue\nLet’s put it all together. A farmer has 1000 acres. She will allocate them between canola and wheat. Historical data gives yields and prices for both crops over 30 years. The question: what is the distribution of total revenue under different allocation strategies?\nset.seed(42)\n\n# Historical data (load from CSV in practice)\nhistorical &lt;- data.frame(\n  canola_yield = c(...),\n  canola_price = c(...),\n  wheat_yield = c(...),\n  wheat_price = c(...)\n)\n\n# Function to simulate revenue for a given allocation\nsimulate_revenue &lt;- function(acres_canola, acres_wheat, n_sims = 10000) {\n  sampled &lt;- historical[sample(nrow(historical), n_sims, replace = TRUE), ]\n  revenue &lt;- acres_canola * sampled$canola_yield * sampled$canola_price +\n             acres_wheat  * sampled$wheat_yield  * sampled$wheat_price\n  revenue\n}\n\n# Compare three strategies\nall_canola    &lt;- simulate_revenue(1000, 0)\nall_wheat     &lt;- simulate_revenue(0, 1000)\nhalf_and_half &lt;- simulate_revenue(500, 500)\n\n# Summarise\ndata.frame(\n  strategy = c(\"All canola\", \"All wheat\", \"Half and half\"),\n  mean     = c(mean(all_canola), mean(all_wheat), mean(half_and_half)),\n  sd       = c(sd(all_canola),   sd(all_wheat),   sd(half_and_half)),\n  p05      = c(quantile(all_canola, 0.05),\n               quantile(all_wheat, 0.05),\n               quantile(half_and_half, 0.05))\n)\nThe interesting result (for most datasets) is that diversification reduces the worst case. The half-and-half strategy usually has a lower mean than all-canola but a much better 5th percentile — because bad years for canola are often okay years for wheat. This is the mathematical basis for crop rotation and for the general wisdom of “don’t put all your eggs in one basket.”\nTry varying the allocation to find the one that maximizes the 5th percentile revenue (a risk-averse criterion). This kind of analysis would be extremely hard to do analytically. With simulation it is a few lines of code.",
     "crumbs": [
       "Feedback",
       "Module 8: Probability and Simulation II",
-      "<span class='chapter-number'>18</span>  <span class='chapter-title'>Probability and Simulation II</span>"
+      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Probability and Simulation II</span>"
     ]
   },
   {
     "objectID": "module09.html#sec-readable-sim",
     "href": "module09.html#sec-readable-sim",
-    "title": "18  Probability and Simulation II",
-    "section": "18.4 Writing Readable Simulation Code",
-    "text": "18.4 Writing Readable Simulation Code\nSimulations have a way of turning into spaghetti. A few habits:\n\nStart with a function that simulates one iteration. Then loop or vectorize.\nName your variables descriptively. revenue, not x.\nSeparate data from parameters. Put assumptions at the top of the script where they are easy to change.\nSanity-check each step. After simulating, plot a histogram. Does it look sensible? Is the mean what you expect?\nWrite down the model in words before writing code. If you can’t describe it, you can’t code it.",
+    "title": "20  Probability and Simulation II",
+    "section": "20.4 Writing Readable Simulation Code",
+    "text": "20.4 Writing Readable Simulation Code\nSimulations have a way of turning into spaghetti. A few habits:\n\nStart with a function that simulates one iteration. Then loop or vectorize.\nName your variables descriptively. revenue, not x.\nSeparate data from parameters. Put assumptions at the top of the script where they are easy to change.\nSanity-check each step. After simulating, plot a histogram. Does it look sensible? Is the mean what you expect?\nWrite down the model in words before writing code. If you can’t describe it, you can’t code it.",
     "crumbs": [
       "Feedback",
       "Module 8: Probability and Simulation II",
-      "<span class='chapter-number'>18</span>  <span class='chapter-title'>Probability and Simulation II</span>"
+      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Probability and Simulation II</span>"
     ]
   },
   {
     "objectID": "module09.html#sec-sim-limitations",
     "href": "module09.html#sec-sim-limitations",
-    "title": "18  Probability and Simulation II",
-    "section": "18.5 Limitations of Simulation",
-    "text": "18.5 Limitations of Simulation\nSimulation is powerful but not magic. Its output is only as good as its input:\n\nGarbage in, garbage out. If your assumed distributions are wrong, your simulation is wrong. Confidence in the output should be no higher than confidence in the inputs.\nDependence matters. If you assume variables are independent when they’re not (like canola yield and canola price), your results will be misleading — usually optimistic.\nTail behavior matters. Normal distributions have very thin tails. Real agricultural data often has fatter tails (more extreme events than a normal predicts). If your question hinges on tail events, a normal-based simulation will understate the risk.\nOne more time: the future may not look like the past. Climate change, policy change, and structural change make purely historical simulation conservative at best.\n\nAll of these are reasons to be humble about simulation results. It is a tool for quantifying uncertainty under stated assumptions, not a crystal ball.",
+    "title": "20  Probability and Simulation II",
+    "section": "20.5 Limitations of Simulation",
+    "text": "20.5 Limitations of Simulation\nSimulation is powerful but not magic. Its output is only as good as its input:\n\nGarbage in, garbage out. If your assumed distributions are wrong, your simulation is wrong. Confidence in the output should be no higher than confidence in the inputs.\nDependence matters. If you assume variables are independent when they’re not (like canola yield and canola price), your results will be misleading — usually optimistic.\nTail behavior matters. Normal distributions have very thin tails. Real agricultural data often has fatter tails (more extreme events than a normal predicts). If your question hinges on tail events, a normal-based simulation will understate the risk.\nOne more time: the future may not look like the past. Climate change, policy change, and structural change make purely historical simulation conservative at best.\n\nAll of these are reasons to be humble about simulation results. It is a tool for quantifying uncertainty under stated assumptions, not a crystal ball.",
     "crumbs": [
       "Feedback",
       "Module 8: Probability and Simulation II",
-      "<span class='chapter-number'>18</span>  <span class='chapter-title'>Probability and Simulation II</span>"
+      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Probability and Simulation II</span>"
     ]
   },
   {
     "objectID": "module09.html#sec-module9-test",
     "href": "module09.html#sec-module9-test",
-    "title": "18  Probability and Simulation II",
-    "section": "18.6 Test Bank Sample",
-    "text": "18.6 Test Bank Sample\n\n(Concept.) Why might you prefer empirical simulation over parametric simulation?\n(Correlation.) Why is it important to preserve correlation between variables in a simulation?\n(R code.) Write code to sample 1000 rows with replacement from a data frame called historical.\n(Interpretation.) A simulation gives you a 5th percentile revenue of $200,000. What does this mean for a farmer’s decision?\n(Limitations.) List three reasons simulation results should be interpreted cautiously.",
+    "title": "20  Probability and Simulation II",
+    "section": "20.6 Test Bank Sample",
+    "text": "20.6 Test Bank Sample\n\n(Concept.) Why might you prefer empirical simulation over parametric simulation?\n(Correlation.) Why is it important to preserve correlation between variables in a simulation?\n(R code.) Write code to sample 1000 rows with replacement from a data frame called historical.\n(Interpretation.) A simulation gives you a 5th percentile revenue of $200,000. What does this mean for a farmer’s decision?\n(Limitations.) List three reasons simulation results should be interpreted cautiously.",
     "crumbs": [
       "Feedback",
       "Module 8: Probability and Simulation II",
-      "<span class='chapter-number'>18</span>  <span class='chapter-title'>Probability and Simulation II</span>"
+      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Probability and Simulation II</span>"
     ]
   },
   {
     "objectID": "module09.html#sec-module9-practice",
     "href": "module09.html#sec-module9-practice",
-    "title": "18  Probability and Simulation II",
-    "section": "18.7 Practice Exercises",
-    "text": "18.7 Practice Exercises\n\nReproduce the whole-farm revenue simulation using the [TBD dataset]. Try different allocations and find the one with the highest 5th percentile.\nCompare a normal-distribution-based simulation to an empirical simulation of the same yields. How do they differ?\nSimulate the revenue from a crop where yield and price are negatively correlated.\n[TBD: a crop insurance pricing simulation.]",
+    "title": "20  Probability and Simulation II",
+    "section": "20.7 Practice Exercises",
+    "text": "20.7 Practice Exercises\n\nReproduce the whole-farm revenue simulation using the [TBD dataset]. Try different allocations and find the one with the highest 5th percentile.\nCompare a normal-distribution-based simulation to an empirical simulation of the same yields. How do they differ?\nSimulate the revenue from a crop where yield and price are negatively correlated.\n[TBD: a crop insurance pricing simulation.]",
     "crumbs": [
       "Feedback",
       "Module 8: Probability and Simulation II",
-      "<span class='chapter-number'>18</span>  <span class='chapter-title'>Probability and Simulation II</span>"
+      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Probability and Simulation II</span>"
     ]
   },
   {
     "objectID": "module10.html",
     "href": "module10.html",
-    "title": "19  Sampling",
+    "title": "21  Sampling",
     "section": "",
     "text": "Learning Objectives",
     "crumbs": [
       "Feedback",
       "Module 9: Sampling",
-      "<span class='chapter-number'>19</span>  <span class='chapter-title'>Sampling</span>"
+      "<span class='chapter-number'>21</span>  <span class='chapter-title'>Sampling</span>"
     ]
   },
   {
     "objectID": "module10.html#learning-objectives",
     "href": "module10.html#learning-objectives",
-    "title": "19  Sampling",
+    "title": "21  Sampling",
     "section": "",
     "text": "By the end of this module you should be able to:\n\nDefine a population, sample, parameter, and statistic.\nExplain why we sample instead of measuring the whole population.\nDescribe the concept of sampling variability.\nUnderstand what a sampling distribution is and why it matters.\nState the Central Limit Theorem and explain its implications.\nRecognize sources of sampling bias.",
     "crumbs": [
       "Feedback",
       "Module 9: Sampling",
-      "<span class='chapter-number'>19</span>  <span class='chapter-title'>Sampling</span>"
+      "<span class='chapter-number'>21</span>  <span class='chapter-title'>Sampling</span>"
     ]
   },
   {
     "objectID": "module10.html#sec-population-sample",
     "href": "module10.html#sec-population-sample",
-    "title": "19  Sampling",
-    "section": "19.1 Population and Sample",
-    "text": "19.1 Population and Sample\nTwo of the most important words in statistics. Please internalize the distinction.\nA population is the complete set of things you want to draw conclusions about. All the canola fields in Saskatchewan in 2025. All the farmers in Canada. All the possible outcomes of a hypothetical experiment.\nA sample is the subset you actually observe. 200 randomly selected canola fields. 500 farmers who answered your survey. Ten repetitions of the experiment.\nWe measure things in the sample and use them to make inferences about the population. Nearly every statistical procedure in this book — and most you will ever encounter — is some version of this.\nTwo more words:\nA parameter is a number describing the population. The mean canola yield in Saskatchewan in 2025. The average farm size. The proportion of organic operations. We usually don’t know parameters directly.\nA statistic is a number computed from the sample. The mean of the 200 fields you sampled. The average farm size of the 500 respondents. The proportion of organic operations in your sample. Statistics are known; parameters are (usually) not.\nThe core job of statistics is to use the known statistic to estimate the unknown parameter, with honest accounting for uncertainty.",
+    "title": "21  Sampling",
+    "section": "21.1 Population and Sample",
+    "text": "21.1 Population and Sample\nTwo of the most important words in statistics. Please internalize the distinction.\nA population is the complete set of things you want to draw conclusions about. All the canola fields in Saskatchewan in 2025. All the farmers in Canada. All the possible outcomes of a hypothetical experiment.\nA sample is the subset you actually observe. 200 randomly selected canola fields. 500 farmers who answered your survey. Ten repetitions of the experiment.\nWe measure things in the sample and use them to make inferences about the population. Nearly every statistical procedure in this book — and most you will ever encounter — is some version of this.\nTwo more words:\nA parameter is a number describing the population. The mean canola yield in Saskatchewan in 2025. The average farm size. The proportion of organic operations. We usually don’t know parameters directly.\nA statistic is a number computed from the sample. The mean of the 200 fields you sampled. The average farm size of the 500 respondents. The proportion of organic operations in your sample. Statistics are known; parameters are (usually) not.\nThe core job of statistics is to use the known statistic to estimate the unknown parameter, with honest accounting for uncertainty.",
     "crumbs": [
       "Feedback",
       "Module 9: Sampling",
-      "<span class='chapter-number'>19</span>  <span class='chapter-title'>Sampling</span>"
+      "<span class='chapter-number'>21</span>  <span class='chapter-title'>Sampling</span>"
     ]
   },
   {
     "objectID": "module10.html#sec-why-sample",
     "href": "module10.html#sec-why-sample",
-    "title": "19  Sampling",
-    "section": "19.2 Why Sample?",
-    "text": "19.2 Why Sample?\nIt would be nice to measure the entire population. Why don’t we?\n\nCost. Counting every canola field in Saskatchewan costs millions of dollars. Counting a random sample of 200 costs a small fraction.\nSpeed. A full census takes years. A sample takes weeks.\nDestruction. Some measurements destroy the thing being measured. You cannot measure the moisture content of every kernel of grain in the world.\nImpossibility. For hypothetical populations (“all possible repetitions of this experiment”), there is no way to measure the whole thing.\n\nEven when a census is feasible — Statistics Canada does one every few years — it is often not better than a well-designed sample, because the scale introduces errors of its own (data entry mistakes, missing observations, lag).\nFor most practical purposes, a good sample is as good as a census. The key word is “good.”",
+    "title": "21  Sampling",
+    "section": "21.2 Why Sample?",
+    "text": "21.2 Why Sample?\nIt would be nice to measure the entire population. Why don’t we?\n\nCost. Counting every canola field in Saskatchewan costs millions of dollars. Counting a random sample of 200 costs a small fraction.\nSpeed. A full census takes years. A sample takes weeks.\nDestruction. Some measurements destroy the thing being measured. You cannot measure the moisture content of every kernel of grain in the world.\nImpossibility. For hypothetical populations (“all possible repetitions of this experiment”), there is no way to measure the whole thing.\n\nEven when a census is feasible — Statistics Canada does one every few years — it is often not better than a well-designed sample, because the scale introduces errors of its own (data entry mistakes, missing observations, lag).\nFor most practical purposes, a good sample is as good as a census. The key word is “good.”",
     "crumbs": [
       "Feedback",
       "Module 9: Sampling",
-      "<span class='chapter-number'>19</span>  <span class='chapter-title'>Sampling</span>"
+      "<span class='chapter-number'>21</span>  <span class='chapter-title'>Sampling</span>"
     ]
   },
   {
     "objectID": "module10.html#sec-sampling-variability",
     "href": "module10.html#sec-sampling-variability",
-    "title": "19  Sampling",
-    "section": "19.3 Sampling Variability",
-    "text": "19.3 Sampling Variability\nHere is the key insight of the rest of this course. When you take a sample, you get one specific set of observations. If you had taken a different sample — drawn different random fields — you would have gotten different observations, and probably a different sample mean. The sample statistic is itself random. Sampling variability is the name for this.\nTo make this concrete, let’s simulate. Pretend the population of canola yields is \\(N(45, 8^2)\\). Take a sample of 30, compute its mean.\nset.seed(42)\npopulation_mean &lt;- 45\npopulation_sd &lt;- 8\n\nsample_1 &lt;- rnorm(30, mean = population_mean, sd = population_sd)\nmean(sample_1)\n# result might be, say, 43.7\nNow do it again:\nsample_2 &lt;- rnorm(30, mean = population_mean, sd = population_sd)\nmean(sample_2)\n# maybe 46.1\nAnd again, a thousand times:\nmany_means &lt;- replicate(1000, mean(rnorm(30, mean = 45, sd = 8)))\nhist(many_means, breaks = 30)\nmean(many_means)   # close to 45\nsd(many_means)     # close to 8 / sqrt(30) ≈ 1.46\nWhat do we see?\n\nThe means are not all the same. They vary from sample to sample. This is sampling variability.\nThe means are centered around the true population mean (45). On average, the sample mean is the right answer.\nThe spread of the sample means (standard deviation ≈ 1.46) is much smaller than the spread of the individual values in the population (which is 8). Averaging reduces variability.\n\nThat distribution of sample means — the histogram you just made — is called the sampling distribution of the mean. It is not a distribution of your data; it is a distribution of the statistic.",
+    "title": "21  Sampling",
+    "section": "21.3 Sampling Variability",
+    "text": "21.3 Sampling Variability\nHere is the key insight of the rest of this course. When you take a sample, you get one specific set of observations. If you had taken a different sample — drawn different random fields — you would have gotten different observations, and probably a different sample mean. The sample statistic is itself random. Sampling variability is the name for this.\nTo make this concrete, let’s simulate. Pretend the population of canola yields is \\(N(45, 8^2)\\). Take a sample of 30, compute its mean.\nset.seed(42)\npopulation_mean &lt;- 45\npopulation_sd &lt;- 8\n\nsample_1 &lt;- rnorm(30, mean = population_mean, sd = population_sd)\nmean(sample_1)\n# result might be, say, 43.7\nNow do it again:\nsample_2 &lt;- rnorm(30, mean = population_mean, sd = population_sd)\nmean(sample_2)\n# maybe 46.1\nAnd again, a thousand times:\nmany_means &lt;- replicate(1000, mean(rnorm(30, mean = 45, sd = 8)))\nhist(many_means, breaks = 30)\nmean(many_means)   # close to 45\nsd(many_means)     # close to 8 / sqrt(30) ≈ 1.46\nWhat do we see?\n\nThe means are not all the same. They vary from sample to sample. This is sampling variability.\nThe means are centered around the true population mean (45). On average, the sample mean is the right answer.\nThe spread of the sample means (standard deviation ≈ 1.46) is much smaller than the spread of the individual values in the population (which is 8). Averaging reduces variability.\n\nThat distribution of sample means — the histogram you just made — is called the sampling distribution of the mean. It is not a distribution of your data; it is a distribution of the statistic.",
     "crumbs": [
       "Feedback",
       "Module 9: Sampling",
-      "<span class='chapter-number'>19</span>  <span class='chapter-title'>Sampling</span>"
+      "<span class='chapter-number'>21</span>  <span class='chapter-title'>Sampling</span>"
     ]
   },
   {
     "objectID": "module10.html#sec-clt",
     "href": "module10.html#sec-clt",
-    "title": "19  Sampling",
-    "section": "19.4 The Central Limit Theorem",
-    "text": "19.4 The Central Limit Theorem\nThe sampling distribution of the mean has three remarkable properties:\n\nIts mean equals the population mean \\(\\mu\\). On average, sample means are unbiased.\nIts standard deviation equals \\(\\sigma / \\sqrt{n}\\), where \\(\\sigma\\) is the population standard deviation and \\(n\\) is the sample size. This is called the standard error of the mean (SE). Larger samples have smaller standard errors.\nIts shape is approximately normal for large enough \\(n\\), regardless of the shape of the population distribution.\n\nThat third point is the Central Limit Theorem (CLT) and it is the most important theorem in applied statistics. It says: even if the underlying data is highly skewed, has weird shapes, has outliers — the distribution of the sample mean will be approximately normal, as long as the sample is large enough.\nHow large is “large enough”? Depends on the shape. For roughly symmetric populations, \\(n = 30\\) is usually plenty. For highly skewed populations (like farm incomes), you might need \\(n = 100\\) or more. But the theorem guarantees convergence as \\(n\\) grows.\nThis is why the normal distribution is everywhere in inferential statistics. Even when the raw data is not normal, the sample mean is. And most of our inferences are about means.",
+    "title": "21  Sampling",
+    "section": "21.4 The Central Limit Theorem",
+    "text": "21.4 The Central Limit Theorem\nThe sampling distribution of the mean has three remarkable properties:\n\nIts mean equals the population mean \\(\\mu\\). On average, sample means are unbiased.\nIts standard deviation equals \\(\\sigma / \\sqrt{n}\\), where \\(\\sigma\\) is the population standard deviation and \\(n\\) is the sample size. This is called the standard error of the mean (SE). Larger samples have smaller standard errors.\nIts shape is approximately normal for large enough \\(n\\), regardless of the shape of the population distribution.\n\nThat third point is the Central Limit Theorem (CLT) and it is the most important theorem in applied statistics. It says: even if the underlying data is highly skewed, has weird shapes, has outliers — the distribution of the sample mean will be approximately normal, as long as the sample is large enough.\nHow large is “large enough”? Depends on the shape. For roughly symmetric populations, \\(n = 30\\) is usually plenty. For highly skewed populations (like farm incomes), you might need \\(n = 100\\) or more. But the theorem guarantees convergence as \\(n\\) grows.\nThis is why the normal distribution is everywhere in inferential statistics. Even when the raw data is not normal, the sample mean is. And most of our inferences are about means.",
     "crumbs": [
       "Feedback",
       "Module 9: Sampling",
-      "<span class='chapter-number'>19</span>  <span class='chapter-title'>Sampling</span>"
+      "<span class='chapter-number'>21</span>  <span class='chapter-title'>Sampling</span>"
     ]
   },
   {
     "objectID": "module10.html#sec-se-vs-sd",
     "href": "module10.html#sec-se-vs-sd",
-    "title": "19  Sampling",
-    "section": "19.5 Standard Error vs Standard Deviation",
-    "text": "19.5 Standard Error vs Standard Deviation\nA common source of confusion. They are different things:\n\nStandard deviation (\\(s\\) or \\(\\sigma\\)): measures the spread of the individual values in a sample or population. Has units of the variable.\nStandard error (\\(SE\\)): measures the spread of the sampling distribution of a statistic, usually the mean. For the mean of a sample, \\(SE = s / \\sqrt{n}\\). Has the same units.\n\nA dataset has one standard deviation. A statistic (like the mean) has a standard error that depends on the sample size.\nWhen you see “\\(45 \\pm 1.5\\)” in a report, ask: is that a standard deviation (showing the spread of the data) or a standard error (showing the precision of the estimate)? They answer different questions, and confusing them is a major source of statistical malpractice.",
+    "title": "21  Sampling",
+    "section": "21.5 Standard Error vs Standard Deviation",
+    "text": "21.5 Standard Error vs Standard Deviation\nA common source of confusion. They are different things:\n\nStandard deviation (\\(s\\) or \\(\\sigma\\)): measures the spread of the individual values in a sample or population. Has units of the variable.\nStandard error (\\(SE\\)): measures the spread of the sampling distribution of a statistic, usually the mean. For the mean of a sample, \\(SE = s / \\sqrt{n}\\). Has the same units.\n\nA dataset has one standard deviation. A statistic (like the mean) has a standard error that depends on the sample size.\nWhen you see “\\(45 \\pm 1.5\\)” in a report, ask: is that a standard deviation (showing the spread of the data) or a standard error (showing the precision of the estimate)? They answer different questions, and confusing them is a major source of statistical malpractice.",
     "crumbs": [
       "Feedback",
       "Module 9: Sampling",
-      "<span class='chapter-number'>19</span>  <span class='chapter-title'>Sampling</span>"
+      "<span class='chapter-number'>21</span>  <span class='chapter-title'>Sampling</span>"
     ]
   },
   {
     "objectID": "module10.html#sec-sampling-bias",
     "href": "module10.html#sec-sampling-bias",
-    "title": "19  Sampling",
-    "section": "19.6 Sampling Bias",
-    "text": "19.6 Sampling Bias\nSampling variability is about the random fluctuation around the true answer. Sampling bias is about being systematically wrong.\nExamples:\n\nSelection bias. Your sample is not representative of the population. You survey farmers about the new program by calling them during daytime business hours — but the farmers who answer are systematically different from the ones who are out in the field working.\nSelf-selection bias. You post a survey online and whoever wants to can respond. The people who respond are the ones who care strongly about the topic — who are usually not representative of everyone.\nSurvivorship bias. You measure yields from all the fields that were harvested. You miss the fields that failed and were never harvested. Your average yield is biased upward.\nRecall bias. You ask people to report their pesticide use last year. They remember some things and forget others, and the remembering is not random.\n\nBias cannot be fixed by a larger sample size. A bigger biased sample just gives you the wrong answer with more precision. The only fix for bias is better study design.\nThe gold standard for unbiased sampling is the simple random sample: every member of the population has an equal chance of being selected, and selections are independent. This is an ideal that is sometimes hard to achieve in practice. More sophisticated designs (stratified sampling, cluster sampling) exist for specific situations; they are the subject of a course of their own.\nFor AREC 261, the takeaway is: always ask “how was this sample drawn, and does it plausibly represent the population I care about?” If the answer is unclear, so are the conclusions.",
+    "title": "21  Sampling",
+    "section": "21.6 Sampling Bias",
+    "text": "21.6 Sampling Bias\nSampling variability is about the random fluctuation around the true answer. Sampling bias is about being systematically wrong.\nExamples:\n\nSelection bias. Your sample is not representative of the population. You survey farmers about the new program by calling them during daytime business hours — but the farmers who answer are systematically different from the ones who are out in the field working.\nSelf-selection bias. You post a survey online and whoever wants to can respond. The people who respond are the ones who care strongly about the topic — who are usually not representative of everyone.\nSurvivorship bias. You measure yields from all the fields that were harvested. You miss the fields that failed and were never harvested. Your average yield is biased upward.\nRecall bias. You ask people to report their pesticide use last year. They remember some things and forget others, and the remembering is not random.\n\nBias cannot be fixed by a larger sample size. A bigger biased sample just gives you the wrong answer with more precision. The only fix for bias is better study design.\nThe gold standard for unbiased sampling is the simple random sample: every member of the population has an equal chance of being selected, and selections are independent. This is an ideal that is sometimes hard to achieve in practice. More sophisticated designs (stratified sampling, cluster sampling) exist for specific situations; they are the subject of a course of their own.\nFor AREC 261, the takeaway is: always ask “how was this sample drawn, and does it plausibly represent the population I care about?” If the answer is unclear, so are the conclusions.",
     "crumbs": [
       "Feedback",
       "Module 9: Sampling",
-      "<span class='chapter-number'>19</span>  <span class='chapter-title'>Sampling</span>"
+      "<span class='chapter-number'>21</span>  <span class='chapter-title'>Sampling</span>"
     ]
   },
   {
     "objectID": "module10.html#sec-election-polls",
     "href": "module10.html#sec-election-polls",
-    "title": "19  Sampling",
-    "section": "19.7 A Thought Experiment: Election Polls",
-    "text": "19.7 A Thought Experiment: Election Polls\nBefore an election, polling companies survey maybe 1500 voters and report which candidate leads. 1500 people out of many millions of voters. How is that enough?\nThe answer: because of the Central Limit Theorem and the \\(1/\\sqrt{n}\\) formula. The standard error of a proportion from a sample of 1500 is about \\(\\sqrt{0.25 / 1500} \\approx 0.013\\) — about 1.3 percentage points. A 95% “margin of error” is about twice that, so around \\(\\pm 2.6\\) points.\nThat’s honest enough for most practical purposes. If candidate A is leading candidate B by 10 points, they are probably really leading. If they are leading by 1 point, the poll cannot distinguish that from a tie.\nNotice what sample size did not help with: selection bias. If the sample was drawn in a way that systematically misses certain types of voters (famously, “shy Trump voters” in the 2016 U.S. election, who didn’t admit their preference to pollsters), then no amount of \\(n\\) fixes that. The poll is systematically wrong regardless of the math.",
+    "title": "21  Sampling",
+    "section": "21.7 A Thought Experiment: Election Polls",
+    "text": "21.7 A Thought Experiment: Election Polls\nBefore an election, polling companies survey maybe 1500 voters and report which candidate leads. 1500 people out of many millions of voters. How is that enough?\nThe answer: because of the Central Limit Theorem and the \\(1/\\sqrt{n}\\) formula. The standard error of a proportion from a sample of 1500 is about \\(\\sqrt{0.25 / 1500} \\approx 0.013\\) — about 1.3 percentage points. A 95% “margin of error” is about twice that, so around \\(\\pm 2.6\\) points.\nThat’s honest enough for most practical purposes. If candidate A is leading candidate B by 10 points, they are probably really leading. If they are leading by 1 point, the poll cannot distinguish that from a tie.\nNotice what sample size did not help with: selection bias. If the sample was drawn in a way that systematically misses certain types of voters (famously, “shy Trump voters” in the 2016 U.S. election, who didn’t admit their preference to pollsters), then no amount of \\(n\\) fixes that. The poll is systematically wrong regardless of the math.",
     "crumbs": [
       "Feedback",
       "Module 9: Sampling",
-      "<span class='chapter-number'>19</span>  <span class='chapter-title'>Sampling</span>"
+      "<span class='chapter-number'>21</span>  <span class='chapter-title'>Sampling</span>"
     ]
   },
   {
     "objectID": "module10.html#sec-module10-test",
     "href": "module10.html#sec-module10-test",
-    "title": "19  Sampling",
-    "section": "19.8 Test Bank Sample",
-    "text": "19.8 Test Bank Sample\n\n(Definitions.) What is the difference between a parameter and a statistic?\n(CLT.) State the Central Limit Theorem in your own words. Why does it matter?\n(Standard error.) You sample 100 fields and the sample mean yield is 45 with sample standard deviation 8. What is the standard error of the mean?\n(Bias.) You run an online survey on a farming website to estimate the average age of farmers. Why might this give a biased estimate?\n(Sample size.) If you want to cut your standard error in half, by what factor do you need to increase your sample size?",
+    "title": "21  Sampling",
+    "section": "21.8 Test Bank Sample",
+    "text": "21.8 Test Bank Sample\n\n(Definitions.) What is the difference between a parameter and a statistic?\n(CLT.) State the Central Limit Theorem in your own words. Why does it matter?\n(Standard error.) You sample 100 fields and the sample mean yield is 45 with sample standard deviation 8. What is the standard error of the mean?\n(Bias.) You run an online survey on a farming website to estimate the average age of farmers. Why might this give a biased estimate?\n(Sample size.) If you want to cut your standard error in half, by what factor do you need to increase your sample size?",
     "crumbs": [
       "Feedback",
       "Module 9: Sampling",
-      "<span class='chapter-number'>19</span>  <span class='chapter-title'>Sampling</span>"
+      "<span class='chapter-number'>21</span>  <span class='chapter-title'>Sampling</span>"
     ]
   },
   {
     "objectID": "module10.html#sec-module10-practice",
     "href": "module10.html#sec-module10-practice",
-    "title": "19  Sampling",
-    "section": "19.9 Practice Exercises",
-    "text": "19.9 Practice Exercises\n\nWrite an R simulation that takes 1000 samples of size 30 from a skewed distribution and verifies that the sample means are approximately normal (CLT).\nCompute the standard error for a sample of [TBD] yields and write a sentence interpreting it.\nIdentify a news article that reports a survey result and evaluate its methodology.\n[TBD: a designed sampling exercise.]",
+    "title": "21  Sampling",
+    "section": "21.9 Practice Exercises",
+    "text": "21.9 Practice Exercises\n\nWrite an R simulation that takes 1000 samples of size 30 from a skewed distribution and verifies that the sample means are approximately normal (CLT).\nCompute the standard error for a sample of [TBD] yields and write a sentence interpreting it.\nIdentify a news article that reports a survey result and evaluate its methodology.\n[TBD: a designed sampling exercise.]",
     "crumbs": [
       "Feedback",
       "Module 9: Sampling",
-      "<span class='chapter-number'>19</span>  <span class='chapter-title'>Sampling</span>"
+      "<span class='chapter-number'>21</span>  <span class='chapter-title'>Sampling</span>"
     ]
   },
   {
     "objectID": "module11.html",
     "href": "module11.html",
-    "title": "20  Randomization Tests",
+    "title": "22  Randomization Tests",
     "section": "",
     "text": "Learning Objectives",
     "crumbs": [
       "Feedback",
       "Module 10: Randomization Tests",
-      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Randomization Tests</span>"
+      "<span class='chapter-number'>22</span>  <span class='chapter-title'>Randomization Tests</span>"
     ]
   },
   {
     "objectID": "module11.html#learning-objectives",
     "href": "module11.html#learning-objectives",
-    "title": "20  Randomization Tests",
+    "title": "22  Randomization Tests",
     "section": "",
     "text": "By the end of this module you should be able to:\n\nExplain the logic of hypothesis testing.\nState a null and alternative hypothesis for a two-group comparison.\nConduct a permutation test by hand and in R.\nInterpret a \\(p\\)-value correctly.\nDistinguish statistical significance from practical significance.",
     "crumbs": [
       "Feedback",
       "Module 10: Randomization Tests",
-      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Randomization Tests</span>"
+      "<span class='chapter-number'>22</span>  <span class='chapter-title'>Randomization Tests</span>"
     ]
   },
   {
     "objectID": "module11.html#sec-is-this-real",
     "href": "module11.html#sec-is-this-real",
-    "title": "20  Randomization Tests",
-    "section": "20.1 The Question: Is This Difference Real?",
-    "text": "20.1 The Question: Is This Difference Real?\nYou have two groups of canola fields: one treated with a new biological product, one untreated. The treated group has a mean yield of 48 bu/ac. The untreated group has a mean yield of 45 bu/ac. Is the product working?\nBefore we answer, notice that even if the product does nothing, the two groups would not have exactly the same mean. By chance alone, one group will have slightly higher yields. The question is whether the difference we see (3 bu/ac) is bigger than what we would expect by chance alone.\nThis is the core question of hypothesis testing: is the observed pattern consistent with nothing interesting going on, or is it too big to be chance?",
+    "title": "22  Randomization Tests",
+    "section": "22.1 The Question: Is This Difference Real?",
+    "text": "22.1 The Question: Is This Difference Real?\nYou have two groups of canola fields: one treated with a new biological product, one untreated. The treated group has a mean yield of 48 bu/ac. The untreated group has a mean yield of 45 bu/ac. Is the product working?\nBefore we answer, notice that even if the product does nothing, the two groups would not have exactly the same mean. By chance alone, one group will have slightly higher yields. The question is whether the difference we see (3 bu/ac) is bigger than what we would expect by chance alone.\nThis is the core question of hypothesis testing: is the observed pattern consistent with nothing interesting going on, or is it too big to be chance?",
     "crumbs": [
       "Feedback",
       "Module 10: Randomization Tests",
-      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Randomization Tests</span>"
+      "<span class='chapter-number'>22</span>  <span class='chapter-title'>Randomization Tests</span>"
     ]
   },
   {
     "objectID": "module11.html#sec-null-hypothesis",
     "href": "module11.html#sec-null-hypothesis",
-    "title": "20  Randomization Tests",
-    "section": "20.2 The Null Hypothesis",
-    "text": "20.2 The Null Hypothesis\nWe formalize “nothing interesting is going on” as the null hypothesis, written \\(H_0\\). For our example:\n\\[\nH_0: \\text{the product has no effect (mean yield is the same in both groups)}\n\\]\nAnd the alternative hypothesis, \\(H_1\\) (or \\(H_A\\)):\n\\[\nH_1: \\text{the product does have an effect (means differ)}\n\\]\nThe logic of a hypothesis test is: assume the null hypothesis is true, compute how likely your observed data (or something more extreme) would be under that assumption, and if it is very unlikely, reject the null. This is a form of proof by contradiction.",
+    "title": "22  Randomization Tests",
+    "section": "22.2 The Null Hypothesis",
+    "text": "22.2 The Null Hypothesis\nWe formalize “nothing interesting is going on” as the null hypothesis, written \\(H_0\\). For our example:\n\\[\nH_0: \\text{the product has no effect (mean yield is the same in both groups)}\n\\]\nAnd the alternative hypothesis, \\(H_1\\) (or \\(H_A\\)):\n\\[\nH_1: \\text{the product does have an effect (means differ)}\n\\]\nThe logic of a hypothesis test is: assume the null hypothesis is true, compute how likely your observed data (or something more extreme) would be under that assumption, and if it is very unlikely, reject the null. This is a form of proof by contradiction.",
     "crumbs": [
       "Feedback",
       "Module 10: Randomization Tests",
-      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Randomization Tests</span>"
+      "<span class='chapter-number'>22</span>  <span class='chapter-title'>Randomization Tests</span>"
     ]
   },
   {
     "objectID": "module11.html#sec-permutation",
     "href": "module11.html#sec-permutation",
-    "title": "20  Randomization Tests",
-    "section": "20.3 Permutation Tests: Hypothesis Testing by Simulation",
-    "text": "20.3 Permutation Tests: Hypothesis Testing by Simulation\nThe traditional way to test hypotheses uses formulas (the \\(t\\)-test, the \\(z\\)-test, etc., which you will meet in AREC 262). Those formulas are useful but they obscure the intuition. Here we do it the modern way, with simulation.\nThe idea of a permutation test: if the null hypothesis is true — if the product has no effect — then the labels “treated” and “untreated” are meaningless. A given field would have the same yield whether we called it treated or untreated. So we can randomly shuffle the labels and compute the difference in means again. And again. And again. The distribution of differences we get by random shuffling is the distribution of differences we’d expect if the null were true. If our actual observed difference is way out in the tail of this distribution, we reject the null.\nIn R:\nset.seed(42)\n\n# Observed data\ntreated   &lt;- c(49, 52, 47, 50, 46, 51, 48, 47, 49, 50)  # 10 fields\nuntreated &lt;- c(44, 46, 45, 47, 43, 44, 46, 47, 45, 43)  # 10 fields\nobserved_diff &lt;- mean(treated) - mean(untreated)\n# observed_diff ≈ 4\n\n# Combine all values\nall_yields &lt;- c(treated, untreated)\nn_treated &lt;- length(treated)\n\n# Shuffle labels many times and compute the difference\nn_perms &lt;- 10000\nperm_diffs &lt;- replicate(n_perms, {\n  shuffled &lt;- sample(all_yields)\n  mean(shuffled[1:n_treated]) - mean(shuffled[(n_treated+1):length(shuffled)])\n})\n\n# What fraction of shuffles produce a difference as extreme as observed?\np_value &lt;- mean(abs(perm_diffs) &gt;= abs(observed_diff))\n\n# Plot\nhist(perm_diffs, breaks = 40, main = \"Permutation distribution\")\nabline(v = observed_diff, col = \"red\", lwd = 2)\nabline(v = -observed_diff, col = \"red\", lwd = 2)\nThe \\(p\\)-value here is the fraction of random shuffles where the difference in means was as extreme as (or more extreme than) what we actually saw. If that fraction is small, the observed difference is unlikely under the null, and we reject the null.",
+    "title": "22  Randomization Tests",
+    "section": "22.3 Permutation Tests: Hypothesis Testing by Simulation",
+    "text": "22.3 Permutation Tests: Hypothesis Testing by Simulation\nThe traditional way to test hypotheses uses formulas (the \\(t\\)-test, the \\(z\\)-test, etc., which you will meet in AREC 262). Those formulas are useful but they obscure the intuition. Here we do it the modern way, with simulation.\nThe idea of a permutation test: if the null hypothesis is true — if the product has no effect — then the labels “treated” and “untreated” are meaningless. A given field would have the same yield whether we called it treated or untreated. So we can randomly shuffle the labels and compute the difference in means again. And again. And again. The distribution of differences we get by random shuffling is the distribution of differences we’d expect if the null were true. If our actual observed difference is way out in the tail of this distribution, we reject the null.\nIn R:\nset.seed(42)\n\n# Observed data\ntreated   &lt;- c(49, 52, 47, 50, 46, 51, 48, 47, 49, 50)  # 10 fields\nuntreated &lt;- c(44, 46, 45, 47, 43, 44, 46, 47, 45, 43)  # 10 fields\nobserved_diff &lt;- mean(treated) - mean(untreated)\n# observed_diff ≈ 4\n\n# Combine all values\nall_yields &lt;- c(treated, untreated)\nn_treated &lt;- length(treated)\n\n# Shuffle labels many times and compute the difference\nn_perms &lt;- 10000\nperm_diffs &lt;- replicate(n_perms, {\n  shuffled &lt;- sample(all_yields)\n  mean(shuffled[1:n_treated]) - mean(shuffled[(n_treated+1):length(shuffled)])\n})\n\n# What fraction of shuffles produce a difference as extreme as observed?\np_value &lt;- mean(abs(perm_diffs) &gt;= abs(observed_diff))\n\n# Plot\nhist(perm_diffs, breaks = 40, main = \"Permutation distribution\")\nabline(v = observed_diff, col = \"red\", lwd = 2)\nabline(v = -observed_diff, col = \"red\", lwd = 2)\nThe \\(p\\)-value here is the fraction of random shuffles where the difference in means was as extreme as (or more extreme than) what we actually saw. If that fraction is small, the observed difference is unlikely under the null, and we reject the null.",
     "crumbs": [
       "Feedback",
       "Module 10: Randomization Tests",
-      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Randomization Tests</span>"
+      "<span class='chapter-number'>22</span>  <span class='chapter-title'>Randomization Tests</span>"
     ]
   },
   {
     "objectID": "module11.html#sec-p-value",
     "href": "module11.html#sec-p-value",
-    "title": "20  Randomization Tests",
-    "section": "20.4 Interpreting the \\(p\\)-Value",
-    "text": "20.4 Interpreting the \\(p\\)-Value\nThis is where a lot of people get confused, so I am going to be careful.\nThe \\(p\\)-value is the probability, assuming the null hypothesis is true, of seeing data as extreme or more extreme than what you observed.\nThat sentence is precise and you should memorize it. Several things the \\(p\\)-value is not:\n\nIt is not the probability that the null hypothesis is true. The null is either true or false; it has no probability in the frequentist framework.\nIt is not the probability that your result is due to chance. The \\(p\\)-value conditions on the null being true; it tells you how surprising the data is under that condition.\nIt is not a measure of the size of the effect. A tiny effect with a huge sample can have a tiny \\(p\\)-value. A huge effect with a small sample can have a large \\(p\\)-value. The \\(p\\)-value alone does not tell you whether the effect matters in practice.\n\nA convention: if \\(p &lt; 0.05\\), we reject the null. This threshold is arbitrary (a historical accident, really) and should not be treated as a sharp boundary between “real” and “not real.” A \\(p\\)-value of 0.049 is not meaningfully different from 0.051. Report the actual \\(p\\)-value and let the reader interpret it.\nA better way to think about \\(p\\)-values: they are a measure of how surprised the data would make you if the null were true. Small \\(p\\)-value = very surprised = evidence against the null. Large \\(p\\)-value = not surprised = no evidence against the null (which is not the same as evidence for the null).",
+    "title": "22  Randomization Tests",
+    "section": "22.4 Interpreting the \\(p\\)-Value",
+    "text": "22.4 Interpreting the \\(p\\)-Value\nThis is where a lot of people get confused, so I am going to be careful.\nThe \\(p\\)-value is the probability, assuming the null hypothesis is true, of seeing data as extreme or more extreme than what you observed.\nThat sentence is precise and you should memorize it. Several things the \\(p\\)-value is not:\n\nIt is not the probability that the null hypothesis is true. The null is either true or false; it has no probability in the frequentist framework.\nIt is not the probability that your result is due to chance. The \\(p\\)-value conditions on the null being true; it tells you how surprising the data is under that condition.\nIt is not a measure of the size of the effect. A tiny effect with a huge sample can have a tiny \\(p\\)-value. A huge effect with a small sample can have a large \\(p\\)-value. The \\(p\\)-value alone does not tell you whether the effect matters in practice.\n\nA convention: if \\(p &lt; 0.05\\), we reject the null. This threshold is arbitrary (a historical accident, really) and should not be treated as a sharp boundary between “real” and “not real.” A \\(p\\)-value of 0.049 is not meaningfully different from 0.051. Report the actual \\(p\\)-value and let the reader interpret it.\nA better way to think about \\(p\\)-values: they are a measure of how surprised the data would make you if the null were true. Small \\(p\\)-value = very surprised = evidence against the null. Large \\(p\\)-value = not surprised = no evidence against the null (which is not the same as evidence for the null).",
     "crumbs": [
       "Feedback",
       "Module 10: Randomization Tests",
-      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Randomization Tests</span>"
+      "<span class='chapter-number'>22</span>  <span class='chapter-title'>Randomization Tests</span>"
     ]
   },
   {
     "objectID": "module11.html#sec-practical-significance",
     "href": "module11.html#sec-practical-significance",
-    "title": "20  Randomization Tests",
-    "section": "20.5 Statistical vs Practical Significance",
-    "text": "20.5 Statistical vs Practical Significance\nHere is a common mistake: “the difference was statistically significant, so the treatment works.”\nStatistical significance means the effect is bigger than chance. That’s all. It does not mean the effect is large. It does not mean the treatment is worth adopting.\nA 0.1 bu/ac yield increase might be statistically significant in a 10,000-field trial and completely useless in practice. Conversely, a 10 bu/ac yield increase might fail to achieve statistical significance in a 5-field trial and still be a big deal.\nAlways report both:\n\nThe effect size (in meaningful units).\nA measure of uncertainty (confidence interval, \\(p\\)-value, standard error).\n\nThen let the decision-maker weigh whether the effect is worth acting on.",
+    "title": "22  Randomization Tests",
+    "section": "22.5 Statistical vs Practical Significance",
+    "text": "22.5 Statistical vs Practical Significance\nHere is a common mistake: “the difference was statistically significant, so the treatment works.”\nStatistical significance means the effect is bigger than chance. That’s all. It does not mean the effect is large. It does not mean the treatment is worth adopting.\nA 0.1 bu/ac yield increase might be statistically significant in a 10,000-field trial and completely useless in practice. Conversely, a 10 bu/ac yield increase might fail to achieve statistical significance in a 5-field trial and still be a big deal.\nAlways report both:\n\nThe effect size (in meaningful units).\nA measure of uncertainty (confidence interval, \\(p\\)-value, standard error).\n\nThen let the decision-maker weigh whether the effect is worth acting on.",
     "crumbs": [
       "Feedback",
       "Module 10: Randomization Tests",
-      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Randomization Tests</span>"
+      "<span class='chapter-number'>22</span>  <span class='chapter-title'>Randomization Tests</span>"
     ]
   },
   {
     "objectID": "module11.html#sec-one-sided-two-sided",
     "href": "module11.html#sec-one-sided-two-sided",
-    "title": "20  Randomization Tests",
-    "section": "20.6 One-Sided vs Two-Sided Tests",
-    "text": "20.6 One-Sided vs Two-Sided Tests\nA brief note. Our example above asked “is there a difference?” — which is a two-sided test. It tests the null against “there is a difference in either direction.”\nSometimes you only care about one direction: “does the product increase yield?” That’s a one-sided test. Its \\(p\\)-value is half of the two-sided one (roughly).\nIn general, use two-sided tests unless you have a strong reason to only care about one direction before you see the data. Picking one-sided after you look at the data is cheating — it’s a form of \\(p\\)-hacking.",
+    "title": "22  Randomization Tests",
+    "section": "22.6 One-Sided vs Two-Sided Tests",
+    "text": "22.6 One-Sided vs Two-Sided Tests\nA brief note. Our example above asked “is there a difference?” — which is a two-sided test. It tests the null against “there is a difference in either direction.”\nSometimes you only care about one direction: “does the product increase yield?” That’s a one-sided test. Its \\(p\\)-value is half of the two-sided one (roughly).\nIn general, use two-sided tests unless you have a strong reason to only care about one direction before you see the data. Picking one-sided after you look at the data is cheating — it’s a form of \\(p\\)-hacking.",
     "crumbs": [
       "Feedback",
       "Module 10: Randomization Tests",
-      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Randomization Tests</span>"
+      "<span class='chapter-number'>22</span>  <span class='chapter-title'>Randomization Tests</span>"
     ]
   },
   {
     "objectID": "module11.html#sec-module11-test",
     "href": "module11.html#sec-module11-test",
-    "title": "20  Randomization Tests",
-    "section": "20.7 Test Bank Sample",
-    "text": "20.7 Test Bank Sample\n\n(Concept.) State the null and alternative hypotheses for comparing the yields of two varieties.\n(Permutation.) Explain in words how a permutation test works.\n(p-value.) What is the correct interpretation of “\\(p = 0.03\\)”?\n(Significance.) Why is statistical significance not the same as practical significance?\n(R code.) Write R code to perform a permutation test for the difference in means between two vectors.",
+    "title": "22  Randomization Tests",
+    "section": "22.7 Test Bank Sample",
+    "text": "22.7 Test Bank Sample\n\n(Concept.) State the null and alternative hypotheses for comparing the yields of two varieties.\n(Permutation.) Explain in words how a permutation test works.\n(p-value.) What is the correct interpretation of “\\(p = 0.03\\)”?\n(Significance.) Why is statistical significance not the same as practical significance?\n(R code.) Write R code to perform a permutation test for the difference in means between two vectors.",
     "crumbs": [
       "Feedback",
       "Module 10: Randomization Tests",
-      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Randomization Tests</span>"
+      "<span class='chapter-number'>22</span>  <span class='chapter-title'>Randomization Tests</span>"
     ]
   },
   {
     "objectID": "module11.html#sec-module11-practice",
     "href": "module11.html#sec-module11-practice",
-    "title": "20  Randomization Tests",
-    "section": "20.8 Practice Exercises",
-    "text": "20.8 Practice Exercises\n\nPerform a permutation test on the fertilizer trial data from Module 6. Interpret.\nSimulate data under a known null and verify that the \\(p\\)-value distribution is uniform.\nTake a statistically significant result from a small sample and discuss whether it is practically significant.\n[TBD: a designed experiment exercise.]",
+    "title": "22  Randomization Tests",
+    "section": "22.8 Practice Exercises",
+    "text": "22.8 Practice Exercises\n\nPerform a permutation test on the fertilizer trial data from Module 6. Interpret.\nSimulate data under a known null and verify that the \\(p\\)-value distribution is uniform.\nTake a statistically significant result from a small sample and discuss whether it is practically significant.\n[TBD: a designed experiment exercise.]",
     "crumbs": [
       "Feedback",
       "Module 10: Randomization Tests",
-      "<span class='chapter-number'>20</span>  <span class='chapter-title'>Randomization Tests</span>"
+      "<span class='chapter-number'>22</span>  <span class='chapter-title'>Randomization Tests</span>"
     ]
   },
   {
     "objectID": "module12.html",
     "href": "module12.html",
-    "title": "21  Bootstrap Methods",
+    "title": "23  Bootstrap Methods",
     "section": "",
     "text": "Learning Objectives",
     "crumbs": [
       "Feedback",
       "Module 11: Bootstrap Methods",
-      "<span class='chapter-number'>21</span>  <span class='chapter-title'>Bootstrap Methods</span>"
+      "<span class='chapter-number'>23</span>  <span class='chapter-title'>Bootstrap Methods</span>"
     ]
   },
   {
     "objectID": "module12.html#learning-objectives",
     "href": "module12.html#learning-objectives",
-    "title": "21  Bootstrap Methods",
+    "title": "23  Bootstrap Methods",
     "section": "",
     "text": "By the end of this module you should be able to:\n\nExplain the bootstrap principle: treat the sample as a stand-in for the population.\nConstruct a bootstrap confidence interval for a mean or other statistic.\nInterpret a confidence interval correctly.\nUse the bootstrap in situations where no formula exists.\nRecognize when the bootstrap works and when it doesn’t.",
     "crumbs": [
       "Feedback",
       "Module 11: Bootstrap Methods",
-      "<span class='chapter-number'>21</span>  <span class='chapter-title'>Bootstrap Methods</span>"
+      "<span class='chapter-number'>23</span>  <span class='chapter-title'>Bootstrap Methods</span>"
     ]
   },
   {
     "objectID": "module12.html#sec-bootstrap-problem",
     "href": "module12.html#sec-bootstrap-problem",
-    "title": "21  Bootstrap Methods",
-    "section": "21.1 The Problem",
-    "text": "21.1 The Problem\nYou have a sample of 100 canola fields with a mean yield of 45 bu/ac. What is the mean yield in the population? Well, the sample mean is your best estimate — but it’s not perfect, because of sampling variability (Section 19.3). How much uncertainty is there in the estimate?\nThe classical answer uses the standard error formula: \\(SE = s / \\sqrt{n}\\), and then a confidence interval of the form \\(\\bar{x} \\pm 1.96 \\cdot SE\\) (which you will meet formally in AREC 262). But this relies on the sample mean being normally distributed, which relies on the Central Limit Theorem, which requires a “large enough” sample.\nWhat if you want a confidence interval for the median instead of the mean? Or the correlation coefficient? Or the 75th percentile of yields? Or some weird custom statistic? There is no nice formula for the standard error of most of these. The classical approach is stuck.\nThe bootstrap gets unstuck by doing simulation.",
+    "title": "23  Bootstrap Methods",
+    "section": "23.1 The Problem",
+    "text": "23.1 The Problem\nYou have a sample of 100 canola fields with a mean yield of 45 bu/ac. What is the mean yield in the population? Well, the sample mean is your best estimate — but it’s not perfect, because of sampling variability (Section 21.3). How much uncertainty is there in the estimate?\nThe classical answer uses the standard error formula: \\(SE = s / \\sqrt{n}\\), and then a confidence interval of the form \\(\\bar{x} \\pm 1.96 \\cdot SE\\) (which you will meet formally in AREC 262). But this relies on the sample mean being normally distributed, which relies on the Central Limit Theorem, which requires a “large enough” sample.\nWhat if you want a confidence interval for the median instead of the mean? Or the correlation coefficient? Or the 75th percentile of yields? Or some weird custom statistic? There is no nice formula for the standard error of most of these. The classical approach is stuck.\nThe bootstrap gets unstuck by doing simulation.",
     "crumbs": [
       "Feedback",
       "Module 11: Bootstrap Methods",
-      "<span class='chapter-number'>21</span>  <span class='chapter-title'>Bootstrap Methods</span>"
+      "<span class='chapter-number'>23</span>  <span class='chapter-title'>Bootstrap Methods</span>"
     ]
   },
   {
     "objectID": "module12.html#sec-bootstrap-principle",
     "href": "module12.html#sec-bootstrap-principle",
-    "title": "21  Bootstrap Methods",
-    "section": "21.2 The Bootstrap Principle",
-    "text": "21.2 The Bootstrap Principle\nThe bootstrap principle is this: your sample is the best information you have about the population, so use it as if it were the population. Repeatedly draw new samples of the same size, with replacement, from your original sample. Each of these “bootstrap samples” is one hypothetical version of what your sample might have been. The spread of the statistic across bootstrap samples is a measure of its sampling variability.\nThe name comes from the phrase “to pull yourself up by your bootstraps” — doing something that sounds impossible, namely estimating uncertainty from a single sample. But it works.",
+    "title": "23  Bootstrap Methods",
+    "section": "23.2 The Bootstrap Principle",
+    "text": "23.2 The Bootstrap Principle\nThe bootstrap principle is this: your sample is the best information you have about the population, so use it as if it were the population. Repeatedly draw new samples of the same size, with replacement, from your original sample. Each of these “bootstrap samples” is one hypothetical version of what your sample might have been. The spread of the statistic across bootstrap samples is a measure of its sampling variability.\nThe name comes from the phrase “to pull yourself up by your bootstraps” — doing something that sounds impossible, namely estimating uncertainty from a single sample. But it works.",
     "crumbs": [
       "Feedback",
       "Module 11: Bootstrap Methods",
-      "<span class='chapter-number'>21</span>  <span class='chapter-title'>Bootstrap Methods</span>"
+      "<span class='chapter-number'>23</span>  <span class='chapter-title'>Bootstrap Methods</span>"
     ]
   },
   {
     "objectID": "module12.html#sec-bootstrap-ci",
     "href": "module12.html#sec-bootstrap-ci",
-    "title": "21  Bootstrap Methods",
-    "section": "21.3 Bootstrap Confidence Interval for the Mean",
-    "text": "21.3 Bootstrap Confidence Interval for the Mean\nLet’s do a concrete example. Suppose you have yields from 50 fields. You want a 95% confidence interval for the mean.\nset.seed(42)\n\n# Your sample\nyields &lt;- c(48, 52, 47, 55, 50, 41, 46, 49, 53, 45,\n            47, 51, 49, 44, 48, 50, 52, 46, 43, 49,\n            50, 48, 47, 51, 54, 46, 48, 45, 50, 49,\n            47, 52, 48, 50, 46, 49, 47, 51, 48, 50,\n            49, 47, 52, 48, 50, 45, 49, 47, 51, 48)\n\nn &lt;- length(yields)\nobserved_mean &lt;- mean(yields)\n\n# Bootstrap: draw many resamples and compute the mean of each\nn_boot &lt;- 10000\nboot_means &lt;- replicate(n_boot, mean(sample(yields, n, replace = TRUE)))\n\n# 95% confidence interval: middle 95% of the bootstrap means\nci &lt;- quantile(boot_means, c(0.025, 0.975))\n\nobserved_mean\nci\nThe two numbers in ci are the lower and upper bounds of the confidence interval. A reasonable interpretation: “we are 95% confident that the population mean lies between the lower and upper bound.”\nActually, let me be careful about interpretation.",
+    "title": "23  Bootstrap Methods",
+    "section": "23.3 Bootstrap Confidence Interval for the Mean",
+    "text": "23.3 Bootstrap Confidence Interval for the Mean\nLet’s do a concrete example. Suppose you have yields from 50 fields. You want a 95% confidence interval for the mean.\nset.seed(42)\n\n# Your sample\nyields &lt;- c(48, 52, 47, 55, 50, 41, 46, 49, 53, 45,\n            47, 51, 49, 44, 48, 50, 52, 46, 43, 49,\n            50, 48, 47, 51, 54, 46, 48, 45, 50, 49,\n            47, 52, 48, 50, 46, 49, 47, 51, 48, 50,\n            49, 47, 52, 48, 50, 45, 49, 47, 51, 48)\n\nn &lt;- length(yields)\nobserved_mean &lt;- mean(yields)\n\n# Bootstrap: draw many resamples and compute the mean of each\nn_boot &lt;- 10000\nboot_means &lt;- replicate(n_boot, mean(sample(yields, n, replace = TRUE)))\n\n# 95% confidence interval: middle 95% of the bootstrap means\nci &lt;- quantile(boot_means, c(0.025, 0.975))\n\nobserved_mean\nci\nThe two numbers in ci are the lower and upper bounds of the confidence interval. A reasonable interpretation: “we are 95% confident that the population mean lies between the lower and upper bound.”\nActually, let me be careful about interpretation.",
     "crumbs": [
       "Feedback",
       "Module 11: Bootstrap Methods",
-      "<span class='chapter-number'>21</span>  <span class='chapter-title'>Bootstrap Methods</span>"
+      "<span class='chapter-number'>23</span>  <span class='chapter-title'>Bootstrap Methods</span>"
     ]
   },
   {
     "objectID": "module12.html#sec-ci-interpretation",
     "href": "module12.html#sec-ci-interpretation",
-    "title": "21  Bootstrap Methods",
-    "section": "21.4 What a Confidence Interval Means (and Does Not)",
-    "text": "21.4 What a Confidence Interval Means (and Does Not)\nThe correct interpretation of a 95% confidence interval is:\nIf we repeated the sampling procedure many times and computed the 95% CI each time, about 95% of those intervals would contain the true population mean.\nThis is a statement about the procedure, not about any specific interval. For the interval you have in front of you, either the true mean is in it or it isn’t — we just don’t know which.\nIn practice, most people read a 95% CI as “I am 95% sure the true mean is in this range,” and that’s close enough for most purposes. But be aware of the subtlety: frequentist CIs are not probability statements about the parameter.\nWhat a confidence interval does tell you:\n\nPoint estimate: the center of the interval is your best guess.\nPrecision: a narrow interval means a precise estimate; a wide interval means “we don’t really know.”\nConsistency with hypotheses: if a hypothesized value (say, “the mean is 50”) lies outside the interval, your data is evidence against that hypothesis at the 5% level.",
+    "title": "23  Bootstrap Methods",
+    "section": "23.4 What a Confidence Interval Means (and Does Not)",
+    "text": "23.4 What a Confidence Interval Means (and Does Not)\nThe correct interpretation of a 95% confidence interval is:\nIf we repeated the sampling procedure many times and computed the 95% CI each time, about 95% of those intervals would contain the true population mean.\nThis is a statement about the procedure, not about any specific interval. For the interval you have in front of you, either the true mean is in it or it isn’t — we just don’t know which.\nIn practice, most people read a 95% CI as “I am 95% sure the true mean is in this range,” and that’s close enough for most purposes. But be aware of the subtlety: frequentist CIs are not probability statements about the parameter.\nWhat a confidence interval does tell you:\n\nPoint estimate: the center of the interval is your best guess.\nPrecision: a narrow interval means a precise estimate; a wide interval means “we don’t really know.”\nConsistency with hypotheses: if a hypothesized value (say, “the mean is 50”) lies outside the interval, your data is evidence against that hypothesis at the 5% level.",
     "crumbs": [
       "Feedback",
       "Module 11: Bootstrap Methods",
-      "<span class='chapter-number'>21</span>  <span class='chapter-title'>Bootstrap Methods</span>"
+      "<span class='chapter-number'>23</span>  <span class='chapter-title'>Bootstrap Methods</span>"
     ]
   },
   {
     "objectID": "module12.html#sec-bootstrap-other",
     "href": "module12.html#sec-bootstrap-other",
-    "title": "21  Bootstrap Methods",
-    "section": "21.5 Bootstrapping Other Statistics",
-    "text": "21.5 Bootstrapping Other Statistics\nThe beauty of the bootstrap is that it works for (almost) any statistic. Just replace mean() with whatever you’re interested in:\n# Median\nboot_medians &lt;- replicate(10000, median(sample(yields, n, replace = TRUE)))\nquantile(boot_medians, c(0.025, 0.975))\n\n# Standard deviation\nboot_sds &lt;- replicate(10000, sd(sample(yields, n, replace = TRUE)))\nquantile(boot_sds, c(0.025, 0.975))\n\n# 90th percentile\nboot_p90 &lt;- replicate(10000, quantile(sample(yields, n, replace = TRUE), 0.9))\nquantile(boot_p90, c(0.025, 0.975))\nAll three of these would be much harder to do with closed-form formulas. The bootstrap makes them trivial.",
+    "title": "23  Bootstrap Methods",
+    "section": "23.5 Bootstrapping Other Statistics",
+    "text": "23.5 Bootstrapping Other Statistics\nThe beauty of the bootstrap is that it works for (almost) any statistic. Just replace mean() with whatever you’re interested in:\n# Median\nboot_medians &lt;- replicate(10000, median(sample(yields, n, replace = TRUE)))\nquantile(boot_medians, c(0.025, 0.975))\n\n# Standard deviation\nboot_sds &lt;- replicate(10000, sd(sample(yields, n, replace = TRUE)))\nquantile(boot_sds, c(0.025, 0.975))\n\n# 90th percentile\nboot_p90 &lt;- replicate(10000, quantile(sample(yields, n, replace = TRUE), 0.9))\nquantile(boot_p90, c(0.025, 0.975))\nAll three of these would be much harder to do with closed-form formulas. The bootstrap makes them trivial.",
     "crumbs": [
       "Feedback",
       "Module 11: Bootstrap Methods",
-      "<span class='chapter-number'>21</span>  <span class='chapter-title'>Bootstrap Methods</span>"
+      "<span class='chapter-number'>23</span>  <span class='chapter-title'>Bootstrap Methods</span>"
     ]
   },
   {
     "objectID": "module12.html#sec-bootstrap-regression",
     "href": "module12.html#sec-bootstrap-regression",
-    "title": "21  Bootstrap Methods",
-    "section": "21.6 Bootstrapping a Regression Coefficient",
-    "text": "21.6 Bootstrapping a Regression Coefficient\nHere’s a more sophisticated example. You fit a linear regression of yield on fertilizer and want a confidence interval for the slope. The classical CI uses a formula based on normal-distribution assumptions. The bootstrap CI makes no such assumption.\n# Suppose you have a data frame `yields` with columns yield and fertilizer\nobserved_slope &lt;- coef(lm(yield ~ fertilizer, data = yields))[\"fertilizer\"]\n\nboot_slopes &lt;- replicate(10000, {\n  idx &lt;- sample(nrow(yields), nrow(yields), replace = TRUE)\n  boot_sample &lt;- yields[idx, ]\n  coef(lm(yield ~ fertilizer, data = boot_sample))[\"fertilizer\"]\n})\n\nquantile(boot_slopes, c(0.025, 0.975))\nThis is a fully honest confidence interval for the slope of the regression, without assuming normality. For a large enough sample, the two CIs (classical and bootstrap) will be very similar. For small samples or non-normal data, the bootstrap can be meaningfully different — and more honest.",
+    "title": "23  Bootstrap Methods",
+    "section": "23.6 Bootstrapping a Regression Coefficient",
+    "text": "23.6 Bootstrapping a Regression Coefficient\nHere’s a more sophisticated example. You fit a linear regression of yield on fertilizer and want a confidence interval for the slope. The classical CI uses a formula based on normal-distribution assumptions. The bootstrap CI makes no such assumption.\n# Suppose you have a data frame `yields` with columns yield and fertilizer\nobserved_slope &lt;- coef(lm(yield ~ fertilizer, data = yields))[\"fertilizer\"]\n\nboot_slopes &lt;- replicate(10000, {\n  idx &lt;- sample(nrow(yields), nrow(yields), replace = TRUE)\n  boot_sample &lt;- yields[idx, ]\n  coef(lm(yield ~ fertilizer, data = boot_sample))[\"fertilizer\"]\n})\n\nquantile(boot_slopes, c(0.025, 0.975))\nThis is a fully honest confidence interval for the slope of the regression, without assuming normality. For a large enough sample, the two CIs (classical and bootstrap) will be very similar. For small samples or non-normal data, the bootstrap can be meaningfully different — and more honest.",
     "crumbs": [
       "Feedback",
       "Module 11: Bootstrap Methods",
-      "<span class='chapter-number'>21</span>  <span class='chapter-title'>Bootstrap Methods</span>"
+      "<span class='chapter-number'>23</span>  <span class='chapter-title'>Bootstrap Methods</span>"
     ]
   },
   {
     "objectID": "module12.html#sec-bootstrap-limits",
     "href": "module12.html#sec-bootstrap-limits",
-    "title": "21  Bootstrap Methods",
-    "section": "21.7 When the Bootstrap Works and When It Doesn’t",
-    "text": "21.7 When the Bootstrap Works and When It Doesn’t\nThe bootstrap is remarkable but not magic. A few things to know:\n\nSmall samples. With \\(n &lt; 20\\) or so, the bootstrap gets wobbly. You are resampling from a tiny set, and there are not enough different possibilities. For very small samples, classical methods (or more sophisticated bootstraps) can work better.\nExtremes. The bootstrap is not great for estimating the maximum, the minimum, or other extreme quantiles. By definition, the resample contains at most what the original sample contained — so the maximum never increases.\nDependent data. If your observations are correlated (time series, spatial data, repeated measures from the same farm), the simple bootstrap underestimates uncertainty. Fancier “block bootstraps” exist for these cases.\nBiased statistics. If your statistic has bias, the bootstrap estimates its distribution but doesn’t remove the bias.\n\nFor most of what you will do in AREC 261, the bootstrap is a safe and sensible default.",
+    "title": "23  Bootstrap Methods",
+    "section": "23.7 When the Bootstrap Works and When It Doesn’t",
+    "text": "23.7 When the Bootstrap Works and When It Doesn’t\nThe bootstrap is remarkable but not magic. A few things to know:\n\nSmall samples. With \\(n &lt; 20\\) or so, the bootstrap gets wobbly. You are resampling from a tiny set, and there are not enough different possibilities. For very small samples, classical methods (or more sophisticated bootstraps) can work better.\nExtremes. The bootstrap is not great for estimating the maximum, the minimum, or other extreme quantiles. By definition, the resample contains at most what the original sample contained — so the maximum never increases.\nDependent data. If your observations are correlated (time series, spatial data, repeated measures from the same farm), the simple bootstrap underestimates uncertainty. Fancier “block bootstraps” exist for these cases.\nBiased statistics. If your statistic has bias, the bootstrap estimates its distribution but doesn’t remove the bias.\n\nFor most of what you will do in AREC 261, the bootstrap is a safe and sensible default.",
     "crumbs": [
       "Feedback",
       "Module 11: Bootstrap Methods",
-      "<span class='chapter-number'>21</span>  <span class='chapter-title'>Bootstrap Methods</span>"
+      "<span class='chapter-number'>23</span>  <span class='chapter-title'>Bootstrap Methods</span>"
     ]
   },
   {
     "objectID": "module12.html#sec-boot-vs-perm",
     "href": "module12.html#sec-boot-vs-perm",
-    "title": "21  Bootstrap Methods",
-    "section": "21.8 Bootstrap vs Permutation",
-    "text": "21.8 Bootstrap vs Permutation\nA confusing point: both bootstrap and permutation tests involve resampling. What’s the difference?\n\nPermutation tests are for hypothesis testing. They answer “is there a difference?” by shuffling labels to see what would happen if there weren’t.\nBootstrap is for confidence intervals and uncertainty quantification. It answers “how precise is my estimate?” by resampling with replacement to see how the estimate varies.\n\nThey look similar in code but answer different questions. Use permutation when you are testing a null hypothesis; use bootstrap when you want a confidence interval or standard error.",
+    "title": "23  Bootstrap Methods",
+    "section": "23.8 Bootstrap vs Permutation",
+    "text": "23.8 Bootstrap vs Permutation\nA confusing point: both bootstrap and permutation tests involve resampling. What’s the difference?\n\nPermutation tests are for hypothesis testing. They answer “is there a difference?” by shuffling labels to see what would happen if there weren’t.\nBootstrap is for confidence intervals and uncertainty quantification. It answers “how precise is my estimate?” by resampling with replacement to see how the estimate varies.\n\nThey look similar in code but answer different questions. Use permutation when you are testing a null hypothesis; use bootstrap when you want a confidence interval or standard error.",
     "crumbs": [
       "Feedback",
       "Module 11: Bootstrap Methods",
-      "<span class='chapter-number'>21</span>  <span class='chapter-title'>Bootstrap Methods</span>"
+      "<span class='chapter-number'>23</span>  <span class='chapter-title'>Bootstrap Methods</span>"
     ]
   },
   {
     "objectID": "module12.html#sec-module12-test",
     "href": "module12.html#sec-module12-test",
-    "title": "21  Bootstrap Methods",
-    "section": "21.9 Test Bank Sample",
-    "text": "21.9 Test Bank Sample\n\n(Concept.) In your own words, what is the bootstrap principle?\n(R code.) Write R code to construct a 95% bootstrap confidence interval for the mean of a vector x.\n(Interpretation.) What does “95% confidence interval” actually mean?\n(Advantage.) Give an example of a situation where the bootstrap is easier than a closed-form formula.\n(Difference.) What is the difference between a bootstrap and a permutation test?",
+    "title": "23  Bootstrap Methods",
+    "section": "23.9 Test Bank Sample",
+    "text": "23.9 Test Bank Sample\n\n(Concept.) In your own words, what is the bootstrap principle?\n(R code.) Write R code to construct a 95% bootstrap confidence interval for the mean of a vector x.\n(Interpretation.) What does “95% confidence interval” actually mean?\n(Advantage.) Give an example of a situation where the bootstrap is easier than a closed-form formula.\n(Difference.) What is the difference between a bootstrap and a permutation test?",
     "crumbs": [
       "Feedback",
       "Module 11: Bootstrap Methods",
-      "<span class='chapter-number'>21</span>  <span class='chapter-title'>Bootstrap Methods</span>"
+      "<span class='chapter-number'>23</span>  <span class='chapter-title'>Bootstrap Methods</span>"
     ]
   },
   {
     "objectID": "module12.html#sec-module12-practice",
     "href": "module12.html#sec-module12-practice",
-    "title": "21  Bootstrap Methods",
-    "section": "21.10 Practice Exercises",
-    "text": "21.10 Practice Exercises\n\nCompute a bootstrap 95% CI for the median yield in your dataset and interpret.\nCompute a bootstrap CI for the correlation between yield and fertilizer and interpret.\nCompare a bootstrap CI and a classical CI for a mean. How similar are they?\n[TBD: a realistic bootstrap exercise with non-normal data.]",
+    "title": "23  Bootstrap Methods",
+    "section": "23.10 Practice Exercises",
+    "text": "23.10 Practice Exercises\n\nCompute a bootstrap 95% CI for the median yield in your dataset and interpret.\nCompute a bootstrap CI for the correlation between yield and fertilizer and interpret.\nCompare a bootstrap CI and a classical CI for a mean. How similar are they?\n[TBD: a realistic bootstrap exercise with non-normal data.]",
     "crumbs": [
       "Feedback",
       "Module 11: Bootstrap Methods",
-      "<span class='chapter-number'>21</span>  <span class='chapter-title'>Bootstrap Methods</span>"
+      "<span class='chapter-number'>23</span>  <span class='chapter-title'>Bootstrap Methods</span>"
     ]
   },
   {
