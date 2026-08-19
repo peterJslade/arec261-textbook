@@ -1,0 +1,324 @@
+# Linear Models {#sec-linear-models}
+
+```{r}
+#| include: false
+#| eval: true
+source("_console.R")
+```
+
+Correlation says how tightly two variables move together.  A linear model goes further and
+estimates the equation of the line, which lets you say how much yield changes per unit of
+fertilizer, and predict yield at a rate you did not observe.
+
+## Learning Objectives {.unnumbered}
+
+::: {.objectives}
+By the end of this chapter you should be able to:
+
+1. Fit a simple linear regression and interpret the slope and intercept in units.
+2. Explain what $R^2$ measures and what it does not.
+3. Recognize when a linear model is not appropriate.
+4. Predict from a fitted model, and say why extrapolation is dangerous.
+5. Fit a model with more than one predictor, and explain why a coefficient changes when you add one.
+:::
+
+## Simple Linear Regression {#sec-simple-regression}
+
+Correlation summarizes the strength and direction of a linear relationship. **Linear regression** goes one step further: it estimates the *equation* of the line.
+
+### The Model {.unnumbered}
+
+We write the simple linear regression model as:
+
+$$
+y_i = \beta_0 + \beta_1 x_i + \varepsilon_i
+$$
+
+where:
+
+- $y_i$ is the response variable (the thing we want to predict), for observation $i$.
+- $x_i$ is the predictor variable (the thing we're using to predict), for observation $i$.
+- $\beta_0$ is the **intercept** — the expected value of $y$ when $x = 0$.
+- $\beta_1$ is the **slope** — the expected change in $y$ per unit change in $x$.
+- $\varepsilon_i$ is the **error term** — the deviation of the actual $y_i$ from the line. Accounts for everything that affects $y$ but isn't captured by $x$.
+
+The goal is to estimate $\beta_0$ and $\beta_1$ from data. The standard method is **ordinary least squares (OLS)**, which picks the values that minimize the sum of squared residuals:
+
+$$
+\sum_{i=1}^{n} (y_i - \hat{y}_i)^2 = \sum_{i=1}^{n} (y_i - (\hat{\beta}_0 + \hat{\beta}_1 x_i))^2
+$$
+
+You don't need to memorize the derivation. The formulas turn out to be:
+
+$$
+\hat{\beta}_1 = \frac{\text{Cov}(X, Y)}{\text{Var}(X)} = r \cdot \frac{s_Y}{s_X}
+$$
+
+$$
+\hat{\beta}_0 = \bar{y} - \hat{\beta}_1 \bar{x}
+$$
+
+Notice that the slope involves the correlation, scaled by the ratio of standard deviations. And the intercept is chosen so that the line passes through the point $(\bar{x}, \bar{y})$.
+
+### In Excel {.unnumbered}
+
+For a simple regression, you can use `=SLOPE(y_range, x_range)` and `=INTERCEPT(y_range, x_range)`. Or add a trendline to a scatter plot (right-click a series → Add Trendline → Linear → check "Display equation").
+
+For more detail, use the Data Analysis ToolPak (**File → Options → Add-ins → Analysis ToolPak**). Once enabled, **Data → Data Analysis → Regression** gives you a full regression output with standard errors, $R^2$, and so on.
+
+### In R {.unnumbered}
+
+```r
+model <- lm(yield_bu_acre ~ fertilizer, data = yields)
+summary(model)
+```
+
+The `lm()` function fits a linear model. The formula `y ~ x` means "$y$ as a function of $x$." `summary()` prints the estimated coefficients, standard errors, $t$-statistics, $p$-values, and $R^2$.
+
+You can extract pieces of the model:
+
+```r
+coef(model)           # the coefficients
+fitted(model)         # the predicted values
+residuals(model)      # the residuals
+predict(model, newdata = data.frame(fertilizer = 100))  # predict for new data
+```
+
+## Interpreting the Output {#sec-interpreting-regression}
+
+Fit the trial data and `summary(model)` gives you this:
+
+```
+Coefficients:
+                 Estimate Std. Error t value Pr(>|t|)
+(Intercept)      30.6981     1.8558   16.54   <2e-16 ***
+fertilizer_kg_ha  0.1814     0.0146   12.45   <2e-16 ***
+```
+
+Interpretation:
+
+- **Intercept (30.7)**: the expected yield when fertilizer is zero. Sometimes this is meaningful (what would yield be with no fertilizer?) and sometimes it is an extrapolation to a region you do not have data for. Be careful.
+- **Slope (0.181)**: for every additional kilogram per hectare of nitrogen, expected yield increases by 0.181 bushels per acre. **The units matter.** The slope is in (bu/ac) per (kg/ha).
+
+**The other three columns.**  `Std. Error`, `t value` and `Pr(>|t|)` are all about how *sure*
+we are of the estimate.  The slope 0.181 came from 120 particular fields; a different 120
+fields would have produced a slightly different number, and those columns describe how much it
+would move around.  Answering that properly needs sampling distributions, which is what
+Modules 9 to 11 are about.  Until then, read the Estimate column and leave the other three
+alone.  You are not missing a trick -- the tools genuinely come later.
+
+Always state the interpretation in words that include the units. "Yield goes up by 0.18" is vague and wrong. "Each additional kilogram per hectare of nitrogen is associated with an expected 0.18 bu/ac increase in yield" is the kind of sentence you should be writing.
+
+Note the careful word "associated." I did not say "causes." Whether a regression coefficient measures a causal effect is a separate question that depends on how the data was collected — see @sec-correlation-causation.
+
+## $R^2$: How Well Does the Line Fit? {#sec-r-squared}
+
+The regression line is the "best" line in the least-squares sense, but "best" does not mean "good." A dataset where the points are scattered all over the place still has a best line; the question is whether the line explains any meaningful fraction of the variation.
+
+**$R^2$** (pronounced "R squared") measures the fraction of the variance in $Y$ that is explained by the regression. It ranges from 0 (the line explains nothing) to 1 (the line explains everything, meaning all points lie exactly on the line).
+
+For a simple regression, $R^2 = r^2$ — the square of the correlation coefficient. The trial
+regression above has $R^2 = 0.57$, and indeed the correlation between fertilizer and yield was
+0.754, whose square is 0.57. About 57% of the variation in yield across these fields is
+accounted for by nitrogen rate.
+
+In R, `summary(model)` reports it as `Multiple R-squared` (and also `Adjusted R-squared`, which you will meet in AREC 262). In Excel, it's shown on the regression trendline if you check "Display R-squared value."
+
+Rough rules of thumb (very rough; context matters):
+
+- $R^2 < 0.1$: the relationship explains very little.
+- $R^2 \approx 0.3$: a noticeable but modest relationship.
+- $R^2 \approx 0.5$: a strong relationship.
+- $R^2 > 0.8$: either a very strong true relationship, or you are overfitting.
+
+Agricultural yield data often has $R^2$ in the 0.2-0.5 range for any single predictor, because yields depend on many things. Don't be disappointed by a modest $R^2$ if the model is nonetheless useful.
+
+## When Linear Regression Is (and Isn't) Appropriate {#sec-regression-assumptions}
+
+Linear regression makes assumptions. The main ones:
+
+1. **The relationship is approximately linear.** If the true relationship is curved, a straight line will fit badly. Check with a scatter plot.
+2. **Observations are independent.** If you have repeated measurements on the same field, or fields in the same farm, the observations are not independent and your standard errors will be wrong. (Fixing this needs more advanced methods you will meet in AREC 262.)
+3. **Residuals have constant variance.** If the scatter around the line grows as $X$ grows (a "fan shape"), this assumption is violated.
+4. **Residuals are roughly normal.** Matters for small samples; less important for large ones.
+5. **No extreme outliers driving the result.** A single weird point can dramatically change the slope.
+
+Always make a scatter plot with the regression line on top before trusting a regression. If the data looks nothing like a line, don't report a linear regression.
+
+
+## Predicting From the Model {#sec-prediction}
+
+A fitted line is also a prediction rule.  Give it a nitrogen rate and it returns the expected
+yield at that rate:
+
+```r
+predict(model, newdata = data.frame(fertilizer_kg_ha = 120))
+```
+
+With the trial data that returns about 52.5 bu/ac.  You can read the same thing off the
+equation: $30.70 + 0.1814 \times 120 = 52.5$.
+
+Two cautions.
+
+**A prediction is an average, not a promise.**  The model says fields at 120 kg/ha average
+about 52.5 bu/ac.  Individual fields scatter around that by several bushels, and the model is
+silent about which ones.  Predicting the average well and predicting any particular field well
+are different problems, and only the first is easy.
+
+**Do not run off the end of your data.**  The fields in this trial were fertilized between
+about 60 and 190 kg/ha.  Ask the model what happens at 400 kg/ha and it will cheerfully
+answer 103 bu/ac, because a straight line has no idea it is supposed to stop.  Agronomically
+this is nonsense: nitrogen response flattens and then reverses.  The model never saw a field
+at 400, so its answer there is arithmetic, not evidence.
+
+This is **extrapolation**, and it is the most common way a regression gets misused.  Inside
+the range of your data the line is a summary of something you observed.  Outside it, the line
+is a guess with a decimal point on it.  Say what range your data covers, and stay in it.
+
+## More Than One Predictor {#sec-multiple-regression}
+
+Yield does not depend only on nitrogen.  It depends on rain, on variety, on soil, on when the
+crop went in.  A **multiple regression** puts several predictors in the same model:
+
+$$
+y_i = \beta_0 + \beta_1 x_{1i} + \beta_2 x_{2i} + \varepsilon_i
+$$
+
+In R you add terms with `+`:
+
+```r
+model2 <- lm(yield_bu_acre ~ fertilizer_kg_ha + rainfall_mm, data = trial)
+summary(model2)
+```
+
+```
+Coefficients:
+                 Estimate Std. Error t value Pr(>|t|)
+(Intercept)      24.0629     1.9458   12.37   <2e-16 ***
+fertilizer_kg_ha  0.1397     0.0144    9.69   <2e-16 ***
+rainfall_mm       0.0520     0.0085    6.15   2.4e-08 ***
+```
+
+Look at what happened to the fertilizer coefficient.  On its own it was **0.181**.  With
+rainfall in the model it is **0.140** -- about a quarter smaller.  Nothing about the fields
+changed.  What changed is the question the number answers.
+
+### What a coefficient means now {.unnumbered}
+
+In the simple regression, 0.181 was the average yield difference between fields that differ by
+one kg/ha of nitrogen -- *any* two such fields.  But in this trial, fields with more nitrogen
+also tended to get more rain: the correlation between the two was 0.47, which you computed in
+@sec-correlation-chapter.  Farmers put fertilizer where they expect it to pay, and that means
+the better-watered land.  So a heavily fertilized field was, on average, also a wetter field,
+and the 0.181 was quietly crediting nitrogen with some of the rain's work.
+
+The multiple regression separates them.  Its 0.140 is the expected yield difference between
+two fields that differ by one kg/ha of nitrogen *and get the same rainfall*.  That is the
+number you want if you are deciding how much nitrogen to buy.
+
+This is the confounding from @sec-correlation-causation, now with something to be done about
+it.  Correlation could only warn you that a third variable might be responsible.  A regression
+lets you put the third variable in the model and ask the question again holding it fixed.
+
+The caveat is that this only works for confounders you have measured and included.  There is
+no way to control for soil type if nobody recorded soil type.  Adding predictors improves the
+answer; it does not turn observational data into an experiment.
+
+### Adjusted $R^2$ {.unnumbered}
+
+Adding a predictor can never lower $R^2$.  Even a column of random numbers will nudge it up a
+little, because the fitting has one more knob to turn.  That makes raw $R^2$ useless for
+deciding whether a predictor earned its place.
+
+**Adjusted $R^2$** applies a penalty for each predictor, so it only rises when the new variable
+does more than a random column would.  The trial models:
+
+|                              | $R^2$ | Adjusted $R^2$ |
+|------------------------------|-------|----------------|
+| yield ~ fertilizer           | 0.568 | 0.564          |
+| yield ~ fertilizer + rainfall| 0.674 | 0.668          |
+
+Rainfall earned its place.  When you are comparing models with different numbers of
+predictors, compare the adjusted figure.
+
+## Worked Example: Fertilizer and Yield {#sec-module5-example}
+
+Putting the chapter together on the trial data.
+
+**1. Plot first.**
+
+```r
+library(tidyverse)
+trial <- read_csv("canola_trial.csv")
+
+ggplot(trial, aes(x = fertilizer_kg_ha, y = yield_bu_acre)) +
+  geom_point() +
+  geom_smooth(method = "lm")
+```
+
+Upward, roughly linear, no obvious curve, spread reasonably even, no point far off on its own.
+A straight line is a defensible summary.
+
+**2. Correlate.**
+
+```r
+cor(trial$fertilizer_kg_ha, trial$yield_bu_acre)   # 0.754
+```
+
+Strong and positive.
+
+**3. Fit the simple model.**
+
+```r
+model <- lm(yield_bu_acre ~ fertilizer_kg_ha, data = trial)
+summary(model)
+```
+
+Slope 0.181 bu/ac per kg/ha, $R^2 = 0.568$.
+
+**4. Ask what else could explain it.**
+
+```r
+cor(trial$fertilizer_kg_ha, trial$rainfall_mm)     # 0.470
+```
+
+Fertilizer and rainfall move together in this trial, and rainfall affects yield too.  The
+simple slope is therefore suspect.
+
+**5. Control for it.**
+
+```r
+model2 <- lm(yield_bu_acre ~ fertilizer_kg_ha + rainfall_mm, data = trial)
+summary(model2)
+```
+
+The nitrogen coefficient falls to 0.140 and adjusted $R^2$ improves from 0.564 to 0.668.
+
+**6. Write it down.**
+
+> Across 120 canola fields, nitrogen rate and yield were strongly correlated ($r = 0.75$).  A
+> simple regression put the association at 0.18 bu/ac per kg/ha of N.  However, nitrogen rate
+> was itself correlated with growing-season rainfall ($r = 0.47$), so this figure conflates the
+> two.  Holding rainfall fixed, the estimated nitrogen effect is 0.14 bu/ac per kg/ha
+> (adjusted $R^2 = 0.67$).  Fields in this trial received between 58 and 187 kg/ha, and the
+> estimate should not be extended beyond that range.  Because nitrogen was not randomly
+> assigned, these are associations; an unmeasured variable could still be driving both.
+
+That last sentence is the one students leave out.  Write it anyway.
+
+## Test Bank Sample {#sec-module5c-test}
+
+1. (Regression.) You fit `yield ~ fertilizer` and get a slope of 0.2. Write a one-sentence interpretation, with units.
+2. (R-squared.) Your regression has $R^2 = 0.35$. What does this tell you, and what does it not?
+3. (Diagnostics.) Name three things you should check before trusting a regression result.
+4. (Extrapolation.) Your data covers seeding rates from 40 to 90 lb/ac. Why should you not use the model to predict yield at 150 lb/ac?
+5. (Multiple regression.) Adding rainfall to a model drops the fertilizer coefficient from 0.18 to 0.14. Explain what changed, in terms of what the coefficient means.
+6. (Adjusted $R^2$.) Why does adding any predictor raise $R^2$, and what does adjusted $R^2$ do about it?
+
+## Practice Exercises {#sec-module5c-practice}
+
+1. Fit `yield_bu_acre ~ rainfall_mm` on the trial data. Interpret the slope in units.
+2. Predict yield at 100 kg/ha of nitrogen. Then predict at 500 and explain why you should not report the second number.
+3. Fit the two-predictor model and compare the fertilizer coefficient with the simple model. Explain the difference.
+4. Add `variety` to the model (`+ variety`). What happens to the fertilizer coefficient, and what do the variety coefficients mean?
+5. Reproduce Anscombe's quartet, fit a regression to each, and explain why identical output can describe four different datasets.
