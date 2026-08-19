@@ -165,7 +165,7 @@ ul.task-list li input[type="checkbox"] {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./module01b.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Going Further with Excel</span></span></a>
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Working with Data in Excel</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -510,7 +510,7 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#cells-and-formulas" id="toc-cells-and-formulas" class="nav-link" data-scroll-target="#cells-and-formulas"><span class="header-section-number">1.3</span> Cells and Formulas</a></li>
   <li><a href="#sec-references" id="toc-sec-references" class="nav-link" data-scroll-target="#sec-references"><span class="header-section-number">1.4</span> Relative and Absolute References</a></li>
   <li><a href="#sec-cell-formatting" id="toc-sec-cell-formatting" class="nav-link" data-scroll-target="#sec-cell-formatting"><span class="header-section-number">1.5</span> Cell Formatting</a></li>
-  <li><a href="#sec-sum" id="toc-sec-sum" class="nav-link" data-scroll-target="#sec-sum"><span class="header-section-number">1.6</span> Ranges and the <code>SUM</code> Function</a></li>
+  <li><a href="#sec-sum" id="toc-sec-sum" class="nav-link" data-scroll-target="#sec-sum"><span class="header-section-number">1.6</span> Ranges and Functions</a></li>
   </ul>
 </nav>
     </div>
@@ -758,7 +758,7 @@ Figure&nbsp;1.1: Changing a cell’s number format. The value Excel stores is un
 </div>
 </section>
 <section id="sec-sum" class="level2" data-number="1.6">
-<h2 data-number="1.6" class="anchored" data-anchor-id="sec-sum"><span class="header-section-number">1.6</span> Ranges and the <code>SUM</code> Function</h2>
+<h2 data-number="1.6" class="anchored" data-anchor-id="sec-sum"><span class="header-section-number">1.6</span> Ranges and Functions</h2>
 <p>Every formula so far has referred to cells one at a time – for example, <code>=A2*B2</code> or <code>=B7*$B$4</code>. That works when you are combining a few numbers, but it quickly becomes impractical. If you have 500 fields and want to calculate their total acres, you are not going to write <code>=A2+A3+A4+...</code> for 500 rows.</p>
 <p>Instead, Excel lets you refer to a whole block of cells at once. This block is called a <strong>range</strong>, and it is written using two corner cells separated by a colon:</p>
 <ul>
@@ -766,8 +766,13 @@ Figure&nbsp;1.1: Changing a cell’s number format. The value Excel stores is un
 <li><code>B5:D5</code> is the three cells running across row 5 from column B to column D.</li>
 <li><code>B5:D9</code> is the rectangle with <code>B5</code> in the top left and <code>D9</code> in the bottom right – fifteen cells in all.</li>
 </ul>
-<p>Many Excel functions take a range as their input. The first one we will use is SUM, which adds the values in a range:</p>
-<pre><code>=SUM(B5:B9)</code></pre>
+<p>Many Excel functions take a range as their input. Three of them cover most of what you will do in this course:</p>
+<ul>
+<li><code>=SUM(B5:B9)</code> adds the values in the range.</li>
+<li><code>=AVERAGE(B5:B9)</code> returns their mean.</li>
+<li><code>=COUNT(B5:B9)</code> returns how many of the cells hold a number.</li>
+</ul>
+<p>They all follow the same shape – a name, a bracket, and a range – which is worth noticing now, because almost every function you meet later reads the same way.</p>
 <p>The worksheet below contains five wheat fields. Column B gives the size of each field in acres, and column C gives its yield in bushels per acre. Multiplying the two gives the total bushels produced by each field. Total acres can then be calculated with <code>=SUM(B5:B9)</code>, while total production is <code>=SUM(D5:D9)</code>. Column E shows the formula used in each cell of column D so that you can see how the calculations work.</p>
 <div class="workbook-callout">
 <div class="excel-embed">
@@ -776,15 +781,18 @@ Figure&nbsp;1.1: Changing a cell’s number format. The value Excel stores is un
 </div>
 <p><a href="textbook_examples/mod01_sum.xlsx">Download this workbook</a> · <a href="textbook_examples/mod01_sum_practice.xlsx">blank version to fill in yourself</a> · <a href="https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7B694f423f-e665-460b-8aee-2f68834a4ee2%7D&amp;action=default">Open online</a> (File → Save a Copy to view formulas and edit)</p>
 </div>
-<p>A few details are worth noticing. You can give <code>SUM</code> more than one range by separating them with commas, and you can also include individual numbers. For example, <code>=SUM(B5:B9,40)</code> adds 40 acres of summerfallow that are not included in the table. A range can also run across a row rather than down a column. But be careful: <code>=SUM(B5:D5)</code> would add acres, yield, and total bushels together. Excel will calculate the answer without complaint, even though the result has no meaningful interpretation.</p>
-<p>The main mistake to watch for is a range that does not include the cells you think it does. If you add three new fields below the table, the formula <code>=SUM(B5:B9)</code> will continue to total only the original five. When you click a cell containing a SUM formula, Excel outlines the range it is using. Check that the highlighted cells match the data you intend to include.</p>
+<p>The rows under the table show all three at work: the total, the average, and the count. <code>=AVERAGE(B5:B9)</code> gives 188 acres – the mean field size – and <code>=COUNT(B5:B9)</code> gives 5.</p>
+<p><code>COUNT</code> is more useful than it first looks, because it counts <em>numbers</em>, not cells. Blank cells and text are skipped, so it tells you how many observations you actually have rather than how big the range is. <code>COUNTA</code> counts every non-empty cell, text included, if that is what you want.</p>
+<p>Notice that the workbook averages acres and bushels but not the yield column. Averaging yields across fields of different sizes is its own problem, and we come back to it in <a href="module01c.html#sec-central-tendency" class="quarto-xref"><span>Section 3.1</span></a>.</p>
+<p>A few more details. You can give any of these functions more than one range by separating them with commas, and you can include individual numbers: <code>=SUM(B5:B9,40)</code> adds 40 acres of summerfallow that are not in the table. A range can also run across a row rather than down a column. But be careful – <code>=SUM(B5:D5)</code> would add acres, yield, and total bushels together. Excel will calculate it without complaint, even though the result means nothing.</p>
+<p>The main mistake to watch for is a range that does not include the cells you think it does. If you add three new fields below the table, <code>=SUM(B5:B9)</code> will continue to total only the original five. When you click a cell containing a formula, Excel outlines the range it is using. Check that the highlighted cells match the data you intend to include.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Tip</span>Other resources — ranges and SUM
+<span class="screen-reader-only">Tip</span>Other resources — ranges and functions
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
@@ -1266,8 +1274,8 @@ document.addEventListener("DOMContentLoaded", function () {
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./module01b.html" class="pagination-link" aria-label="Going Further with Excel">
-        <span class="nav-page-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Going Further with Excel</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./module01b.html" class="pagination-link" aria-label="Working with Data in Excel">
+        <span class="nav-page-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Working with Data in Excel</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

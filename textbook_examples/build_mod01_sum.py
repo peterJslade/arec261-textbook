@@ -83,8 +83,28 @@ put(TOT, 4, f"=SUM(D{FIRST}:D{LAST})", font=f_bold, fill=lock_fill,
     fmt="#,##0", align=centre)
 put(TOT, 5, f"={FT}(D{TOT})", font=f_form)
 
+# --- the other two functions that take a range -----------------------------
+# SUM, AVERAGE and COUNT all read the same way: a name, a bracket, a range.
+# Average is applied to acres and bushels only. Averaging the YIELD column is
+# deliberately left out: the fields are different sizes, so the plain mean of
+# column C is misleading, and weighted averages are Module 1c's job.
+AVG = TOT + 1
+put(AVG, 1, "Average", font=f_bold)
+put(AVG, 2, f"=AVERAGE(B{FIRST}:B{LAST})", font=f_bold, fill=lock_fill,
+    fmt="#,##0", align=centre)
+put(AVG, 4, f"=AVERAGE(D{FIRST}:D{LAST})", font=f_bold, fill=lock_fill,
+    fmt="#,##0", align=centre)
+put(AVG, 5, "Mean acres per field, and mean bushels per field.", font=f_note)
+
+CNT = TOT + 2
+put(CNT, 1, "Count", font=f_bold)
+put(CNT, 2, f"=COUNT(B{FIRST}:B{LAST})", font=f_bold, fill=lock_fill,
+    align=centre)
+put(CNT, 5, "How many cells hold a NUMBER — blanks and text are skipped.",
+    font=f_note)
+
 # --- a few more ways to write a range --------------------------------------
-EX = TOT + 2
+EX = CNT + 2
 put(EX, 1, "Other ways to give SUM a range", font=f_bold)
 rows = [
     ("One column",            f"=SUM(B{FIRST}:B{LAST})",
@@ -128,7 +148,7 @@ missing = [r for r in pop if s.row_dimensions[r].height is None]
 print(f"  {max(pop)} rows, bare FORMULATEXT={bare}, rows missing height={len(missing)}")
 assert bare == 0, "unprefixed FORMULATEXT"
 assert not missing, "rows without an explicit height"
-assert max(pop) <= 18, f"{max(pop)} rows is too tall for the embed"
+assert max(pop) <= 21, f"{max(pop)} rows is too tall for the embed"
 
 # arithmetic the prose will quote
 tot_acres = sum(a for _, a, _ in fields)
