@@ -256,6 +256,148 @@ def q5():
     return wb
 
 
+
+# ---------------------------------------------------------------------------
+def q6():
+    """Number formats: same value, four displays."""
+    wb, ws = new_book(
+        "Q6 — Formatting changes the display, not the value",
+        "Column B holds the SAME number in every row -- 0.0842. Only the number "
+        "format differs. Column D proves the stored value never changed.")
+    header(ws, 4, ["Format applied", "Displayed as", "Number format", "B x 1000"])
+    fmts = [("General", "General"), ("Number, 2 decimals", "0.00"),
+            ("Percentage, 1 decimal", "0.0%"), ("Currency", '"$"#,##0.00'),
+            ("Scientific", "0.00E+00")]
+    for i, (label, fmt) in enumerate(fmts):
+        r = 5 + i
+        put(ws, r, 1, label)
+        put(ws, r, 2, 0.0842, fill=lock_fill, fmt=fmt, align=centre)
+        put(ws, r, 3, fmt, font=f_form)
+        put(ws, r, 4, f"=B{r}*1000", fmt="0.00", align=centre)
+    last = 4 + len(fmts)
+    note(ws, last + 2,
+         "Every row in column D reads 84.20. The percentage row DISPLAYS 8.4% but "
+         "still holds 0.0842 -- formatting never changes what a formula sees.", 4)
+    finish(ws, [("A", 24), ("B", 16), ("C", 18), ("D", 12)], last + 2)
+    return wb
+
+
+# ---------------------------------------------------------------------------
+def q7():
+    """Rounding vs formatting -- the difference that bites."""
+    wb, ws = new_book(
+        "Q7 — Rounding is not the same as formatting",
+        "Column B is formatted to 0 decimals. Column C is genuinely rounded with "
+        "ROUND(). They look identical until you total them.")
+    header(ws, 4, ["Field", "Yield, formatted", "Yield, ROUNDed", "The formula in C"])
+    vals = [41.24, 38.61, 44.79, 36.14, 39.92]
+    for i, (name, _, _) in enumerate(FIELDS):
+        r = 5 + i
+        put(ws, r, 1, name)
+        put(ws, r, 2, vals[i], fmt="0", align=centre)
+        put(ws, r, 3, f"=ROUND(B{r},0)", fmt="0", align=centre)
+        put(ws, r, 4, f"={FT}(C{r})", font=f_form)
+    last = 4 + len(FIELDS)
+    put(ws, last + 1, 1, "Total", font=f_bold)
+    put(ws, last + 1, 2, f"=SUM(B5:B{last})", font=f_bold, fill=lock_fill, fmt="0.00", align=centre)
+    put(ws, last + 1, 3, f"=SUM(C5:C{last})", font=f_bold, fill=lock_fill, fmt="0.00", align=centre)
+    note(ws, last + 3,
+         "The formatted column totals 200.70; the rounded column totals 201. Both "
+         "columns LOOK like whole numbers, but only one of them is.", 4)
+    finish(ws, [("A", 12), ("B", 18), ("C", 18), ("D", 24)], last + 3)
+    return wb
+
+
+# ---------------------------------------------------------------------------
+def q8():
+    """Typing in a table from the question, with a computed column."""
+    wb, ws = new_book(
+        "Q8 — Entering a price list and costing a bin",
+        "The crop and price columns were typed in from the question. Column C is "
+        "entered, column D is a formula, and the price reference is relative here "
+        "because each row has its own price.")
+    header(ws, 4, ["Crop", "Price ($/bu)", "Bushels in bin", "Value ($)", "The formula in D"])
+    bins = [("Canola", 14.20, 2400), ("Wheat", 8.35, 5100), ("Barley", 5.60, 3800)]
+    for i, (crop, price, bu) in enumerate(bins):
+        r = 5 + i
+        put(ws, r, 1, crop)
+        put(ws, r, 2, price, fmt='"$"#,##0.00', align=centre)
+        put(ws, r, 3, bu, fmt="#,##0", align=centre)
+        put(ws, r, 4, f"=B{r}*C{r}", fmt='"$"#,##0.00', align=centre)
+        put(ws, r, 5, f"={FT}(D{r})", font=f_form)
+    last = 4 + len(bins)
+    put(ws, last + 1, 1, "Total", font=f_bold)
+    put(ws, last + 1, 4, f"=SUM(D5:D{last})", font=f_bold, fill=lock_fill,
+        fmt='"$"#,##0.00', align=centre)
+    note(ws, last + 3,
+         "$97,945 in total. No $ anchoring is needed here -- each row uses its own "
+         "price, so a plain relative reference is correct. Anchoring would be wrong.", 5)
+    finish(ws, [("A", 12), ("B", 14), ("C", 16), ("D", 14), ("E", 24)], last + 3)
+    return wb
+
+
+# ---------------------------------------------------------------------------
+def q9():
+    """A percentage-change column, and the trap of formatting it as currency."""
+    wb, ws = new_book(
+        "Q9 — Percentage change between two years",
+        "Column D is a proportion, so it is formatted as a percentage. The formula "
+        "divides the change by the STARTING value, not the ending one.")
+    header(ws, 4, ["Field", "2025 yield", "2026 yield", "Change", "The formula in D"])
+    pairs = [("North", 41.2, 44.8), ("South", 38.6, 36.1), ("Creek", 44.8, 47.3),
+             ("Home", 36.1, 39.9), ("Rented", 39.9, 38.0)]
+    for i, (name, a, b) in enumerate(pairs):
+        r = 5 + i
+        put(ws, r, 1, name)
+        put(ws, r, 2, a, fmt="0.0", align=centre)
+        put(ws, r, 3, b, fmt="0.0", align=centre)
+        put(ws, r, 4, f"=(C{r}-B{r})/B{r}", fmt="0.0%", align=centre)
+        put(ws, r, 5, f"={FT}(D{r})", font=f_form)
+    last = 4 + len(pairs)
+    note(ws, last + 2,
+         "North rose 8.7%, South fell 6.5%. Dividing by the 2026 value instead gives "
+         "the wrong answer, and formatting the result as currency would show $0.09.", 5)
+    finish(ws, [("A", 12), ("B", 13), ("C", 13), ("D", 12), ("E", 26)], last + 2)
+    return wb
+
+
+# ---------------------------------------------------------------------------
+def q10():
+    """Everything at once: build a small sheet from a table in the question."""
+    wb, ws = new_book(
+        "Q10 — A delivery log, costed",
+        "The log was typed in from the question. Dates are real dates, the price "
+        "table is anchored, tonnes convert to bushels with a locked factor, and the "
+        "total uses SUM.")
+    put(ws, 4, 1, "Canola price ($/bu)", font=f_bold)
+    put(ws, 4, 2, 14.20, font=f_bold, fill=lock_fill, fmt='"$"#,##0.00', align=centre)
+    put(ws, 5, 1, "Bushels per tonne", font=f_bold)
+    put(ws, 5, 2, 44.09, font=f_bold, fill=lock_fill, fmt="0.00", align=centre)
+
+    header(ws, 7, ["Date", "Tonnes", "Bushels", "Value ($)", "The formula in D"])
+    import datetime as dt
+    loads = [("2026-09-14", 42.5), ("2026-09-18", 38.0), ("2026-09-23", 51.2),
+             ("2026-10-02", 45.8), ("2026-10-09", 39.3)]
+    for i, (d, t) in enumerate(loads):
+        r = 8 + i
+        put(ws, r, 1, dt.date.fromisoformat(d), fmt="DD-MMM-YYYY", align=centre)
+        put(ws, r, 2, t, fmt="0.0", align=centre)
+        put(ws, r, 3, f"=B{r}*$B$5", fmt="#,##0", align=centre)
+        put(ws, r, 4, f"=C{r}*$B$4", fmt='"$"#,##0.00', align=centre)
+        put(ws, r, 5, f"={FT}(D{r})", font=f_form)
+    last = 7 + len(loads)
+    put(ws, last + 1, 1, "Total", font=f_bold)
+    put(ws, last + 1, 2, f"=SUM(B8:B{last})", font=f_bold, fill=lock_fill, fmt="0.0", align=centre)
+    put(ws, last + 1, 4, f"=SUM(D8:D{last})", font=f_bold, fill=lock_fill,
+        fmt='"$"#,##0.00', align=centre)
+    note(ws, last + 3,
+         "216.8 tonnes, $135,734 in total. Both conversion cells are anchored: fill "
+         "either column down without the $ signs and the references walk off the "
+         "table into blank cells.", 5)
+    finish(ws, [("A", 14), ("B", 11), ("C", 12), ("D", 14), ("E", 24)], last + 3)
+    return wb
+
+
 if __name__ == "__main__":
-    for n, fn in enumerate((q1, q2, q3, q4, q5), start=1):
+    for n, fn in enumerate((q1, q2, q3, q4, q5, q6, q7, q8, q9, q10), start=1):
         print("  wrote", save(fn(), n))
