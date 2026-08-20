@@ -12,7 +12,7 @@ download, an R package written for that provider, and an API.
 ::: {.objectives}
 By the end of this chapter you should be able to:
 
-1. Read CSV, TSV and other delimited text files into R.
+1. Read CSV, TSV and other delimited text files into R, and open one in Excel without mangling it.
 2. Check what R guessed about your column types, and correct it.
 3. Read an Excel workbook, including a specific sheet and a header that does not start on row 1.
 4. Read a file directly from a URL, and keep a copy.
@@ -44,10 +44,34 @@ prices <- read_tsv("data/prices.tsv")
 prices <- read_delim("data/prices.txt", delim = ";")
 ```
 
-If you open a CSV by double-clicking it, Excel opens it, and Excel will convert a
-column of ID numbers to scientific notation or a date column to its own format and save the
-result back over your file.  Read CSVs into R from the file; look at them in Excel if you
-like, but do not save from there.
+### Opening a CSV in Excel {#sec-csv-excel}
+
+Double-clicking a CSV opens it in Excel, and Excel makes its own guesses about every column
+on the way in.  The ones that go wrong:
+
+- Leading zeros disappear.  An ID like `00451` becomes `451`, and a Saskatchewan RM number
+  or a postal code loses its shape.
+- Long numbers turn into scientific notation.  A 16-digit account number displays as
+  `1.23E+15`, and the last digits are rounded away for good.
+- Anything that looks like a date becomes one.  `3-4` becomes March 4th, and the gene name
+  `MARCH1` became a date often enough that geneticists renamed the gene.
+- On a computer set to a European locale, a semicolon-separated file lands entirely in
+  column A, and `1.5` is read as text because the decimal mark is expected to be a comma.
+
+None of this matters if you only look.  It matters when you save, because Excel writes its
+guesses back over the original file.  If you need to open a CSV in Excel, use **Data > Get
+Data > From Text/CSV** (on a Mac, **Data > Get Data (Power Query)**) instead of
+double-clicking.  The import window shows a preview, lets you pick the delimiter, and, under
+**Transform Data**, lets you set each column's type before anything is loaded: text for IDs,
+date for dates, decimal for numbers.  It is the Excel version of `col_types`.  Save the
+result as `.xlsx` if you want to keep the types and formatting; saving as CSV throws them
+away again.
+
+If a file has already landed in one column, **Data > Text to Columns** splits it after the
+fact.  Choose **Delimited**, tick the separator the file uses, and the last step of the
+wizard lets you set each column to Text, Date or General, which is the fix for leading zeros
+and for dates as well.  The same tool splits a column that holds two values, like
+`"Swift Current, SK"` into a town and a province.
 
 ### Check what R guessed {#sec-col-types}
 

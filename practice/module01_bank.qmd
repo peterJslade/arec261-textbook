@@ -131,7 +131,7 @@ Date	Crop	Tonnes	Km hauled
 - (c) `=A6-A2` = **25** days. `=COUNT(C2:C6)` = **5**; `=COUNTA(B2:B6)` = **5**. `COUNT` counts only numbers, and the Crop column holds text, so it would return 0 — `COUNTA` counts any non-empty cell.
 - (d) `=(4.10+0.085*D2)*C2*(1-0.015)` filled down → **$306.85, $318.90, $385.50, $524.35, $353.39**; total **$1,889.00**.
 - (e) Without the parentheses Excel applies multiplication before addition, so it computes $4.10 *plus* (0.085 × km × tonnes × 0.985) — the base rate is added once for the whole load instead of being charged on every tonne. The base and the per-kilometre rate must be grouped first: `=(4.10+0.085*D2)*C2*(1-0.015)`.
-- (f) Excel stores a date as a number, which is why subtracting two of them gives a count of days. Text cannot be subtracted, so the formula would return an error instead of a gap.
+- (f) Excel stores a date as a number, which is why subtracting two of them gives a count of days. Date-shaped text is converted on the way into a subtraction, so that part would still work -- but `COUNT`, `SUM` and `AVERAGE` skip text, so any range function over the column would silently return 0.
 
 📗 **[Answer workbook](../practice/answers/s1_q03.xlsx)** — the finished sheet, with the formulas live and a `FORMULATEXT` column showing what was typed.
 
@@ -307,7 +307,7 @@ Date	Tonnes
 
 <details><summary>Answer</summary>
 
-- (a) `=B2*$D$1` (or wherever the rate sits) filled down → **$362.10, $404.18, $342.97, $436.05, $379.95**.
+- (a) `=B2*$D$1` (or wherever the rate sits) filled down → **$362.10, $404.18, $342.98, $436.05, $379.95**.
 - (b) Tonnes **151.0**; cost **$1,925.25**.
 - (c) `=AVERAGE(C2:C6)` = **$385.05**; `=C7/COUNT(B2:B6)` gives the same **$385.05**.
 - (d) New total **$1,796.90**. One edit updates all five rows.
@@ -728,7 +728,7 @@ Date	Tonnes
 
 **(d)** Format one date cell as **General** and report the number you see. Explain what that number is.
 
-**(e)** The dates arrive as text on a colleague's machine. Explain what happens to the (b) column and how you would tell at a glance that this had gone wrong.
+**(e)** The dates arrive as text on a colleague's machine. They subtract two of them and get a sensible-looking day count anyway. Explain how that is possible, and what *would* break.
 
 <details><summary>Answer</summary>
 
@@ -736,7 +736,7 @@ Date	Tonnes
 - (b) `=A3-A2` filled down → **8, 7, 14, 11** days.
 - (c) Span `=A6-A2` = **40** days; total **254.5** tonnes; average **50.9** tonnes.
 - (d) **46,261** — the number of days since 30 December 1899, which is how Excel stores that date. Dates are numbers wearing a format.
-- (e) Text cannot be subtracted, so the column returns `#VALUE!` errors instead of day counts. The giveaway before that is the alignment: the dates would sit left in their cells.
+- (e) Excel converts date-shaped text when it is used in arithmetic, so a subtraction still returns the right number of days. The damage shows up in the range functions instead: `COUNT`, `SUM` and `AVERAGE` skip text entirely, so a column of text dates counts as **zero** values rather than raising an error. Sorting goes alphabetically too. A formula that quietly returns 0 is worse than one that fails.
 
 📗 **[Answer workbook](../practice/answers/s1_q20.xlsx)** — the finished sheet, with the formulas live and a `FORMULATEXT` column showing what was typed.
 
@@ -914,7 +914,7 @@ Quill	47.5	112
 - (a) `=(B2*$F$1-$F$2)*C2*(1-$F$3)` → **$38,197.35**, **$80,303.52**, **$38,808.00**.
 - (b) Total **$157,308.87**.
 - (c) `=(B2*$F$1-$F$2)*(1-$F$3)` → **$263.43**, **$299.64**, **$346.50** per acre.
-- (d) Without brackets Excel multiplies before it subtracts, so it computes the per-acre revenue and then subtracts the input cost *for the whole field* — 212.50 × acres — giving −$22,545.63 for Oxbow. The revenue and the cost must be netted per acre first: `=(B2*$F$1-$F$2)*C2*(1-$F$3)`.
+- (d) Without brackets Excel multiplies before it subtracts, so it computes the per-acre revenue and then subtracts the input cost for the whole field with the farmer's share already applied — 212.50 × acres × 0.75 — giving −$22,545.64 for Oxbow. The revenue and the cost must be netted per acre first: `=(B2*$F$1-$F$2)*C2*(1-$F$3)`.
 - (e) Subtraction happens after multiplication unless brackets say otherwise, so anything that must be netted before it is scaled has to be bracketed.
 
 📗 **[Answer workbook](../practice/answers/s1_q25.xlsx)** — the finished sheet, with the formulas live and a `FORMULATEXT` column showing what was typed.
