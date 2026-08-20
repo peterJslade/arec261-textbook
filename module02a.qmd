@@ -136,6 +136,7 @@ Open Positron and create a new file with **File → New File**, then choose **R 
 Save it as `hello.R` (or whatever you want), then type (or paste) the following:
 
 ```r
+##My first code
 a <- 4
 a*5
 b <- 1*2
@@ -150,7 +151,7 @@ To actually run it, you have two options:
 
 1. Click the **Run** button in the top right and either source the whole file to run every line, or "Execute code" to run just the selected lines (or the current line if nothing is selected).
 
-2. A faster way to run code is to just type **Cmd+Enter** (Mac) / **Ctrl+Enter** (Windows).
+2. A faster way to run code is to just type **Cmd+Enter** (Mac) / **Ctrl+Enter** (Windows).      This runs either the code you have selected or the line where your cursor is.
 
 After running all lines, the results appear in the **console**, and any objects you created show up in the **Variables** pane:
 
@@ -158,16 +159,17 @@ After running all lines, the results appear in the **console**, and any objects 
 
 Let's break down what just happened:
 
+- The first line is a comment.  Comments start with `#` and are not run as code -- they are meant to explain the code to yourself and anyone else who will use the code.
 - `a <- 4` saves 4 as `a`. Notice that an assignment prints nothing to the console.
 - `a*5` evaluates an expression, just like in the console, and prints `[1] 20`. The result is displayed but not saved anywhere.
 - `b <- 1*2` calculates 1×2 and saves the result as `b`.
 - `a*b` prints `[1] 8`.
 
-The Variables pane now lists `a` and `b`, but nothing from the `a*5` line -- displaying a result and saving one are different things.
+The Variables pane now lists `a` and `b`, but nothing from the `a*5` line -- displaying a result and saving one are different things.  Note that `a` and `b` are now saved, and we can run further code that manipulates these objects.
 
 The difference from our earlier console work is that the instructions are now saved. Close R, come back tomorrow, open `hello.R`, and the code is still there. Run it again and R repeats the same steps.
 
-This will be the last screenshot of **Positron** that I will show in the textbook.  From now on I will just show the code, and sometimes the results of this code.
+This will be the last screenshot of **Positron** that I will show in the textbook.  From now on I will just show the code, and the console output below it.
 
 ::: {.callout-tip collapse="true"}
 ## Other resources — R scripts
@@ -209,9 +211,9 @@ This is called **vectorized** calculation, and it is one of the basic ways R wor
 
 ### Data Frames {.unnumbered}
 
-A vector holds one variable. Real datasets usually contain many, and in R a table of data is called a **data frame**. The shape is familiar from Excel: each row is an observation, and each column is a variable.
+A vector holds one variable. Real datasets usually contain many variables. In R a table of data is called a **data frame**. The shape is familiar from Excel: each row is an observation, and each column is a variable.
 
-You can create one by hand, by combining vectors as in the following example:
+We will usually read data in from an external file (we will learn how in the next chapter).  But we can also create a data frame by combining vectors, as in the following example:
 
 ```{r}
 #| eval: true
@@ -226,7 +228,7 @@ fields
 ')
 ```
 
-Each row is a field; `field_id`, `region`, and `yield` are variables; and each column is itself a vector. We built this data frame by hand so you can see how it is constructed, but you will almost always **read** a data frame from a file, which is the subject of the next chapter.
+In this example `field_id`, `region`, and `yield` are variables; and each column is itself a vector. 
 
 To refer to one column, use the `$` operator: `fields$yield` is the `yield` column of `fields`. When you type `fields$`, Positron provides a dropdown of the columns you can choose from. Because a column is a vector, you can use it in calculations:
 
@@ -239,11 +241,10 @@ mean(fields$yield)  # mean yield
 ')
 ```
 
-A data frame is a table, and its columns are vectors. The next chapters cover more convenient tools for choosing rows and columns, creating new variables, and summarizing data frames.
 
 ### Functions {.unnumbered}
 
-Most of our work in R consists of applying **functions** to objects. A function is an instruction that takes some input, does something with it, and returns a result. We have already used several: `c()`, `mean()`, `print()`, `data.frame()`.
+Most of our work in R consists of applying **functions** to objects. A function is an instruction that takes some input, does something with it, and returns a result. We have already used several: `c()`, `mean()`, `data.frame()`.
 
 The information supplied to a function is called an **argument**. In `mean(fields$yield)`, the function is `mean()` and the argument is `fields$yield`.
 
@@ -264,7 +265,7 @@ sd(fields$yield)/mean(fields$yield) # Coefficient of variation
 
 Some functions take multiple arguments.  For example, the function `quantile()` returns the value at a particular percentile.  Its two main arguments are `x`, the data, and `probs`, the percentile you want (expressed in decimal form).
 
-There are two ways to supply the arguments.  First, write them in the correct order without naming them.  Second, name the arguments, in which case the order does not matter.  Named arguments are particularly useful when a function has several options, because the code then tells the reader what each value means.
+There are two ways to supply the arguments.  First, write them in the correct order without naming them.  Second, name the arguments, in which case the order does not matter.  Named arguments are particularly useful when a function has several options, because the code then tells the reader what each value means.  The third example below shows what happens with unnamed arguments in the wrong order: R does not know what you meant, and here it produces an error.
 
 ```{r}
 #| eval: true
@@ -273,7 +274,8 @@ console('
 quantile(fields$yield, 0.25)              # unnamed arguments, in the correct order
 
 quantile(probs = 0.25, x = fields$yield)  # named arguments, in any order
-')
+
+quantile(0.25, fields$yield)              # unnamed arguments, in the wrong order')
 ```
 
 You do not need to memorize every function or every argument. To get help on a function, type `?` followed by its name:
@@ -297,9 +299,14 @@ R will show you the documentation: what the function does, what its arguments me
 You now know enough R to write a small analysis. Before we move on to real datasets, a few habits are worth establishing. The goal: someone should be able to open your script, understand what it does, and run it from beginning to end.
 
 1. **Give the script a short header.** What the script is for, your name, and the date. For a larger project, also record the expected inputs and outputs.
-2. **Use comments to explain decisions, not to restate the code.** A line beginning with `#` is a **comment**: R ignores it, so it is a note for the person reading the code. `mean_yield <- mean(yields)  # calculate mean yield` adds nothing; the code already says that. A comment like `# Weight by acres because fields differ substantially in size` tells the reader something the code cannot.
+2. **Use comments to explain your code.** Especially when you are just starting to write code, it is good practice to use a lot of comments.  A comment explains what you are doing and why. Just because you understand why you are doing something right now, doesn't mean you will remember it tomorrow (or that your collaborator will understand it).  As you get more comfortable with coding, you might use slightly fewer comments as you can more easily interpret your own code.
+
+   I think there are two types of comments.  First, there are larger blocks of comments that might explain a whole section of code and then smaller comments that explain what is coming on the next line.  Some people like to keep comments on their own lines -- other people like to write comments at the end of a line.  Either approach works.  Just know that once you put in `#` everything else that follows on that line will be ignored.
+
 3. **Use descriptive object names.** `mean_yield` and `total_acres`, not `x` and `data2`. A slightly longer name is usually worth it if it makes the code easier to understand.
+
 4. **Break an analysis into understandable steps.** You do not need to cram everything into one line. Saving intermediate results makes code easier to inspect and debug.
+
 5. **Make the script runnable from the beginning.** A script should not depend on commands you happened to type into the console earlier. Restart R, run the script from top to bottom, and it should reproduce the analysis.
 
 The template below is a complete, if small, data analysis built from what this chapter covered: vectors, arithmetic on them, and functions. It computes total production and the acreage-weighted average yield for the five wheat fields from Module 1.
@@ -327,6 +334,7 @@ total_bu <- sum(production)
 # 4. Farm average yield, weighted by acres
 weighted_yield <- total_bu / sum(acres)
 
+# 5. Print out results
 total_bu
 weighted_yield
 ```
