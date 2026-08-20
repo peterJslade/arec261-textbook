@@ -467,14 +467,15 @@ def q_weighted():
         fmt="#,##0.0", align=centre)
     put(ws, rlast + 1, 3, f"=SUM(C{r0+2}:C{rlast})", font=f_bold, fill=lock_fill,
         fmt="#,##0", align=centre)
-    put(ws, rlast + 1, 4, "half a bushel apart", font=f_note)
+    put(ws, rlast + 1, 4, "0.3 bushels apart", font=f_note)
 
     note(ws, rlast + 3,
          "56.4 against 54.1. The 89-acre Quarter field is the best of the five and the "
          "326-acre Slough field the worst, so counting fields equally flatters the farm. "
          "The two weighted routes agree, which is the check: if they disagree, one is wrong. "
          "Below, ROUND changes the stored bushels, so the rounded column really does total "
-         "what it displays -- a formatted column would still add up its unrounded values.", 5)
+         "what it displays -- a formatted column would still add up its unrounded values. "
+         "Quarter lands on exactly 5,740.5, and Excel rounds a half away from zero.", 5)
     finish(ws, [("A", 26), ("B", 13), ("C", 16), ("D", 22), ("E", 30)], rlast + 3)
     return wb
 
