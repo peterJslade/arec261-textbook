@@ -47,7 +47,10 @@ prices <- read_delim("data/prices.txt", delim = ";")
 ### Opening a CSV in Excel {#sec-csv-excel}
 
 Double-clicking a CSV opens it in Excel, and Excel makes its own guesses about every column
-on the way in.  The ones that go wrong:
+on the way in.  To see them, download
+[`elevator_tickets.csv`](practice/data/elevator_tickets.csv), twenty grain delivery tickets,
+and open it both ways: once by double-clicking, and once in a text editor.  The ones that go
+wrong:
 
 - Leading zeros disappear.  An ID like `00451` becomes `451`, and a Saskatchewan RM number
   or a postal code loses its shape.
@@ -58,20 +61,41 @@ on the way in.  The ones that go wrong:
 - On a computer set to a European locale, a semicolon-separated file lands entirely in
   column A, and `1.5` is read as text because the decimal mark is expected to be a comma.
 
+In the tickets file, `ticket_id` loses its zeros, `permit_book` becomes `4.52E+15`, and a
+`lot_code` of `3-4` turns into 4-Mar.
+
+<!-- Screenshot: elevator_tickets.csv opened by double-clicking. Show columns A-C.
+![The tickets file opened by double-clicking. Ticket `00001` has become `1`, the permit book
+number is in scientific notation, and lot `3-4` is now a date.](images/csv_doubleclick.png){#fig-csv-doubleclick}
+-->
+
 None of this matters if you only look.  It matters when you save, because Excel writes its
 guesses back over the original file.  If you need to open a CSV in Excel, use **Data > Get
 Data > From Text/CSV** (on a Mac, **Data > Get Data (Power Query)**) instead of
 double-clicking.  The import window shows a preview, lets you pick the delimiter, and, under
 **Transform Data**, lets you set each column's type before anything is loaded: text for IDs,
-date for dates, decimal for numbers.  It is the Excel version of `col_types`.  Save the
+date for dates, decimal for numbers.  It is the Excel version of `col_types`.
+
+<!-- Screenshot: the Power Query / From Text/CSV preview for elevator_tickets.csv, ideally
+with the ticket_id column type dropdown open showing Text.
+![The import preview.  Set `ticket_id`, `permit_book` and `lot_code` to Text before loading.](images/csv_getdata.png){#fig-csv-getdata}
+-->  Save the
 result as `.xlsx` if you want to keep the types and formatting; saving as CSV throws them
 away again.
 
-If a file has already landed in one column, **Data > Text to Columns** splits it after the
-fact.  Choose **Delimited**, tick the separator the file uses, and the last step of the
+[`elevator_tickets_semicolon.csv`](practice/data/elevator_tickets_semicolon.csv) is the
+same twenty tickets as a European-style file: semicolons between columns and commas for
+decimals.  Double-clicked, the whole thing lands in column A.  **Data > Text to Columns**
+splits it after the fact.  Choose **Delimited**, tick the separator the file uses, and the last step of the
 wizard lets you set each column to Text, Date or General, which is the fix for leading zeros
-and for dates as well.  The same tool splits a column that holds two values, like
-`"Swift Current, SK"` into a town and a province.
+and for dates as well.  **Advanced** on that step is where you tell it the decimal mark is a
+comma, so `27,4` becomes 27.4 rather than 274.  The same tool splits a column that holds two
+values, like `"Swift Current, SK"`, into a town and a province.
+
+<!-- Screenshot: Text to Columns step 3 with ticket_id selected and Text chosen; or the
+Advanced dialog showing decimal separator set to comma.
+![Step 3 of Text to Columns: each column gets a type, and **Advanced** sets the decimal mark.](images/csv_text_to_columns.png){#fig-csv-text-to-columns}
+-->
 
 ### Check what R guessed {#sec-col-types}
 
