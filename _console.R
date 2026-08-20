@@ -46,8 +46,23 @@ console <- function(code, envir = parent.frame()) {
     if (length(buf) > 1) transcript <- c(transcript, paste0("+ ", buf[-1]))
 
     for (e in expr) {
-      res <- tryCatch(withVisible(eval(e, envir)),
-                      error = function(err) list(err = conditionMessage(err)))
+      # Capture messages (e.g. read_csv's column note) and warnings into the
+      # transcript, the way a real console interleaves them with results.
+      msgs <- character(0)
+      res <- tryCatch(
+        withCallingHandlers(
+          withVisible(eval(e, envir)),
+          message = function(m) {
+            msgs <<- c(msgs, strsplit(sub("\n$", "", conditionMessage(m)), "\n", fixed = TRUE)[[1]])
+            invokeRestart("muffleMessage")
+          },
+          warning = function(w) {
+            msgs <<- c(msgs, paste0("Warning: ", conditionMessage(w)))
+            invokeRestart("muffleWarning")
+          }
+        ),
+        error = function(err) list(err = conditionMessage(err)))
+      transcript <- c(transcript, msgs)
       if (!is.null(res$err)) {
         transcript <- c(transcript, paste0("Error: ", res$err))
       } else if (isTRUE(res$visible)) {
