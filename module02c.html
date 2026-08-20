@@ -610,7 +610,7 @@ window.Quarto = {
 </header>
 
 
-<p>The tidyverse package <code>dplyr</code> provides a small set of <strong>verbs</strong> for data transformation that are powerful enough to express most of what you will ever need. Most data manipulation is a <em>sequence of simple operations</em>, and with the right small vocabulary the complex transformations become readable.</p>
+<p>The tidyverse package <code>dplyr</code> provides a small set of <strong>verbs</strong> for data transformation. Most data manipulation is a sequence of simple operations, and these verbs cover most of what you will need.</p>
 <section id="learning-objectives" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="learning-objectives">Learning Objectives</h2>
 <div class="objectives">
@@ -630,7 +630,7 @@ window.Quarto = {
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/field_yields.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p><strong>One crucial thing to understand before we start.</strong> Every <code>dplyr</code> verb <em>returns a new data frame</em> – it does <strong>not</strong> change the original. So this:</p>
+<p>Every <code>dplyr</code> verb returns a <em>new</em> data frame – it does not change the original. So this:</p>
 <div class="cell">
 <div class="cell-output-display">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(yields, yield_bu_acre <span class="sc">&gt;</span> <span class="dv">50</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -656,7 +656,7 @@ window.Quarto = {
 </div>
 </div>
 </div>
-<p>computes the filtered result and <em>prints it</em>, but <code>yields</code> itself is unchanged – the next time you use <code>yields</code>, all 60 rows are still there. If you want to <strong>keep</strong> a result, you must assign it to an object:</p>
+<p>computes the filtered result and prints it, but <code>yields</code> itself is unchanged – the next time you use <code>yields</code>, all 60 rows are still there. If you want to keep a result, you must assign it to an object:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>big_fields <span class="ot">&lt;-</span> <span class="fu">filter</span>(yields, yield_bu_acre <span class="sc">&gt;</span> <span class="dv">50</span>)   <span class="co"># save the result</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>That is deliberate: your original data stays intact while you experiment. You can see it – the filter above returned 14 rows, and <code>yields</code> still has all 60:</p>
 <div class="cell">
@@ -776,7 +776,7 @@ window.Quarto = {
 <p>Real questions usually take more than one verb. Suppose you want the field ID and yield of the South-region fields, sorted from highest to lowest. Written the way we have so far, each step’s output becomes the next step’s first argument, and the calls nest:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">arrange</span>(<span class="fu">select</span>(<span class="fu">filter</span>(yields, region <span class="sc">==</span> <span class="st">"South"</span>), field_id, yield_bu_acre),</span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>        <span class="fu">desc</span>(yield_bu_acre))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>That works, but you have to read it inside-out. The <strong>pipe</strong>, <code>|&gt;</code>, fixes it. The pipe takes whatever is on its <em>left</em> and feeds it as the first argument to the function on its <em>right</em>. So <code>yields |&gt; filter(region == "South")</code> is exactly <code>filter(yields, region == "South")</code>. Read <code>|&gt;</code> as the word <strong>“then.”</strong> The nested call above becomes a top-to-bottom sequence:</p>
+<p>That works, but you have to read it inside-out. The <strong>pipe</strong>, <code>|&gt;</code>, fixes it. The pipe takes whatever is on its <em>left</em> and feeds it as the first argument to the function on its <em>right</em>. So <code>yields |&gt; filter(region == "South")</code> is exactly <code>filter(yields, region == "South")</code>. Read <code>|&gt;</code> as the word “then.” The nested call above becomes a top-to-bottom sequence:</p>
 <div class="cell">
 <div class="cell-output-display">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span></span>
@@ -846,7 +846,7 @@ window.Quarto = {
 </section>
 <section id="group_by-do-the-above-by-group" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="group_by-do-the-above-by-group"><code>group_by()</code>: Do the Above by Group</h3>
-<p>This is where things get powerful. <code>group_by()</code> doesn’t change the data – but it tells subsequent operations to apply <em>per group</em>.</p>
+<p><code>group_by()</code> doesn’t change the data – it tells subsequent operations to apply <em>per group</em>.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span></span>
@@ -970,7 +970,7 @@ window.Quarto = {
 <li><strong>Regroup</strong> by region and variety and <code>summarise</code> down to one row per group, computing the mean yield and the number of fields. The <code>.groups = "drop"</code> argument just tells <code>summarise</code> to return an ordinary, ungrouped data frame afterward (without it, R prints a chatty message about how it left the grouping).</li>
 <li><strong>Sort</strong> the final table.</li>
 </ol>
-<p>Do not worry about writing something this long yet – the point is that each line is one small, readable step. Writing it as a pipeline makes the logic visible. Compare with how you would do this in Excel – probably three PivotTables, a manual filter, and a lot of copy-pasting between sheets.</p>
+<p>You are not expected to write something this long yet – the point is that each line is one small, readable step. Writing it as a pipeline makes the logic visible. Compare with how you would do this in Excel – probably three PivotTables, a manual filter, and a lot of copy-pasting between sheets.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
