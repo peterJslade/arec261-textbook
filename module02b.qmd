@@ -34,7 +34,7 @@ By the end of this chapter you should be able to:
 3. Install and load an R package, and explain the difference between the two.
 4. Read a CSV file into R as a data frame.
 5. Inspect a new dataset and identify common problems.
-6. Calculate basic summary statistics while handling missing values correctly.
+6. Calculate basic summary statistics.
 :::
 
 ## One Folder Per Project {#sec-project-folder}
@@ -294,33 +294,10 @@ IQR(trial_data$yield_bu_acre)
 `var()`, `min()`, and `max()` work the same way. The statistical ideas have not changed
 since Module 1; only the way we ask the computer to calculate them has.
 
-### Missing values {.unnumbered}
-
-Real datasets often contain missing observations, which R represents as `NA`. In our trial
-data, three fields have no rainfall reading -- a rain gauge fails, or a value never gets
-recorded. You may have spotted them already: `summary(trial_data)` above reports `NA's :3`
-under `rainfall_mm`. Watch what happens when we take the mean of that column:
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-mean(trial_data$rainfall_mm)
-
-mean(trial_data$rainfall_mm, na.rm = TRUE)
-')
-```
-
-The first call says: calculate the mean of these observations. Three of them are unknown, so
-R cannot calculate the mean, and it returns `NA` rather than silently discarding information.
-The second call, with `na.rm = TRUE` ("remove NAs"), says: calculate the mean using the
-observations that are not missing. That may be exactly what we want -- but now the decision
-is visible in the code.
-
-This is an important difference from Excel, where many functions skip blank cells
-automatically. Neither behavior solves the underlying statistical problem of missing data;
-for now, the point is that if R unexpectedly returns `NA`, check whether your data contains
-missing values. We return to missing data properly when we clean datasets in @sec-cleaning.
+One thing you may have spotted: `summary(trial_data)` above reports `NA's :3` under
+`rainfall_mm` -- three fields have no rainfall reading. `NA` is R's code for a missing
+value, and calculations involving the rainfall column will behave differently because of
+them. Missing values, and what to do about them, are covered in @sec-missing-values.
 
 ::: {.callout-tip collapse="true"}
 ## Other resources — summary statistics in R
@@ -329,10 +306,11 @@ missing values. We return to missing data properly when we clean datasets in @se
 - **Video** -- Dr E Research Videos, [*Basic summary statistics in R*](https://www.youtube.com/watch?v=8XFmPP93w_Y) -- mean, median, standard deviation, and the number summary.
 :::
 
-## Putting the Workflow Together {#sec-data-workflow}
+## Full Script {#sec-data-workflow}
 
-The whole chapter fits in one short script -- the `code/1_canola_trial_script.R` we started
-in @sec-reading-data, now complete:
+The whole chapter fits in one script -- the `code/1_canola_trial_script.R` we started in
+@sec-reading-data, now complete with every inspection and summary statistic from the
+chapter:
 
 ```r
 # ---
@@ -347,21 +325,26 @@ in @sec-reading-data, now complete:
 # Load packages
 library(tidyverse)
 
-# Read data
+# Read in the data
 trial_data <- read_csv("data/canola_trial.csv")
 
-# Inspect structure
-nrow(trial_data)
-names(trial_data)
-glimpse(trial_data)
+# Inspect the structure
+trial_data           # print the first rows
+nrow(trial_data)     # number of rows
+ncol(trial_data)     # number of columns
+names(trial_data)    # column names
+glimpse(trial_data)  # columns, types, and first values
 
-# Inspect values
+# Inspect the values
 summary(trial_data)
 
-# Summarize yield
-mean(trial_data$yield_bu_acre, na.rm = TRUE)
-median(trial_data$yield_bu_acre, na.rm = TRUE)
-sd(trial_data$yield_bu_acre, na.rm = TRUE)
+# Summary statistics for yield
+mean(trial_data$yield_bu_acre)
+median(trial_data$yield_bu_acre)
+sd(trial_data$yield_bu_acre)
+range(trial_data$yield_bu_acre)
+quantile(trial_data$yield_bu_acre, c(0.25, 0.5, 0.75))
+IQR(trial_data$yield_bu_acre)
 ```
 
 Notice what the script does not contain: no `setwd()`, no reliance on manually edited data,

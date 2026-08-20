@@ -1,5 +1,13 @@
 # Cleaning Data {#sec-cleaning}
 
+```{r}
+#| include: false
+#| eval: true
+source("_console.R")
+suppressMessages(library(readr))
+trial_data <- readr::read_csv("practice/data/canola_trial.csv", show_col_types = FALSE)
+```
+
 Assume a new file is broken until you have checked.  It was typed by someone in a hurry and
 exported by software that had its own ideas about formatting.  This chapter is a tour of the
 defects that show up most often, how to find them, and what to do about them.
@@ -179,9 +187,28 @@ A file that records its own units in a column lets you convert with a `case_when
 
 ## Missing Values {#sec-missing-values}
 
-In R, a missing value is `NA`, and most operations *propagate* it -- any calculation
-involving `NA` returns `NA`, which is why `mean()` needs `na.rm = TRUE`
-(@sec-r-summary-stats).  Real files complicate this in two ways: missing values arrive in
+In R, a missing value is `NA`, and most operations *propagate* it: any calculation
+involving `NA` returns `NA`.  The canola trial data has three fields with no rainfall
+reading -- a rain gauge fails, or a value never gets recorded -- so:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+mean(trial_data$rainfall_mm)
+
+mean(trial_data$rainfall_mm, na.rm = TRUE)
+')
+```
+
+The first call says: calculate the mean of these observations.  Three of them are unknown,
+so R cannot calculate the mean, and it returns `NA` rather than silently discarding
+information.  The second call, with `na.rm = TRUE` ("remove NAs"), says: calculate the mean
+using the observations that are not missing.  That may be exactly what we want -- but now
+the decision is visible in the code.
+
+This is an important difference from Excel, where many functions skip blank cells
+automatically.  Real files complicate it further in two ways: missing values arrive in
 disguise, and deciding what to do with them takes some thought.
 
 ### Missing values in disguise {.unnumbered}
