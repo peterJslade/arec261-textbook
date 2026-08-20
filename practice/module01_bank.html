@@ -844,7 +844,7 @@ Answer
 <li>Dates formatted with a short month name (<code>DD-MMM-YY</code>); tonnes <code>0.0</code>.</li>
 </ol></li>
 <li><ol start="2" type="a">
-<li><code>=A3-A2</code> filled down → <strong>4, 5, 9, 7</strong> days. If the cell shows <code>04-Jan-1900</code> it inherited the date format; change it to Number.</li>
+<li><code>=A3-A2</code> filled down → <strong>4, 5, 9, 7</strong> days. A fresh cell returns these as plain numbers. If yours shows something like <code>04-Jan-1900</code>, that cell already carries a date format – change it to Number.</li>
 </ol></li>
 <li><ol start="3" type="a">
 <li><code>=A6-A2</code> = <strong>25</strong> days. <code>=COUNT(C2:C6)</code> = <strong>5</strong>; <code>=COUNTA(B2:B6)</code> = <strong>5</strong>. <code>COUNT</code> counts only numbers, and the Crop column holds text, so it would return 0 — <code>COUNTA</code> counts any non-empty cell.</li>
@@ -1157,10 +1157,10 @@ Answer
 </summary>
 <ul>
 <li><ol type="a">
-<li>With yields in <code>B2:B4</code>, the base price in <code>D1</code>, and factors in <code>B6:B8</code> laid out across as a row, the fill formula is <code>=$B2*$D$1*C$5</code>-style: the crop reference locks the <strong>column</strong>, the factor reference locks the <strong>row</strong>, and the price is fully locked.</li>
+<li>The layout is the student’s own; the answer workbook puts the base price in <code>B4</code>, the yields down <code>B8:B10</code>, and the three grade factors across <code>C7:E7</code>. The fill formula is then <code>=$B8*$B$4*C$7</code>, written once in <code>C8</code> and filled across and down.</li>
 </ol></li>
 <li><ol start="2" type="a">
-<li>The crop yield needs <code>$B2</code> (column locked, row free) so it changes down but not across. The factor needs <code>C$5</code> (row locked, column free) so it changes across but not down. The base price needs <code>$D$1</code> because it never changes.</li>
+<li>The yield reference <code>$B8</code> has an <strong>absolute column and a relative row</strong>, so it stays in column B while moving down the crops. The factor reference <code>C$7</code> has a <strong>relative column and an absolute row</strong>, so it moves across the grades while staying on row 7. The base price <code>$B$4</code> is absolute in both, because it never changes.</li>
 </ol></li>
 <li><ol start="3" type="a">
 <li>Currency, <code>$#,##0</code>.</li>
@@ -1246,7 +1246,7 @@ Answer
 <li>Shortest <strong>Tamarack</strong> at 120 days; longest <strong>Verdant</strong> at 136 days; a gap of <strong>16</strong> days.</li>
 </ol></li>
 <li><ol start="5" type="a">
-<li>The result cell inherited the date format from the cells being subtracted, so Excel is showing the number 120 as a date. Change the cell’s format to Number.</li>
+<li>The cell is carrying a date format, so Excel is displaying the number 120 as a date – 120 days after 30 December 1899. The value is right; only the format is wrong. Set the cell to Number.</li>
 </ol></li>
 </ul>
 <p>📗 <strong><a href="../practice/answers/s1_q13.xlsx">Answer workbook</a></strong> — the finished sheet, with the formulas live and a <code>FORMULATEXT</code> column showing what was typed.</p>
@@ -1338,8 +1338,8 @@ Westgate    1420</code></pre>
 <p><strong>(a)</strong> Use <code>SUM</code> to total the bushels directly under the column, and label the row <strong>Total</strong>.</p>
 <p><strong>(b)</strong> Two rows below the total, write a second <code>SUM</code> that covers the whole block <em>including</em> your total row. Report what it returns.</p>
 <p><strong>(c)</strong> Explain why the second figure is exactly twice the first.</p>
-<p><strong>(d)</strong> A colleague’s sheet reports 15,350 bushels for this farm. Using your answers, say what they almost certainly did.</p>
-<p><strong>(e)</strong> State, in one sentence, the habit that prevents this when a sheet grows subtotal rows.</p>
+<p><strong>(d)</strong> Two more fields are added below the table: <code>Xena 1615</code> and <code>Yardley 940</code>. Type them in directly under the last row, above your total. Report what your original <code>SUM</code> from (a) now shows, and what the true total should be.</p>
+<p><strong>(e)</strong> Using (b) and (d), describe the two opposite ways a <code>SUM</code> range can be wrong, and state the habit that guards against both.</p>
 <details>
 <summary>
 Answer
@@ -1355,10 +1355,10 @@ Answer
 <li>The total row already holds the sum of the five fields. Including it adds every bushel a second time, so the answer is exactly double.</li>
 </ol></li>
 <li><ol start="4" type="a">
-<li>They pointed a <code>SUM</code> at a range that included a subtotal, counting the whole farm twice.</li>
+<li>The original <code>=SUM(B2:B6)</code> still reads <strong>7,675</strong>. It was written for five rows and does not widen when rows are inserted below it, so the two new fields are simply missing. The true total is <strong>10,230</strong> — a shortfall of 2,555 bushels that nothing on the sheet flags.</li>
 </ol></li>
 <li><ol start="5" type="a">
-<li>Keep totals outside the range you sum — leave a blank row, or check what the range highlights before pressing Enter.</li>
+<li>A range can reach too far and swallow a subtotal, doubling the answer (b), or fall short and miss rows that were added later (d). Both return a plausible number with no error. Check what the range actually highlights before pressing Enter, and check it again after the sheet grows.</li>
 </ol></li>
 </ul>
 <p>📗 <strong><a href="../practice/answers/s1_q16.xlsx">Answer workbook</a></strong> — the finished sheet, with the formulas live and a <code>FORMULATEXT</code> column showing what was typed.</p>
@@ -1490,7 +1490,7 @@ Answer
 <p><strong>(a)</strong> Confirm the dates are real dates, not text. Say how you can tell by looking at the cells before writing any formula.</p>
 <p><strong>(b)</strong> Add a <strong>Days since previous</strong> column, leaving the first row blank.</p>
 <p><strong>(c)</strong> Compute the total span from first delivery to last, and the total and average tonnes.</p>
-<p><strong>(d)</strong> Format one date cell as <strong>General</strong> and report the number you see. Explain what that number is.</p>
+<p><strong>(d)</strong> Format the <strong>first</strong> date cell as <strong>General</strong> and report the number you see. Explain what that number is.</p>
 <p><strong>(e)</strong> The dates arrive as text on a colleague’s machine. They subtract two of them and get a sensible-looking day count anyway. Explain how that is possible, and what <em>would</em> break.</p>
 <details>
 <summary>
@@ -1507,7 +1507,7 @@ Answer
 <li>Span <code>=A6-A2</code> = <strong>40</strong> days; total <strong>254.5</strong> tonnes; average <strong>50.9</strong> tonnes.</li>
 </ol></li>
 <li><ol start="4" type="a">
-<li><strong>46,261</strong> — the number of days since 30 December 1899, which is how Excel stores that date. Dates are numbers wearing a format.</li>
+<li><strong>46,261</strong> — the serial number Excel stores for 27 August 2026. A date is a count of days held as an ordinary number, which is why one date can be subtracted from another. (The count runs from 30 December 1899, though the figure matters more than the origin.)</li>
 </ol></li>
 <li><ol start="5" type="a">
 <li>Excel converts date-shaped text when it is used in arithmetic, so a subtraction still returns the right number of days. The damage shows up in the range functions instead: <code>COUNT</code>, <code>SUM</code> and <code>AVERAGE</code> skip text entirely, so a column of text dates counts as <strong>zero</strong> values rather than raising an error. Sorting goes alphabetically too. A formula that quietly returns 0 is worse than one that fails.</li>
