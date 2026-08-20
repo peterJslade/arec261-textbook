@@ -202,8 +202,8 @@ def q12():
     wb, ws = new_book("Blanks, text, and what the functions count",
         "COUNT sees numbers, COUNTA sees anything typed, AVERAGE skips both blanks "
         "and text. Filling the blanks with zero would change the claim being made.")
-    rows=[("North",41.2),("South",None),("Creek",44.8),
-          ("Home","not seeded"),("Rented",39.9),("Quarter",None)]
+    rows=[("Birch",46.9),("Coulee",None),("Draw",52.7),
+          ("Flats","not seeded"),("Gully",44.3),("Hollow",None)]
     header(ws,4,["Field","Yield (bu/ac)"])
     for i,(n,v) in enumerate(rows):
         r=5+i
@@ -219,7 +219,7 @@ def q12():
         stat(ws,last+2+k,lab,f,fmt)
     note(ws,last+8,
         "COUNT 3, COUNTA 4 -- the difference is the words 'not seeded'. The average is "
-        "41.97 over three values. Type 0 into the two blanks and it falls to 25.18, "
+        "47.97 over three values. Type 0 into the two blanks and it falls to 28.78, "
         "which asserts those fields yielded nothing.",4)
     finish(ws,[("A",20),("B",14),("C",14),("D",30)],last+8)
     return wb
@@ -331,7 +331,7 @@ def q17():
         "rates added -- the field sizes cancel out entirely.")
     put(ws,4,1,"Fuel ($/ac)",font=f_bold); put(ws,4,2,18.40,fill=lock_fill,fmt=MONEY,align=centre)
     put(ws,5,1,"Labour ($/ac)",font=f_bold); put(ws,5,2,11.25,fill=lock_fill,fmt=MONEY,align=centre)
-    rows=[("North",120),("South",240),("Creek",95),("Home",310),("Rented",175)]
+    rows=[("Larch",145),("Marsh",268),("Nordegg",112),("Pothole",324),("Ridgeway",191)]
     header(ws,7,["Field","Acres","Cost","The formula in C"])
     for i,(n,a) in enumerate(rows):
         r=8+i
@@ -347,7 +347,7 @@ def q17():
     note(ws,last+6,
         "Both give $29.65, and they must: every acre is charged the same two rates, so "
         "nothing in the calculation varies by field. Raise fuel to $21.60 and the total "
-        "becomes $30,879.00.",4)
+        "becomes $34,164.00.",4)
     finish(ws,[("A",22),("B",12),("C",14),("D",26)],last+6)
     return wb
 
@@ -356,7 +356,7 @@ def q18():
     wb, ws = new_book("Comparing each row against one cell",
         "The average lives in a cell and the IF column points at it with an absolute "
         "reference. Without the $ the comparison walks off the end of the data.")
-    rows=[("North",41.2),("South",38.6),("Creek",44.8),("Home",36.1),("Rented",39.9)]
+    rows=[("Larch",43.6),("Marsh",37.9),("Nordegg",51.4),("Pothole",35.2),("Ridgeway",40.8)]
     put(ws,4,1,"Farm average",font=f_bold)
     put(ws,4,2,"=AVERAGE(B7:B11)",fill=lock_fill,fmt=TWO,align=centre)
     header(ws,6,["Field","Yield (bu/ac)","Vs average","The formula in C"])
@@ -368,7 +368,7 @@ def q18():
     last=6+len(rows)
     stat(ws,last+2,"Fields above average",f'=COUNTIF(C7:C{last},"Above")',INT)
     note(ws,last+4,
-        "Two of five, because Creek's 44.8 pulls the average up above three of the "
+        "Two of five, because Nordegg's 51.4 pulls the average up above three of the "
         "other four. An average is not a midpoint. Drop the $ signs and the reference "
         "slides down with the fill, so by the last row it compares against an empty "
         "cell -- which Excel reads as 0, and every yield beats 0.",4)
@@ -539,7 +539,7 @@ def q25():
     put(ws,4,1,"Price ($/bu)",font=f_bold); put(ws,4,2,14.20,fill=lock_fill,fmt=MONEY,align=centre)
     put(ws,5,1,"Input cost ($/ac)",font=f_bold); put(ws,5,2,212.50,fill=lock_fill,fmt=MONEY,align=centre)
     put(ws,6,1,"Landlord share",font=f_bold); put(ws,6,2,0.25,fill=lock_fill,fmt=PCT0,align=centre)
-    rows=[("North",41.2,120),("South",38.6,240),("Creek",44.8,95)]
+    rows=[("Larch",39.7,145),("Marsh",43.1,268),("Nordegg",47.5,112)]
     header(ws,8,["Field","Yield (bu/ac)","Acres","Net to farmer","Net per acre","The formula in D"])
     for i,(n,y,a) in enumerate(rows):
         r=9+i
@@ -554,7 +554,7 @@ def q25():
     put(ws,last+3,4,"=B9*$B$4-$B$5*C9*(1-$B$6)",fill=lock_fill,fmt=MONEY,align=centre)
     put(ws,last+3,6,f"={FT}(D{last+3})",font=f_form)
     note(ws,last+5,
-        "-$18,539.96 for North. Without the brackets Excel subtracts the input cost for "
+        "-$22,545.63 for Larch. Without the brackets Excel subtracts the input cost for "
         "the whole field from the revenue of a single acre. Anything that must be netted "
         "before it is scaled has to be bracketed.",6)
     finish(ws,[("A",22),("B",14),("C",10),("D",16),("E",14),("F",30)],last+5)
