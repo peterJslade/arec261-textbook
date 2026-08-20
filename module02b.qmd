@@ -24,17 +24,18 @@ By the end of this chapter you should be able to:
 1. Set up a self-contained project folder that someone else can open and run.
 2. Install and load packages, and explain the difference between the two.
 3. Read a CSV file into R as a data frame, and diagnose file-not-found errors.
-4. Compute summary statistics in R, handling missing values correctly.
-5. Explain what "tidy data" means, and reshape a dataset with `pivot_longer` and `pivot_wider`.
-6. Clean up awkward column names.
+4. Explore a dataset in Positron's Data Explorer.
+5. Compute summary statistics in R, handling missing values correctly.
+6. Explain what "tidy data" means, and reshape a dataset with `pivot_longer` and `pivot_wider`.
+7. Clean up awkward column names.
 :::
 
 ## One Folder Per Project {#sec-project-folder}
 
 Before reading any data into R, set up a folder to work in. R always has a **working
-directory** -- the folder it treats as "here" -- and most of the file problems beginners hit
-come from R looking in a different place than they expect. The fix is a habit: keep each
-analysis in its own folder, and open that folder in Positron.
+directory** -- the folder it treats as "here" -- and most file problems come from R looking
+in a different place than you expect. The fix is a habit: keep each analysis in its own
+folder, and open that folder in Positron.
 
 A layout that works for almost everything:
 
@@ -70,9 +71,8 @@ later this tells you where to start.
 To make the working directory be your project folder, open the folder in Positron with
 **File → Open Folder…**.  Do this at the start of every session.
 
-An organized project folder has one more payoff, which we will return to in Module 5: AI
-coding assistants can read the files in your project folder, so a well-organized project is
-one an assistant can actually help with.
+One more reason for the habit: AI coding assistants read the files in your project folder to
+understand your data and scripts. We return to this in Module 5.
 
 ## Paths, and Why `setwd()` Is a Trap {#sec-paths}
 
@@ -100,7 +100,7 @@ R does have a function, `setwd()`, that changes the working directory from insid
 setwd("/Users/peter/Documents/canola-trial")     # do not do this
 ```
 
-In my experience this is the most common reason a script that works fine for its author fails
+This is the most common reason a script that works fine for its author fails
 for everyone else.  It writes one machine into a file you are going to share.  Open the project
 folder instead, and plain relative paths work.
 
@@ -126,7 +126,7 @@ though we will not cover it here.
 ## Packages {#sec-packages}
 
 A **package** is a bundle of extra functions someone has written that do not come with R
-itself. The one we will use constantly is the **tidyverse**, described in the next section.
+itself. The one we will use most is the **tidyverse**, described in the next section.
 Using a package is a two-step process:
 
 1. **Install it -- once per computer.** This downloads the package from the internet and saves it on your machine. You only ever do this once (per computer):
@@ -137,7 +137,7 @@ Using a package is a two-step process:
 
     This prints a *lot* of text -- progress bars and messages, sometimes in red. That red text is normal; it is not an error. Just wait for it to finish (it can take a few minutes the first time).
 
-2. **Load it -- once per script.** Installing puts the package on your computer, but it is not switched on until you *load* it. Put this at the **top of every script** that uses the tidyverse:
+2. **Load it -- once per script.** Installing puts the package on your computer, but it is not switched on until you *load* it. Put this at the top of every script that uses the tidyverse:
 
     ```r
     library(tidyverse)
@@ -149,7 +149,7 @@ If you skip the `library()` step and try to use a tidyverse function, R will sto
 Error in read_csv(...) : could not find function "read_csv"
 ```
 
-That "could not find function" message almost always means **you forgot to load the package** (or you have not installed it yet). The fix is to run `library(tidyverse)` first. Note the quirk: you put quotes around the name when you *install* (`install.packages("tidyverse")`) but not when you *load* (`library(tidyverse)`).
+That "could not find function" message almost always means you forgot to load the package (or you have not installed it yet). The fix is to run `library(tidyverse)` first. Note the quirk: you put quotes around the name when you *install* (`install.packages("tidyverse")`) but not when you *load* (`library(tidyverse)`).
 
 ## The Tidyverse {#sec-tidyverse}
 
@@ -224,6 +224,28 @@ summary(yields)     # quick summary of every column
 
 `summary()` is especially useful as a first look at a new dataset. For every numeric column it reports the min, max, mean, median, and quartiles; for text columns it simply notes how many values there are. Always run it when you open a new dataset.
 
+### Viewing Data in Positron {#sec-data-explorer .unnumbered}
+
+Positron also lets you *look* at a data frame the way you would in Excel. After you run the
+`read_csv` line, `yields` appears in the **Variables** pane. Click it and Positron opens the
+**Data Explorer**: a spreadsheet-style view of the data.
+
+<!-- TODO(Peter): screenshot of the Variables pane with `yields` listed after read_csv.
+![After reading the file, `yields` appears in the Variables pane. Clicking it opens the Data Explorer.](images/positron_variables_yields.png){#fig-variables-yields}
+-->
+
+<!-- TODO(Peter): screenshot of the Data Explorer open on field_yields.
+![The Data Explorer: the data in a spreadsheet-style grid, with a summary column profile down the left.](images/positron_data_explorer.png){#fig-data-explorer}
+-->
+
+The Data Explorer has two parts. The grid shows the rows and columns, and you can sort and
+filter them by clicking the column headers. The summary panel shows, for each column, its
+type, the percentage of missing values, and a small sketch of its distribution.
+
+The Data Explorer is for looking, not editing. You cannot change a cell: the file in `data/`
+stays as it arrived, and any fixing happens in the script. When you want the same answers in
+code, use `summary()` and `glimpse()`.
+
 ::: {.callout-tip collapse="true"}
 ## Other resources — reading data from CSV
 
@@ -235,18 +257,8 @@ summary(yields)     # quick summary of every column
 
 ## Summary Statistics in R {#sec-r-summary-stats}
 
-All the summary statistics from Module 1 exist in R too. For the rest of the chapter the
-examples use [`field_yields.csv`](practice/data/field_yields.csv) -- 60 canola fields with
-columns `field_id`, `region`, `variety`, `acres`, `yield_bu_acre`, `year`, `seeding_date`,
-and `units`. Put it in your project's `data/` folder and read it in:
-
-```r
-library(tidyverse)
-
-yields <- read_csv("data/field_yields.csv")
-```
-
-Then:
+All the summary statistics from Module 1 exist in R too. With the `yields` data frame from
+@sec-reading-data loaded:
 
 ```r
 mean(yields$yield_bu_acre)
@@ -287,7 +299,7 @@ we clean data in Module 3.
 
 ## Tidy Data {#sec-tidy-data}
 
-Hadley Wickham (one of the creators of the tidyverse) has written extensively about what he calls **tidy data** [@r4ds]. The idea is simple: a dataset is "tidy" if:
+Hadley Wickham (one of the creators of the tidyverse) has written extensively about what he calls **tidy data** [@r4ds]. A dataset is tidy if:
 
 1. Every variable has its own **column**.
 2. Every observation has its own **row**.
@@ -356,7 +368,7 @@ Long is usually what analysis wants; wide is often what people want to read. Exp
 in both directions -- data from Statistics Canada, for example, typically arrives long and
 needs widening for a report table.
 
-For now the point is: when you are reading in a dataset, *look at the shape*. Is each row an observation? Is each column a variable? If not, fixing that is the first step.
+When you read in a dataset, look at the shape. Is each row an observation? Is each column a variable? If not, fixing that is the first step.
 
 ::: {.callout-tip collapse="true"}
 ## Other resources — tidy data and pivoting
@@ -375,14 +387,14 @@ yields <- rename(yields,
                  region = REGION_NAME)
 ```
 
-For wholesale renaming, `janitor::clean_names()` is invaluable. (This is from the `janitor` package, not the tidyverse. Install it once with `install.packages("janitor")`.)
+For wholesale renaming, use `janitor::clean_names()`. (This is from the `janitor` package, not the tidyverse. Install it once with `install.packages("janitor")`.)
 
 ```r
 library(janitor)
 yields <- clean_names(read_csv("data/messy_data.csv"))
 ```
 
-`clean_names` converts everything to lowercase with underscores, strips special characters, and generally makes your column names nice. I use it on almost every dataset I read in.
+`clean_names` converts everything to lowercase with underscores and strips special characters. Run it on almost anything you read in.
 
 ## Test Bank Sample {#sec-module2b-test}
 

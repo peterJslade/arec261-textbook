@@ -8,10 +8,9 @@ suppressMessages({library(dplyr); library(readr); library(tidyr)})
 yields <- readr::read_csv("practice/data/field_yields.csv", show_col_types = FALSE)
 ```
 
-The tidyverse package `dplyr` provides a small set of **verbs** for data transformation
-that are powerful enough to express most of what you will ever need.  Most data manipulation
-is a *sequence of simple operations*, and with the right small vocabulary the complex
-transformations become readable.
+The tidyverse package `dplyr` provides a small set of **verbs** for data transformation.
+Most data manipulation is a sequence of simple operations, and these verbs cover most of
+what you will need.
 
 ## Learning Objectives {.unnumbered}
 
@@ -37,8 +36,7 @@ library(tidyverse)
 yields <- read_csv("data/field_yields.csv")
 ```
 
-**One crucial thing to understand before we start.** Every `dplyr` verb *returns a new
-data frame* -- it does **not** change the original. So this:
+Every `dplyr` verb returns a *new* data frame -- it does not change the original. So this:
 
 ```{r}
 #| eval: true
@@ -48,8 +46,8 @@ filter(yields, yield_bu_acre > 50)
 ')
 ```
 
-computes the filtered result and *prints it*, but `yields` itself is unchanged -- the next
-time you use `yields`, all 60 rows are still there. If you want to **keep** a result, you
+computes the filtered result and prints it, but `yields` itself is unchanged -- the next
+time you use `yields`, all 60 rows are still there. If you want to keep a result, you
 must assign it to an object:
 
 ```r
@@ -162,7 +160,7 @@ arrange(select(filter(yields, region == "South"), field_id, yield_bu_acre),
 That works, but you have to read it inside-out. The **pipe**, `|>`, fixes it. The pipe takes
 whatever is on its *left* and feeds it as the first argument to the function on its *right*.
 So `yields |> filter(region == "South")` is exactly `filter(yields, region == "South")`.
-Read `|>` as the word **"then."** The nested call above becomes a top-to-bottom sequence:
+Read `|>` as the word "then." The nested call above becomes a top-to-bottom sequence:
 
 ```{r}
 #| eval: true
@@ -203,7 +201,7 @@ the rows.)
 
 ### `group_by()`: Do the Above by Group {.unnumbered}
 
-This is where things get powerful. `group_by()` doesn't change the data -- but it tells subsequent operations to apply *per group*.
+`group_by()` doesn't change the data -- it tells subsequent operations to apply *per group*.
 
 ```{r}
 #| eval: true
@@ -314,7 +312,7 @@ Read it top to bottom and notice how each step does one thing:
 5. **Regroup** by region and variety and `summarise` down to one row per group, computing the mean yield and the number of fields. The `.groups = "drop"` argument just tells `summarise` to return an ordinary, ungrouped data frame afterward (without it, R prints a chatty message about how it left the grouping).
 6. **Sort** the final table.
 
-Do not worry about writing something this long yet -- the point is that each line is one small, readable step. Writing it as a pipeline makes the logic visible. Compare with how you would do this in Excel -- probably three PivotTables, a manual filter, and a lot of copy-pasting between sheets.
+You are not expected to write something this long yet -- the point is that each line is one small, readable step. Writing it as a pipeline makes the logic visible. Compare with how you would do this in Excel -- probably three PivotTables, a manual filter, and a lot of copy-pasting between sheets.
 
 ::: {.callout-tip collapse="true"}
 ## Other resources — dplyr
