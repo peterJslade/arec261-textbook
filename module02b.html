@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>5&nbsp; Loading Data and the Tidyverse – Agricultural Data Analytics</title>
+<title>5&nbsp; Working with Data in R – Agricultural Data Analytics</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -61,7 +61,26 @@ div.sourceCode
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="site_libs/quarto-nav/quarto-nav.js"></script>
@@ -111,35 +130,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
-  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
-  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
-
-<script type="text/javascript">
-const typesetMath = (el) => {
-  if (window.MathJax) {
-    // MathJax Typeset
-    window.MathJax.typeset([el]);
-  } else if (window.katex) {
-    // KaTeX Render
-    var mathElements = el.getElementsByClassName("math");
-    var macros = [];
-    for (var i = 0; i < mathElements.length; i++) {
-      var texText = mathElements[i].firstChild;
-      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
-        window.katex.render(texText.data, mathElements[i], {
-          displayMode: mathElements[i].classList.contains('display'),
-          throwOnError: false,
-          macros: macros,
-          fleqn: false
-        });
-      }
-    }
-  }
-}
-window.Quarto = {
-  typesetMath
-};
-</script>
 
 </head>
 
@@ -176,7 +166,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./module02a.html">Module 2: Introduction to R</a></li><li class="breadcrumb-item"><a href="./module02b.html"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Loading Data and the Tidyverse</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./module02a.html">Module 2: Introduction to R</a></li><li class="breadcrumb-item"><a href="./module02b.html"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Working with Data in R</span></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -255,13 +245,13 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./module02b.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Loading Data and the Tidyverse</span></span></a>
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Working with Data in R</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./module02c.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Tidy Data</span></span></a>
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">The <code>dplyr</code> Verbs</span></span></a>
   </div>
 </li>
       </ul>
@@ -269,7 +259,7 @@ window.Quarto = {
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false">
- <span class="menu-text">Module 3: Working With Real Data</span></a>
+ <span class="menu-text">Module 3: Getting and Combining Data</span></a>
           <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -277,20 +267,20 @@ window.Quarto = {
       <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./moduleRDa.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Starting a Project</span></span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
   <a href="./moduleRDb.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Getting Data</span></span></a>
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Getting Data</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./moduleRDc.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Joining and Cleaning</span></span></a>
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Merging Data</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./moduleRDd.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Cleaning Data</span></span></a>
   </div>
 </li>
       </ul>
@@ -566,36 +556,29 @@ window.Quarto = {
    
   <ul>
   <li><a href="#learning-objectives" id="toc-learning-objectives" class="nav-link active" data-scroll-target="#learning-objectives">Learning Objectives</a></li>
-  <li><a href="#sec-reading-data" id="toc-sec-reading-data" class="nav-link" data-scroll-target="#sec-reading-data"><span class="header-section-number">5.1</span> Reading Data from CSV</a>
+  <li><a href="#sec-project-folder" id="toc-sec-project-folder" class="nav-link" data-scroll-target="#sec-project-folder"><span class="header-section-number">5.1</span> One Folder Per Project</a></li>
+  <li><a href="#sec-paths" id="toc-sec-paths" class="nav-link" data-scroll-target="#sec-paths"><span class="header-section-number">5.2</span> Paths, and Why <code>setwd()</code> Is a Trap</a></li>
+  <li><a href="#sec-file-names" id="toc-sec-file-names" class="nav-link" data-scroll-target="#sec-file-names"><span class="header-section-number">5.3</span> File Names</a></li>
+  <li><a href="#sec-packages" id="toc-sec-packages" class="nav-link" data-scroll-target="#sec-packages"><span class="header-section-number">5.4</span> Packages</a></li>
+  <li><a href="#sec-tidyverse" id="toc-sec-tidyverse" class="nav-link" data-scroll-target="#sec-tidyverse"><span class="header-section-number">5.5</span> The Tidyverse</a></li>
+  <li><a href="#sec-reading-data" id="toc-sec-reading-data" class="nav-link" data-scroll-target="#sec-reading-data"><span class="header-section-number">5.6</span> Reading Data from CSV</a></li>
+  <li><a href="#sec-r-summary-stats" id="toc-sec-r-summary-stats" class="nav-link" data-scroll-target="#sec-r-summary-stats"><span class="header-section-number">5.7</span> Summary Statistics in R</a></li>
+  <li><a href="#sec-tidy-data" id="toc-sec-tidy-data" class="nav-link" data-scroll-target="#sec-tidy-data"><span class="header-section-number">5.8</span> Tidy Data</a>
   <ul>
-  <li><a href="#packages-install-once-load-every-time" id="toc-packages-install-once-load-every-time" class="nav-link" data-scroll-target="#packages-install-once-load-every-time">Packages: install once, load every time</a></li>
-  <li><a href="#reading-the-file-and-the-working-directory" id="toc-reading-the-file-and-the-working-directory" class="nav-link" data-scroll-target="#reading-the-file-and-the-working-directory">Reading the file, and the working directory</a></li>
+  <li><a href="#reshaping-with-pivot_longer-and-pivot_wider" id="toc-reshaping-with-pivot_longer-and-pivot_wider" class="nav-link" data-scroll-target="#reshaping-with-pivot_longer-and-pivot_wider">Reshaping with <code>pivot_longer</code> and <code>pivot_wider</code></a></li>
   </ul></li>
-  <li><a href="#sec-r-summary-stats" id="toc-sec-r-summary-stats" class="nav-link" data-scroll-target="#sec-r-summary-stats"><span class="header-section-number">5.2</span> Summary Statistics in R</a></li>
-  <li><a href="#sec-dplyr-verbs" id="toc-sec-dplyr-verbs" class="nav-link" data-scroll-target="#sec-dplyr-verbs"><span class="header-section-number">5.3</span> The <code>dplyr</code> Verbs</a>
-  <ul>
-  <li><a href="#a-note-on-the-pipe" id="toc-a-note-on-the-pipe" class="nav-link" data-scroll-target="#a-note-on-the-pipe">A note on the pipe <code>|&gt;</code></a></li>
-  <li><a href="#filter-keep-certain-rows" id="toc-filter-keep-certain-rows" class="nav-link" data-scroll-target="#filter-keep-certain-rows"><code>filter()</code>: Keep Certain Rows</a></li>
-  <li><a href="#select-keep-certain-columns" id="toc-select-keep-certain-columns" class="nav-link" data-scroll-target="#select-keep-certain-columns"><code>select()</code>: Keep Certain Columns</a></li>
-  <li><a href="#mutate-add-or-modify-columns" id="toc-mutate-add-or-modify-columns" class="nav-link" data-scroll-target="#mutate-add-or-modify-columns"><code>mutate()</code>: Add or Modify Columns</a></li>
-  <li><a href="#arrange-sort-rows" id="toc-arrange-sort-rows" class="nav-link" data-scroll-target="#arrange-sort-rows"><code>arrange()</code>: Sort Rows</a></li>
-  <li><a href="#summarise-collapse-to-summary" id="toc-summarise-collapse-to-summary" class="nav-link" data-scroll-target="#summarise-collapse-to-summary"><code>summarise()</code>: Collapse to Summary</a></li>
-  <li><a href="#group_by-do-the-above-by-group" id="toc-group_by-do-the-above-by-group" class="nav-link" data-scroll-target="#group_by-do-the-above-by-group"><code>group_by()</code>: Do the Above by Group</a></li>
-  </ul></li>
-  <li><a href="#sec-unit-conversion" id="toc-sec-unit-conversion" class="nav-link" data-scroll-target="#sec-unit-conversion"><span class="header-section-number">5.4</span> Unit Conversion: A Worked Example</a></li>
-  <li><a href="#sec-missing-values" id="toc-sec-missing-values" class="nav-link" data-scroll-target="#sec-missing-values"><span class="header-section-number">5.5</span> Handling Missing Values</a></li>
-  <li><a href="#sec-writing-output" id="toc-sec-writing-output" class="nav-link" data-scroll-target="#sec-writing-output"><span class="header-section-number">5.6</span> Writing Output to a File</a></li>
-  <li><a href="#sec-good-scripts" id="toc-sec-good-scripts" class="nav-link" data-scroll-target="#sec-good-scripts"><span class="header-section-number">5.7</span> Writing Good R Scripts</a></li>
-  <li><a href="#sec-r-ai" id="toc-sec-r-ai" class="nav-link" data-scroll-target="#sec-r-ai"><span class="header-section-number">5.8</span> A Word on AI Coding Assistants</a></li>
+  <li><a href="#sec-renaming" id="toc-sec-renaming" class="nav-link" data-scroll-target="#sec-renaming"><span class="header-section-number">5.9</span> Renaming and Cleaning Column Names</a></li>
+  <li><a href="#sec-module2b-test" id="toc-sec-module2b-test" class="nav-link" data-scroll-target="#sec-module2b-test"><span class="header-section-number">5.10</span> Test Bank Sample</a></li>
+  <li><a href="#sec-module2b-practice" id="toc-sec-module2b-practice" class="nav-link" data-scroll-target="#sec-module2b-practice"><span class="header-section-number">5.11</span> Practice Exercises</a></li>
   </ul>
 </nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./module02a.html">Module 2: Introduction to R</a></li><li class="breadcrumb-item"><a href="./module02b.html"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Loading Data and the Tidyverse</span></a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./module02a.html">Module 2: Introduction to R</a></li><li class="breadcrumb-item"><a href="./module02b.html"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Working with Data in R</span></a></li></ol></nav>
 <div class="quarto-title">
-<h1 class="title"><span id="sec-tidyverse" class="quarto-section-identifier"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Loading Data and the Tidyverse</span></span></h1>
+<h1 class="title"><span id="sec-working-with-data" class="quarto-section-identifier"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Working with Data in R</span></span></h1>
 </div>
 
 
@@ -612,68 +595,129 @@ window.Quarto = {
 </header>
 
 
-<p>With R installed and the basics in hand, this chapter is about getting <em>real</em> data into R and reshaping it: loading the tidyverse, reading a CSV, and using the small set of <code>dplyr</code> verbs that covers most of the data manipulation you will ever need.</p>
+<p>With R installed and the basics in hand, this chapter is about working with real data: setting up a project folder, installing the tidyverse, reading a CSV file, computing summary statistics, and getting a dataset into a shape you can analyze.</p>
 <section id="learning-objectives" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="learning-objectives">Learning Objectives</h2>
 <div class="objectives">
 <p>By the end of this chapter you should be able to:</p>
 <ol type="1">
+<li>Set up a self-contained project folder that someone else can open and run.</li>
 <li>Install and load packages, and explain the difference between the two.</li>
-<li>Read a CSV file into R as a data frame, and diagnose working-directory errors.</li>
+<li>Read a CSV file into R as a data frame, and diagnose file-not-found errors.</li>
 <li>Compute summary statistics in R, handling missing values correctly.</li>
-<li>Use the core <code>dplyr</code> verbs (<code>filter</code>, <code>select</code>, <code>mutate</code>, <code>arrange</code>, <code>summarise</code>, <code>group_by</code>) fluently.</li>
-<li>Chain operations together with the pipe (<code>|&gt;</code>).</li>
-<li>Use <code>case_when</code> for multi-condition transformations, such as unit conversion.</li>
-<li>Write results back out to a file, and write scripts someone else can re-run.</li>
+<li>Explain what “tidy data” means, and reshape a dataset with <code>pivot_longer</code> and <code>pivot_wider</code>.</li>
+<li>Clean up awkward column names.</li>
 </ol>
 </div>
 </section>
-<section id="sec-reading-data" class="level2" data-number="5.1">
-<h2 data-number="5.1" class="anchored" data-anchor-id="sec-reading-data"><span class="header-section-number">5.1</span> Reading Data from CSV</h2>
-<p>In practice, you almost always have data in a CSV file that you want to read into R. The modern way to do this uses the <strong>tidyverse</strong>, a collection of add-on <strong>packages</strong> for data manipulation that has become the standard for working with tabular data in R.</p>
-<section id="packages-install-once-load-every-time" class="level3 unnumbered">
-<h3 class="unnumbered anchored" data-anchor-id="packages-install-once-load-every-time">Packages: install once, load every time</h3>
-<p>A <strong>package</strong> is a bundle of extra functions someone has written that do not come with R itself. Using one is a two-step process, and beginners constantly trip on the difference:</p>
+<section id="sec-project-folder" class="level2" data-number="5.1">
+<h2 data-number="5.1" class="anchored" data-anchor-id="sec-project-folder"><span class="header-section-number">5.1</span> One Folder Per Project</h2>
+<p>Before reading any data into R, set up a folder to work in. R always has a <strong>working directory</strong> – the folder it treats as “here” – and most of the file problems beginners hit come from R looking in a different place than they expect. The fix is a habit: keep each analysis in its own folder, and open that folder in Positron.</p>
+<p>A layout that works for almost everything:</p>
+<pre><code>canola-trial/
+  data/
+    canola_trial.csv          &lt;- exactly as it arrived
+  R/
+    01_clean.R
+    02_analysis.R
+  output/
+    yield_by_variety.png
+    summary_table.csv
+  README.md</code></pre>
+<p><strong>The project is self-contained.</strong> Everything the analysis needs is inside <code>canola-trial/</code>. You can zip the folder, send it to somebody, and it will run on their machine. A script that reaches out to a file elsewhere on your hard drive will not.</p>
+<p><strong>Raw data is never edited.</strong> <code>data/</code> holds the file as it arrived. If you open the CSV in Excel, fix three cells and save, you have written over the only copy of what you were given, and there is no record of what you changed. Do the fixing in the script, where it leaves a trail.</p>
+<p><strong>Outputs are disposable.</strong> Anything in <code>output/</code> can be deleted and regenerated by re-running the scripts. That is a useful test: delete <code>output/</code>, run the scripts, and see whether everything comes back.</p>
+<p><strong>Scripts are numbered in the order they run.</strong> <code>01_clean.R</code> then <code>02_analysis.R</code>. Six months later this tells you where to start.</p>
+<p>To make the working directory be your project folder, open the folder in Positron with <strong>File → Open Folder…</strong>. Do this at the start of every session.</p>
+<p>An organized project folder has one more payoff, which we will return to in Module 5: AI coding assistants can read the files in your project folder, so a well-organized project is one an assistant can actually help with.</p>
+</section>
+<section id="sec-paths" class="level2" data-number="5.2">
+<h2 data-number="5.2" class="anchored" data-anchor-id="sec-paths"><span class="header-section-number">5.2</span> Paths, and Why <code>setwd()</code> Is a Trap</h2>
+<p>A path tells R where a file is. There are two kinds.</p>
+<p>An <strong>absolute path</strong> starts at the root of your hard drive:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">read_csv</span>(<span class="st">"/Users/peter/Documents/canola-trial/data/canola_trial.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>A <strong>relative path</strong> starts wherever R currently is:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">read_csv</span>(<span class="st">"data/canola_trial.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The relative version works on any machine where the project folder is open. The absolute one works only on mine, because it names a user, a folder layout and an operating system that your classmate does not share.</p>
+<p>R does have a function, <code>setwd()</code>, that changes the working directory from inside a script:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">setwd</span>(<span class="st">"/Users/peter/Documents/canola-trial"</span>)     <span class="co"># do not do this</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>In my experience this is the most common reason a script that works fine for its author fails for everyone else. It writes one machine into a file you are going to share. Open the project folder instead, and plain relative paths work.</p>
+<p>One wrinkle. Windows paths use backslashes, as in <code>C:\Users\...</code>, but a backslash means something special inside an R string. Write forward slashes even on Windows: <code>"C:/Users/..."</code>. R handles the translation.</p>
+</section>
+<section id="sec-file-names" class="level2" data-number="5.3">
+<h2 data-number="5.3" class="anchored" data-anchor-id="sec-file-names"><span class="header-section-number">5.3</span> File Names</h2>
+<p>Two rules save a lot of trouble.</p>
+<p>Avoid spaces and punctuation. <code>yield data (final).csv</code> will work until the day it does not. <code>yield_data_final.csv</code> is safer.</p>
+<p>Write dates as YYYY-MM-DD. <code>2025-09-15_deliveries.csv</code> sorts chronologically on its own, and <code>Sept15.csv</code> does not.</p>
+<p>If you find yourself writing <code>final</code>, <code>final_v2</code>, <code>final_REAL</code> in file names, the project needs a way of tracking versions rather than a longer file name. Version control systems do this, and Git is the common one. It is worth learning if you carry on with this kind of work, though we will not cover it here.</p>
+</section>
+<section id="sec-packages" class="level2" data-number="5.4">
+<h2 data-number="5.4" class="anchored" data-anchor-id="sec-packages"><span class="header-section-number">5.4</span> Packages</h2>
+<p>A <strong>package</strong> is a bundle of extra functions someone has written that do not come with R itself. The one we will use constantly is the <strong>tidyverse</strong>, described in the next section. Using a package is a two-step process:</p>
 <ol type="1">
 <li><p><strong>Install it – once per computer.</strong> This downloads the package from the internet and saves it on your machine. You only ever do this once (per computer):</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">"tidyverse"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">"tidyverse"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>This prints a <em>lot</em> of text – progress bars and messages, sometimes in red. That red text is normal; it is not an error. Just wait for it to finish (it can take a few minutes the first time).</p></li>
 <li><p><strong>Load it – once per script.</strong> Installing puts the package on your computer, but it is not switched on until you <em>load</em> it. Put this at the <strong>top of every script</strong> that uses the tidyverse:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></li>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></li>
 </ol>
 <p>If you skip the <code>library()</code> step and try to use a tidyverse function, R will stop with an error like:</p>
 <pre><code>Error in read_csv(...) : could not find function "read_csv"</code></pre>
 <p>That “could not find function” message almost always means <strong>you forgot to load the package</strong> (or you have not installed it yet). The fix is to run <code>library(tidyverse)</code> first. Note the quirk: you put quotes around the name when you <em>install</em> (<code>install.packages("tidyverse")</code>) but not when you <em>load</em> (<code>library(tidyverse)</code>).</p>
 </section>
-<section id="reading-the-file-and-the-working-directory" class="level3 unnumbered">
-<h3 class="unnumbered anchored" data-anchor-id="reading-the-file-and-the-working-directory">Reading the file, and the working directory</h3>
-<p>Once the tidyverse is loaded, you can read a CSV:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"canola_yields_2025.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p><code>read_csv</code> (from the tidyverse) reads the file into a data frame and saves it in the object <code>yields</code>. It also prints a short note about what column types it guessed – check them, because R guesses well but not perfectly.</p>
-<p>When you write just <code>"canola_yields_2025.csv"</code> – a filename with no folder path – R looks for that file in one specific place called the <strong>working directory</strong>: the folder R currently considers “here.” If the file is not in that folder, you get:</p>
-<pre><code>Error: 'canola_yields_2025.csv' does not exist in current working directory (...)</code></pre>
-<p>To fix this, you need the file and R to agree on where “here” is. Three ways, easiest first:</p>
+<section id="sec-tidyverse" class="level2" data-number="5.5">
+<h2 data-number="5.5" class="anchored" data-anchor-id="sec-tidyverse"><span class="header-section-number">5.5</span> The Tidyverse</h2>
+<p>The <strong>tidyverse</strong> is a collection of packages that share a common design: <code>readr</code> reads data, <code>dplyr</code> manipulates it, <code>tidyr</code> reshapes it, and <code>ggplot2</code> graphs it, among others. Installing the tidyverse installs the whole collection, and <code>library(tidyverse)</code> loads the core packages at once. It has become the standard way of working with tabular data in R, and it is what this book uses.</p>
+<p>Base R can do most of the same things, and you will sometimes see base functions in other people’s code or in AI-generated code. The two styles mix fine; we simply teach the tidyverse versions.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Other resources — packages and the tidyverse
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
 <ul>
-<li><strong>Check where R is looking</strong> by running <code>getwd()</code> (“get working directory”). It prints the folder R is currently using.</li>
-<li><strong>Point R at the right folder</strong> with <code>setwd("/full/path/to/your/folder")</code> (“set working directory”), or in Positron use <strong>Session → Set Working Directory → Choose Directory…</strong> and pick the folder that contains your CSV.</li>
-<li><strong>Best habit:</strong> keep each analysis in its own folder, put the script <em>and</em> its data in that folder, and open that folder in Positron (<strong>File → Open Folder…</strong>). Then the working directory is already that folder and plain filenames just work.</li>
+<li><strong>R for Data Science (2nd ed.)</strong> – the <a href="https://r4ds.hadley.nz/intro.html">Introduction</a> describes the tidyverse workflow (import → tidy → transform → visualize → model → communicate) this course follows.</li>
+<li><strong>tidyverse.org</strong> – <a href="https://www.tidyverse.org/packages/">the package index</a> lists the core packages and what each does.</li>
+</ul>
+</div>
+</div>
+</div>
+</section>
+<section id="sec-reading-data" class="level2" data-number="5.6">
+<h2 data-number="5.6" class="anchored" data-anchor-id="sec-reading-data"><span class="header-section-number">5.6</span> Reading Data from CSV</h2>
+<p>Once the tidyverse is loaded, you can read a CSV:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/canola_yields_2025.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><code>read_csv</code> reads the file into a data frame and saves it in the object <code>yields</code>. It also prints a short note about what column types it guessed – check them, because R guesses well but not perfectly.</p>
+<p>The path <code>"data/canola_yields_2025.csv"</code> is relative: R starts from the working directory and looks for a <code>data/</code> folder inside it. If you opened your project folder (<a href="#sec-project-folder" class="quarto-xref"><span>Section 5.1</span></a>), that is exactly where the file is, and this just works. If R cannot find the file, you get:</p>
+<pre><code>Error: 'data/canola_yields_2025.csv' does not exist in current working directory (...)</code></pre>
+<p>Two things to check, in order:</p>
+<ul>
+<li><strong>Did you open the project folder?</strong> <strong>File → Open Folder…</strong> in Positron, then pick the folder that contains <code>data/</code>.</li>
+<li><strong>Where does R think it is?</strong> Run <code>getwd()</code> (“get working directory”). It prints the folder R is currently using; the error message shows it too.</li>
 </ul>
 <p>A couple more notes:</p>
 <ul>
-<li>Alternatively you can give the <em>full path</em> to the file, e.g.&nbsp;<code>read_csv("C:/Users/you/Documents/data/canola_yields_2025.csv")</code>. Use forward slashes <code>/</code> even on Windows.</li>
 <li>If your file uses semicolons or tabs instead of commas, use <code>read_csv2</code> or <code>read_tsv</code>.</li>
+<li>To save a data frame back out, <code>write_csv(yields, "output/yields_clean.csv")</code> is the mirror image of <code>read_csv</code>.</li>
 </ul>
 <p>Once you have the data in, you can explore it:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>yields              <span class="co"># prints the data frame (first 10 rows)</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(yields)        <span class="co"># first 6 rows</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">tail</span>(yields)        <span class="co"># last 6 rows</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(yields)        <span class="co"># number of rows</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ncol</span>(yields)        <span class="co"># number of columns</span></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(yields)       <span class="co"># column names</span></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(yields)     <span class="co"># quick summary of every column</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p><code>summary()</code> is especially useful as a first look at a new dataset. For every numeric column it reports the min, max, mean, median, and quartiles; for text columns it simply notes how many values there are (and if a column is stored as a <em>factor</em> – a special categorical type – it counts each category). Always run it when you open a new dataset.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>yields              <span class="co"># prints the data frame (first 10 rows)</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(yields)        <span class="co"># first 6 rows</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">tail</span>(yields)        <span class="co"># last 6 rows</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(yields)        <span class="co"># number of rows</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ncol</span>(yields)        <span class="co"># number of columns</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(yields)       <span class="co"># column names</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(yields)     <span class="co"># compact column-by-column view, with types</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(yields)     <span class="co"># quick summary of every column</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><code>summary()</code> is especially useful as a first look at a new dataset. For every numeric column it reports the min, max, mean, median, and quartiles; for text columns it simply notes how many values there are. Always run it when you open a new dataset.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -682,37 +726,53 @@ window.Quarto = {
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <ul>
 <li><strong>R for Data Science (2nd ed.)</strong> – <a href="https://r4ds.hadley.nz/data-import.html">Chapter 7, “Data import”</a>: reading files with <code>read_csv()</code>, column types, and common import problems.</li>
 <li><strong>readr documentation</strong> – the <a href="https://readr.tidyverse.org/">tidyverse readr reference</a> for <code>read_csv()</code> and its relatives.</li>
-<li><strong>Working directory &amp; path errors</strong> – <a href="https://bookdown.org/guokai8/mastering-r-through-errors/docs/working-directory-paths.html">this chapter from <em>Mastering R Through Errors and Warnings</em></a> explains <code>getwd()</code>/<code>setwd()</code> and the “file does not exist” error beginners hit constantly.</li>
+<li><strong>Working directory &amp; path errors</strong> – <a href="https://bookdown.org/guokai8/mastering-r-through-errors/docs/working-directory-paths.html">this chapter from <em>Mastering R Through Errors and Warnings</em></a> explains <code>getwd()</code> and the “file does not exist” error.</li>
 <li><strong>Video</strong> – Science Grad School Coach, <a href="https://www.youtube.com/watch?v=B30wv33QzNY"><em>Read and load CSV files into R</em></a> – loading a CSV step by step.</li>
 </ul>
 </div>
 </div>
 </div>
 </section>
-</section>
-<section id="sec-r-summary-stats" class="level2" data-number="5.2">
-<h2 data-number="5.2" class="anchored" data-anchor-id="sec-r-summary-stats"><span class="header-section-number">5.2</span> Summary Statistics in R</h2>
-<p>All the summary statistics you learned in Module 1 exist in R too:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(yields<span class="sc">$</span>yield)</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">median</span>(yields<span class="sc">$</span>yield)</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sd</span>(yields<span class="sc">$</span>yield)</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="fu">var</span>(yields<span class="sc">$</span>yield)</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="fu">min</span>(yields<span class="sc">$</span>yield)</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="fu">max</span>(yields<span class="sc">$</span>yield)</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="fu">range</span>(yields<span class="sc">$</span>yield)              <span class="co"># returns c(min, max)</span></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(yields<span class="sc">$</span>yield, <span class="fl">0.25</span>)</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(yields<span class="sc">$</span>yield, <span class="fu">c</span>(<span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>))  <span class="co"># multiple at once</span></span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="fu">IQR</span>(yields<span class="sc">$</span>yield)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="sec-r-summary-stats" class="level2" data-number="5.7">
+<h2 data-number="5.7" class="anchored" data-anchor-id="sec-r-summary-stats"><span class="header-section-number">5.7</span> Summary Statistics in R</h2>
+<p>All the summary statistics from Module 1 exist in R too. For the rest of the chapter the examples use <a href="practice/data/field_yields.csv"><code>field_yields.csv</code></a> – 60 canola fields with columns <code>field_id</code>, <code>region</code>, <code>variety</code>, <code>acres</code>, <code>yield_bu_acre</code>, <code>year</code>, <code>seeding_date</code>, and <code>units</code>. Put it in your project’s <code>data/</code> folder and read it in:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/field_yields.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Then:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(yields<span class="sc">$</span>yield_bu_acre)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">median</span>(yields<span class="sc">$</span>yield_bu_acre)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sd</span>(yields<span class="sc">$</span>yield_bu_acre)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="fu">var</span>(yields<span class="sc">$</span>yield_bu_acre)</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="fu">min</span>(yields<span class="sc">$</span>yield_bu_acre)</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="fu">max</span>(yields<span class="sc">$</span>yield_bu_acre)</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="fu">range</span>(yields<span class="sc">$</span>yield_bu_acre)              <span class="co"># returns c(min, max)</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(yields<span class="sc">$</span>yield_bu_acre, <span class="fl">0.25</span>)</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(yields<span class="sc">$</span>yield_bu_acre, <span class="fu">c</span>(<span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>))  <span class="co"># multiple at once</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="fu">IQR</span>(yields<span class="sc">$</span>yield_bu_acre)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>One thing to watch for: if your data has <strong>missing values</strong> (coded as <code>NA</code> in R), these functions will return <code>NA</code> by default. To compute the statistic ignoring the missing values, pass <code>na.rm = TRUE</code>:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(yields<span class="sc">$</span>yield, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>This is a common source of confusion. If <code>mean()</code> returns <code>NA</code> unexpectedly, the first thing to check is whether your data has missing values.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(yields<span class="sc">$</span>yield_bu_acre)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(yields<span class="sc">$</span>yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; mean(yields$yield_bu_acre)
+[1] NA
+&gt; 
+&gt; mean(yields$yield_bu_acre, na.rm = TRUE)
+[1] 45.86316</code></pre>
+</div>
+</div>
+</div>
+<p>If <code>mean()</code> returns <code>NA</code> unexpectedly, the first thing to check is whether your data has missing values. This default is deliberate – silently ignoring missing values (as Excel often does) hides a problem you should know about. We return to missing values properly when we clean data in Module 3.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -721,7 +781,7 @@ window.Quarto = {
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <ul>
 <li><strong>Video</strong> – Rob Spencer, <a href="https://www.youtube.com/watch?v=rPSKX6460gY"><em>Descriptive statistics using the <code>summary</code> function</em></a> – a short walkthrough of <code>summary()</code>.</li>
@@ -731,362 +791,161 @@ window.Quarto = {
 </div>
 </div>
 </section>
-<section id="sec-dplyr-verbs" class="level2" data-number="5.3">
-<h2 data-number="5.3" class="anchored" data-anchor-id="sec-dplyr-verbs"><span class="header-section-number">5.3</span> The <code>dplyr</code> Verbs</h2>
-<p>The tidyverse package <code>dplyr</code> provides a small set of <strong>verbs</strong> for data transformation that are powerful enough to express most of what you will ever need. Most data manipulation is a <em>sequence of simple operations</em>, and with the right small vocabulary the complex transformations become readable.</p>
-<p>To follow along hands-on, download the small teaching dataset <a href="practice/data/field_yields.csv"><code>field_yields.csv</code></a> – 60 canola fields with columns <code>field_id</code>, <code>region</code>, <code>variety</code>, <code>acres</code>, <code>yield_bu_acre</code>, <code>year</code>, <code>seeding_date</code>, and <code>units</code>. Put it in your working directory (see <a href="#sec-reading-data" class="quarto-xref"><span>Section 5.1</span></a> above if you need a reminder), then start your script with:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"field_yields.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Every example below assumes this <code>yields</code> data frame is loaded. Run <code>yields</code> on its own line to see it, or <code>glimpse(yields)</code> for a compact column-by-column view.</p>
-<p><strong>One crucial thing to understand before we start.</strong> Every <code>dplyr</code> verb <em>returns a new data frame</em> – it does <strong>not</strong> change the original. So this:</p>
-<div class="cell">
-<div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">filter</span>(yield_bu_acre <span class="sc">&gt;</span> <span class="dv">50</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="console-transcript">
-<pre><code>&gt; yields |&gt; filter(yield_bu_acre &gt; 50)
-# A tibble: 14 × 8
-   field_id region  variety    acres yield_bu_acre  year seeding_date units
-   &lt;chr&gt;    &lt;chr&gt;   &lt;chr&gt;      &lt;dbl&gt;         &lt;dbl&gt; &lt;dbl&gt; &lt;date&gt;       &lt;chr&gt;
- 1 F010     South   Clearfield   480          56.7  2024 2024-05-03   bu/ac
- 2 F018     North   InVigor      120          54.2  2025 2025-04-26   bu/ac
- 3 F019     South   InVigor      388          50.7  2024 2024-05-12   bu/ac
- 4 F029     North   InVigor      270          53.4  2025 2025-05-24   bu/ac
- 5 F035     North   InVigor      201          54.3  2024 2024-05-05   bu/ac
- 6 F037     Central DKTC         454          51.1  2024 2024-04-27   bu/ac
- 7 F042     Central DKTC         304          50.8  2024 2024-05-09   bu/ac
- 8 F044     Central DKTC         268          60.7  2024 2024-05-14   bu/ac
- 9 F045     North   InVigor      193          54.6  2025 2025-05-06   bu/ac
-10 F046     Central InVigor      383          53.1  2025 2025-05-22   bu/ac
-11 F047     Central InVigor      345          53.2  2025 2025-05-22   bu/ac
-12 F051     North   Clearfield   302          55.3  2025 2025-05-02   bu/ac
-13 F054     Central Clearfield   333          51.6  2025 2025-04-28   bu/ac
-14 F057     Central InVigor       94          53.9  2024 2024-05-11   bu/ac</code></pre>
-</div>
-</div>
-</div>
-<p>computes the filtered result and <em>prints it</em>, but <code>yields</code> itself is unchanged – the next time you use <code>yields</code>, all 60 rows are still there. If you want to <strong>keep</strong> a result, you must assign it to an object:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>big_fields <span class="ot">&lt;-</span> yields <span class="sc">|&gt;</span> <span class="fu">filter</span>(yield_bu_acre <span class="sc">&gt;</span> <span class="dv">50</span>)   <span class="co"># save the result</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>That is deliberate: your original data stays intact while you experiment. You can see it – the filter above returned 14 rows, and <code>yields</code> still has all 60:</p>
-<div class="cell">
-<div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(yields)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="console-transcript">
-<pre><code>&gt; nrow(yields)
-[1] 60</code></pre>
-</div>
-</div>
-</div>
-<p>Throughout this chapter, when an example just shows a pipeline without <code>&lt;-</code>, assume we are looking at the result on screen; add <code>name &lt;-</code> in front when you want to save it.</p>
-<section id="a-note-on-the-pipe" class="level3 unnumbered">
-<h3 class="unnumbered anchored" data-anchor-id="a-note-on-the-pipe">A note on the pipe <code>|&gt;</code></h3>
-<p>You will see the symbol <code>|&gt;</code> in almost every example below. It is the <strong>pipe</strong>, and it does something simple: it takes whatever is on its <em>left</em> and feeds it as the first input to the function on its <em>right</em>. So <code>yields |&gt; filter(...)</code> reads as “take <code>yields</code>, then filter it.” You could write the same thing as <code>filter(yields, ...)</code>, but the pipe lets you chain several steps into a readable top-to-bottom sequence, which you will see shortly. Read <code>|&gt;</code> as the word <strong>“then.”</strong> (Older code uses <code>%&gt;%</code> for the same idea; <code>|&gt;</code> is the modern built-in version.)</p>
-</section>
-<section id="filter-keep-certain-rows" class="level3 unnumbered">
-<h3 class="unnumbered anchored" data-anchor-id="filter-keep-certain-rows"><code>filter()</code>: Keep Certain Rows</h3>
-<p><code>filter()</code> keeps rows where a condition is true.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">filter</span>(yield_bu_acre <span class="sc">&gt;</span> <span class="dv">50</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>This keeps only rows where yield exceeds 50. You can combine conditions with <code>&amp;</code> (and), <code>|</code> (or), and <code>!</code> (not):</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">filter</span>(yield_bu_acre <span class="sc">&gt;</span> <span class="dv">50</span> <span class="sc">&amp;</span> region <span class="sc">==</span> <span class="st">"South"</span>)</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">filter</span>(region <span class="sc">==</span> <span class="st">"South"</span> <span class="sc">|</span> region <span class="sc">==</span> <span class="st">"Central"</span>)</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(yield_bu_acre))  <span class="co"># drop rows with missing yield</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>A shortcut for “in this set of values”:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">filter</span>(region <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"South"</span>, <span class="st">"Central"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Important distinction: use <strong><code>==</code></strong> (two equals signs) to <em>test</em> whether two things are equal. A single <code>=</code> means something different in R – it is used for assigning values and naming arguments, not for testing equality – so writing <code>region = "South"</code> inside <code>filter()</code> will not do what you want. Always use <code>==</code> for comparisons. And note <code>"South"</code> – with quotes – is a <strong>string</strong> (a piece of text); <code>South</code> – without quotes – would be read as the name of an object, which probably doesn’t exist and would cause an error.</p>
-</section>
-<section id="select-keep-certain-columns" class="level3 unnumbered">
-<h3 class="unnumbered anchored" data-anchor-id="select-keep-certain-columns"><code>select()</code>: Keep Certain Columns</h3>
-<p><code>select()</code> keeps (or drops) columns.</p>
-<div class="cell">
-<div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">select</span>(field_id, region, yield_bu_acre)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="console-transcript">
-<pre><code>&gt; yields |&gt; select(field_id, region, yield_bu_acre)
-# A tibble: 60 × 3
-   field_id region  yield_bu_acre
-   &lt;chr&gt;    &lt;chr&gt;           &lt;dbl&gt;
- 1 F001     North            48.3
- 2 F002     Central          43.7
- 3 F003     North            39.8
- 4 F004     South            38.3
- 5 F005     South            40.4
- 6 F006     South            41.6
- 7 F007     Central          NA  
- 8 F008     Central          49.9
- 9 F009     South            48.1
-10 F010     South            56.7
-# ℹ 50 more rows</code></pre>
-</div>
-</div>
-</div>
-<p>Useful when you have a wide dataset and want to focus on a few columns.</p>
-</section>
-<section id="mutate-add-or-modify-columns" class="level3 unnumbered">
-<h3 class="unnumbered anchored" data-anchor-id="mutate-add-or-modify-columns"><code>mutate()</code>: Add or Modify Columns</h3>
-<p><code>mutate()</code> creates new columns or modifies existing ones.</p>
-<div class="cell">
-<div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">yield_t_ha =</span> yield_bu_acre <span class="sc">*</span> <span class="fl">0.0560</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="console-transcript">
-<pre><code>&gt; yields |&gt; mutate(yield_t_ha = yield_bu_acre * 0.0560)
-# A tibble: 60 × 9
-   field_id region  variety    acres yield_bu_acre  year seeding_date units
-   &lt;chr&gt;    &lt;chr&gt;   &lt;chr&gt;      &lt;dbl&gt;         &lt;dbl&gt; &lt;dbl&gt; &lt;date&gt;       &lt;chr&gt;
- 1 F001     North   DKTC         202          48.3  2025 2025-04-28   bu/ac
- 2 F002     Central DKTC         429          43.7  2024 2024-04-20   bu/ac
- 3 F003     North   Clearfield   165          39.8  2025 2025-05-25   bu/ac
- 4 F004     South   DKTC         444          38.3  2025 2025-04-28   bu/ac
- 5 F005     South   Clearfield   408          40.4  2024 2024-05-11   bu/ac
- 6 F006     South   InVigor      133          41.6  2025 2025-04-22   bu/ac
- 7 F007     Central InVigor      431          NA    2024 2024-05-05   bu/ac
- 8 F008     Central DKTC         220          49.9  2024 2024-04-22   bu/ac
- 9 F009     South   InVigor      467          48.1  2025 2025-05-14   bu/ac
-10 F010     South   Clearfield   480          56.7  2024 2024-05-03   bu/ac
-# ℹ 50 more rows
-# ℹ 1 more variable: yield_t_ha &lt;dbl&gt;</code></pre>
-</div>
-</div>
-</div>
-<p>The new column is computed from the existing ones. You can create multiple columns in one call, and later columns can use earlier ones:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span></span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">yield_t_ha =</span> yield_bu_acre <span class="sc">*</span> <span class="fl">0.0560</span>,</span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">above_average =</span> yield_bu_acre <span class="sc">&gt;</span> <span class="fu">mean</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">total_bu =</span> yield_bu_acre <span class="sc">*</span> acres</span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</section>
-<section id="arrange-sort-rows" class="level3 unnumbered">
-<h3 class="unnumbered anchored" data-anchor-id="arrange-sort-rows"><code>arrange()</code>: Sort Rows</h3>
-<div class="cell">
-<div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">arrange</span>(<span class="fu">desc</span>(yield_bu_acre))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="console-transcript">
-<pre><code>&gt; yields |&gt; arrange(desc(yield_bu_acre))
-# A tibble: 60 × 8
-   field_id region  variety    acres yield_bu_acre  year seeding_date units
-   &lt;chr&gt;    &lt;chr&gt;   &lt;chr&gt;      &lt;dbl&gt;         &lt;dbl&gt; &lt;dbl&gt; &lt;date&gt;       &lt;chr&gt;
- 1 F044     Central DKTC         268          60.7  2024 2024-05-14   bu/ac
- 2 F010     South   Clearfield   480          56.7  2024 2024-05-03   bu/ac
- 3 F051     North   Clearfield   302          55.3  2025 2025-05-02   bu/ac
- 4 F045     North   InVigor      193          54.6  2025 2025-05-06   bu/ac
- 5 F035     North   InVigor      201          54.3  2024 2024-05-05   bu/ac
- 6 F018     North   InVigor      120          54.2  2025 2025-04-26   bu/ac
- 7 F057     Central InVigor       94          53.9  2024 2024-05-11   bu/ac
- 8 F029     North   InVigor      270          53.4  2025 2025-05-24   bu/ac
- 9 F047     Central InVigor      345          53.2  2025 2025-05-22   bu/ac
-10 F046     Central InVigor      383          53.1  2025 2025-05-22   bu/ac
-# ℹ 50 more rows</code></pre>
-</div>
-</div>
-</div>
-<p><code>arrange(yield_bu_acre)</code> sorts the other way, and you can give it more than one column – <code>arrange(region, desc(yield_bu_acre))</code> sorts by region, then by yield within each region.</p>
-</section>
-<section id="summarise-collapse-to-summary" class="level3 unnumbered">
-<h3 class="unnumbered anchored" data-anchor-id="summarise-collapse-to-summary"><code>summarise()</code>: Collapse to Summary</h3>
-<p><code>summarise()</code> computes summary statistics, reducing many rows to one.</p>
-<div class="cell">
-<div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span></span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_yield =</span> <span class="fu">mean</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">sd_yield =</span> <span class="fu">sd</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">n =</span> <span class="fu">n</span>()</span>
-<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="console-transcript">
-<pre><code>&gt; yields |&gt;
-+   summarise(
-+     mean_yield = mean(yield_bu_acre, na.rm = TRUE),
-+     sd_yield = sd(yield_bu_acre, na.rm = TRUE),
-+     n = n()
-+   )
-# A tibble: 1 × 3
-  mean_yield sd_yield     n
-       &lt;dbl&gt;    &lt;dbl&gt; &lt;int&gt;
-1       45.9     6.35    60</code></pre>
-</div>
-</div>
-</div>
-<p>The result is a data frame with one row containing the requested summaries.</p>
-</section>
-<section id="group_by-do-the-above-by-group" class="level3 unnumbered">
-<h3 class="unnumbered anchored" data-anchor-id="group_by-do-the-above-by-group"><code>group_by()</code>: Do the Above by Group</h3>
-<p>This is where things get powerful. <code>group_by()</code> doesn’t change the data – but it tells subsequent operations to apply <em>per group</em>.</p>
-<div class="cell">
-<div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span></span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(region) <span class="sc">|&gt;</span></span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_yield =</span> <span class="fu">mean</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">sd_yield =</span> <span class="fu">sd</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">n =</span> <span class="fu">n</span>()</span>
-<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="console-transcript">
-<pre><code>&gt; yields |&gt;
-+   group_by(region) |&gt;
-+   summarise(
-+     mean_yield = mean(yield_bu_acre, na.rm = TRUE),
-+     sd_yield = sd(yield_bu_acre, na.rm = TRUE),
-+     n = n()
-+   )
-# A tibble: 3 × 4
-  region  mean_yield sd_yield     n
-  &lt;chr&gt;        &lt;dbl&gt;    &lt;dbl&gt; &lt;int&gt;
-1 Central       47.6     6.04    21
-2 North         47.3     5.22    20
-3 South         42.7     6.80    19</code></pre>
-</div>
-</div>
-</div>
-<p>The result is a data frame with one row per region, containing the summary statistics for that region. This is the R equivalent of a PivotTable. You can group by multiple columns:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span></span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(region, variety) <span class="sc">|&gt;</span></span>
-<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield =</span> <span class="fu">mean</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>After you are done summarising, it is good practice to <code>ungroup()</code> – otherwise the grouping persists and can surprise you later:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span></span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(region) <span class="sc">|&gt;</span></span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield =</span> <span class="fu">mean</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</section>
-</section>
-<section id="sec-unit-conversion" class="level2" data-number="5.4">
-<h2 data-number="5.4" class="anchored" data-anchor-id="sec-unit-conversion"><span class="header-section-number">5.4</span> Unit Conversion: A Worked Example</h2>
-<p>Canadian ag data often comes in mixed units. Canola yields are traditionally reported in bushels per acre (bu/ac) in Canada, but metric tonnes per hectare (t/ha) in global datasets. The conversion for canola is approximately:</p>
-<p><span class="math display">\[
-\text{yield (t/ha)} = \text{yield (bu/ac)} \times 0.0560
-\]</span></p>
-<p>This factor comes from two facts: a bushel of canola weighs about 22.68 kg (canola’s standard 50-lb bushel), and an acre is about 0.4047 ha. So one bu/ac is <span class="math inline">\(22.68 \div 0.4047 \div 1000 \approx 0.0560\)</span> t/ha. (The exact factor depends on the crop’s bushel weight – a wheat or corn bushel is 60 or 56 lb and gives a different number – so in a real analysis you would look up the right bushel weight for your crop and cite your source.)</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>yields_converted <span class="ot">&lt;-</span> yields <span class="sc">|&gt;</span></span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">yield_t_ha =</span> yield_bu_acre <span class="sc">*</span> <span class="fl">0.0560</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Now suppose your dataset is really messy – some rows are in bu/ac and some are already in t/ha, and there is a <code>units</code> column telling you which. You can use <code>case_when</code>:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>yields_converted <span class="ot">&lt;-</span> yields <span class="sc">|&gt;</span></span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">yield_t_ha =</span> <span class="fu">case_when</span>(</span>
-<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>      units <span class="sc">==</span> <span class="st">"bu/ac"</span> <span class="sc">~</span> yield_bu_acre <span class="sc">*</span> <span class="fl">0.0560</span>,   <span class="co"># convert the bu/ac rows</span></span>
-<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>      units <span class="sc">==</span> <span class="st">"t/ha"</span>  <span class="sc">~</span> yield_bu_acre,             <span class="co"># already metric: leave as-is</span></span>
-<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span>             <span class="sc">~</span> <span class="cn">NA_real_</span>                    <span class="co"># anything else becomes missing</span></span>
-<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>(Here we assume the value lives in a <code>yield_bu_acre</code> column and a separate <code>units</code> column records the unit of each row. <code>NA_real_</code> is just R’s way of writing a missing <em>numeric</em> value – the numeric version of <code>NA</code>.)</p>
-<p><code>case_when</code> is the R analogue of nested <code>IF</code>s in Excel. Each line is a condition and a value. The first matching condition wins. The <code>TRUE ~ ...</code> line is the catch-all “else.” Use <code>case_when</code> whenever you have multi-way conditions; it is much cleaner than nested <code>if_else</code>.</p>
-</section>
-<section id="sec-missing-values" class="level2" data-number="5.5">
-<h2 data-number="5.5" class="anchored" data-anchor-id="sec-missing-values"><span class="header-section-number">5.5</span> Handling Missing Values</h2>
-<p>In R, missing values are represented as <code>NA</code>. They are sneaky because most operations <em>propagate</em> them – any operation involving <code>NA</code> returns <code>NA</code>:</p>
-<div class="cell">
-<div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="cn">NA</span>) <span class="sc">+</span> <span class="dv">1</span></span>
-<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="cn">NA</span>))</span>
-<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="cn">NA</span>), <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="console-transcript">
-<pre><code>&gt; c(1, 2, NA) + 1
-[1]  2  3 NA
-&gt; mean(c(1, 2, NA))
-[1] NA
-&gt; mean(c(1, 2, NA), na.rm = TRUE)
-[1] 1.5</code></pre>
-</div>
-</div>
-</div>
-<p>This is actually the right default behavior – silently treating missing values as zero (as Excel often does) is a recipe for bugs. But it means you need to deal with <code>NA</code>s explicitly.</p>
-<p>A few patterns:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check for missing values</span></span>
-<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="fu">is.na</span>(yields<span class="sc">$</span>yield)              <span class="co"># logical vector</span></span>
-<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(<span class="fu">is.na</span>(yields<span class="sc">$</span>yield))          <span class="co"># count of NAs</span></span>
-<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(<span class="fu">is.na</span>(yields<span class="sc">$</span>yield))         <span class="co"># fraction of NAs</span></span>
-<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove rows with any missing values</span></span>
-<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>yields_clean <span class="ot">&lt;-</span> yields <span class="sc">|&gt;</span> <span class="fu">drop_na</span>()</span>
-<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove rows with missing values in specific columns</span></span>
-<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a>yields_clean <span class="ot">&lt;-</span> yields <span class="sc">|&gt;</span> <span class="fu">drop_na</span>(yield_bu_acre)</span>
-<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute a statistic ignoring NAs</span></span>
-<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(yields<span class="sc">$</span>yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Replace NAs with a value</span></span>
-<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">yield_bu_acre =</span> <span class="fu">replace_na</span>(yield_bu_acre, <span class="dv">0</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p><strong>When is it safe to drop missing values and when is it dangerous?</strong> It depends on <em>why</em> they are missing. If data is missing completely at random (e.g., a sensor failed arbitrarily), dropping missing values gives you unbiased estimates, just with less data. If data is missing for a reason related to the value itself (e.g., only high-yielding fields were reported), dropping them can bias your results – you will systematically overestimate yields.</p>
-<p>The honest answer to “what should I do with missing values” is almost always: <em>think about why they are missing</em>, and <em>document what you decided to do</em>. There is no universal fix.</p>
-</section>
-<section id="sec-writing-output" class="level2" data-number="5.6">
-<h2 data-number="5.6" class="anchored" data-anchor-id="sec-writing-output"><span class="header-section-number">5.6</span> Writing Output to a File</h2>
-<p>To save a data frame back to a CSV, pass the object you want to save and the filename to write it to. For example, if you have built a summary table and stored it in an object called <code>region_summary</code>:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write_csv</span>(region_summary, <span class="st">"region_summary_2026-09-15.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>To save a plot (after making one with ggplot2, which comes in Module 4):</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="st">"yield_histogram.png"</span>, <span class="at">width =</span> <span class="dv">6</span>, <span class="at">height =</span> <span class="dv">4</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>And to save the R <strong>environment</strong> (all the objects in memory) so you can pick up where you left off:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">save.image</span>(<span class="st">"session_2026-09-15.RData"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>(Honestly, I rarely do that last one. If your script is reproducible, you should be able to re-run it from scratch to get back to where you were.)</p>
-</section>
-<section id="sec-good-scripts" class="level2" data-number="5.7">
-<h2 data-number="5.7" class="anchored" data-anchor-id="sec-good-scripts"><span class="header-section-number">5.7</span> Writing Good R Scripts</h2>
-<p>A few habits worth picking up early:</p>
+<section id="sec-tidy-data" class="level2" data-number="5.8">
+<h2 data-number="5.8" class="anchored" data-anchor-id="sec-tidy-data"><span class="header-section-number">5.8</span> Tidy Data</h2>
+<p>Hadley Wickham (one of the creators of the tidyverse) has written extensively about what he calls <strong>tidy data</strong> <span class="citation" data-cites="r4ds">(<a href="references.html#ref-r4ds" role="doc-biblioref">Wickham et al. 2023</a>)</span>. The idea is simple: a dataset is “tidy” if:</p>
 <ol type="1">
-<li><strong>Start every script with a header.</strong> Your name, the date, what the script does, what input it expects, what output it produces.</li>
-<li><strong>Load libraries at the top.</strong> Not scattered throughout the file.</li>
-<li><strong>Use comments to explain <em>why</em>, not <em>what</em>.</strong> Anyone can read the code and see what it does. The comment should tell them why you did it that way.</li>
-<li><strong>Use descriptive variable names.</strong> <code>yield_by_region</code>, not <code>x1</code>. <code>mean_yield</code>, not <code>m</code>.</li>
-<li><strong>Break long operations into named steps.</strong> Instead of one giant pipe, assign intermediate results to variables with meaningful names.</li>
-<li><strong>Make your script re-runnable from scratch.</strong> If you have to click buttons or run commands in a specific order outside the script, something is wrong.</li>
-<li><strong>Test on a subset first.</strong> For large datasets, develop your analysis on the first 1000 rows until it works, then run on the full data.</li>
+<li>Every variable has its own <strong>column</strong>.</li>
+<li>Every observation has its own <strong>row</strong>.</li>
+<li>Every value has its own <strong>cell</strong>.</li>
 </ol>
-<p>A template:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ---</span></span>
-<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Title: Canola yield summary by region</span></span>
-<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Author: Your Name</span></span>
-<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Date: 2026-09-15</span></span>
-<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Input: canola_yields_2025.csv</span></span>
-<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Output: region_summary_2026-09-15.csv</span></span>
-<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Description:</span></span>
-<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a><span class="co">#   Reads the 2025 canola yield data, filters to fields over</span></span>
-<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a><span class="co">#   100 acres, and computes mean yield per region.</span></span>
-<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a><span class="co"># ---</span></span>
-<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-14"><a href="#cb39-14" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Load data</span></span>
-<span id="cb39-15"><a href="#cb39-15" aria-hidden="true" tabindex="-1"></a>yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"canola_yields_2025.csv"</span>)</span>
-<span id="cb39-16"><a href="#cb39-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-17"><a href="#cb39-17" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Explore</span></span>
-<span id="cb39-18"><a href="#cb39-18" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(yields)</span>
-<span id="cb39-19"><a href="#cb39-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-20"><a href="#cb39-20" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Summarise by region (only fields &gt; 100 acres)</span></span>
-<span id="cb39-21"><a href="#cb39-21" aria-hidden="true" tabindex="-1"></a>region_summary <span class="ot">&lt;-</span> yields <span class="sc">|&gt;</span></span>
-<span id="cb39-22"><a href="#cb39-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(acres <span class="sc">&gt;</span> <span class="dv">100</span>) <span class="sc">|&gt;</span></span>
-<span id="cb39-23"><a href="#cb39-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(region) <span class="sc">|&gt;</span></span>
-<span id="cb39-24"><a href="#cb39-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield =</span> <span class="fu">mean</span>(yield, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb39-25"><a href="#cb39-25" aria-hidden="true" tabindex="-1"></a>            <span class="at">n =</span> <span class="fu">n</span>()) <span class="sc">|&gt;</span></span>
-<span id="cb39-26"><a href="#cb39-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(mean_yield))</span>
-<span id="cb39-27"><a href="#cb39-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-28"><a href="#cb39-28" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. Save output</span></span>
-<span id="cb39-29"><a href="#cb39-29" aria-hidden="true" tabindex="-1"></a><span class="fu">write_csv</span>(region_summary, <span class="st">"region_summary_2026-09-15.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Six months from now you can read this and know what it does.</p>
+<p>That sounds obvious, but a huge fraction of real datasets violate it. Common problems:</p>
+<ul>
+<li><strong>Column headers are values, not variable names.</strong> For example, a table with columns <code>2020</code>, <code>2021</code>, <code>2022</code>, <code>2023</code> where each column contains yields. The column header should be a variable called <code>year</code>; the values should be in a single <code>yield</code> column.</li>
+<li><strong>Multiple variables in one column.</strong> For example, a <code>region_variety</code> column that contains <code>"South_InVigor"</code>. These should be two separate columns.</li>
+<li><strong>Observations split across rows.</strong> For example, one row for price and another for quantity of the same product. These should be columns.</li>
+</ul>
+<p>You can do analysis on untidy data, but it is much harder. Almost every tool in the tidyverse assumes tidy input. If your data is not tidy, your first step should usually be to <em>make</em> it tidy.</p>
+<section id="reshaping-with-pivot_longer-and-pivot_wider" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="reshaping-with-pivot_longer-and-pivot_wider">Reshaping with <code>pivot_longer</code> and <code>pivot_wider</code></h3>
+<p>This is the wide-versus-long distinction from <a href="module01b.html#sec-wide-long" class="quarto-xref"><span>Section 2.4</span></a>, where a PivotTable needed the long form. The same data can be stored wide – one column per crop – or long, with the crop as a variable:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>yields_wide <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">region =</span> <span class="fu">c</span>(<span class="st">"South"</span>, <span class="st">"Central"</span>, <span class="st">"North"</span>),</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">Canola =</span> <span class="fu">c</span>(<span class="dv">41</span>, <span class="dv">44</span>, <span class="dv">38</span>),</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">Wheat  =</span> <span class="fu">c</span>(<span class="dv">52</span>, <span class="dv">55</span>, <span class="dv">49</span>),</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Barley =</span> <span class="fu">c</span>(<span class="dv">64</span>, <span class="dv">68</span>, <span class="dv">60</span>)</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>yields_wide</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; yields_wide &lt;- tibble(
++   region = c("South", "Central", "North"),
++   Canola = c(41, 44, 38),
++   Wheat  = c(52, 55, 49),
++   Barley = c(64, 68, 60)
++ )
+&gt; yields_wide
+# A tibble: 3 × 4
+  region  Canola Wheat Barley
+  &lt;chr&gt;    &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;
+1 South       41    52     64
+2 Central     44    55     68
+3 North       38    49     60</code></pre>
+</div>
+</div>
+</div>
+<p>The wide table is untidy in the first way listed above: the column headers <code>Canola</code>, <code>Wheat</code>, <code>Barley</code> are values of a variable (crop), not variables themselves. <code>pivot_longer</code> fixes it. You tell it which columns to gather, what to call the column that will hold their <em>names</em>, and what to call the column that will hold their <em>values</em>:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>yields_long <span class="ot">&lt;-</span> <span class="fu">pivot_longer</span>(yields_wide,</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>                            <span class="at">cols =</span> <span class="fu">c</span>(Canola, Wheat, Barley),</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>                            <span class="at">names_to =</span> <span class="st">"crop"</span>,</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>                            <span class="at">values_to =</span> <span class="st">"yield"</span>)</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>yields_long</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; yields_long &lt;- pivot_longer(yields_wide,
++                             cols = c(Canola, Wheat, Barley),
++                             names_to = "crop",
++                             values_to = "yield")
+&gt; yields_long
+# A tibble: 9 × 3
+  region  crop   yield
+  &lt;chr&gt;   &lt;chr&gt;  &lt;dbl&gt;
+1 South   Canola    41
+2 South   Wheat     52
+3 South   Barley    64
+4 Central Canola    44
+5 Central Wheat     55
+6 Central Barley    68
+7 North   Canola    38
+8 North   Wheat     49
+9 North   Barley    60</code></pre>
+</div>
+</div>
+</div>
+<p>Nine rows now: one per region-crop combination, with <code>crop</code> and <code>yield</code> as ordinary columns that R can group and filter on.</p>
+<p><code>pivot_wider</code> goes the other way. Tell it which column holds the names and which holds the values:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">pivot_wider</span>(yields_long, <span class="at">names_from =</span> crop, <span class="at">values_from =</span> yield)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; pivot_wider(yields_long, names_from = crop, values_from = yield)
+# A tibble: 3 × 4
+  region  Canola Wheat Barley
+  &lt;chr&gt;    &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;
+1 South       41    52     64
+2 Central     44    55     68
+3 North       38    49     60</code></pre>
+</div>
+</div>
+</div>
+<p>Long is usually what analysis wants; wide is often what people want to read. Expect to pivot in both directions – data from Statistics Canada, for example, typically arrives long and needs widening for a report table.</p>
+<p>For now the point is: when you are reading in a dataset, <em>look at the shape</em>. Is each row an observation? Is each column a variable? If not, fixing that is the first step.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Tip</span>Other resources — writing good, reproducible R scripts
+<span class="screen-reader-only">Tip</span>Other resources — tidy data and pivoting
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-3" class="callout-3-contents callout-collapse collapse">
+<div id="callout-4" class="callout-4-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <ul>
-<li><strong>The tidyverse style guide</strong> – <a href="https://style.tidyverse.org/">style.tidyverse.org</a> is the standard reference for naming, spacing, pipes, and generally readable R code.</li>
-<li><strong>Video</strong> – Riffomonas Project (Pat Schloss), <a href="https://www.youtube.com/watch?v=XSRO4VKD-pc"><em>Keeping R code DRY with functions</em></a> – a good-habits video on not repeating yourself, from a reproducible-research series.</li>
+<li><strong>R for Data Science (2nd ed.)</strong> – <a href="https://r4ds.hadley.nz/data-tidy">Chapter 5, “Data tidying”</a> is the definitive treatment of tidy data, <code>pivot_longer</code>, and <code>pivot_wider</code>.</li>
+<li><strong>Video</strong> – Riffomonas Project, <a href="https://www.youtube.com/watch?v=ZVddiwrbrr4"><em>Reshaping data to be long or wide with pivot_longer and pivot_wider</em></a>.</li>
 </ul>
 </div>
 </div>
 </div>
 </section>
-<section id="sec-r-ai" class="level2" data-number="5.8">
-<h2 data-number="5.8" class="anchored" data-anchor-id="sec-r-ai"><span class="header-section-number">5.8</span> A Word on AI Coding Assistants</h2>
-<p>You will be tempted to ask an AI for help the first time a script fails, and you should. It is one of the better uses of these tools.</p>
-<p>One rule for now: <strong>do not run code you do not understand.</strong> If a suggestion contains a line you cannot explain, ask what it does before you run it. Module 5 covers this properly — what the tools are doing, how to set up GitHub Copilot, and how to check its work.</p>
+</section>
+<section id="sec-renaming" class="level2" data-number="5.9">
+<h2 data-number="5.9" class="anchored" data-anchor-id="sec-renaming"><span class="header-section-number">5.9</span> Renaming and Cleaning Column Names</h2>
+<p>Real-world datasets often have terrible column names: <code>Yield (bu/ac)</code>, <code>REGION_NAME</code>, <code>X1</code>. These will work in R but are annoying to type and easy to mistype. Clean them up early:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>yields <span class="ot">&lt;-</span> <span class="fu">rename</span>(yields,</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>                 <span class="at">yield_bu_ac =</span> <span class="st">"Yield (bu/ac)"</span>,</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>                 <span class="at">region =</span> REGION_NAME)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>For wholesale renaming, <code>janitor::clean_names()</code> is invaluable. (This is from the <code>janitor</code> package, not the tidyverse. Install it once with <code>install.packages("janitor")</code>.)</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(janitor)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>yields <span class="ot">&lt;-</span> <span class="fu">clean_names</span>(<span class="fu">read_csv</span>(<span class="st">"data/messy_data.csv"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><code>clean_names</code> converts everything to lowercase with underscores, strips special characters, and generally makes your column names nice. I use it on almost every dataset I read in.</p>
+</section>
+<section id="sec-module2b-test" class="level2" data-number="5.10">
+<h2 data-number="5.10" class="anchored" data-anchor-id="sec-module2b-test"><span class="header-section-number">5.10</span> Test Bank Sample</h2>
+<ol type="1">
+<li>(Structure.) A classmate sends you a folder containing one script and no data. What are they likely to have done wrong?</li>
+<li>(Paths.) Explain the difference between an absolute and a relative path, and say which belongs in a shared script.</li>
+<li>(<code>setwd</code>.) Why does a script containing <code>setwd("C:/Users/peter/project")</code> fail for everyone except Peter?</li>
+<li>(Packages.) What is the difference between <code>install.packages("tidyverse")</code> and <code>library(tidyverse)</code>, and how often do you run each?</li>
+<li>(Reading data.) You have a file called <code>yields.csv</code> in your project’s <code>data/</code> folder. Write one line of R that reads it into a data frame called <code>yields</code>.</li>
+<li>(Errors.) <code>read_csv("data/yields.csv")</code> returns a “does not exist” error even though the file exists. Give two things to check.</li>
+<li>(Summary.) Write R code that computes the mean, median, and standard deviation of the <code>yield_bu_acre</code> column, ignoring any missing values.</li>
+<li>(Tidy data.) A table has columns <code>region</code>, <code>2023</code>, <code>2024</code>, <code>2025</code>, where the year columns hold yields. Say why this is untidy and write the <code>pivot_longer</code> call that fixes it.</li>
+<li>(Reshaping.) When would you use <code>pivot_wider</code>? Give an example.</li>
+<li>(Names.) What does <code>janitor::clean_names()</code> do, and why is it useful?</li>
+</ol>
+</section>
+<section id="sec-module2b-practice" class="level2" data-number="5.11">
+<h2 data-number="5.11" class="anchored" data-anchor-id="sec-module2b-practice"><span class="header-section-number">5.11</span> Practice Exercises</h2>
+<p>Use the <a href="practice/data/field_yields.csv"><code>field_yields.csv</code></a> dataset for these.</p>
+<ol type="1">
+<li>Set up a project folder with <code>data/</code>, <code>R/</code>, and <code>output/</code> subfolders. Put <code>field_yields.csv</code> in <code>data/</code> and open the folder in Positron. Confirm <code>getwd()</code> points where you expect.</li>
+<li>Write a script that reads the data with a relative path and prints <code>glimpse()</code> and <code>summary()</code> of it.</li>
+<li>The dataset has a few fields with a missing (<code>NA</code>) yield. Compute the mean yield with and without <code>na.rm = TRUE</code> and explain the difference.</li>
+<li>Build the small wide table from <a href="#sec-tidy-data" class="quarto-xref"><span>Section 5.8</span></a> by hand with <code>tibble()</code>, pivot it longer, then pivot it back.</li>
+<li>Delete everything in <code>output/</code>, re-run your script, and check that everything comes back. If not, why not?</li>
+</ol>
 
 
+<div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
+<div id="ref-r4ds" class="csl-entry" role="listitem">
+Wickham, Hadley, Mine Çetinkaya-Rundel, and Garrett Grolemund. 2023. <em>R for Data Science</em>. Second. O’Reilly Media. <a href="https://r4ds.hadley.nz/">https://r4ds.hadley.nz/</a>.
+</div>
+</div>
 </section>
 
 </main> <!-- /main -->
@@ -1554,8 +1413,8 @@ document.addEventListener("DOMContentLoaded", function () {
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./module02c.html" class="pagination-link" aria-label="Tidy Data">
-        <span class="nav-page-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Tidy Data</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./module02c.html" class="pagination-link" aria-label="The `dplyr` Verbs">
+        <span class="nav-page-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">The <code>dplyr</code> Verbs</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
