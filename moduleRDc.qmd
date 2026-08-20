@@ -1,5 +1,12 @@
 # Merging Data {#sec-merging-data}
 
+```{r}
+#| include: false
+#| eval: true
+source("_console.R")
+suppressMessages({library(tidyverse); library(janitor)})
+```
+
 Data arrives in pieces: yields in one file, prices in another, weather in a third.  Answering
 a real question usually means putting two or more of the pieces together.  This chapter
 covers joins: how they work, how they fail, and how to check them.
@@ -13,6 +20,7 @@ By the end of this chapter you should be able to:
 2. Say what happens to rows that do not match, and check for them.
 3. Explain why a join can return more rows than it started with.
 4. Harmonize units and category names so that two real datasets can be merged.
+5. Combine three tables with different keys and different units of observation.
 :::
 
 ## Joining Two Tables {#sec-joins}
@@ -141,3 +149,131 @@ One table, one row per year, both countries' yields in the same unit.  Run the c
 years one source has and the other does not -- a data release usually lags a year on one side
 or the other, and it is better to find that now than in a chart.
 
+## A Worked Example: Three Tables {#sec-three-table-merge}
+
+Most questions need more than two tables, and the tables are usually different kinds of
+thing.  Here are three, all real, and all available to download:
+
+- [`rm_yields_2015_2024.csv`](practice/data/rm_yields_2015_2024.csv): the Saskatchewan
+  RM yields from @sec-direct-download, cut down to 2015 to 2024 and seven crops.  One row per
+  RM per year, yields in bushels per acre.
+- [`rm_lookup.csv`](practice/data/rm_lookup.csv): one row per RM, with its name, census
+  division and 2021 population from Statistics Canada, and the nearest of sixteen Environment
+  Canada weather stations, with the distance to it in kilometres.
+- [`station_precip.csv`](practice/data/station_precip.csv): one row per weather station per
+  year, with total May to August precipitation in millimetres, computed from Environment
+  Canada's daily records, and a count of days with no reading.
+
+The question is whether canola yields track growing-season rain.  Answering it needs a yield,
+a rain total, and a way to connect the two, and each of those is in a different file.  The
+lookup table is the bridge: it is the only file that knows which station goes with which RM.
+
+Read all three and look at them:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+yields <- read_csv("data/rm_yields_2015_2024.csv") |> clean_names()
+rms    <- read_csv("data/rm_lookup.csv") |> clean_names()
+rain   <- read_csv("data/station_precip.csv") |> clean_names()
+
+glimpse(yields)
+glimpse(rms)
+glimpse(rain)
+')
+```
+
+Before joining anything, write down what identifies a row in each table.  In `yields` it is
+`rm` and `year` together.  In `rms` it is `rm_number` alone.  In `rain` it is `station` and
+`year` together.  Those are the keys, and the key column does not have the same name on both
+sides, which `by` handles with `c("left_name" = "right_name")`.
+
+### First join: yields to the lookup {.unnumbered}
+
+Check what will not match, then join, then check the row count:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+yields |>
+  anti_join(rms, by = c("rm" = "rm_number")) |>
+  distinct(rm)
+
+with_station <- yields |>
+  left_join(rms, by = c("rm" = "rm_number"))
+
+nrow(yields)
+nrow(with_station)
+')
+```
+
+Every RM in the yield data has a row in the lookup, and the row count is unchanged.  That is
+what a many-to-one join should look like: many yield rows for each RM, one lookup row per RM,
+so each yield row picks up exactly one name and one station.
+
+### Second join: add the rain {.unnumbered}
+
+The key now has two parts.  The station name in `with_station` is called `weather_station`,
+the year is called `year` on both sides, and both are needed to identify one rain total:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+with_station |>
+  anti_join(rain, by = c("weather_station" = "station", "year")) |>
+  distinct(weather_station, year)
+
+merged <- with_station |>
+  left_join(rain, by = c("weather_station" = "station", "year"))
+
+nrow(merged)
+')
+```
+
+Here is what the row-count trap looks like when you leave `year` out of the key:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+with_station |>
+  left_join(rain, by = c("weather_station" = "station")) |>
+  nrow()
+')
+```
+
+Each RM-year matched all ten years of its station's rain, so 2,950 rows became 29,500.
+Recent versions of dplyr print a warning about an unexpected many-to-many relationship when
+this happens.  Read it when it appears; it is telling you the key is incomplete.
+
+### What you can now do {.unnumbered}
+
+One table, one row per RM-year, with the yield and the season's rain side by side:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+merged |>
+  select(year, rm, rm_name, canola, weather_station, precip_may_aug_mm)
+
+merged |>
+  filter(!is.na(canola)) |>
+  group_by(year) |>
+  summarise(canola_bu_ac = mean(canola),
+            rain_mm = mean(precip_may_aug_mm))
+')
+```
+
+The wet 2016 season has the highest canola yield in the table and the dry 2017 one of the
+lowest, which is the pattern you would expect.  2021 is the exception: rainfall was ordinary
+and yields collapsed, because that summer's problem was heat more than drought.  Rain explains
+some of the variation in yields and not all of it.
+
+Two limits of this particular merge belong in the README.  The nearest station is sometimes
+far away: RM 1, Argyle, is matched to Kipling, 145 km off, because that is the closest of
+sixteen stations.  And a few station-years are missing three weeks of daily readings, which
+is what the `days_missing` column is for.
