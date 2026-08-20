@@ -1,11 +1,11 @@
-# The `dplyr` Verbs {#sec-dplyr-verbs}
+# Data Manipulation {#sec-dplyr-verbs}
 
 ```{r}
 #| include: false
 #| eval: true
 source("_console.R")
 suppressMessages({library(dplyr); library(readr); library(tidyr)})
-yields <- readr::read_csv("practice/data/field_yields.csv", show_col_types = FALSE)
+trial_data <- readr::read_csv("practice/data/canola_trial.csv", show_col_types = FALSE)
 ```
 
 With a dataset in R and inspected, we can start doing things to it. Most data analysis
@@ -13,18 +13,18 @@ involves repeating a surprisingly small number of operations: keep certain rows,
 certain columns, create or change a column, sort the rows, calculate summary statistics,
 and do those calculations separately for different groups.
 
-The tidyverse package `dplyr` gives us a function for each of these jobs. They are called
-**verbs** because each describes an action performed on a data frame. None of the
-operations are new -- each is the R form of something from the Excel modules:
+The tidyverse package `dplyr` gives us a function for each of these jobs (you will often see
+them called the dplyr "verbs"). None of the operations are new -- each is the R form of
+something from the Excel modules:
 
-| Question                                | `dplyr` verb  | Excel counterpart        |
-|-----------------------------------------|---------------|--------------------------|
-| Which rows do I want?                   | `filter()`    | filtering                |
-| Which columns do I want?                | `select()`    | keeping certain columns  |
-| What new column do I want?              | `mutate()`    | a formula in a new column|
-| In what order do I want the rows?       | `arrange()`   | sorting                  |
-| What summary do I want?                 | `summarise()` | summary formulas         |
-| That summary separately for groups?     | `group_by()`  | a PivotTable             |
+| Question                                | `dplyr` function | Excel counterpart        |
+|-----------------------------------------|------------------|--------------------------|
+| Which rows do I want?                   | `filter()`       | filtering                |
+| Which columns do I want?                | `select()`       | keeping certain columns  |
+| What new column do I want?              | `mutate()`       | a formula in a new column|
+| In what order do I want the rows?       | `arrange()`      | sorting                  |
+| What summary do I want?                 | `summarise()`    | summary formulas         |
+| That summary separately for groups?     | `group_by()`     | a PivotTable             |
 
 Once you understand these operations, most everyday data manipulation in R is a matter of
 combining them.
@@ -44,90 +44,103 @@ By the end of this chapter you should be able to:
 
 ## The Data {.unnumbered}
 
-The examples use a new dataset, [`field_yields.csv`](practice/data/field_yields.csv) -- 60
-canola fields with columns `field_id`, `region`, `variety`, `acres`, `yield_bu_acre`,
-`year`, `seeding_date`, and `units`. Download it into your project's `data/` folder and
-start your script with:
+We continue with the canola trial data from the last chapter, in the same project folder.
+Since this chapter does a new job, it gets a new script: `code/2_data_manipulation.R`.
+Start it with a header, then load the tidyverse and read the data in:
 
 ```r
+# ---
+# Title: Manipulating the canola trial data
+# Author: Your Name
+# Date: 2026-10-06
+# Description:
+#   Filters, transforms, and summarizes the canola trial data
+#   using the dplyr functions.
+# ---
+
+# Load packages
 library(tidyverse)
 
-yields <- read_csv("data/field_yields.csv")
+# Read in the data
+trial_data <- read_csv("data/canola_trial.csv")
 ```
 
-Before the verbs, one principle to understand. Suppose we run:
+Before the functions, one principle to understand. Suppose we run:
 
 ```{r}
 #| eval: true
 #| echo: false
 console('
-filter(yields, yield_bu_acre > 50)
+filter(trial_data, yield_bu_acre > 50)
 ')
 ```
 
 R displays the fields with yields above 50 bu/ac, but it does not remove the other fields
-from `yields` -- check `nrow(yields)` and all 60 rows are still there. `filter()` takes
-`yields` as input and returns a *new* data frame as output; if we only display that output,
-R does not save it. To keep the result, assign it to an object:
+from `trial_data` -- check `nrow(trial_data)` and all 120 rows are still there. `filter()`
+takes `trial_data` as input and returns a *new* data frame as output; if we only display
+that output, R does not save it. To keep the result, assign it to an object:
 
 ```r
-high_yield <- filter(yields, yield_bu_acre > 50)
+high_yield <- filter(trial_data, yield_bu_acre > 50)
 ```
 
-Now there are two objects: `yields`, the original 60 fields, and `high_yield`, the filtered
-subset. This is a useful feature -- you can experiment with transformations without changing
-the original data. Throughout the chapter, an example without `<-` is just displaying a
-result; add a name in front when you want to keep it.
+Now there are two objects: `trial_data`, the original 120 fields, and `high_yield`, the
+filtered subset. This is a useful feature -- you can experiment with transformations without
+changing the original data. Throughout the chapter, an example without `<-` is just
+displaying a result; add a name in front when you want to keep it.
 
-## The Four Row-and-Column Verbs {#sec-verbs-basic}
+## Data Manipulation Functions {#sec-verbs-basic}
 
-Two of the four verbs mainly affect the rows: `filter()` chooses rows, and `arrange()`
-changes their order. Two mainly affect the columns: `select()` chooses columns, and
-`mutate()` creates or changes them. Each is a function whose first argument is the data
-frame, followed by what to do with it.
+Two of the four basic functions mainly affect the rows: `filter()` chooses rows, and
+`arrange()` changes their order. Two mainly affect the columns: `select()` chooses columns,
+and `mutate()` creates or changes them. Each takes the data frame as its first argument,
+followed by what to do with it.
 
-### `filter()`: Keep Certain Rows {.unnumbered}
+### `filter()`: Keep Certain Rows
 
 `filter()` keeps the rows that satisfy a condition:
 
 ```r
-filter(yields, yield_bu_acre > 50)
+filter(trial_data, yield_bu_acre > 50)
 ```
 
-Read this as: from `yields`, keep the rows where `yield_bu_acre` is greater than 50. Text
-variables work too:
+Read this as: from `trial_data`, keep the rows where `yield_bu_acre` is greater than 50.
+Text variables work too:
 
 ```r
-filter(yields, region == "South")
+filter(trial_data, variety == "InVigor")
 ```
 
 Note the **two** equals signs: `==` asks whether two things are equal, so
-`region == "South"` asks "is `region` equal to `"South"`?". A single `=` has a different job
-in R -- naming arguments, as in `mean(x, na.rm = TRUE)` -- so writing `region = "South"`
-inside `filter()` will not do what you want. Also note the quotation marks: `"South"` with
-quotes is text; `South` without quotes would be read as the name of an object, which
-probably doesn't exist and would cause an error.
+`variety == "InVigor"` asks "is `variety` equal to `"InVigor"`?". A single `=` has a
+different job in R -- naming arguments, as in `mean(x, na.rm = TRUE)` -- so writing
+`variety = "InVigor"` inside `filter()` will not do what you want. Also note the quotation
+marks: `"InVigor"` with quotes is text; `InVigor` without quotes would be read as the name
+of an object, which probably doesn't exist and would cause an error.
 
 You can combine conditions with `&` (and -- both must be true), `|` (or -- at least one must
 be true), and `!` (not):
 
 ```r
-filter(yields, yield_bu_acre > 50 & region == "South")
-filter(yields, region == "South" | region == "Central")
-filter(yields, !is.na(yield_bu_acre))  # is.na() asks if a value is missing; ! keeps the non-missing
+filter(trial_data, yield_bu_acre > 50 & variety == "InVigor")
+filter(trial_data, fertilizer_kg_ha < 80 | fertilizer_kg_ha > 160)
+filter(trial_data, !is.na(rainfall_mm))  # is.na() asks if a value is missing; ! keeps the non-missing
 ```
+
+That last one is not hypothetical: three of our fields have no rainfall reading, and this is
+how you would set them aside.
 
 When you want to match several possible values of the same variable, `%in%` is easier to
 read:
 
 ```r
-filter(yields, region %in% c("South", "Central"))
+filter(trial_data, variety %in% c("InVigor", "DEKALB"))
 ```
 
 You do not need to memorize every comparison operator. The idea is that `filter()` chooses
 observations by asking a TRUE/FALSE question about each row.
 
-### `select()`: Keep Certain Columns {.unnumbered}
+### `select()`: Keep Certain Columns
 
 `select()` chooses variables rather than observations:
 
@@ -135,7 +148,7 @@ observations by asking a TRUE/FALSE question about each row.
 #| eval: true
 #| echo: false
 console('
-select(yields, field_id, region, yield_bu_acre)
+select(trial_data, field_id, variety, yield_bu_acre)
 ')
 ```
 
@@ -144,15 +157,15 @@ containing dozens or hundreds of variables. You can also drop a column by puttin
 front of its name, or keep a range of adjacent columns:
 
 ```r
-select(yields, -units)                   # everything except units
-select(yields, field_id:yield_bu_acre)   # the columns from field_id through yield_bu_acre
+select(trial_data, -rainfall_mm)                 # everything except rainfall
+select(trial_data, field_id:rainfall_mm)         # the columns from field_id through rainfall_mm
 ```
 
-A relative of `select()` is `rename()`, which changes a column's name without dropping anything: `rename(yields, yield = yield_bu_acre)`.
+A relative of `select()` is `rename()`, which changes a column's name without dropping anything: `rename(trial_data, yield = yield_bu_acre)`.
 
 Keep the pair straight: `filter()` works on rows, `select()` on columns.
 
-### `mutate()`: Create or Change Columns {.unnumbered}
+### `mutate()`: Create or Change Columns
 
 `mutate()` creates a new variable or changes an existing one. Suppose we want yield in
 tonnes per hectare rather than bushels per acre:
@@ -161,7 +174,7 @@ tonnes per hectare rather than bushels per acre:
 #| eval: true
 #| echo: false
 console('
-mutate(yields, yield_t_ha = yield_bu_acre * 0.0560)
+mutate(trial_data, yield_t_ha = yield_bu_acre * 0.0560)
 ')
 ```
 
@@ -173,69 +186,69 @@ You can create several variables in one call, and later expressions can use vari
 created earlier in the same `mutate()`:
 
 ```r
-mutate(yields,
+mutate(trial_data,
        yield_t_ha = yield_bu_acre * 0.0560,
-       hectares = acres * 0.4047,
-       total_tonnes = yield_t_ha * hectares)
+       kg_n_per_bu = fertilizer_kg_ha / yield_bu_acre)
 ```
 
-### `arrange()`: Sort Rows {.unnumbered}
+### `arrange()`: Sort Rows
 
-`arrange()` changes the order of the rows. `arrange(yields, yield_bu_acre)` sorts from
+`arrange()` changes the order of the rows. `arrange(trial_data, yield_bu_acre)` sorts from
 lowest yield to highest; wrap the column in `desc()` to sort the other way:
 
 ```{r}
 #| eval: true
 #| echo: false
 console('
-arrange(yields, desc(yield_bu_acre))
+arrange(trial_data, desc(yield_bu_acre))
 ')
 ```
 
-You can sort by more than one variable -- `arrange(yields, region, desc(yield_bu_acre))`
-sorts by region and then, within each region, from highest yield to lowest. Like the other
-verbs, `arrange()` does not permanently rearrange `yields` unless you save the result.
+You can sort by more than one variable -- `arrange(trial_data, variety, desc(yield_bu_acre))`
+sorts by variety and then, within each variety, from highest yield to lowest. Like the other
+functions, `arrange()` does not permanently rearrange `trial_data` unless you save the
+result.
 
 ## The Pipe `|>` {#sec-pipe}
 
-Real questions usually take more than one verb. Suppose we want to know: among fields in the
-South region, what are the field IDs and yields, ordered from highest to lowest? We know
-every operation we need -- filter to the South, select the two columns, arrange by
-descending yield. Without a pipe, each step's output becomes the next step's first argument,
-and the calls nest:
+Real questions usually take more than one function. Suppose we want to know: among the
+InVigor fields, what are the field IDs and yields, ordered from highest to lowest? We know
+every operation we need -- filter to InVigor, select the two columns, arrange by descending
+yield. Without a pipe, each step's output becomes the next step's first argument, and the
+calls nest:
 
 ```r
-arrange(select(filter(yields, region == "South"), field_id, yield_bu_acre),
+arrange(select(filter(trial_data, variety == "InVigor"), field_id, yield_bu_acre),
         desc(yield_bu_acre))
 ```
 
 That works, but you have to start reading in the middle and work outward. The **pipe**,
 `|>`, lets us write the analysis in the order we think about it. The pipe takes whatever is
 on its *left* and feeds it as the first argument to the function on its *right*, so
-`yields |> filter(region == "South")` is exactly `filter(yields, region == "South")`. Read
-`|>` as the word "then":
+`trial_data |> filter(variety == "InVigor")` is exactly
+`filter(trial_data, variety == "InVigor")`. Read `|>` as the word "then":
 
 ```{r}
 #| eval: true
 #| echo: false
 console('
-yields |>
-  filter(region == "South") |>
+trial_data |>
+  filter(variety == "InVigor") |>
   select(field_id, yield_bu_acre) |>
   arrange(desc(yield_bu_acre))
 ')
 ```
 
-Take `yields`, *then* keep the South fields, *then* keep two columns, *then* sort. Once we
-use the pipe, we no longer repeat the data-frame name in every function, and a multi-step
-analysis reads top to bottom. From here on the examples use the pipe. (Older code uses `%>%`
-for the same idea; `|>` is the modern built-in version.)
+Take `trial_data`, *then* keep the InVigor fields, *then* keep two columns, *then* sort.
+Once we use the pipe, we no longer repeat the data-frame name in every function, and a
+multi-step analysis reads top to bottom. From here on the examples use the pipe. (Older code
+uses `%>%` for the same idea; `|>` is the modern built-in version.)
 
 To keep a result, assign the whole pipeline to an object:
 
 ```r
-south_yields <- yields |>
-  filter(region == "South") |>
+invigor_yields <- trial_data |>
+  filter(variety == "InVigor") |>
   select(field_id, yield_bu_acre) |>
   arrange(desc(yield_bu_acre))
 ```
@@ -246,22 +259,22 @@ Pipelines also give you a way to debug. When a pipeline produces a result that l
 do not stare at the whole thing and guess. Run it one step at a time: run the first step
 alone, check the result, add the second step, check again, and keep going. The first point
 where the data stops looking the way you expect is where the problem is. This works because
-every verb does one thing -- and the same habit is how you check a pipeline an AI assistant
+every step does one thing -- and the same habit is how you check a pipeline an AI assistant
 wrote for you.
 
 ## `summarise()` and `group_by()` {#sec-summarise-group}
 
-The four verbs so far rearrange or add information while keeping observations as rows.
+The four functions so far rearrange or add information while keeping observations as rows.
 Sometimes we want to *collapse* the observations into summary statistics. That is the job of
 `summarise()`.
 
-### `summarise()`: Many Rows Become One {.unnumbered}
+### `summarise()`: Many Rows Become One
 
 ```{r}
 #| eval: true
 #| echo: false
 console('
-yields |>
+trial_data |>
   summarise(
     mean_yield = mean(yield_bu_acre, na.rm = TRUE),
     sd_yield = sd(yield_bu_acre, na.rm = TRUE),
@@ -275,20 +288,20 @@ result; the expressions on the right calculate the values. `n()` counts the rows
 
 The contrast with `mutate()` matters. `mutate()` keeps the observations and adds
 information; `summarise()` collapses the observations into summaries. So
-`yields |> mutate(mean_yield = mean(yield_bu_acre, na.rm = TRUE))` still has 60 rows, with
-the overall mean repeated on every row, while the `summarise()` version returns one row.
+`trial_data |> mutate(mean_yield = mean(yield_bu_acre))` still has 120 rows, with the
+overall mean repeated on every row, while the `summarise()` version returns one row.
 
-### `group_by()`: Calculate Separately for Groups {.unnumbered}
+### `group_by()`: Calculate Separately for Groups
 
-The overall mean may not be what we want. Suppose we want the mean yield for each region.
+The overall mean may not be what we want. Suppose we want the mean yield for each variety.
 `group_by()` doesn't change the data -- it tells subsequent operations to apply *per group*:
 
 ```{r}
 #| eval: true
 #| echo: false
 console('
-yields |>
-  group_by(region) |>
+trial_data |>
+  group_by(variety) |>
   summarise(
     mean_yield = mean(yield_bu_acre, na.rm = TRUE),
     sd_yield = sd(yield_bu_acre, na.rm = TRUE),
@@ -297,25 +310,15 @@ yields |>
 ')
 ```
 
-Take `yields`, *then* divide the observations into regions, *then* calculate the statistics
-separately for each region. The result has one row per region. This is the R equivalent of a
-PivotTable.
+Take `trial_data`, *then* divide the observations by variety, *then* calculate the
+statistics separately for each variety. The result has one row per variety. This is the R
+equivalent of a PivotTable.
 
-You can group by more than one variable:
-
-```r
-yields |>
-  group_by(region, variety) |>
-  summarise(mean_yield = mean(yield_bu_acre, na.rm = TRUE),
-            n_fields = n(),
-            .groups = "drop")
-```
-
-Now one row is a region-variety combination. Grouping is state that can affect later
-operations: the `.groups = "drop"` argument tells `summarise()` to return an ordinary,
-ungrouped data frame. You do not need it on every simple grouped summary, but it is useful
-when you plan to keep manipulating the result. (There is also an `ungroup()` function, which
-appears later in this chapter in a situation where it genuinely matters.)
+Grouping is state that can affect later operations. After a grouped `summarise()`, ask for
+an ordinary, ungrouped data frame back with `.groups = "drop"` when you plan to keep
+manipulating the result -- the capstone example below does this. (There is also an
+`ungroup()` function, which appears later in this chapter in a situation where it genuinely
+matters.)
 
 The central pattern -- `data |> group_by(group_variable) |> summarise(...)` -- appears
 throughout the rest of the book.
@@ -330,14 +333,18 @@ $$
 
 This factor comes from two facts: a bushel of canola weighs about 22.68 kg (canola's standard 50-lb bushel), and an acre is about 0.4047 ha. So one bu/ac is $22.68 \div 0.4047 \div 1000 \approx 0.0560$ t/ha. (The exact factor depends on the crop's bushel weight -- a wheat or corn bushel is 60 or 56 lb and gives a different number -- so in a real analysis you would look up the right bushel weight for your crop and cite your source.)
 
-If every observation is in bu/ac, the transformation is exactly what `mutate()` is for:
+The transformation is exactly what `mutate()` is for:
 
-```r
-yields_converted <- yields |>
+```{r}
+#| eval: true
+#| echo: false
+console('
+trial_converted <- trial_data |>
   mutate(yield_t_ha = yield_bu_acre * 0.0560)
 
-yields_converted |>
+trial_converted |>
   select(field_id, yield_bu_acre, yield_t_ha)
+')
 ```
 
 The original `yield_bu_acre` stays in the data alongside the new `yield_t_ha`, which makes
@@ -345,41 +352,44 @@ the transformation easy to check.
 
 ### An extension: different rules for different rows {.unnumbered}
 
-Sometimes a transformation depends on a condition. Suppose some rows are in bu/ac and some
-already in t/ha, with a `units` column telling you which. `case_when` handles it -- read
-this one to understand it rather than to memorize it:
+Sometimes a new variable depends on a condition. Suppose we want to class each field's
+nitrogen rate as low, medium, or high. `case_when` handles it -- read this one to
+understand it rather than to memorize it:
 
-```r
-yields_converted <- yields |>
-  mutate(
-    yield_t_ha = case_when(
-      units == "bu/ac" ~ yield_bu_acre * 0.0560,   # convert the bu/ac rows
-      units == "t/ha"  ~ yield_bu_acre,             # already metric: leave as-is
-      TRUE             ~ NA_real_                    # anything else becomes missing
-    )
-  )
+```{r}
+#| eval: true
+#| echo: false
+console('
+trial_data |>
+  mutate(n_rate = case_when(
+    fertilizer_kg_ha < 100 ~ "low",
+    fertilizer_kg_ha < 150 ~ "medium",
+    TRUE                   ~ "high"
+  )) |>
+  select(field_id, fertilizer_kg_ha, n_rate)
+')
 ```
 
-Each line reads "if this condition is true, use this value". The first matching condition
-wins, and the `TRUE ~ ...` line is the catch-all: anything that matched neither condition
-becomes a missing numeric value (`NA_real_` is R's way of writing one). `case_when` is the R
-analogue of nested `IF`s in Excel, and it comes back when we clean data in @sec-cleaning.
-The point for now is that `mutate()` can create variables using rules, not just arithmetic.
+Each line reads "if this condition is true, use this value", and the first matching
+condition wins: a field at 120 kg/ha fails the first test and passes the second, so it is
+"medium". The `TRUE ~ ...` line is the catch-all -- anything that matched neither condition
+is "high". `case_when` is the R analogue of nested `IF`s in Excel, and it comes back when we
+clean data in @sec-cleaning. The point for now is that `mutate()` can create variables using
+rules, not just arithmetic.
 
 ## Writing Output {#sec-writing-output}
 
 Results so far have existed only inside R. To save one as a file that can be opened in Excel
-or sent to someone else, pass the object and a filename to `write_csv`. With the project
-layout from @sec-project-folder, results go in `output/`:
+or sent to someone else, pass the object and a filename to `write_csv`. With our project
+layout, results go in `output/`:
 
 ```r
-region_summary <- yields |>
-  group_by(region) |>
+variety_summary <- trial_data |>
+  group_by(variety) |>
   summarise(mean_yield = mean(yield_bu_acre, na.rm = TRUE),
-            n_fields = n(),
-            .groups = "drop")
+            n_fields = n())
 
-write_csv(region_summary, "output/region_summary.csv")
+write_csv(variety_summary, "output/variety_summary.csv")
 ```
 
 `read_csv` brings data into R; `write_csv` sends a data frame out to a file. Because the
@@ -387,63 +397,68 @@ output is created by the script, you can always recreate it by running the scrip
 
 ## Combining It All {#sec-dplyr-combining}
 
-We now have enough tools to answer a realistic question: for each region and variety in
-2025, what was the mean yield in t/ha, and how many fields were observed? Show the
-highest-yielding variety first within each region.
+We now have enough tools to answer a realistic question: for each variety and
+nitrogen-rate class, what was the mean yield in t/ha, and how many fields were observed?
+Show the highest-yielding class first within each variety.
 
 ```{r}
 #| eval: true
 #| echo: false
 console('
-region_variety_summary <- yields |>
-  filter(year == 2025) |>
-  mutate(yield_t_ha = yield_bu_acre * 0.0560) |>
-  group_by(region, variety) |>
+variety_n_summary <- trial_data |>
+  mutate(yield_t_ha = yield_bu_acre * 0.0560,
+         n_rate = case_when(
+           fertilizer_kg_ha < 100 ~ "low",
+           fertilizer_kg_ha < 150 ~ "medium",
+           TRUE                   ~ "high")) |>
+  group_by(variety, n_rate) |>
   summarise(mean_yield_t_ha = mean(yield_t_ha, na.rm = TRUE),
             n_fields = n(),
             .groups = "drop") |>
-  arrange(region, desc(mean_yield_t_ha))
-region_variety_summary
+  arrange(variety, desc(mean_yield_t_ha))
+variety_n_summary
 ')
 ```
 
-Do not read it as one giant command; read it one verb at a time:
+Do not read it as one giant command; read it one step at a time:
 
-1. **Filter** to 2025.
-2. **Compute** metric yield.
-3. **Group** the observations into region-variety combinations.
-4. **Summarise** each group down to one row: its mean yield and its number of fields.
-5. **Sort** by region and, within each region, from highest mean yield to lowest.
+1. **Create** the variables the question needs: metric yield, and the nitrogen-rate class.
+2. **Group** the observations into variety and nitrogen-rate combinations.
+3. **Summarise** each group down to one row: its mean yield and its number of fields. With
+   two grouping variables, `.groups = "drop"` tells `summarise` to hand back an ordinary,
+   ungrouped data frame.
+4. **Sort** by variety and, within each variety, from highest mean yield to lowest.
 
 Each line does one simple thing, and that is the reason for pipes: a good pipeline makes the
 logic of an analysis visible. Saving the table is one more line:
-`write_csv(region_variety_summary, "output/region_variety_summary.csv")`.
+`write_csv(variety_n_summary, "output/variety_n_summary.csv")`.
 
 ### A slightly harder example {.unnumbered}
 
-Which fields yielded above the average for their own region? This needs one new idea:
+Which fields yielded above the average for their own variety? This needs one new idea:
 `mutate()` can operate within groups.
 
 ```{r}
 #| eval: true
 #| echo: false
 console('
-above_region_average <- yields |>
-  group_by(region) |>
-  mutate(region_mean = mean(yield_bu_acre, na.rm = TRUE)) |>
+above_variety_average <- trial_data |>
+  group_by(variety) |>
+  mutate(variety_mean = mean(yield_bu_acre)) |>
   ungroup() |>
-  filter(yield_bu_acre > region_mean) |>
-  select(field_id, region, yield_bu_acre, region_mean) |>
-  arrange(region, desc(yield_bu_acre))
-above_region_average
+  filter(yield_bu_acre > variety_mean) |>
+  select(field_id, variety, yield_bu_acre, variety_mean) |>
+  arrange(variety, desc(yield_bu_acre))
+above_variety_average
 ')
 ```
 
-The important step is `group_by(region)` followed by `mutate()`. Because the data is grouped
-by region, `mean()` is calculated separately within each region -- and unlike `summarise()`,
-`mutate()` keeps every field and adds its region's mean as a new column on each one. This is
-also where `ungroup()` earns its place: we are finished calculating within regions, so we
-remove the grouping and the later steps treat the result as an ordinary data frame.
+The important step is `group_by(variety)` followed by `mutate()`. Because the data is
+grouped by variety, `mean()` is calculated separately within each variety -- and unlike
+`summarise()`, `mutate()` keeps every field and adds its variety's mean as a new column on
+each one. This is also where `ungroup()` earns its place: we are finished calculating within
+varieties, so we remove the grouping and the later steps treat the result as an ordinary
+data frame.
 
 You do not need to produce this second pipeline from memory. You should be able to read it
 from top to bottom and explain what each step is doing. As analyses become more complicated
@@ -454,7 +469,7 @@ intended to ask.
 ::: {.callout-tip collapse="true"}
 ## Other resources — dplyr
 
-- **R for Data Science (2nd ed.)** -- [Chapter 3, "Data transformation"](https://r4ds.hadley.nz/data-transform.html): the verbs, the pipe, and grouped summaries.
+- **R for Data Science (2nd ed.)** -- [Chapter 3, "Data transformation"](https://r4ds.hadley.nz/data-transform.html): the core dplyr functions, the pipe, and grouped summaries.
 - **dplyr documentation** -- the [dplyr reference site](https://dplyr.tidyverse.org/), including the one-page [cheatsheet](https://rstudio.github.io/cheatsheets/html/data-transformation.html).
 - **Video** -- Equitable Equations, [*The five main dplyr verbs*](https://www.youtube.com/watch?v=b2ODCVAsXlw) -- filter, select, mutate, arrange, and summarise in one sitting.
 :::

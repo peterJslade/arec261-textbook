@@ -25,7 +25,10 @@
 # The code is evaluated ONCE, in the caller's environment, so objects carry
 # over between chunks and side effects do not happen twice.
 
-console <- function(code, envir = parent.frame()) {
+# echo = FALSE emits only the console transcript, without the copyable code
+# listing above it — for when the code was already shown (e.g. a script
+# listing) and repeating it would separate the output from the original.
+console <- function(code, envir = parent.frame(), echo = TRUE) {
   lines <- strsplit(code, "\n", fixed = TRUE)[[1]]
   # Drop the blank first/last lines produced by writing console('
   # ...code... ') across multiple lines.
@@ -75,8 +78,11 @@ console <- function(code, envir = parent.frame()) {
   # Anything left never parsed; show it rather than dropping it silently.
   if (length(buf)) transcript <- c(transcript, paste0("> ", buf))
 
+  code_block <- if (echo) {
+    paste0("``` r\n", paste(lines, collapse = "\n"), "\n```\n\n")
+  } else ""
   knitr::asis_output(paste0(
-    "``` r\n", paste(lines, collapse = "\n"), "\n```\n\n",
+    code_block,
     "::: {.console-transcript}\n```\n",
     paste(transcript, collapse = "\n"),
     "\n```\n:::\n"
