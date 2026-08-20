@@ -85,14 +85,18 @@ You save a value with the **assignment operator**, `<-` (a less-than sign and a 
 
 As you create objects, they appear in Positron's **Variables** pane on the right (the panel that lists everything you have created). In the screenshot, you can see `a` and `b` show up with their values as soon as they are assigned.
 
-An object can hold more than a single number.  In the screenshot below, I save a **vector** of five values in an object called `yields` using the function `c()`, which *combines* values.  I can then perform operations on `yields` like calculating its mean.
+An object can hold more than a single number.  Below, I save a **vector** of five values in an object called `yields` using the function `c()`, which *combines* values.  I can then perform operations on `yields` like calculating its mean.
 
-
-INSERT SCREENSHOT
+```{r}
+#| eval: true
+#| echo: false
+console('
+yields <- c(48, 52, 47, 55, 50)
+mean(yields)
+')
+```
 
 The whole rhythm of R is just this: **create objects with `<-`, and run functions on them**.  Sometimes we will save the results as new objects when we want to keep them, and we may perform operations on these objects.
-
-### Why not just work in the console? {.unnumbered}
 
 
 ::: {.callout-tip collapse="true"}
@@ -132,11 +136,11 @@ mean(x)
 
 ![Code written in the **script** (top), but not yet run. The console is empty and the Variables pane says "No variables have been created" -- writing code does not run it.](images/positron_script_before_run.png){#fig-script-before}
 
-To actually run it, you have a two different options:
+To actually run it, you have two options:
 
-1. Click the **Run** button in the top right and either source the whole code to run all lines of your code, or "Execture code" to run just the selected lines (or the current line if noting is selected).
+1. Click the **Run** button in the top right and either source the whole file to run every line, or "Execute code" to run just the selected lines (or the current line if nothing is selected).
 
-2. A faster way to run code is to just type **Cmd+Enter** (Mac) / **Ctrl+Enter** (Windows). 
+2. A faster way to run code is to just type **Cmd+Enter** (Mac) / **Ctrl+Enter** (Windows).
 
 After running all lines, the results appear in the **console**, and any objects you created show up in the **Variables** pane:
 
@@ -152,7 +156,7 @@ Let's break down what just happened:
 
 We should also note that the object `x` is now stored in **R**, and it will be stored until we exit this session or overwrite `x` with a new value.
 
-This will be the last screen shot of **Positron** that I will show in the textbook.  From now on I will just show the code, and sometimes the results of this code.    
+This will be the last screenshot of **Positron** that I will show in the textbook.  From now on I will just show the code, and sometimes the results of this code.    
 
 ::: {.callout-tip collapse="true"}
 ## Other resources — R scripts
@@ -177,9 +181,15 @@ varieties <- c("InVigor", "DK", "Clearfield", "InVigor", "DK")
 is_irrigated <- c(TRUE, FALSE, FALSE, TRUE, FALSE)
 ```
 
-If a vector is numeric then we can do arithmetic operations on it.  For example, say we have a vetor of yields in bu per acre and we want to convert it to tonnes per hectare, we can simply multiply the entire vector by a constant conversion factor.  
-```r
+If a vector is numeric then we can do arithmetic operations on it.  For example, say we have a vector of yields in bu per acre and we want to convert it to tonnes per hectare, we can simply multiply the entire vector by a constant conversion factor.
 
+```{r}
+#| eval: true
+#| echo: false
+console('
+yields <- c(48, 52, 47, 55, 50)   # bushels per acre
+yields * 0.0560                   # tonnes per hectare
+')
 ```
 
 ### Data Frames {.unnumbered}
@@ -201,7 +211,7 @@ fields
 ')
 ```
 
-But you will almost usually **read** a data frame from a CSV file. More on that in a moment.
+But you will almost always **read** a data frame from a file, which is the subject of the next chapter.
 
 You can access columns with the `$` operator.  For example, to get the column `yield` in our data frame `fields` we would type `fields$yield`.  You will even note that when you type `fields$` Positron will provide a dropdown of all the columns that you can choose from.  
 
@@ -230,12 +240,12 @@ fields[2, 3]        # in the second row, third column
 ```
 
 ### Functions {.unnumbered}
-R largely operates by performing *functions* on *objects*.  We have already seen that there is a function called `mean()`.  There are a near infinite kinds of functions.  
 
-**R** functions generally require arguments.  For example, in `mean(fields$yield)`, the function is `mean()` and the function's arugment is `fields$yield`.  
+R largely operates by performing *functions* on *objects*.  We have already seen that there is a function called `mean()`.  There is a nearly infinite variety of functions.
 
-Here the functions that we can use to get the descriptive statistics we learned in Excel in the last chapter
-You call a function by writing its name followed by parentheses with arguments:
+**R** functions generally require arguments.  For example, in `mean(fields$yield)`, the function is `mean()` and the function's argument is `fields$yield`.
+
+Here are the functions for the descriptive statistics from Module 1:
 
 ```{r}
 #| eval: true
@@ -250,19 +260,17 @@ sd(fields$yield)/mean(fields$yield) # Coefficient of variation
 ')
 ```
 
-Some functions require multiple arguments.  For example, the function `quantile` will return the value of a particular percentile.  A properly written code will be `quantile(x, percentile)` where x is the object and percentile is the percentile that you want to find (expressed in decmial form). 
+Some functions take multiple arguments.  For example, the function `quantile()` returns the value at a particular percentile.  Its two main arguments are `x`, the data, and `probs`, the percentile you want (expressed in decimal form).
 
-There are two ways to write the function so that it will execute.  First, write the arguments in the correct order without naming them.  Second, name the arguments in the function -- that is say `x=fields$yield` and `percentile=0.25`.
+There are two ways to supply the arguments.  First, write them in the correct order without naming them.  Second, name the arguments, in which case the order does not matter.
 
 ```{r}
 #| eval: true
 #| echo: false
 console('
-quantile(fields$yield, 0.25)  # The 25th quantile (the first quartile)
+quantile(fields$yield, 0.25)              # unnamed arguments, in the correct order
 
-quantile(0.25, fields$yield) # The same function with unnamed arguments in the wrong order
-
-quantile(probs=0.25, x=fields$yield) # The same function with named arguments in the wrong order
+quantile(probs = 0.25, x = fields$yield)  # named arguments, in any order
 ')
 ```
 
@@ -281,5 +289,47 @@ R will show you the documentation: what the function does, what its arguments me
 - **Hands-On Programming with R** -- [Chapter 2, "The Very Basics"](https://rstudio-education.github.io/hopr/basics.html) (objects, vectors, and writing/using functions) and [the "R Objects" chapter](https://rstudio-education.github.io/hopr/r-objects.html) (vectors, matrices, and data frames in depth).
 - **Video** -- R Programming 101, [*Using functions and objects in R*](https://www.youtube.com/watch?v=hvFBDmT4bdY) -- applying functions to objects, beginner-friendly.
 - **Video** -- Simon Sez IT, [*Introduction to vectors in R*](https://www.youtube.com/watch?v=DUWnw8G4udM) -- creating vectors and doing calculations with them.
+:::
+
+## Writing Good R Scripts {#sec-good-scripts}
+
+A few habits worth picking up early:
+
+1. **Start every script with a header.** Your name, the date, what the script does, what input it expects, what output it produces.
+2. **Use comments to explain *why*, not *what*.** Anyone can read the code and see what it does. The comment should tell them why you did it that way.
+3. **Use descriptive object names.** `yields`, not `x1`. `mean_yield`, not `m`.
+4. **Break long calculations into named steps.** Assign intermediate results to objects with meaningful names.
+5. **Make your script re-runnable from scratch.** If you have to run commands in a specific order outside the script, something is wrong.
+
+A template:
+
+```r
+# ---
+# Title: Farm yield summary
+# Author: Your Name
+# Date: 2026-09-22
+# Description:
+#   Computes total production and the acreage-weighted average
+#   yield for the five wheat fields from Module 1.
+# ---
+
+# 1. Data
+yields <- c(48, 52, 47, 55, 50)    # bushels per acre
+acres  <- c(310, 220, 95, 180, 150)
+
+# 2. Total production
+total_bu <- sum(yields * acres)
+
+# 3. Farm average (weighted by acres)
+total_bu / sum(acres)
+```
+
+Six months from now you can read this and know what it does.
+
+::: {.callout-tip collapse="true"}
+## Other resources — writing good, reproducible R scripts
+
+- **The tidyverse style guide** -- [style.tidyverse.org](https://style.tidyverse.org/) is the standard reference for naming, spacing, and generally readable R code.
+- **Video** -- Riffomonas Project (Pat Schloss), [*Keeping R code DRY with functions*](https://www.youtube.com/watch?v=XSRO4VKD-pc) -- a good-habits video on not repeating yourself, from a reproducible-research series.
 :::
 

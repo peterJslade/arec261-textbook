@@ -100,7 +100,7 @@ def save(wb, qno):
 def q1():
     """One locked price, filled down."""
     wb, ws = new_book(
-        "Q1 — Revenue per acre with a locked price",
+        "Revenue per acre with a locked price",
         "The canola price sits in one cell. Each row multiplies its own yield by "
         "that one cell, so the reference to the price must be absolute. Column E "
         "shows what was typed into column D.")
@@ -127,7 +127,7 @@ def q1():
 def q2():
     """Mixed references filling a grid."""
     wb, ws = new_book(
-        "Q2 — Three crops, one formula",
+        "Three crops, one formula",
         "Prices run across row 4; yields run down. A single formula fills the whole "
         "revenue block: the price row is locked with B$4, the yield column is not.", 8)
 
@@ -167,7 +167,7 @@ def q2():
 def q3():
     """Typing a table in, with dates and currency formatted."""
     wb, ws = new_book(
-        "Q3 — Entering a delivery log",
+        "Entering a delivery log",
         "The table was typed in from the question. Dates are real dates (right "
         "aligned, formatted DD-Mon-YYYY), tonnes show one decimal, and the total "
         "row uses SUM.")
@@ -195,7 +195,7 @@ def q3():
 def q4():
     """Date arithmetic."""
     wb, ws = new_book(
-        "Q4 — Days between deliveries",
+        "Days between deliveries",
         "Subtracting one date from another gives a number of days, because Excel "
         "stores dates as numbers. The result cell must be formatted as a NUMBER -- "
         "left as a date it shows a day in January 1900.")
@@ -225,7 +225,7 @@ def q4():
 def q5():
     """Order of operations."""
     wb, ws = new_book(
-        "Q5 — Where the brackets go",
+        "Where the brackets go",
         "Four ways of writing the same intended calculation: revenue per acre after "
         "a $40/ac input cost, times the acres. Only one is right.")
     put(ws, 4, 1, "Yield (bu/ac)", font=f_bold); put(ws, 4, 2, 41.2, fill=lock_fill, fmt="0.0", align=centre)
@@ -261,7 +261,7 @@ def q5():
 def q6():
     """Number formats: same value, four displays."""
     wb, ws = new_book(
-        "Q6 — Formatting changes the display, not the value",
+        "Formatting changes the display, not the value",
         "Column B holds the SAME number in every row -- 0.0842. Only the number "
         "format differs. Column D proves the stored value never changed.")
     header(ws, 4, ["Format applied", "Displayed as", "Number format", "B x 1000"])
@@ -286,7 +286,7 @@ def q6():
 def q7():
     """Rounding vs formatting -- the difference that bites."""
     wb, ws = new_book(
-        "Q7 — Rounding is not the same as formatting",
+        "Rounding is not the same as formatting",
         "Column B is formatted to 0 decimals. Column C is genuinely rounded with "
         "ROUND(). They look identical until you total them.")
     header(ws, 4, ["Field", "Yield, formatted", "Yield, ROUNDed", "The formula in C"])
@@ -312,7 +312,7 @@ def q7():
 def q8():
     """Typing in a table from the question, with a computed column."""
     wb, ws = new_book(
-        "Q8 — Entering a price list and costing a bin",
+        "Entering a price list and costing a bin",
         "The crop and price columns were typed in from the question. Column C is "
         "entered, column D is a formula, and the price reference is relative here "
         "because each row has its own price.")
@@ -340,7 +340,7 @@ def q8():
 def q9():
     """A percentage-change column, and the trap of formatting it as currency."""
     wb, ws = new_book(
-        "Q9 — Percentage change between two years",
+        "Percentage change between two years",
         "Column D is a proportion, so it is formatted as a percentage. The formula "
         "divides the change by the STARTING value, not the ending one.")
     header(ws, 4, ["Field", "2025 yield", "2026 yield", "Change", "The formula in D"])
@@ -365,7 +365,7 @@ def q9():
 def q10():
     """Everything at once: build a small sheet from a table in the question."""
     wb, ws = new_book(
-        "Q10 — A delivery log, costed",
+        "A delivery log, costed",
         "The log was typed in from the question. Dates are real dates, the price "
         "table is anchored, tonnes convert to bushels with a locked factor, and the "
         "total uses SUM.")
@@ -398,6 +398,45 @@ def q10():
     return wb
 
 
+# ---------------------------------------------------------------------------
+def q_weighted():
+    """Plain mean vs acreage-weighted mean, two ways."""
+    wb, ws = new_book(
+        "Weighted average — the farm's real average yield",
+        "The plain mean of the yield column treats every field as equally "
+        "important. Weighting by acres counts every bushel once, which is what "
+        "'the average across the farm' means.")
+    header(ws, 4, ["Field", "Acres", "Yield (bu/ac)", "Bushels", "The formula in D"])
+    for i, (name, acres, yld) in enumerate(FIELDS):
+        r = 5 + i
+        put(ws, r, 1, name)
+        put(ws, r, 2, acres, fmt="#,##0", align=centre)
+        put(ws, r, 3, yld, fmt="0.0", align=centre)
+        put(ws, r, 4, f"=B{r}*C{r}", fmt="#,##0.0", align=centre)
+        put(ws, r, 5, f"={FT}(D{r})", font=f_form)
+    last = 4 + len(FIELDS)
+    put(ws, last + 1, 1, "Total", font=f_bold)
+    put(ws, last + 1, 2, f"=SUM(B5:B{last})", font=f_bold, fill=lock_fill, fmt="#,##0", align=centre)
+    put(ws, last + 1, 4, f"=SUM(D5:D{last})", font=f_bold, fill=lock_fill, fmt="#,##0.0", align=centre)
+
+    put(ws, last + 3, 1, "Plain mean of the yields", font=f_bold)
+    put(ws, last + 3, 3, f"=AVERAGE(C5:C{last})", fill=lock_fill, fmt="0.0", align=centre)
+    put(ws, last + 4, 1, "Weighted: bushels / acres", font=f_bold)
+    put(ws, last + 4, 3, f"=D{last+1}/B{last+1}", fill=lock_fill, fmt="0.0", align=centre)
+    put(ws, last + 5, 1, "Weighted: SUMPRODUCT", font=f_bold)
+    put(ws, last + 5, 3, f"=SUMPRODUCT(C5:C{last},B5:B{last})/SUM(B5:B{last})",
+        fill=lock_fill, fmt="0.0", align=centre)
+    put(ws, last + 5, 4, f"={FT}(C{last+5})", font=f_form)
+
+    note(ws, last + 7,
+         "40.1 against 39.0. The 95-acre Creek field is the best of the five and the "
+         "310-acre Home field the worst, so counting fields equally flatters the farm. "
+         "The two weighted routes agree, which is the check: if they disagree, one is wrong.", 5)
+    finish(ws, [("A", 26), ("B", 11), ("C", 15), ("D", 12), ("E", 30)], last + 7)
+    return wb
+
+
 if __name__ == "__main__":
-    for n, fn in enumerate((q1, q2, q3, q4, q5, q6, q7, q8, q9, q10), start=1):
+    # numbering matches the questions in practice/module01_bank.qmd
+    for n, fn in ((1, q1), (2, q2), (3, q3), (4, q6), (5, q_weighted)):
         print("  wrote", save(fn(), n))
