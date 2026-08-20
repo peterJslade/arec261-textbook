@@ -509,6 +509,7 @@ ul.task-list li input[type="checkbox"] {
   <ul>
   <li><a href="#sec-if" id="toc-sec-if" class="nav-link" data-scroll-target="#sec-if"><code>IF</code></a></li>
   <li><a href="#sec-conditional-family" id="toc-sec-conditional-family" class="nav-link" data-scroll-target="#sec-conditional-family"><code>COUNTIF</code>, <code>SUMIF</code>, and <code>AVERAGEIF</code></a></li>
+  <li><a href="#sec-conditional-plural" id="toc-sec-conditional-plural" class="nav-link" data-scroll-target="#sec-conditional-plural"><code>COUNTIFS</code>, <code>SUMIFS</code>, and <code>AVERAGEIFS</code></a></li>
   </ul></li>
   <li><a href="#sec-lookup" id="toc-sec-lookup" class="nav-link" data-scroll-target="#sec-lookup"><span class="header-section-number">2.2</span> Lookup Functions</a></li>
   <li><a href="#sec-sort-filter" id="toc-sec-sort-filter" class="nav-link" data-scroll-target="#sec-sort-filter"><span class="header-section-number">2.3</span> Sorting and Filtering</a>
@@ -594,6 +595,21 @@ ul.task-list li input[type="checkbox"] {
 <p>The two ranges must be the same size, but they do not technically need to contain the same row numbers. Excel matches the cells by their position within each range. For example, you could write: <code>=SUMIF(B5:B12, "Canola", D15:D22)</code>. Here, B5 is paired with D15, B6 with D16, B7 with D17, and so on. If B6 and B8 contain Canola, Excel would therefore add D16+D18.</p>
 <p>In practice, the ranges will usually cover the same rows of a dataset. The important point is that Excel matches their relative positions, not their row numbers.</p>
 <p>Examples of these functions are in rows 15-20 of the workbook above.</p>
+</section>
+<section id="sec-conditional-plural" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="sec-conditional-plural"><code>COUNTIFS</code>, <code>SUMIFS</code>, and <code>AVERAGEIFS</code></h3>
+<p><code>COUNTIF</code> and its relatives test one condition. Often you need two. In a dataset with one row per province, crop and year, “the average canola yield in Ontario” is a question about two columns at once, and no single-condition function can answer it.</p>
+<p>The plural forms take any number of conditions:</p>
+<pre><code>=AVERAGEIFS(E2:E1068, C2:C1068, "Canola", B2:B1068, "Ontario")</code></pre>
+<p>The argument order is different from <code>AVERAGEIF</code>, which catches people out. The range being averaged comes <strong>first</strong>, followed by pairs: a range to test, then the condition to test it for. Add as many pairs as you need and Excel keeps only the rows that satisfy all of them.</p>
+<p><code>COUNTIFS</code> has no value range, so it is pairs all the way down:</p>
+<pre><code>=COUNTIFS(A2:A1068, 2023, C2:C1068, "Canola")</code></pre>
+<p><code>SUMIFS</code> works like <code>AVERAGEIFS</code> – sum range first, then the pairs.</p>
+<p>The conditions can use comparisons as well as exact matches. To average canola yields only in years after 2020:</p>
+<pre><code>=AVERAGEIFS(E2:E1068, C2:C1068, "Canola", A2:A1068, "&gt;2020")</code></pre>
+<p>Comparisons go inside quotation marks. To compare against a value Excel has to calculate first, join the operator to it with <code>&amp;</code>:</p>
+<pre><code>=COUNTIFS(C2:C1068, "Canola", E2:E1068, "&gt;"&amp;AVERAGE(E2:E1068))</code></pre>
+<p>Without the <code>&amp;</code>, Excel reads <code>"&gt;AVERAGE(E2:E1068)"</code> as literal text and finds nothing.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
@@ -830,6 +846,9 @@ Figure&nbsp;2.6: Three canola fields left. Note the row numbers – 1, 2, 3, the
 <p>To build one yourself, click any cell inside the data and select <strong>Insert → PivotTable</strong>. Put the PivotTable on a new worksheet. Excel gives you an empty table and a list of the variables in your data. Drag a variable into <strong>Rows</strong> to define the groups, and drag the variable you want to summarize into <strong>Values</strong>. Drag another categorical variable into <strong>Columns</strong> to create a two-way table. The <strong>Filters</strong> box lets you restrict the entire summary to particular observations.</p>
 <p>Be careful about how Excel summarizes the variable in <strong>Values</strong>. Excel will often default to adding the values together. If you put Yield there, for example, Excel may report the <em>sum</em> of all the yields – a number with no useful interpretation. Instead, click the value and use <strong>Summarize Values By</strong> to choose the statistic you actually want, such as Average. The summary tabs in the workbook are built this way, so you can compare your results with them.</p>
 <p>Two other features are useful. <strong>Show Values As</strong> can display values as percentages of a row, column, or grand total. And double-clicking a value inside a PivotTable creates a new worksheet containing the observations behind that number. This is a quick way to investigate a result that looks surprising.</p>
+<p>You can drag the same field into <strong>Values</strong> twice and summarize it two different ways. Yield as Average and Yield as Count puts the mean beside the number of observations behind it, which tells you how much data each average rests on. An average of four observations and an average of four hundred look identical until you show the count.</p>
+<p>The dropdown on a row field holds more than the list of values. <strong>Value Filters</strong> keep only the rows whose summarized number meets a condition – varieties with at least 30 reports, say – which is easier than unchecking several hundred boxes by hand. <strong>Label Filters</strong> do the same on the names themselves.</p>
+<p>Selecting a cell in a PivotTable and choosing Insert → PivotChart creates a chart tied to the table. Filter or rearrange the PivotTable and the chart follows, which is the advantage over copying numbers into an ordinary chart. Give it a title and label the axes as you would any chart (<a href="module01c.html#sec-charts" class="quarto-xref"><span>Section 3.4</span></a>).</p>
 <p>Finally, before interpreting any summary, check the units. The six crops in this workbook are all measured in bushels per acre, so their yields can be meaningfully compared. Pulse crops such as lentils and chickpeas are reported in <em>pounds</em> per acre in the same source data. Excel will happily average pounds per acre together with bushels per acre and return a number – but that number has no meaningful interpretation.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
