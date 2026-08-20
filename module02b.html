@@ -868,19 +868,21 @@ $ yield_bu_acre    &lt;dbl&gt; 56.7, 62.0, 53.6, 51.2, 49.2, 51.2, 49.0, 56.8, 6
 &gt; 
 &gt; summary(trial_data)     # quick summary of every column
       field_id   fertilizer_kg_ha  rainfall_mm         variety   
- Length   :120   Min.   : 58.3    Min.   :127.4   Length   :120  
- N.unique :120   1st Qu.:110.5    1st Qu.:199.9   N.unique :  3  
- N.blank  :  0   Median :126.0    Median :233.6   N.blank  :  0  
- Min.nchar:  4   Mean   :125.1    Mean   :227.9   Min.nchar:  6  
+ Length   :120   Min.   : 58.3    Min.   :128.9   Length   :120  
+ N.unique :120   1st Qu.:110.5    1st Qu.:201.8   N.unique :  3  
+ N.blank  :  0   Median :126.0    Median :234.9   N.blank  :  0  
+ Min.nchar:  4   Mean   :125.1    Mean   :229.1   Min.nchar:  6  
  Max.nchar:  4   3rd Qu.:141.0    3rd Qu.:258.6   Max.nchar: 10  
                  Max.   :186.9    Max.   :320.8                  
+                                  NAs    :3                      
  yield_bu_acre  
  Min.   :39.30  
  1st Qu.:49.52  
  Median :52.55  
  Mean   :53.40  
  3rd Qu.:57.73  
- Max.   :70.40  </code></pre>
+ Max.   :70.40  
+                </code></pre>
 </div>
 </div>
 </div>
@@ -956,26 +958,22 @@ $ yield_bu_acre    &lt;dbl&gt; 56.7, 62.0, 53.6, 51.2, 49.2, 51.2, 49.0, 56.8, 6
 <p><code>var()</code>, <code>min()</code>, and <code>max()</code> work the same way. The statistical ideas have not changed since Module 1; only the way we ask the computer to calculate them has.</p>
 <section id="missing-values" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="missing-values">Missing values</h3>
-<p>Real datasets often contain missing observations, which R represents as <code>NA</code>. Our trial data happens to be complete – the data viewer showed 0% missing for every column – but suppose one of four yields had not been recorded:</p>
+<p>Real datasets often contain missing observations, which R represents as <code>NA</code>. In our trial data, three fields have no rainfall reading – a rain gauge fails, or a value never gets recorded. You may have spotted them already: <code>summary(trial_data)</code> above reports <code>NA's :3</code> under <code>rainfall_mm</code>. Watch what happens when we take the mean of that column:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>harvested <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">56.7</span>, <span class="fl">62.0</span>, <span class="cn">NA</span>, <span class="fl">48.9</span>)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(trial_data<span class="sc">$</span>rainfall_mm)</span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(harvested)</span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(harvested, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(trial_data<span class="sc">$</span>rainfall_mm, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
-<pre><code>&gt; harvested &lt;- c(56.7, 62.0, NA, 48.9)
-&gt; 
-&gt; mean(harvested)
+<pre><code>&gt; mean(trial_data$rainfall_mm)
 [1] NA
 &gt; 
-&gt; mean(harvested, na.rm = TRUE)
-[1] 55.86667</code></pre>
+&gt; mean(trial_data$rainfall_mm, na.rm = TRUE)
+[1] 229.1017</code></pre>
 </div>
 </div>
 </div>
-<p>The first call says: calculate the mean of these observations. One of them is unknown, so R cannot calculate the mean, and it returns <code>NA</code> rather than silently discarding information. The second call, with <code>na.rm = TRUE</code> (“remove NAs”), says: calculate the mean using the observations that are not missing. That may be exactly what we want – but now the decision is visible in the code.</p>
+<p>The first call says: calculate the mean of these observations. Three of them are unknown, so R cannot calculate the mean, and it returns <code>NA</code> rather than silently discarding information. The second call, with <code>na.rm = TRUE</code> (“remove NAs”), says: calculate the mean using the observations that are not missing. That may be exactly what we want – but now the decision is visible in the code.</p>
 <p>This is an important difference from Excel, where many functions skip blank cells automatically. Neither behavior solves the underlying statistical problem of missing data; for now, the point is that if R unexpectedly returns <code>NA</code>, check whether your data contains missing values. We return to missing data properly when we clean datasets in <a href="moduleRDd.html" class="quarto-xref"><span>Chapter 9</span></a>.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
