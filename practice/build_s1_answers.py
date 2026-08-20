@@ -40,12 +40,13 @@ wrap   = Alignment(horizontal="left", vertical="top", wrap_text=True)
 OUT = "practice/answers"
 
 # --- the synthetic data, small enough to read at a glance -------------------
-FIELDS = [("North", 120, 41.2), ("South", 240, 38.6), ("Creek", 95, 44.8),
-          ("Home", 310, 36.1), ("Rented", 175, 39.9)]
+FIELDS = [("Willow", 213, 52.4), ("Ridge", 147, 61.8), ("Slough", 326, 47.9),
+          ("Quarter", 89, 64.5), ("Airport", 255, 55.2)]
 
-DELIVERIES = [("2026-09-14", "Canola", 42.5), ("2026-09-18", "Canola", 38.0),
-              ("2026-09-23", "Wheat", 61.2), ("2026-10-02", "Wheat", 55.8),
-              ("2026-10-09", "Barley", 47.3)]
+DELIVERIES = [("2026-09-14", "Canola", 42.5, 38), ("2026-09-18", "Canola", 38.0, 52),
+              ("2026-09-23", "Wheat", 61.2, 27), ("2026-10-02", "Wheat", 55.8, 64),
+              ("2026-10-09", "Barley", 47.3, 41)]
+HAUL_BASE, HAUL_PERKM, SHRINK = 4.10, 0.085, 0.015
 
 CROPS = [("Canola", 14.20), ("Wheat", 8.35), ("Barley", 5.60)]
 
@@ -165,29 +166,49 @@ def q2():
 
 # ---------------------------------------------------------------------------
 def q3():
-    """Typing a table in, with dates and currency formatted."""
+    """The delivery log: dates, order of operations, COUNT vs COUNTA."""
     wb, ws = new_book(
         "Entering a delivery log",
         "The table was typed in from the question. Dates are real dates (right "
-        "aligned, formatted DD-Mon-YYYY), tonnes show one decimal, and the total "
-        "row uses SUM.")
-    header(ws, 4, ["Date", "Crop", "Tonnes"])
+        "aligned), tonnes show one decimal, and the Charge column shows where the "
+        "brackets have to go.")
+    header(ws, 4, ["Date", "Crop", "Tonnes", "Km", "Charge", "The formula in E"])
     import datetime as dt
-    for i, (d, crop, t) in enumerate(DELIVERIES):
+    for i, (d, crop, t_, km) in enumerate(DELIVERIES):
         r = 5 + i
-        put(ws, r, 1, dt.date.fromisoformat(d), fmt="DD-MMM-YYYY", align=centre)
+        put(ws, r, 1, dt.date.fromisoformat(d), fmt="DD-MMM-YY", align=centre)
         put(ws, r, 2, crop)
-        put(ws, r, 3, t, fmt="0.0", align=centre)
+        put(ws, r, 3, t_, fmt="0.0", align=centre)
+        put(ws, r, 4, km, fmt="#,##0", align=centre)
+        put(ws, r, 5, f"=({HAUL_BASE}+{HAUL_PERKM}*D{r})*C{r}*(1-{SHRINK})",
+            fill=lock_fill, fmt='"$"#,##0.00', align=centre)
+        put(ws, r, 6, f"={FT}(E{r})", font=f_form)
     last = 4 + len(DELIVERIES)
     put(ws, last + 1, 1, "Total", font=f_bold)
     put(ws, last + 1, 3, f"=SUM(C5:C{last})", font=f_bold, fill=lock_fill,
         fmt="0.0", align=centre)
-    put(ws, last + 1, 4, f"={FT}(C{last+1})", font=f_form)
+    put(ws, last + 1, 5, f"=SUM(E5:E{last})", font=f_bold, fill=lock_fill,
+        fmt='"$"#,##0.00', align=centre)
 
-    note(ws, last + 3,
-         "A date typed as text sits on the LEFT of its cell and cannot be used in "
-         "arithmetic. If yours is left aligned, Excel did not read it as a date.", 4)
-    finish(ws, [("A", 14), ("B", 10), ("C", 10), ("D", 24)], last + 3)
+    r = last + 3
+    put(ws, r, 1, "COUNT of Tonnes (numbers)", font=f_bold)
+    put(ws, r, 3, f"=COUNT(C5:C{last})", fill=lock_fill, fmt="#,##0", align=centre)
+    put(ws, r + 1, 1, "COUNTA of Crop (any entry)", font=f_bold)
+    put(ws, r + 1, 3, f"=COUNTA(B5:B{last})", fill=lock_fill, fmt="#,##0", align=centre)
+    put(ws, r + 2, 1, "COUNT of Crop (numbers only)", font=f_bold)
+    put(ws, r + 2, 3, f"=COUNT(B5:B{last})", fill=lock_fill, fmt="#,##0", align=centre)
+    put(ws, r + 2, 4, "zero -- the column holds text", font=f_note)
+
+    put(ws, r + 4, 1, "The wrong formula", font=f_bold)
+    put(ws, r + 4, 5, f"={HAUL_BASE}+{HAUL_PERKM}*D5*C5*(1-{SHRINK})",
+        fmt='"$"#,##0.00', align=centre)
+    put(ws, r + 4, 6, f"={FT}(E{r+4})", font=f_form)
+
+    note(ws, r + 6,
+         "Without the brackets Excel multiplies before it adds, so the $4.10 base is "
+         "charged once for the whole load instead of on every tonne. The base and the "
+         "per-kilometre rate have to be grouped before either touches the tonnes.", 6)
+    finish(ws, [("A", 14), ("B", 10), ("C", 10), ("D", 8), ("E", 12), ("F", 30)], r + 6)
     return wb
 
 
@@ -201,7 +222,7 @@ def q4():
         "left as a date it shows a day in January 1900.")
     header(ws, 4, ["Date", "Crop", "Days since previous", "The formula in C"])
     import datetime as dt
-    for i, (d, crop, t) in enumerate(DELIVERIES):
+    for i, (d, crop, t, km) in enumerate(DELIVERIES):
         r = 5 + i
         put(ws, r, 1, dt.date.fromisoformat(d), fmt="DD-MMM-YYYY", align=centre)
         put(ws, r, 2, crop)
@@ -421,6 +442,8 @@ def q_weighted():
 
     put(ws, last + 3, 1, "Plain mean of the yields", font=f_bold)
     put(ws, last + 3, 3, f"=AVERAGE(C5:C{last})", fill=lock_fill, fmt="0.0", align=centre)
+    put(ws, last + 3, 4, f"=COUNT(C5:C{last})", fill=lock_fill, fmt="#,##0", align=centre)
+    put(ws, last + 3, 5, "fields averaged", font=f_note)
     put(ws, last + 4, 1, "Weighted: bushels / acres", font=f_bold)
     put(ws, last + 4, 3, f"=D{last+1}/B{last+1}", fill=lock_fill, fmt="0.0", align=centre)
     put(ws, last + 5, 1, "Weighted: SUMPRODUCT", font=f_bold)
@@ -428,11 +451,31 @@ def q_weighted():
         fill=lock_fill, fmt="0.0", align=centre)
     put(ws, last + 5, 4, f"={FT}(C{last+5})", font=f_form)
 
-    note(ws, last + 7,
-         "40.1 against 39.0. The 95-acre Creek field is the best of the five and the "
-         "310-acre Home field the worst, so counting fields equally flatters the farm. "
-         "The two weighted routes agree, which is the check: if they disagree, one is wrong.", 5)
-    finish(ws, [("A", 26), ("B", 11), ("C", 15), ("D", 12), ("E", 30)], last + 7)
+    # ROUND against formatting -- the totals differ because ROUND changes the values
+    r0 = last + 7
+    put(ws, r0, 1, "Rounding vs formatting", font=f_bold)
+    header(ws, r0 + 1, ["Field", "Bushels", "ROUND to whole", "The formula in C"])
+    for i, (name, acres, yld) in enumerate(FIELDS):
+        r = r0 + 2 + i
+        put(ws, r, 1, name)
+        put(ws, r, 2, f"=B{5+i}*C{5+i}", fmt="#,##0.0", align=centre)
+        put(ws, r, 3, f"=ROUND(B{5+i}*C{5+i},0)", fill=lock_fill, fmt="#,##0", align=centre)
+        put(ws, r, 4, f"={FT}(C{r})", font=f_form)
+    rlast = r0 + 1 + len(FIELDS)
+    put(ws, rlast + 1, 1, "Total", font=f_bold)
+    put(ws, rlast + 1, 2, f"=SUM(B{r0+2}:B{rlast})", font=f_bold, fill=lock_fill,
+        fmt="#,##0.0", align=centre)
+    put(ws, rlast + 1, 3, f"=SUM(C{r0+2}:C{rlast})", font=f_bold, fill=lock_fill,
+        fmt="#,##0", align=centre)
+    put(ws, rlast + 1, 4, "half a bushel apart", font=f_note)
+
+    note(ws, rlast + 3,
+         "56.4 against 54.1. The 89-acre Quarter field is the best of the five and the "
+         "326-acre Slough field the worst, so counting fields equally flatters the farm. "
+         "The two weighted routes agree, which is the check: if they disagree, one is wrong. "
+         "Below, ROUND changes the stored bushels, so the rounded column really does total "
+         "what it displays -- a formatted column would still add up its unrounded values.", 5)
+    finish(ws, [("A", 26), ("B", 13), ("C", 16), ("D", 22), ("E", 30)], rlast + 3)
     return wb
 
 

@@ -17,7 +17,7 @@ Expand each **Answer** block to check your work. Every value has been computed f
 
 **Grading model.** **10%** for presentation — labelled cells, sensible formats, a reader can follow the sheet. The remaining **90%** is split evenly across the four questions, and evenly across the parts within each question. Parts are marked on **follow-through**: if an early part is wrong but the later parts are correctly worked *from your own earlier answer*, the later parts still earn full marks.
 
-> **Vocabulary note.** Everything here uses only Module 1 tools: `SUM`, `AVERAGE`, `COUNT`, `COUNTA`, `MEDIAN`, `MODE.SNGL`, `MIN`, `MAX`, `ROUND`, `SUMPRODUCT`, `STDEV.S`, `VAR.S`, `QUARTILE.INC`, `PERCENTILE.INC`, `IF`, `COUNTIF`, `SUMIF`, `AVERAGEIF`, `XLOOKUP`; relative and absolute references; number and date formatting; sorting and filtering; wide vs long shape; and PivotTables.
+> **Vocabulary note.** Everything here uses only Module 1 tools: `SUM`, `AVERAGE`, `COUNT`, `COUNTA`, `MEDIAN`, `MODE.SNGL`, `MIN`, `MAX`, `ROUND`, `SUMPRODUCT`, `STDEV.S`, `VAR.S`, `QUARTILE.INC`, `PERCENTILE.INC`, `IF` (including nested), `COUNTIF`, `SUMIF`, `AVERAGEIF`, `COUNTIFS`, `SUMIFS`, `AVERAGEIFS`, `XLOOKUP`; relative and absolute references; number and date formatting; sorting and filtering; the 1.5 × IQR outlier rule; wide vs long shape; and PivotTables, including PivotCharts and value filters.
 
 ---
 
@@ -104,31 +104,34 @@ Directly above the three yield columns, enter the prices in a single row: Canola
 *Paste this block into a blank sheet.*
 
 ```{.plain}
-Date	Crop	Tonnes
-14 September 2026	Canola	42.5
-18 September 2026	Canola	38.0
-23 September 2026	Wheat	61.2
-2 October 2026	Wheat	55.8
-9 October 2026	Barley	47.3
+Date	Crop	Tonnes	Km hauled
+2026-09-14	Canola	42.5	38
+2026-09-18	Canola	38.0	52
+2026-09-23	Wheat	61.2	27
+2026-10-02	Wheat	55.8	64
+2026-10-09	Barley	47.3	41
 ```
 
-**(a)** Make sure Excel has read the dates as **dates**, not text, and format them as `DD-MMM-YYYY` (e.g. 14-Sep-2026). Show tonnes to one decimal.
+**(a)** Make sure Excel has read the dates as **dates**, not text, then format them to show the month as a short name (e.g. 14-Sep-26). Show tonnes to one decimal.
 
 **(b)** Add a **Days since previous** column. Leave the first row blank. Make sure the results show as plain numbers.
 
-**(c)** In one cell, compute the number of days from the first delivery to the last.
+**(c)** In one cell, compute the number of days from the first delivery to the last. Use `COUNT` to confirm how many deliveries there were, and `COUNTA` to count the entries in the **Crop** column. Explain in one sentence why `COUNT` would return 0 on that column.
 
-**(d)** Use `SUM` to total the tonnes, and `AVERAGE` to find the mean load size.
+**(d)** The hauler charges a base rate of $4.10 per tonne plus $0.085 per tonne for each kilometre, and the elevator then deducts 1.5% of the total for shrinkage. Add a **Charge** column computing the net charge for each delivery, and total it. Format as currency.
 
-**(e)** In one sentence, explain why part (b) would fail if Excel had stored the dates as text rather than as dates.
+**(e)** A classmate writes `=4.10+0.085*D2*C2*(1-0.015)` and gets $139.32 for the first load instead of $306.85. Explain what their formula actually computes, and where the parentheses belong.
+
+**(f)** In one sentence, explain why part (b) would fail if Excel had stored the dates as text rather than as dates.
 
 <details><summary>Answer</summary>
 
-- (a) Dates formatted `DD-MMM-YYYY`; tonnes `0.0`.
+- (a) Dates formatted with a short month name (`DD-MMM-YY`); tonnes `0.0`.
 - (b) `=A3-A2` filled down → **4, 5, 9, 7** days. If the cell shows `04-Jan-1900` it inherited the date format; change it to Number.
-- (c) `=A6-A2` = **25** days.
-- (d) Total **244.8** tonnes; mean **48.96** tonnes.
-- (e) Excel stores a date as a number, which is why subtracting two of them gives a count of days. Text cannot be subtracted, so the formula would return an error instead of a gap.
+- (c) `=A6-A2` = **25** days. `=COUNT(C2:C6)` = **5**; `=COUNTA(B2:B6)` = **5**. `COUNT` counts only numbers, and the Crop column holds text, so it would return 0 — `COUNTA` counts any non-empty cell.
+- (d) `=(4.10+0.085*D2)*C2*(1-0.015)` filled down → **$306.85, $318.90, $385.50, $524.35, $353.39**; total **$1,889.00**.
+- (e) Without the parentheses Excel applies multiplication before addition, so it computes $4.10 *plus* (0.085 × km × tonnes × 0.985) — the base rate is added once for the whole load instead of being charged on every tonne. The base and the per-kilometre rate must be grouped first: `=(4.10+0.085*D2)*C2*(1-0.015)`.
+- (f) Excel stores a date as a number, which is why subtracting two of them gives a count of days. Text cannot be subtracted, so the formula would return an error instead of a gap.
 
 📗 **[Answer workbook](../practice/answers/s1_q03.xlsx)** — the finished sheet, with the formulas live and a `FORMULATEXT` column showing what was typed.
 
@@ -175,14 +178,14 @@ E	0.1356
 
 ```{.plain}
 Field	Acres	Yield (bu/ac)
-North	120	41.2
-South	240	38.6
-Creek	95	44.8
-Home	310	36.1
-Rented	175	39.9
+Willow	213	52.4
+Ridge	147	61.8
+Slough	326	47.9
+Quarter	89	64.5
+Airport	255	55.2
 ```
 
-**(a)** Use `AVERAGE` to find the plain mean of the five yields.
+**(a)** Use `AVERAGE` to find the plain mean of the five yields, and `COUNT` to confirm how many fields the average was taken over.
 
 **(b)** Add a **Bushels** column (yield × acres) and total it, along with the acres, using `SUM`.
 
@@ -190,15 +193,18 @@ Rented	175	39.9
 
 **(d)** Compute the same figure a second way, in a single cell, using `SUMPRODUCT` over `SUM`.
 
-**(e)** The two averages in (a) and (c) differ. In one or two sentences, say which one answers "what did this farm average across all its acres", and what the plain mean is treating as equally important.
+**(e)** Add a second Bushels column that uses `ROUND` to give whole bushels, and total it. Compare that total with the one from (b), then explain in one sentence how rounding each value differs from formatting the column to zero decimals.
+
+**(f)** The two averages in (a) and (c) differ. In one or two sentences, say which one answers "what did this farm average across all its acres", and what the plain mean is treating as equally important.
 
 <details><summary>Answer</summary>
 
-- (a) `=AVERAGE(C2:C6)` = **40.1** bu/ac.
-- (b) `=B2*C2` filled down; acres **940**, bushels **36,637.5**.
-- (c) `=D7/B7` = **39.0** bu/ac.
-- (d) `=SUMPRODUCT(C2:C6,B2:B6)/SUM(B2:B6)` = **39.0** — the same number in one step.
-- (e) The **weighted** average in (c) answers it, because it counts every bushel once regardless of which field grew it. The plain mean treats each *field* as equally important, so the 95-acre Creek field — the highest yielding of the five — counts as much as the 310-acre Home field, and pulls the answer up by about 1.1 bu/ac.
+- (a) `=AVERAGE(C2:C6)` = **56.4** bu/ac; `=COUNT(C2:C6)` = **5**.
+- (b) `=B2*C2` filled down; acres **1,030**, bushels **55,677.7**.
+- (c) `=D7/B7` = **54.1** bu/ac.
+- (d) `=SUMPRODUCT(C2:C6,B2:B6)/SUM(B2:B6)` = **54.1** — the same number in one step.
+- (e) `=ROUND(B2*C2,0)` filled down totals **55,677**, 0.7 bushels below the unrounded **55,677.7**. `ROUND` changes the stored values, so the total is the sum of the rounded numbers; formatting changes only what is displayed, so a formatted column still totals its unrounded values and can appear not to add up.
+- (f) The **weighted** average in (c) answers it, because it counts every bushel once regardless of which field grew it. The plain mean treats each *field* as equally important, so the 89-acre Quarter field — the highest yielding of the five — counts as much as the 326-acre Slough field, and pulls the answer up by about 2.3 bu/ac.
 
 📗 **[Answer workbook](../practice/answers/s1_q05.xlsx)** — the finished sheet, with the formulas live and a `FORMULATEXT` column showing what was typed.
 
@@ -528,7 +534,7 @@ Continue with the reported yields.
 
 **(b)** Compute the minimum reported yield.
 
-**(c)** Compute how many standard deviations the minimum sits below the mean (that is, (mean − minimum) ÷ SD). Explain what this distance tells you about how extreme the lowest value is.
+**(c)** Compute Q1, Q3, and the lower fence (Q1 − 1.5 × IQR). State whether the minimum falls below it, and explain what that tells you about how extreme the lowest value is.
 
 **(d)** Explain what would happen to the mean, versus the median, if that single lowest value were removed — and why the two measures respond differently to one extreme value.
 
@@ -538,7 +544,7 @@ Continue with the reported yields.
 
 - (a) P90 ≈ 75.8 bu/ac — 90% of reported results were at or below this.
 - (b) minimum ≈ 4.5 bu/ac.
-- (c) (61.16 − 4.5) / 12.38 ≈ 4.6 standard deviations below the mean — a very extreme low value, far outside the bulk of the data.
+- (c) Q1 ≈ 53.9, Q3 ≈ 69.6, IQR ≈ 15.7, so the lower fence is 53.9 − 1.5(15.7) ≈ 30.4. The minimum of ≈4.5 sits far below it — an extreme low value, well outside the bulk of the data.
 - (d) Removing it would raise the **mean** noticeably (mean sums every value) but barely move the **median** (a position).
 - (e) The **median** — not distorted by the low extreme, so it better represents "typical."
 
@@ -947,7 +953,7 @@ Filter to **Oats** (all provinces, all years).
 
 **(b)** Compute Q1, Q3, and IQR.
 
-**(c)** Compare the shape (mean vs median) to what you saw for oats in the Saskatchewan RM data. Are they similar in direction of skew?
+**(c)** Across all years the Saskatchewan RM oat data has a mean of 64.7 and a median of 61.8 bu/ac. Compare the shape (mean vs median) you found here with that one. Are they skewed in the same direction?
 
 **(d)** Explain why the *provincial* oat data has fewer, smoother values than the RM oat data (hundreds of RMs vs ten provinces).
 
@@ -957,7 +963,7 @@ Filter to **Oats** (all provinces, all years).
 
 - (a) mean ≈ 79.41, median ≈ 75.90, CV ≈ 0.193 bu/ac.
 - (b) Q1 ≈ 68.60, Q3 ≈ 90.80, IQR ≈ 22.20.
-- (c) Here mean (79.4) is **above** median (75.9) → a slight right/high skew, the opposite direction from the slightly left-skewed SK RM oats — a good reminder that aggregation level can change the apparent shape.
+- (c) Here mean (79.4) sits **above** median (75.9), a slight right skew. The SK RM figures lean the same way (64.7 against 61.8), so both are right-skewed — the provincial averages are higher and less spread, but the direction of the skew survives aggregation.
 - (d) Only ~10 provinces × 11 years, each already an average, so far fewer and smoother numbers than ~300 RMs × 36 years.
 - (e) Fine data shows local variation but is noisier/patchier; coarse data is clean and comparable but hides within-province detail.
 
@@ -1065,9 +1071,9 @@ Use the full (all-years) dataset.
 
 **(b)** Rank those three years by average yield, and identify which one stands out as unusually low.
 
-**(c)** For each of the same three years, describe what you would check across the *other* crop columns to decide whether the low year was a broad event affecting all crops, rather than a canola-only result. (You do not need outside knowledge — describe the data check.)
+**(c)** Take the lowest of those three years. Describe what you would check across the *other* crop columns to decide whether the low year was a broad event affecting all crops, rather than a canola-only result. (You do not need outside knowledge — describe the data check.)
 
-**(d)** Your `AVERAGEIF` for 2023 returns a number even though several RMs have a blank canola cell that year. Explain what `AVERAGEIF` did with those blanks.
+**(d)** Your `AVERAGEIF` for 2021 returns a number even though several RMs have a blank canola cell that year. Explain what `AVERAGEIF` did with those blanks.
 
 **(e)** Explain why filling those blanks with 0 before averaging would give a wrong answer.
 
@@ -1076,7 +1082,7 @@ Use the full (all-years) dataset.
 - (a) 2010 ≈ 29.82, 2019 ≈ 40.78, 2021 ≈ 21.86 bu/ac. `=AVERAGEIF(A:A, 2021, E:E)`.
 - (b) 2019 highest, 2010 middle, **2021** lowest — the standout.
 - (c) Compute each other crop's `AVERAGEIF` for 2021 and see whether they are *also* low; if every crop's 2021 average is depressed, the low year is broad, not canola-specific.
-- (d) `AVERAGEIF` **skips blank cells**, averaging only the RMs that reported.
+- (d) `AVERAGEIF` **skips blank cells**, so the average is taken over only the RMs that reported — the blanks are ignored rather than counted as zero.
 - (e) Filling blanks with 0 counts "no data" as "a yield of zero," dragging the average down artificially.
 
 📗 **[Answer workbook](../practice/answers/q041.xlsx)** — the data on one tab, the statistics on another as live formulas, so the sheet recomputes the answer.
@@ -1197,7 +1203,7 @@ Use the full (all-years) dataset.
 
 **(c)** Roughly what fraction of reported canola cells are above the mean? Explain whether you would expect this fraction to be exactly one-half.
 
-**(d)** Explain why, for a left-skewed distribution, *more* than half the values can sit above the mean.
+**(d)** Your answer to (c) is below half. Explain what that says about the direction of the skew, and why a right-skewed distribution puts *fewer* than half the values above the mean.
 
 **(e)** Explain why you cannot write the criterion as `">AVERAGE(E:E)"` in quotes, and must use `">"&AVERAGE(E:E)` instead.
 
@@ -1206,7 +1212,7 @@ Use the full (all-years) dataset.
 - (a) `=COUNTIF(E:E, ">"&AVERAGE(E:E))`.
 - (b) overall average ≈ 28.29 bu/ac; count above ≈ 4519.
 - (c) ≈ 4519 / 10039 ≈ 0.45 — a bit **below** half, not exactly one-half.
-- (d) In a left-skewed set the low tail pulls the mean down, so a majority can sit above it; here the pooled multi-decade data behaves differently, and the fraction lands near 0.45 — the point is that "above the mean" need not be 50%.
+- (d) Below half means the mean sits *above* the median — a right skew, where a long high tail drags the mean up past the bulk of the data, leaving fewer than half the values above it. ecade data behaves differently, and the fraction lands near 0.45 — the point is that "above the mean" need not be 50%.
 - (e) Quoted, `">AVERAGE(E:E)"` is treated as literal text; `">"&AVERAGE(E:E)` concatenates the ">" with the computed number to build a real numeric criterion.
 
 📗 **[Answer workbook](../practice/answers/q046.xlsx)** — the data on one tab, the statistics on another as live formulas, so the sheet recomputes the answer.
@@ -1243,19 +1249,19 @@ Use the full (all-years) dataset.
 
 *Using the Saskatchewan RM Crop Yields dataset.*
 
-**(a)** Write an `IF` (or `IFS`) formula that labels each RM-year's canola yield as `"Low"` (below 20), `"Medium"` (20 to 40), or `"High"` (above 40), leaving blanks blank.
+**(a)** Write a nested `IF` formula that labels each RM-year's canola yield as `"Low"` (below 20), `"Medium"` (20 to 40), or `"High"` (above 40), leaving blanks blank.
 
 **(b)** Use `COUNTIF` to count how many cells fall in each of the three labels.
 
 **(c)** Which label is most common? Relate that to the overall average canola yield (~28 bu/ac).
 
-**(d)** Explain how you would modify the formula to avoid labelling a blank cell as "Low."
+**(d)** A classmate omits the blank guard and writes `=IF(E2<20,"Low",IF(E2<=40,"Medium","High"))`. Explain what label their formula gives an RM-year with no canola reported, and why.
 
 **(e)** State, in one sentence, why an explicit label column can be more useful for a reader than the raw numbers alone.
 
 <details><summary>Answer</summary>
 
-- (a) `=IF(E2="", "", IFS(E2<20,"Low",E2<=40,"Medium",TRUE,"High"))`.
+- (a) `=IF(E2="", "", IF(E2<20,"Low",IF(E2<=40,"Medium","High")))` — read outward in: the first test catches blanks, then Low, then Medium, and anything left is High.
 - (b) Count each label with `=COUNTIF(label_range, "Medium")`, etc.
 - (c) "Medium" (20–40) is most common, consistent with the ~28 bu/ac average sitting inside that band.
 - (d) Wrap the classification in `IF(E2="", "", …)` so blank inputs return blank, not "Low."
@@ -1269,23 +1275,24 @@ Use the full (all-years) dataset.
 
 *Using the Saskatchewan RM Crop Yields dataset.*
 
-**(a)** Use `COUNTIF` to count non-blank canola cells and non-blank flax cells across all years (`COUNT` on each column).
+**(a)** Turn on filters (Data → Filter) and filter the **Year** column to 2023 only. Note how the row numbers change.
 
-**(b)** State which crop is reported in more RM-years, and by roughly how much.
+**(b)** With the filter still applied, write `=AVERAGE(E2:E10650)` and `=COUNT(E2:E10650)` over the whole canola column. Record both numbers.
 
-**(c)** Explain what a difference in the number of reported cells tells you about how commonly each crop is recorded across RMs and years — using only the counts, not outside knowledge.
+**(c)** Now compute the 2023 canola average a second way, using `AVERAGEIF` on the unfiltered columns, and count the 2023 values with `COUNTIF`. Record both.
 
-**(d)** Explain why you would use `COUNT` (numbers only) rather than `COUNTA` (any non-empty cell) here.
+**(d)** The two averages differ by about 5.6 bu/ac. Explain which one is the 2023 average, and what the other one actually measured.
 
-**(e)** State, in one sentence, why the count of reported cells is itself a useful summary, separate from the average yield.
+**(e)** A classmate says they can trust `=AVERAGE` after filtering as long as they can see that only 2023 rows are on screen. Explain why that reasoning fails, and state in one sentence what filtering does and does not change about a worksheet.
 
 <details><summary>Answer</summary>
 
-- (a) Canola ≈ 10,039; Flax ≈ 8,077 non-blank cells. `=COUNT(E:E)`, `=COUNT(J:J)`.
-- (b) Canola is reported in more RM-years, by ≈ 1,960.
-- (c) Canola has more reported cells, so it is recorded in more RM-years than flax across the 1990–2025 span.
-- (d) `COUNT` counts numeric entries only; `COUNTA` would also count any stray text, giving a misleading total.
-- (e) It measures data coverage — how widely the crop is recorded — which the average yield does not capture.
+- (a) Filtered to 2023 the row numbers jump (1, then gaps), turn blue, and the Year heading shows a funnel icon. Nothing has been deleted.
+- (b) `=AVERAGE(E2:E10650)` = **28.29**, `=COUNT(E2:E10650)` = **10,039** — every canola value from 1990–2025, hidden rows included.
+- (c) `=AVERAGEIF(A2:A10650,2023,E2:E10650)` = **33.88**; `=COUNTIF(A2:A10650,2023)` counts the 2023 rows, of which **289** have a canola value.
+- (d) **33.88** is the 2023 average. The 28.29 figure is the 1990–2025 average across all 10,039 reported RM-years — the formula ignored the filter entirely.
+- (e) Filtering changes which rows *you* can see; it does not change the range an ordinary formula uses.
+- (f) The formula never consults the screen. `AVERAGE` reads every cell in the range it was given, hidden or not, so a plausible-looking wrong answer comes back with no error and no warning — here it is off by 5.6 bu/ac in a direction that looks perfectly reasonable.
 
 📗 **[Answer workbook](../practice/answers/q049.xlsx)** — the data on one tab, the statistics on another as live formulas, so the sheet recomputes the answer.
 
@@ -1587,9 +1594,9 @@ Consider the variety **`GLENN`**, which is reported in very few municipality-yea
 
 *Using the Canada Field Crops dataset.*
 
-**(a)** Use `SUMIF` to compute the total canola seeded acres across all provinces in 2023.
+**(a)** Use `SUMIFS` to compute the total canola seeded acres across all provinces in 2023. Two conditions are needed here -- crop and year -- so the singular `SUMIF` cannot do it.
 
-**(b)** Use `SUMIF` per province (or a sort) to identify which province contributes the most to that total, and roughly what share it makes up.
+**(b)** Use `SUMIFS` per province to identify which province contributes the most to that total, and roughly what share it makes up.
 
 **(c)** State what that dominance implies about where the "national" canola seeded-acres figure really comes from.
 
@@ -1599,7 +1606,7 @@ Consider the variety **`GLENN`**, which is reported in very few municipality-yea
 
 <details><summary>Answer</summary>
 
-- (a) ≈ 22,085,300 acres. `=SUMIF(C:C, "Canola", D:D)` filtered to 2023 (or `SUMIFS` on Crop and Year).
+- (a) **22,085,300** acres. `=SUMIFS(D:D, C:C, "Canola", A:A, 2023)`. Note that applying a *filter* and using `SUMIF` would not work -- the formula would total every year (@sec-filter-formulas).
 - (b) **Saskatchewan** ≈ 12,400,400 acres — over half the national total.
 - (c) National canola seeded-acres figures are largely a Saskatchewan story.
 - (d) Acres are an extensive quantity and add up; yield is a rate (bu per acre), and adding rates across provinces is meaningless.
@@ -1639,11 +1646,11 @@ Consider the variety **`GLENN`**, which is reported in very few municipality-yea
 
 *Using the Canada Field Crops dataset.*
 
-**(a)** Use `AVERAGEIF` to compute the average canola yield in Ontario (all years) and in Saskatchewan (all years).
+**(a)** Use `AVERAGEIFS` to compute the average canola yield in Ontario (all years) and in Saskatchewan (all years).
 
 **(b)** State which province has the higher average canola yield per acre, and by roughly how much.
 
-**(c)** Use `SUMIF` (or a lookup) to compare their 2023 canola seeded acres.
+**(c)** Use `SUMIFS` to compare their 2023 canola seeded acres.
 
 **(d)** Explain why the province with the higher *yield per acre* is not necessarily the one that grows the most canola, using your two results.
 
@@ -1651,9 +1658,9 @@ Consider the variety **`GLENN`**, which is reported in very few municipality-yea
 
 <details><summary>Answer</summary>
 
-- (a) Ontario ≈ 46.72; Saskatchewan ≈ 39.09 bu/ac.
+- (a) Ontario **46.72**; Saskatchewan **39.09** bu/ac. `=AVERAGEIFS(E:E, C:C, "Canola", B:B, "Ontario")`.
 - (b) Ontario is higher by ≈ 7.6 bu/ac per acre.
-- (c) Saskatchewan seeds ≈ 12,400,400 canola acres in 2023 vs a small fraction of that in Ontario.
+- (c) Saskatchewan **12,400,400** canola acres in 2023 against Ontario's **45,100** -- roughly 275 times as much land.
 - (d) Ontario yields more per acre, but Saskatchewan plants vastly more acres, so SK grows far more canola overall.
 - (e) A rate measures output per unit land; a total measures the overall amount — they can rank provinces oppositely.
 
@@ -1671,7 +1678,7 @@ Consider the variety **`GLENN`**, which is reported in very few municipality-yea
 
 **(c)** Explain why you need three criteria (Province, Crop, Year) to identify a single row in this dataset.
 
-**(d)** Suppose a lookup returns a blank yield for some Province-Crop-Year. Give one data reason (not a typo) this can happen.
+**(d)** Suppose a lookup returns 0 for some Province-Crop-Year. Give one data reason (not a typo) this can happen.
 
 **(e)** State, in one sentence, why matching on fewer than all three keys risks returning the wrong row.
 
@@ -1691,7 +1698,7 @@ Consider the variety **`GLENN`**, which is reported in very few municipality-yea
 
 *Using the Canada Field Crops dataset.*
 
-**(a)** Use `COUNTIF`/`COUNTBLANK` to count how many province-crop-year rows have a blank yield.
+**(a)** Count how many province-crop-year rows have a blank yield, using `COUNTA(C2:C1068)-COUNT(E2:E1068)` — every row names a crop, so the gap between the two counts is the number of missing yields. Use the bounded ranges shown, not whole columns.
 
 **(b)** Use `COUNTIFS` to count how many of those blank-yield rows are for one specific crop of your choice (e.g. Durum wheat).
 
@@ -1704,7 +1711,7 @@ Consider the variety **`GLENN`**, which is reported in very few municipality-yea
 <details><summary>Answer</summary>
 
 - (a) ≈ 66 blank-yield rows (snapshot).
-- (b) Filter blanks to one crop with `COUNTIFS(Crop, "Durum wheat", Yield, "")` (or count blanks within that crop) — durum blanks fall in the many provinces that do not grow it.
+- (b) For durum wheat: `=COUNTIFS(C2:C1068,"Durum wheat")` gives 38 rows and `=COUNTIFS(C2:C1068,"Durum wheat",E2:E1068,">0")` gives 34 with a yield, so 4 are blank — durum blanks fall in the many provinces that do not grow it.
 - (c) A blank here = crop not grown/reported in that province-year; a Manitoba suppression = grown but the number withheld for privacy.
 - (d) Excel's AVERAGE skips blanks, so the mean is taken over provinces/years that reported the crop.
 - (e) Replacing blanks with 0 would count "not grown" as "a real zero yield," dragging the mean down falsely.
@@ -1717,9 +1724,9 @@ Consider the variety **`GLENN`**, which is reported in very few municipality-yea
 
 *Using the Canada Field Crops dataset.*
 
-**(a)** Use `COUNTIF` to count how many spring wheat rows (all provinces, all years) have a yield above 55 bu/ac.
+**(a)** Use `COUNTIFS` to count how many spring wheat rows (all provinces, all years) have a yield above 55 bu/ac.
 
-**(b)** Use `COUNT` to find the total number of non-blank spring wheat yields.
+**(b)** Use `COUNTIFS` to find the total number of spring wheat rows with a yield recorded. Test the yield column with `">0"` to exclude the blanks.
 
 **(c)** Compute the proportion above 55 and explain what it tells you about how often provinces reached that level.
 
@@ -1729,9 +1736,9 @@ Consider the variety **`GLENN`**, which is reported in very few municipality-yea
 
 <details><summary>Answer</summary>
 
-- (a) ≈ 30 rows above 55. `=COUNTIF(E:E, ">55")` on spring wheat rows.
-- (b) ≈ 94 non-blank spring wheat yields.
-- (c) ≈ 30 / 94 ≈ 0.32 — about a third of province-years reached above 55 bu/ac.
+- (a) **30** rows. `=COUNTIFS(C:C, "Spring wheat", E:E, ">55")`.
+- (b) **94**. `=COUNTIFS(C:C, "Spring wheat", E:E, ">0")`.
+- (c) 30 / 94 ≈ **0.32** — about a third of province-years reached above 55 bu/ac.
 - (d) It pools all provinces and years, so it describes the whole set, not any one province's typical performance.
 - (e) Use `COUNTIFS` adding a Province condition to count above 55 within a single province.
 
@@ -1743,11 +1750,11 @@ Consider the variety **`GLENN`**, which is reported in very few municipality-yea
 
 *Using the Canada Field Crops dataset.*
 
-**(a)** Use `AVERAGEIF` to compute the average barley yield in 2023 across provinces, and the average soybean yield in 2023.
+**(a)** Use `AVERAGEIFS` to compute the average barley yield in 2023 across provinces, and the average soybean yield in 2023.
 
 **(b)** State which crop yielded more per acre on average that year.
 
-**(c)** Use `COUNTIF` to count how many provinces reported each crop in 2023.
+**(c)** Use `COUNTIFS` to count how many provinces reported a yield for each crop in 2023.
 
 **(d)** Explain why comparing the two averages requires noting how many provinces contribute to each — using your counts.
 
@@ -1755,9 +1762,9 @@ Consider the variety **`GLENN`**, which is reported in very few municipality-yea
 
 <details><summary>Answer</summary>
 
-- (a) Compute each with `AVERAGEIFS` (Crop and Year). Barley ≈ high 50s; soybeans lower (report your values).
+- (a) Barley **58.68**, soybeans **42.41** bu/ac. `=AVERAGEIFS(E:E, C:C, "Barley", A:A, 2023)`.
 - (b) Barley yields more per acre on average in 2023.
-- (c) Barley is reported by more provinces than soybeans (soybeans concentrate in fewer).
+- (c) Barley **9** provinces, soybeans **7**. `=COUNTIFS(C:C, "Barley", A:A, 2023, E:E, ">0")`. Soybean production concentrates in fewer provinces.
 - (d) Barley's average spans more provinces; soybeans' spans fewer, so the two averages describe different breadths of the country.
 - (e) An average over more provinces summarises a larger share of the country than one over a few.
 
@@ -1775,7 +1782,7 @@ Consider the variety **`GLENN`**, which is reported in very few municipality-yea
 
 **(c)** Explain what an increase or decrease in national seeded acres tells you about the crop's footprint over those years — using the totals only.
 
-**(d)** Explain why comparing *seeded acres* across years is valid, whereas comparing summed yields across years would not be.
+**(d)** Describe what a PivotChart of this table would show that the table alone does not, and which chart type you would use.
 
 **(e)** State, in one sentence, why seeded acres is a meaningful quantity to add up but yield is not.
 
@@ -1784,7 +1791,7 @@ Consider the variety **`GLENN`**, which is reported in very few municipality-yea
 - (a) Compute with `SUMIFS(Seeded, Crop, "Canola", Year, 2020)` and for 2023 (≈22.1M in 2023).
 - (b) Report the difference (2023 total minus 2020 total).
 - (c) A rise means more land was planted to canola nationally; a fall means less — a footprint change.
-- (d) Acres add up across provinces and years; yields are per-acre rates and summing them has no physical meaning.
+- (d) A line PivotChart with Year on the horizontal axis shows the *shape* of the change -- steady growth, a plateau, a sudden break -- which a column of numbers makes you reconstruct in your head. A line is the right type because the years are ordered and evenly spaced. g.
 - (e) Acres are an amount of land (extensive); yield is output per acre (a rate), which must be averaged, not summed.
 
 📗 **[Answer workbook](../practice/answers/q068.xlsx)** — the data on one tab, the statistics on another as live formulas, so the sheet recomputes the answer.
@@ -1795,7 +1802,7 @@ Consider the variety **`GLENN`**, which is reported in very few municipality-yea
 
 *Using the Canada Field Crops dataset.*
 
-**(a)** Use `AVERAGEIF` to compute the average canola yield for each of 2019, 2021, and 2023 across provinces.
+**(a)** Use `AVERAGEIFS` to compute the average canola yield for each of 2019, 2021, and 2023 across provinces.
 
 **(b)** Rank the three years and identify the lowest.
 
@@ -1807,8 +1814,8 @@ Consider the variety **`GLENN`**, which is reported in very few municipality-yea
 
 <details><summary>Answer</summary>
 
-- (a) Compute each with `AVERAGEIFS` (Crop = Canola, Year). 2021 is the low one.
-- (b) 2021 lowest; 2019 and 2023 higher.
+- (a) 2019 **40.92**, 2021 **34.25**, 2023 **42.44** bu/ac. `=AVERAGEIFS(E:E, C:C, "Canola", A:A, 2019)`.
+- (b) 2021 is lowest at 34.25, about 6.7 below 2019 and 8.2 below 2023.
 - (c) The low year's average sits clearly below the others, marking it as unusual without any outside information.
 - (d) Each province figure is already an average over its farms, so within-province lows are smoothed before you see them.
 - (e) Province averages combine many farms into one number, hiding the farm- or RM-level spread beneath them.
@@ -2013,7 +2020,7 @@ Consider the variety **`GLENN`**, which is reported in very few municipality-yea
 
 **(c)** In the 2023-only ranking, Oats is the highest-yielding crop and Flax the lowest (among bu/ac crops). Compare that to your all-years ranking — is the order the same, and why might a single-year ranking differ from the long-run one?
 
-**(d)** Explain why a long-run average ranking can differ from a single-year ranking.
+**(d)** Using the Count column, say which crops have the fewest reports, and explain why a thin count makes a crop's long-run rank less trustworthy.
 
 **(e)** State, in one sentence, when you would prefer an all-years average over a single-year average.
 
@@ -2024,7 +2031,7 @@ Consider the variety **`GLENN`**, which is reported in very few municipality-yea
 - (a) Crop on Rows, Yield Average, all years.
 - (b) Oats highest, then Barley, Spring Wheat, Durum/Peas/Canola, Flax lowest (bu/ac).
 - (c) Largely the same order (Oats > Barley > Spring Wheat > … > Flax), with minor shuffles among the middle crops.
-- (d) One year's weather can lift or drop a crop out of its usual position, so a single year need not match the long-run order.
+- (d) Durum (≈7,137 reports) and Flax (≈8,077) are the thinnest; Spring Wheat (≈10,534) and Barley (≈10,401) the fullest. A crop reported by fewer RMs has its average built on less data, so its rank can move on a handful of results. long-run order.
 - (e) Use the all-years average when you want a stable, typical ranking rather than one year's result.
 </details>
 
@@ -2240,7 +2247,7 @@ Consider the variety **`GLENN`**, which is reported in very few municipality-yea
 
 **(c)** Across all years, `SY MANNESS` is the top-averaging variety (among those with many reports). Compare your single-year ranking to that all-years picture — does the same variety lead, and why can a variety's rank shift from one year to the next?
 
-**(d)** Explain why a variety's rank can change from one year to the next.
+**(d)** Name one thing other than genetics that could move a variety's rank between years, and explain how averaging across years reduces its effect.
 
 **(e)** State, in one sentence, why an all-years variety ranking is generally more stable than a one-year ranking.
 
@@ -2251,7 +2258,7 @@ Consider the variety **`GLENN`**, which is reported in very few municipality-yea
 - (a) Variety on Rows, Yield Average + Count, Year = 2025.
 - (b) Rank the well-reported varieties for 2025.
 - (c) Compare to the all-years order; expect broad agreement with some movement.
-- (d) A single year's conditions can favour some varieties over others, shifting the order.
+- (d) Where a variety happens to be grown -- soil, moisture, the mix of municipalities reporting it in a given year -- moves its average independently of the genetics. Averaging over many years and places lets those site effects cancel out rather than deciding the ranking.
 - (e) Averaging over many years smooths out any one year's quirks, giving a steadier ranking.
 </details>
 
@@ -2334,7 +2341,7 @@ Consider the variety **`GLENN`**, which is reported in very few municipality-yea
 
 *Using the Manitoba Wheat Variety dataset.*
 
-**(a)** Build a PivotTable that counts **reported vs suppressed** rows by variety (Variety on Rows, `Reported` on Columns, Yield as Count).
+**(a)** Build a PivotTable that counts **reported vs suppressed** rows by variety (Variety on Rows, `Reported` on Columns, `Municipality` as Count). Count `Municipality` rather than `Yield_bu_ac`: suppressed rows have a blank yield, so counting the yield column would leave the suppressed side of the table empty.
 
 **(b)** Pick one variety and read off how many of its rows are reported vs suppressed.
 
@@ -2348,8 +2355,8 @@ Consider the variety **`GLENN`**, which is reported in very few municipality-yea
 
 <details><summary>Answer</summary>
 
-- (a) Variety on Rows, Reported on Columns, Count of Yield.
-- (b) Report the TRUE/FALSE split for your chosen variety (e.g. AAC Brandon ≈ 519 TRUE, ≈ 51 FALSE).
+- (a) Variety on Rows, Reported on Columns, Count of Municipality. Counting `Yield_bu_ac` instead returns nothing in the FALSE column, because that is exactly the value being suppressed.
+- (b) Report the TRUE/FALSE split for your chosen variety (e.g. `AAC BRANDON (BW 932)`: **519** TRUE, **51** FALSE).
 - (c) A high suppressed count means the variety appears in many places but with yields often withheld.
 - (d) Deleting suppressed rows removes the FALSE column entirely, so the split cannot be shown.
 - (e) The flagged suppressed rows let you measure coverage and withholding, not just reported yields.
@@ -2417,7 +2424,7 @@ Consider the variety **`GLENN`**, which is reported in very few municipality-yea
 
 **(c)** By *yield per acre*, Ontario leads canola. Does the same province lead this *seeded-acres* ranking? Explain how a province can lead one but not the other.
 
-**(d)** Explain how a province can lead seeded acres but rank low on yield per acre.
+**(d)** Multiply each province's seeded acres by its yield to get approximate production. Explain what that column shows that neither acres nor yield shows alone.
 
 **(e)** State, in one sentence, why "which province grows the most canola" is answered by acres (or production), not by yield.
 
@@ -2428,7 +2435,7 @@ Consider the variety **`GLENN`**, which is reported in very few municipality-yea
 - (a) Seeded acres 2023: SK ≈12.4M, AB ≈6.36M, MB ≈3.13M, then far smaller (BC ~109k, ON ~45k, QC ~39k, NB ~1.6k).
 - (b) **Saskatchewan** — over half the national canola acreage.
 - (c) No — SK leads acres but ranks low on yield per acre (Ontario led yield).
-- (d) Yield is per-acre performance while acres is land planted; a province can plant the most land yet not yield the most per acre.
+- (d) Saskatchewan ≈464 million bu, Alberta ≈255 million, Manitoba ≈140 million, British Columbia ≈3.8 million. Production combines both: Ontario's leading yield sits on so few acres that it never appears near the top, while Saskatchewan's middling yield over 12.4 million acres dominates. Neither column alone tells you where the canola actually comes from. d the most per acre.
 - (e) "Grows the most" is about scale (acres/production), which yield per acre does not measure.
 </details>
 
@@ -2467,7 +2474,7 @@ Consider the variety **`GLENN`**, which is reported in very few municipality-yea
 
 **(c)** State whether the top province is the same in both.
 
-**(d)** Explain why an all-years ranking can differ from a single-year ranking.
+**(d)** Identify one province whose rank moves most between the two, and say what you would look at next to decide whether that move is real or noise.
 
 **(e)** State, in one sentence, when you would use the all-years provincial ranking rather than one year's.
 
@@ -2478,7 +2485,7 @@ Consider the variety **`GLENN`**, which is reported in very few municipality-yea
 - (a) All-years averages: Ontario 46.7, NB 44.0, MB 41.5, QC 41.4, PEI 40.7, AB 40.1, SK 39.1, BC 35.5.
 - (b) Similar order to 2023, with small shuffles in the middle.
 - (c) Yes — Ontario tops both.
-- (d) One year's conditions can move a province up or down, so a single year need not match the long-run order.
+- (d) Name the province that shifts most between the two rankings, then check how many years it reports and how far apart its individual yearly values sit. A province with few reports, or with widely scattered ones, can move on noise; a consistent one moving is more likely a real change.
 - (e) Use the all-years ranking for a stable, typical comparison rather than one year's snapshot.
 </details>
 

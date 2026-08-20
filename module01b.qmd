@@ -72,6 +72,46 @@ In practice, the ranges will usually cover the same rows of a dataset. The impor
 
 Examples of these functions are in rows 15-20 of the workbook above.
 
+### `COUNTIFS`, `SUMIFS`, and `AVERAGEIFS` {#sec-conditional-plural .unnumbered}
+
+`COUNTIF` and its relatives test one condition. Often you need two. In a dataset with one row
+per province, crop and year, "the average canola yield in Ontario" is a question about two
+columns at once, and no single-condition function can answer it.
+
+The plural forms take any number of conditions:
+
+```
+=AVERAGEIFS(E2:E1068, C2:C1068, "Canola", B2:B1068, "Ontario")
+```
+
+The argument order is different from `AVERAGEIF`, which catches people out. The range being
+averaged comes **first**, followed by pairs: a range to test, then the condition to test it
+for. Add as many pairs as you need and Excel keeps only the rows that satisfy all of them.
+
+`COUNTIFS` has no value range, so it is pairs all the way down:
+
+```
+=COUNTIFS(A2:A1068, 2023, C2:C1068, "Canola")
+```
+
+`SUMIFS` works like `AVERAGEIFS` -- sum range first, then the pairs.
+
+The conditions can use comparisons as well as exact matches. To average canola yields only in
+years after 2020:
+
+```
+=AVERAGEIFS(E2:E1068, C2:C1068, "Canola", A2:A1068, ">2020")
+```
+
+Comparisons go inside quotation marks. To compare against a value Excel has to calculate
+first, join the operator to it with `&`:
+
+```
+=COUNTIFS(C2:C1068, "Canola", E2:E1068, ">"&AVERAGE(E2:E1068))
+```
+
+Without the `&`, Excel reads `">AVERAGE(E2:E1068)"` as literal text and finds nothing.
+
 ::: {.callout-tip collapse="true"}
 ## Other resources — conditional functions (IF, COUNTIF, SUMIF, …)
 
@@ -264,6 +304,21 @@ Two other features are useful. **Show Values As** can display values as percenta
 row, column, or grand total. And double-clicking a value inside a PivotTable creates a new
 worksheet containing the observations behind that number. This is a quick way to investigate
 a result that looks surprising.
+
+You can drag the same field into **Values** twice and summarize it two different ways. Yield
+as Average and Yield as Count puts the mean beside the number of observations behind it, which
+tells you how much data each average rests on. An average of four observations and an average
+of four hundred look identical until you show the count.
+
+The dropdown on a row field holds more than the list of values. **Value Filters** keep only
+the rows whose summarized number meets a condition -- varieties with at least 30 reports, say
+-- which is easier than unchecking several hundred boxes by hand. **Label Filters** do the
+same on the names themselves.
+
+Selecting a cell in a PivotTable and choosing Insert → PivotChart creates a chart tied to the
+table. Filter or rearrange the PivotTable and the chart follows, which is the advantage over
+copying numbers into an ordinary chart. Give it a title and label the axes as you would any
+chart (@sec-charts).
 
 Finally, before interpreting any summary, check the units. The six crops in this workbook
 are all measured in bushels per acre, so their yields can be meaningfully compared. Pulse
