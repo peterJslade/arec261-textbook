@@ -92,9 +92,15 @@ function in this chapter works the same way: it takes a data frame as input and 
 *new* data frame as output, and if we only display that output, R does not save it. To keep
 a result, assign it to an object:
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
 high_yield <- filter(trial_data, yield_bu_acre > 50)
+')
 ```
+
+(An assignment prints nothing -- the result went into `high_yield` instead of the console.)
 
 Now there are two objects: `trial_data`, the original 120 fields, and `high_yield`, the
 filtered subset. That is a useful feature -- you can experiment without changing the
@@ -199,10 +205,14 @@ of adding a formula column in Excel.
 You can create several variables in one call, and later expressions can use variables
 created earlier in the same `mutate()`:
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
 mutate(trial_data,
        yield_t_ha = yield_bu_acre * 0.0560,
        kg_n_per_bu = fertilizer_kg_ha / yield_bu_acre)
+')
 ```
 
 ### `arrange()`: Sort Rows
@@ -231,9 +241,13 @@ every operation we need -- filter to InVigor, select the two columns, arrange by
 yield. Without a pipe, each step's output becomes the next step's first argument, and the
 calls nest:
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
 arrange(select(filter(trial_data, variety == "InVigor"), field_id, yield_bu_acre),
         desc(yield_bu_acre))
+')
 ```
 
 That works, but you have to start reading in the middle and work outward. The **pipe**,
@@ -260,11 +274,15 @@ uses `%>%` for the same idea; `|>` is the modern built-in version.)
 
 To keep a result, assign the whole pipeline to an object:
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
 invigor_yields <- trial_data |>
   filter(variety == "InVigor") |>
   select(field_id, yield_bu_acre) |>
   arrange(desc(yield_bu_acre))
+')
 ```
 
 ### Debugging a pipeline {.unnumbered}
