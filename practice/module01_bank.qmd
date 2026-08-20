@@ -1627,21 +1627,36 @@ Put these four values in labelled cells: yield **41.2** bu/ac, price **$14.20**/
 
 ### Question 66
 
-*Build this sheet yourself.*
+*Build this sheet yourself. Paste the block below into Excel.*
 
-Enter the value **0.0842** into five separate cells.
+These are protein test results from five loads of wheat, recorded as proportions:
 
-**(a)** Format them, one each, as: General, Number with 2 decimals, Percentage with 1 decimal, Currency, and Scientific.
+```{.plain}
+Load	Protein
+A	0.1342
+B	0.1285
+C	0.1401
+D	0.1198
+E	0.1356
+```
 
-**(b)** Beside each, add a formula multiplying that cell by 1000.
+**(a)** Copy the protein column into four further columns, so you have the same five numbers five times over. Format each column differently: General, Number with 2 decimals, Percentage with 1 decimal, Percentage with 2 decimals, and Scientific. Label each column with the format used.
 
-**(c)** All five results in (b) are identical. Explain what this tells you about the difference between what a cell holds and what it shows.
+**(b)** Underneath every column, compute the average with `AVERAGE`. Format each average the same way as the column above it.
+
+**(c)** The five averages display differently but are the same number. In a cell beside them, write the value that all five hold, to four decimal places.
+
+**(d)** Add a column that multiplies the General column by 1000, and one that multiplies the Percentage column by 1000. Both return the same answers. Explain in one sentence why, given that one column displays 13.4% and the other displays 0.1342.
+
+**(e)** The contract pays a premium on any load over 13.5% protein. Add a column flagging which loads qualify, and say how many do.
 
 <details><summary>Answer</summary>
 
-- (a) `0.0842` · `0.08` · `8.4%` · `$0.08` · `8.42E-02`.
-- (b) Every one returns **84.20**.
-- (c) A number format changes only the **display**. The stored value is unchanged, and formulas always use the stored value. The percentage cell still holds 0.0842, not 8.4.
+- (a) Same five values throughout; only the format differs. The percentage columns display 13.4% / 13.42% and so on.
+- (b) All five averages hold the same number and display as `0.1316`, `0.13`, `13.2%`, `13.16%`, `1.32E-01`.
+- (c) **0.1316**.
+- (d) Both return 134.2, 128.5, 140.1, 119.8, 135.6. The percentage column *displays* 13.42% but still *holds* 0.1342 — formatting never changes what a formula sees.
+- (e) `=IF(B2>0.135,"Yes","No")` or similar. **Two** loads qualify: C (0.1401) and E (0.1356). Note the comparison is against 0.135, not 13.5 — the stored values are proportions.
 
 📗 **[Answer workbook](../practice/answers/s1_q06.xlsx)** — the finished sheet, with the formulas live and a `FORMULATEXT` column showing what was typed.
 </details>
@@ -1680,14 +1695,23 @@ Wheat	8.35	5,100
 Barley	5.60	3,800
 ```
 
-**(a)** Add a **Value ($)** column and a total.
+**(a)** Add a **Value ($)** column and a total, both formatted as currency.
 
 **(b)** Should the price reference in your formula be absolute? Explain your answer.
+
+**(c)** In three spare cells below the table, write the version of the formula that *does* anchor the price with `$B$5`, filled down all three rows, and total it. Label this block clearly as the incorrect version.
+
+**(d)** State the difference between the two totals, and say which crop's price the incorrect version applied to every bin.
+
+**(e)** A grain buyer offers a flat $0.30/bu premium on every bushel in storage. Add a column showing the value including the premium, using a single labelled premium cell that all three rows point at. Explain why *this* reference does need to be absolute when the price one did not.
 
 <details><summary>Answer</summary>
 
 - (a) `=B5*C5` filled down; total `=SUM(D5:D7)` = **$97,945.00**.
-- (b) **No.** Each row has its own price, so the reference must move with the row. Anchoring it with `$B$5` would price every bin as canola and overstate the total by about $30,000. Anchoring is not automatically the safe choice — it is right only when the formula must keep pointing at one cell.
+- (b) **No.** Each row has its own price, so the reference must move with the row. Anchoring is not automatically the safe choice — it is right only when the formula must keep pointing at one cell.
+- (c) `=$B$5*C5` filled down gives $34,080 / $72,420 / $53,960.
+- (d) The incorrect total is **$160,460**, about $62,515 too high. It applies the **canola** price of $14.20 to all three bins, because `$B$5` is the canola row.
+- (e) `=(B5+$F$2)*C5` where `F2` holds 0.30, giving **$101,335.00**. The premium lives in one cell that every row must reach, so that reference must be absolute; the price lives in a different cell on each row, so that one must not be.
 
 📗 **[Answer workbook](../practice/answers/s1_q08.xlsx)** — the finished sheet, with the formulas live and a `FORMULATEXT` column showing what was typed.
 </details>
