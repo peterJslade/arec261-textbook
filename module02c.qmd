@@ -102,8 +102,12 @@ original data. Throughout the chapter, an example without `<-` is just displayin
 
 Text variables work too:
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
 filter(trial_data, variety == "InVigor")
+')
 ```
 
 Note the **two** equals signs: `==` asks whether two things are equal, so
@@ -116,20 +120,30 @@ of an object, which probably doesn't exist and would cause an error.
 You can combine conditions with `&` (and -- both must be true), `|` (or -- at least one must
 be true), and `!` (not):
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
 filter(trial_data, yield_bu_acre > 50 & variety == "InVigor")
+
 filter(trial_data, fertilizer_kg_ha < 80 | fertilizer_kg_ha > 160)
+
 filter(trial_data, !is.na(rainfall_mm))  # is.na() asks if a value is missing; ! keeps the non-missing
+')
 ```
 
 That last one is not hypothetical: three of our fields have no rainfall reading, and this is
-how you would set them aside.
+how you would set them aside -- note the 117 rows in its result.
 
 When you want to match several possible values of the same variable, `%in%` is easier to
 read:
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
 filter(trial_data, variety %in% c("InVigor", "DEKALB"))
+')
 ```
 
 You do not need to memorize every comparison operator. The idea is that `filter()` chooses
@@ -151,9 +165,14 @@ The result has the same rows but only those three columns -- especially useful w
 containing dozens or hundreds of variables. You can also drop a column by putting `-` in
 front of its name, or keep a range of adjacent columns:
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
 select(trial_data, -rainfall_mm)                 # everything except rainfall
+
 select(trial_data, field_id:rainfall_mm)         # the columns from field_id through rainfall_mm
+')
 ```
 
 A relative of `select()` is `rename()`, which changes a column's name without dropping anything: `rename(trial_data, yield = yield_bu_acre)`.
