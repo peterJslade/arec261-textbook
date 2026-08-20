@@ -856,7 +856,7 @@ Answer
 <li>Without the parentheses Excel applies multiplication before addition, so it computes $4.10 <em>plus</em> (0.085 × km × tonnes × 0.985) — the base rate is added once for the whole load instead of being charged on every tonne. The base and the per-kilometre rate must be grouped first: <code>=(4.10+0.085*D2)*C2*(1-0.015)</code>.</li>
 </ol></li>
 <li><ol start="6" type="a">
-<li>Excel stores a date as a number, which is why subtracting two of them gives a count of days. Text cannot be subtracted, so the formula would return an error instead of a gap.</li>
+<li>Excel stores a date as a number, which is why subtracting two of them gives a count of days. Date-shaped text is converted on the way into a subtraction, so that part would still work – but <code>COUNT</code>, <code>SUM</code> and <code>AVERAGE</code> skip text, so any range function over the column would silently return 0.</li>
 </ol></li>
 </ul>
 <p>📗 <strong><a href="../practice/answers/s1_q03.xlsx">Answer workbook</a></strong> — the finished sheet, with the formulas live and a <code>FORMULATEXT</code> column showing what was typed.</p>
@@ -1040,7 +1040,7 @@ Answer
 </summary>
 <ul>
 <li><ol type="a">
-<li><code>=B2*$D$1</code> (or wherever the rate sits) filled down → <strong>$362.10, $404.18, $342.97, $436.05, $379.95</strong>.</li>
+<li><code>=B2*$D$1</code> (or wherever the rate sits) filled down → <strong>$362.10, $404.18, $342.98, $436.05, $379.95</strong>.</li>
 </ol></li>
 <li><ol start="2" type="a">
 <li>Tonnes <strong>151.0</strong>; cost <strong>$1,925.25</strong>.</li>
@@ -1491,7 +1491,7 @@ Answer
 <p><strong>(b)</strong> Add a <strong>Days since previous</strong> column, leaving the first row blank.</p>
 <p><strong>(c)</strong> Compute the total span from first delivery to last, and the total and average tonnes.</p>
 <p><strong>(d)</strong> Format one date cell as <strong>General</strong> and report the number you see. Explain what that number is.</p>
-<p><strong>(e)</strong> The dates arrive as text on a colleague’s machine. Explain what happens to the (b) column and how you would tell at a glance that this had gone wrong.</p>
+<p><strong>(e)</strong> The dates arrive as text on a colleague’s machine. They subtract two of them and get a sensible-looking day count anyway. Explain how that is possible, and what <em>would</em> break.</p>
 <details>
 <summary>
 Answer
@@ -1510,7 +1510,7 @@ Answer
 <li><strong>46,261</strong> — the number of days since 30 December 1899, which is how Excel stores that date. Dates are numbers wearing a format.</li>
 </ol></li>
 <li><ol start="5" type="a">
-<li>Text cannot be subtracted, so the column returns <code>#VALUE!</code> errors instead of day counts. The giveaway before that is the alignment: the dates would sit left in their cells.</li>
+<li>Excel converts date-shaped text when it is used in arithmetic, so a subtraction still returns the right number of days. The damage shows up in the range functions instead: <code>COUNT</code>, <code>SUM</code> and <code>AVERAGE</code> skip text entirely, so a column of text dates counts as <strong>zero</strong> values rather than raising an error. Sorting goes alphabetically too. A formula that quietly returns 0 is worse than one that fails.</li>
 </ol></li>
 </ul>
 <p>📗 <strong><a href="../practice/answers/s1_q20.xlsx">Answer workbook</a></strong> — the finished sheet, with the formulas live and a <code>FORMULATEXT</code> column showing what was typed.</p>
@@ -1698,7 +1698,7 @@ Answer
 <li><code>=(B2*$F$1-$F$2)*(1-$F$3)</code> → <strong>$263.43</strong>, <strong>$299.64</strong>, <strong>$346.50</strong> per acre.</li>
 </ol></li>
 <li><ol start="4" type="a">
-<li>Without brackets Excel multiplies before it subtracts, so it computes the per-acre revenue and then subtracts the input cost <em>for the whole field</em> — 212.50 × acres — giving −<span class="math inline">\(22,545.63 for Oxbow. The revenue and the cost must be netted per acre first: `=(B2*\)</span>F<span class="math inline">\(1-\)</span>F<span class="math inline">\(2)*C2*(1-\)</span>F$3)`.</li>
+<li>Without brackets Excel multiplies before it subtracts, so it computes the per-acre revenue and then subtracts the input cost for the whole field with the farmer’s share already applied — 212.50 × acres × 0.75 — giving −<span class="math inline">\(22,545.64 for Oxbow. The revenue and the cost must be netted per acre first: `=(B2*\)</span>F<span class="math inline">\(1-\)</span>F<span class="math inline">\(2)*C2*(1-\)</span>F$3)`.</li>
 </ol></li>
 <li><ol start="5" type="a">
 <li>Subtraction happens after multiplication unless brackets say otherwise, so anything that must be netted before it is scaled has to be bracketed.</li>

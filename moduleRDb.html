@@ -539,7 +539,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#learning-objectives" id="toc-learning-objectives" class="nav-link active" data-scroll-target="#learning-objectives">Learning Objectives</a></li>
   <li><a href="#sec-csv-files" id="toc-sec-csv-files" class="nav-link" data-scroll-target="#sec-csv-files"><span class="header-section-number">7.1</span> CSV and Related Files</a>
   <ul>
-  <li><a href="#sec-col-types" id="toc-sec-col-types" class="nav-link" data-scroll-target="#sec-col-types"><span class="header-section-number">7.1.1</span> Check what R guessed</a></li>
+  <li><a href="#sec-csv-excel" id="toc-sec-csv-excel" class="nav-link" data-scroll-target="#sec-csv-excel"><span class="header-section-number">7.1.1</span> Opening a CSV in Excel</a></li>
+  <li><a href="#sec-col-types" id="toc-sec-col-types" class="nav-link" data-scroll-target="#sec-col-types"><span class="header-section-number">7.1.2</span> Check what R guessed</a></li>
   </ul></li>
   <li><a href="#sec-readxl" id="toc-sec-readxl" class="nav-link" data-scroll-target="#sec-readxl"><span class="header-section-number">7.2</span> Excel Files</a>
   <ul>
@@ -580,7 +581,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="objectives">
 <p>By the end of this chapter you should be able to:</p>
 <ol type="1">
-<li>Read CSV, TSV and other delimited text files into R.</li>
+<li>Read CSV, TSV and other delimited text files into R, and open one in Excel without mangling it.</li>
 <li>Check what R guessed about your column types, and correct it.</li>
 <li>Read an Excel workbook, including a specific sheet and a header that does not start on row 1.</li>
 <li>Read a file directly from a URL, and keep a copy.</li>
@@ -599,9 +600,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>The same idea comes with other separators. A <strong>TSV</strong> uses tabs instead of commas, and <code>read_tsv()</code> reads it. A <code>.txt</code> file is usually one of the two with a different extension; open it in a text editor to see which. Anything else – semicolons are common in files from Europe, where the comma is the decimal mark – goes through <code>read_delim()</code> with the separator spelled out:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>prices <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">"data/prices.tsv"</span>)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>prices <span class="ot">&lt;-</span> <span class="fu">read_delim</span>(<span class="st">"data/prices.txt"</span>, <span class="at">delim =</span> <span class="st">";"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>If you open a CSV by double-clicking it, Excel opens it, and Excel will convert a column of ID numbers to scientific notation or a date column to its own format and save the result back over your file. Read CSVs into R from the file; look at them in Excel if you like, but do not save from there.</p>
-<section id="sec-col-types" class="level3" data-number="7.1.1">
-<h3 data-number="7.1.1" class="anchored" data-anchor-id="sec-col-types"><span class="header-section-number">7.1.1</span> Check what R guessed</h3>
+<section id="sec-csv-excel" class="level3" data-number="7.1.1">
+<h3 data-number="7.1.1" class="anchored" data-anchor-id="sec-csv-excel"><span class="header-section-number">7.1.1</span> Opening a CSV in Excel</h3>
+<p>Double-clicking a CSV opens it in Excel, and Excel makes its own guesses about every column on the way in. The ones that go wrong:</p>
+<ul>
+<li>Leading zeros disappear. An ID like <code>00451</code> becomes <code>451</code>, and a Saskatchewan RM number or a postal code loses its shape.</li>
+<li>Long numbers turn into scientific notation. A 16-digit account number displays as <code>1.23E+15</code>, and the last digits are rounded away for good.</li>
+<li>Anything that looks like a date becomes one. <code>3-4</code> becomes March 4th, and the gene name <code>MARCH1</code> became a date often enough that geneticists renamed the gene.</li>
+<li>On a computer set to a European locale, a semicolon-separated file lands entirely in column A, and <code>1.5</code> is read as text because the decimal mark is expected to be a comma.</li>
+</ul>
+<p>None of this matters if you only look. It matters when you save, because Excel writes its guesses back over the original file. If you need to open a CSV in Excel, use <strong>Data &gt; Get Data &gt; From Text/CSV</strong> (on a Mac, <strong>Data &gt; Get Data (Power Query)</strong>) instead of double-clicking. The import window shows a preview, lets you pick the delimiter, and, under <strong>Transform Data</strong>, lets you set each column’s type before anything is loaded: text for IDs, date for dates, decimal for numbers. It is the Excel version of <code>col_types</code>. Save the result as <code>.xlsx</code> if you want to keep the types and formatting; saving as CSV throws them away again.</p>
+<p>If a file has already landed in one column, <strong>Data &gt; Text to Columns</strong> splits it after the fact. Choose <strong>Delimited</strong>, tick the separator the file uses, and the last step of the wizard lets you set each column to Text, Date or General, which is the fix for leading zeros and for dates as well. The same tool splits a column that holds two values, like <code>"Swift Current, SK"</code> into a town and a province.</p>
+</section>
+<section id="sec-col-types" class="level3" data-number="7.1.2">
+<h3 data-number="7.1.2" class="anchored" data-anchor-id="sec-col-types"><span class="header-section-number">7.1.2</span> Check what R guessed</h3>
 <p><code>read_csv()</code> guesses each column’s type from the first thousand values and reports what it decided:</p>
 <pre><code>Rows: 62 Columns: 6
 ── Column specification ──────────────────────────────
