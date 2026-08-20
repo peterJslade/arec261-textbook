@@ -229,9 +229,9 @@ def q13():
     wb, ws = new_book("Days between two dates",
         "Subtracting one date from another gives days, because Excel stores dates as "
         "numbers. The result cell has to be formatted as a number, not a date.")
-    rows=[("North","2026-05-08","2026-09-14"),("South","2026-05-21","2026-09-18"),
-          ("Creek","2026-04-29","2026-09-09"),("Home","2026-05-19","2026-10-02"),
-          ("Rented","2026-05-12","2026-09-22")]
+    rows=[("Sandhill","2026-05-08","2026-09-14"),("Tamarack","2026-05-21","2026-09-18"),
+          ("Upland","2026-04-29","2026-09-09"),("Verdant","2026-05-19","2026-10-02"),
+          ("Westgate","2026-05-12","2026-09-22")]
     header(ws,4,["Field","Seeded","Harvested","Days","The formula in D"])
     for i,(n,a,b) in enumerate(rows):
         r=5+i
@@ -247,7 +247,7 @@ def q13():
             ("Range",f"=MAX({rng})-MIN({rng})",INT)]):
         stat(ws,last+2+k,lab,f,fmt,5)
     note(ws,last+7,
-        "120 days at South to 136 at Home, a 16-day spread. If the Days column shows "
+        "120 days at Tamarack to 136 at Verdant, a 16-day spread. If the Days column shows "
         "something like 04-May-1900 it has inherited the date format from the cells "
         "being subtracted; set it to Number.",5)
     finish(ws,[("A",14),("B",14),("C",14),("D",10),("E",24)],last+7)
@@ -311,7 +311,7 @@ def q16():
     wb, ws = new_book("Summing a range that contains its own total",
         "The second SUM reaches over the total row, so every bushel is counted twice. "
         "The giveaway is that the answer is exactly double.")
-    rows=[("North",1240),("South",2180),("Creek",860),("Home",1975),("Rented",1420)]
+    rows=[("Sandhill",1240),("Tamarack",2180),("Upland",860),("Verdant",1975),("Westgate",1420)]
     first,last=table(ws,4,["Field","Bushels"],rows,{1:INT})
     put(ws,last+1,1,"Total",font=f_bold)
     put(ws,last+1,2,f"=SUM(B{first}:B{last})",font=f_bold,fill=lock_fill,fmt=INT,align=centre)
@@ -435,7 +435,7 @@ def q21():
         "Fields down, seeding rates across. The acres reference locks its column and "
         "the rate reference locks its row, so one formula fills the whole grid.")
     put(ws,4,1,"Seed price ($/lb)",font=f_bold); put(ws,4,2,1.85,fill=lock_fill,fmt=MONEY,align=centre)
-    fields=[("North",120),("South",240),("Creek",95)]
+    fields=[("Kestrel",120),("Meadowvale",240),("Nightjar",95)]
     rates=[("Low",2.4),("Mid",2.9),("High",3.5)]
     put(ws,6,1,"Field",font=f_head); put(ws,6,2,"Acres",font=f_head)
     for j,(s,rt) in enumerate(rates):
@@ -539,7 +539,7 @@ def q25():
     put(ws,4,1,"Price ($/bu)",font=f_bold); put(ws,4,2,14.20,fill=lock_fill,fmt=MONEY,align=centre)
     put(ws,5,1,"Input cost ($/ac)",font=f_bold); put(ws,5,2,212.50,fill=lock_fill,fmt=MONEY,align=centre)
     put(ws,6,1,"Landlord share",font=f_bold); put(ws,6,2,0.25,fill=lock_fill,fmt=PCT0,align=centre)
-    rows=[("Larch",39.7,145),("Marsh",43.1,268),("Nordegg",47.5,112)]
+    rows=[("Oxbow",39.7,145),("Prairie Rose",43.1,268),("Quill",47.5,112)]
     header(ws,8,["Field","Yield (bu/ac)","Acres","Net to farmer","Net per acre","The formula in D"])
     for i,(n,y,a) in enumerate(rows):
         r=9+i
@@ -554,7 +554,7 @@ def q25():
     put(ws,last+3,4,"=B9*$B$4-$B$5*C9*(1-$B$6)",fill=lock_fill,fmt=MONEY,align=centre)
     put(ws,last+3,6,f"={FT}(D{last+3})",font=f_form)
     note(ws,last+5,
-        "-$22,545.63 for Larch. Without the brackets Excel subtracts the input cost for "
+        "-$22,545.63 for Oxbow. Without the brackets Excel subtracts the input cost for "
         "the whole field from the revenue of a single acre. Anything that must be netted "
         "before it is scaled has to be bracketed.",6)
     finish(ws,[("A",22),("B",14),("C",10),("D",16),("E",14),("F",30)],last+5)
@@ -672,7 +672,7 @@ def q30():
     put(ws,4,1,"Price ($/bu)",font=f_bold); put(ws,4,2,14.20,fill=lock_fill,fmt=MONEY,align=centre)
     put(ws,5,1,"Input cost ($/ac)",font=f_bold); put(ws,5,2,212.50,fill=lock_fill,fmt=MONEY,align=centre)
     header(ws,7,["Field","Yield (bu/ac)","Acres"])
-    put(ws,8,1,"Creek"); put(ws,8,2,44.8,fmt=ONE,align=centre); put(ws,8,3,95,fmt=INT,align=centre)
+    put(ws,8,1,"Rosetown"); put(ws,8,2,44.8,fmt=ONE,align=centre); put(ws,8,3,95,fmt=INT,align=centre)
     header(ws,10,["","Formula","Result","Right?"])
     variants=[("Correct","=($B$8*$B$4-$B$5)*$C$8",
                "Nets revenue against cost per acre, then scales by acres."),
