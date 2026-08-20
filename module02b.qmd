@@ -87,62 +87,6 @@ together. When we use AI tools later in the book (Module 5), a well-organized pr
 the assistant useful context about the analysis.
 :::
 
-## Paths, and Why `setwd()` Is a Trap {#sec-paths}
-
-A **path** tells R where to find a file.  There are two kinds.
-
-An **absolute path** gives the file's complete location on one computer:
-
-```r
-read_csv("/Users/peter/Documents/canola-trial/data/canola_trial.csv")
-```
-
-A **relative path** describes the location relative to the project folder:
-
-```r
-read_csv("data/canola_trial.csv")
-```
-
-The second version is much better. The absolute path contains information specific to one
-computer: the username `peter`, the location of the Documents folder, and the operating
-system's folder layout. If I send that script to you, you probably do not have
-`/Users/peter/Documents/`. But if we both have the same project folder, we both have
-`data/canola_trial.csv`. So the rule is: open the project folder in Positron, and use
-relative paths inside your scripts.
-
-R does have a function, `setwd()`, that changes the working directory from inside a script:
-
-```r
-setwd("/Users/peter/Documents/canola-trial")     # do not do this
-```
-
-You will see this in old scripts and online examples. Do not put a line like it in a script
-you intend to share: it solves the path problem on your computer by creating a path problem
-on everybody else's. This is the most common reason a script that works fine for its author
-fails for everyone else.
-
-If you are ever unsure where R thinks it is, run `getwd()` ("get working directory"). R
-prints the folder it is currently treating as its starting point.
-
-::: {.callout-note}
-## Windows note
-
-Windows displays paths with backslashes, as in `C:\Users\Peter\Documents`, but a backslash
-means something special inside an R string. Write forward slashes even on Windows:
-`"C:/Users/Peter/Documents"`. R handles the translation.
-:::
-
-::: {.callout-tip}
-## File names
-
-Two rules save a lot of trouble. Use short descriptive names without spaces or punctuation:
-`yield_data_final.csv`, not `Field Yields FINAL!!.csv`. And write dates as YYYY-MM-DD:
-`2026-09-15_deliveries.csv` sorts chronologically on its own, and `Sept15.csv` does not.
-
-If you find yourself writing `final`, `final_v2`, `final_REAL` in file names, the project
-needs version control rather than longer file names. Git is the common system; we will not
-cover it here.
-:::
 
 ## Packages {#sec-packages}
 
@@ -223,6 +167,64 @@ save the resulting data frame as `yields`. After running it, `yields` is an obje
 `read_csv` also prints a short note about the **column types** it guessed -- numeric,
 character, date, and so on. R guesses well but not perfectly, which is one reason we always
 inspect a dataset after reading it.
+
+
+## Paths, and Why `setwd()` Is a Trap {#sec-paths}
+
+A **path** tells R where to find a file.  There are two kinds.
+
+An **absolute path** gives the file's complete location on one computer:
+
+```r
+read_csv("/Users/peter/Documents/canola-trial/data/canola_trial.csv")
+```
+
+A **relative path** describes the location relative to the project folder:
+
+```r
+read_csv("data/canola_trial.csv")
+```
+
+The second version is much better. The absolute path contains information specific to one
+computer: the username `peter`, the location of the Documents folder, and the operating
+system's folder layout. If I send that script to you, you probably do not have
+`/Users/peter/Documents/`. But if we both have the same project folder, we both have
+`data/canola_trial.csv`. So the rule is: open the project folder in Positron, and use
+relative paths inside your scripts.
+
+R does have a function, `setwd()`, that changes the working directory from inside a script:
+
+```r
+setwd("/Users/peter/Documents/canola-trial")     # do not do this
+```
+
+You will see this in old scripts and online examples. Do not put a line like it in a script
+you intend to share: it solves the path problem on your computer by creating a path problem
+on everybody else's. This is the most common reason a script that works fine for its author
+fails for everyone else.
+
+If you are ever unsure where R thinks it is, run `getwd()` ("get working directory"). R
+prints the folder it is currently treating as its starting point.
+
+::: {.callout-note}
+## Windows note
+
+Windows displays paths with backslashes, as in `C:\Users\Peter\Documents`, but a backslash
+means something special inside an R string. Write forward slashes even on Windows:
+`"C:/Users/Peter/Documents"`. R handles the translation.
+:::
+
+::: {.callout-tip}
+## File names
+
+Two rules save a lot of trouble. Use short descriptive names without spaces or punctuation:
+`yield_data_final.csv`, not `Field Yields FINAL!!.csv`. And write dates as YYYY-MM-DD:
+`2026-09-15_deliveries.csv` sorts chronologically on its own, and `Sept15.csv` does not.
+
+If you find yourself writing `final`, `final_v2`, `final_REAL` in file names, the project
+needs version control rather than longer file names. Git is the common system; we will not
+cover it here.
+:::
 
 ### When R cannot find the file {.unnumbered}
 
