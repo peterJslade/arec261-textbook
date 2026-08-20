@@ -114,35 +114,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
-  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
-  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
-
-<script type="text/javascript">
-const typesetMath = (el) => {
-  if (window.MathJax) {
-    // MathJax Typeset
-    window.MathJax.typeset([el]);
-  } else if (window.katex) {
-    // KaTeX Render
-    var mathElements = el.getElementsByClassName("math");
-    var macros = [];
-    for (var i = 0; i < mathElements.length; i++) {
-      var texText = mathElements[i].firstChild;
-      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
-        window.katex.render(texText.data, mathElements[i], {
-          displayMode: mathElements[i].classList.contains('display'),
-          throwOnError: false,
-          macros: macros,
-          fleqn: false
-        });
-      }
-    }
-  }
-}
-window.Quarto = {
-  typesetMath
-};
-</script>
 
 </head>
 
@@ -611,32 +582,34 @@ window.Quarto = {
 </header>
 
 
-<p>This chapter covers why we are using R, how to install it, and the mechanics of the console, scripts, and R’s basic building blocks.</p>
+<p>In the first three chapters, we used Excel to enter, organize, summarize, and visualize data. We now turn to <strong>R</strong>, a programming language built for working with data.</p>
+<p>R requires a different way of working. In Excel, you manipulate data by clicking on cells, menus, and buttons. In R, you write instructions as code. That takes some getting used to, but it has several advantages. Most importantly, the instructions themselves become a record of exactly what you did.</p>
+<p>This chapter introduces the basic mechanics. We will use R as a calculator, save values as objects, write and run an R script, and introduce the two data structures we will use most often: vectors and data frames.</p>
 <section id="learning-objectives" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="learning-objectives">Learning Objectives</h2>
 <div class="objectives">
 <p>By the end of this chapter you should be able to:</p>
 <ol type="1">
-<li>Explain what R is and why we are using it in addition to Excel.</li>
-<li>Install R and Positron, and run a simple R script.</li>
-<li>Save values as objects and run functions on them.</li>
-<li>Describe R’s basic data structures: vectors, data frames, and functions.</li>
-<li>Save a script that someone else can run from scratch and get the same results.</li>
+<li>Explain why we use R alongside Excel.</li>
+<li>Install R and Positron and run R code.</li>
+<li>Save values as objects and use functions to work with them.</li>
+<li>Explain the difference between a vector and a data frame.</li>
+<li>Write and save an R script that can be run again from scratch.</li>
 </ol>
 </div>
 </section>
 <section id="sec-why-r" class="level2" data-number="4.1">
 <h2 data-number="4.1" class="anchored" data-anchor-id="sec-why-r"><span class="header-section-number">4.1</span> Why R? (And Why Also Excel?)</h2>
-<p>You just spent a module getting comfortable with Excel. Now I am going to tell you to put it down and learn a new tool.</p>
-<p>Excel is an excellent tool for what it was designed to do: small-to-medium calculations where you can see every number on the screen, exploratory work, and handoffs to non-technical colleagues. But it has serious limitations:</p>
+<p>You just spent several chapters getting comfortable with Excel. Now I am going to ask you to learn another tool.</p>
+<p>Excel and R are good at different things. Excel is excellent when you want to see the data directly, make quick calculations, explore a relatively small dataset, or share a workbook with someone who does not program. We will continue to use it.</p>
+<p>But Excel becomes awkward when an analysis gets larger or needs to be repeated. R has several advantages:</p>
 <ul>
-<li><strong>Reproducibility.</strong> An Excel workbook is a tangle of cells; there is no record of <em>what order</em> things were done in. If you want to re-run an analysis on new data, you have to click through the whole thing again.</li>
-<li><strong>Scale.</strong> Excel caps out at a bit over a million rows per sheet and slows to a crawl well before that. Real datasets are often larger.</li>
-<li><strong>Composability.</strong> Doing the same operation (e.g., compute summary statistics) on fifteen different files in Excel means clicking through the same steps fifteen times.</li>
-<li><strong>Advanced statistics.</strong> Excel can do <span class="math inline">\(t\)</span>-tests and linear regression, but the further you move from basic statistics, the worse a choice it is.</li>
+<li><strong>Reproducibility.</strong> In R, the steps in an analysis are written down as code. Run the same code again and you repeat the same analysis. In Excel, many steps – sorting, filtering, copying, clicking through menus – leave little or no record of what you did.</li>
+<li><strong>Scale.</strong> Excel worksheets are limited to a little over one million rows, and large workbooks become slow and difficult to manage well before that. R is designed to work with much larger datasets.</li>
+<li><strong>Repetition.</strong> Suppose you need to perform the same analysis on fifteen files. In Excel, that means repeating the same sequence of clicks fifteen times. In R, you write the instructions once and reuse them.</li>
+<li><strong>Statistical analysis.</strong> Excel handles basic descriptive statistics and regression reasonably well. R can do those things too, and it also gives us access to thousands of packages for more advanced statistical and data-analysis tasks.</li>
 </ul>
-<p><strong>R</strong> is a programming language designed for statistical computing. It addresses each of these limitations. Your analysis is a <strong>script</strong> – a plain-text file that can be re-run, shared, version-controlled, and composed with other scripts. R can handle datasets of tens of millions of rows, and there are thousands of packages written by statisticians around the world.</p>
-<p>Learning <strong>R</strong> means learning to program. Instead of being limited to what an app was built to do, you write the steps yourself. AI can now write a lot of that code for you. That makes programming skills more useful rather than less: someone still has to know what to ask for and whether the answer is right. That argument is in <a href="intro.html#sec-ai" class="quarto-xref"><span>Section 3</span></a>.</p>
+<p>I used to be more pessimistic about including R in this class. One thing that has changed my mind is the emergence of AI tools. Agentic AI, which we will learn in <a href="intro.html#sec-ai" class="quarto-xref"><span>Section 3</span></a>, has revolutionized coding. Coding without AI is now like doing long division by hand. Of course, we still need to understand the principles of good coding, just as we need to understand the principles of division – otherwise we wouldn’t understand what the calculator (or the AI) is doing.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
@@ -651,7 +624,7 @@ window.Quarto = {
 <div class="callout-body-container callout-body">
 <ul>
 <li><strong>R for Data Science (2nd ed.)</strong> – the free, standard R textbook by Hadley Wickham and colleagues. The <a href="https://r4ds.hadley.nz/intro.html">Introduction</a> lays out what data science is and the workflow (import → tidy → transform → visualize → model → communicate) we will follow.</li>
-<li><strong>Video</strong> – R Programming 101, <a href="https://www.youtube.com/watch?v=9kYUGMg_14s"><em>Why you should use R</em></a> – a short, beginner-friendly pitch for learning R; a good first-day hook.</li>
+<li><strong>Video</strong> – R Programming 101, <a href="https://www.youtube.com/watch?v=9kYUGMg_14s"><em>Why you should use R</em></a> – a short, beginner-friendly pitch for learning R.</li>
 </ul>
 </div>
 </div>
@@ -661,10 +634,10 @@ window.Quarto = {
 <h2 data-number="4.2" class="anchored" data-anchor-id="sec-installing-r"><span class="header-section-number">4.2</span> Installing R and Positron</h2>
 <p>You need two pieces of software to work with R:</p>
 <ol type="1">
-<li><p><strong>R itself</strong> – the language and the program that runs your code. Download it from CRAN (the Comprehensive R Archive Network), <a href="https://cran.r-project.org/" class="uri">https://cran.r-project.org/</a>.</p></li>
-<li><p><strong>Positron</strong> – the <strong>editor</strong> we will use to write R code. Download from <a href="https://positron.posit.co/" class="uri">https://positron.posit.co/</a> and install it. Install R <em>first</em>, then Positron, so Positron can find your R.</p></li>
+<li><p><strong>R itself</strong> – the language and the program that actually runs your R code. Download it from CRAN (the Comprehensive R Archive Network), <a href="https://cran.r-project.org/" class="uri">https://cran.r-project.org/</a>.</p></li>
+<li><p><strong>Positron</strong> – the program we will use to write and run our R code. Download from <a href="https://positron.posit.co/" class="uri">https://positron.posit.co/</a> and install it. Install R <em>first</em>, then Positron, so Positron can find your R.</p></li>
 </ol>
-<p>You can think of an editor as being a bit like a web browser. Chrome, Firefox, and Safari all read HTML code and show you a website. Similarly, different editors (Positron, RStudio, VS Code) are all capable of running code in the <strong>R</strong> language. My sense is that RStudio was previously the most common choice as an editor, but <strong>Positron</strong> – which was developed by the same company as RStudio – may quickly supplant it. One reason for this is that using AI tools is a bit easier in Positron.</p>
+<p>It helps to distinguish the language from the program used to write it. A helpful analogy is a web browser. Webpages are written in HTML, but you can view them in Chrome, Firefox, or Safari. The same idea applies here: R is the language, and Positron is the <strong>editor</strong> we will use to work with it. Other editors, including RStudio and VS Code, can also run R code. We will use Positron because it provides a convenient environment for writing code, viewing data, and using modern AI coding tools.</p>
 <p>When Positron first opens you will see its Welcome screen, which looks something like this:</p>
 <div id="fig-positron-welcome" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -698,7 +671,7 @@ Figure&nbsp;4.1: The Positron Welcome screen.
 </section>
 <section id="sec-console" class="level2" data-number="4.3">
 <h2 data-number="4.3" class="anchored" data-anchor-id="sec-console"><span class="header-section-number">4.3</span> The Console</h2>
-<p>At the bottom of the screen is the console, where you can directly type commands and have <strong>R</strong> process them for you. In the screenshot below I’ve typed in some random equations and we can see that <strong>R</strong> functions as a fancy calculator (following the typical order of operations):</p>
+<p>At the bottom of the screen is the <strong>console</strong>, which lets you give R a command and immediately see the result. At first, you can think of R as a fancy calculator: type an expression like <code>4 + 5</code> or <code>4 * 5</code>, press Enter, and R evaluates it. R follows the usual order of operations, which you can see in the last two commands in the screenshot: <code>4+5*2</code> gives 14, while <code>(4+5)*2</code> gives 18.</p>
 <div id="fig-console-arithmetic" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-console-arithmetic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -709,11 +682,12 @@ Figure&nbsp;4.2: Doing arithmetic directly in the console. Type an expression, p
 </figcaption>
 </figure>
 </div>
-<p>One thing you will see in the output: each answer is printed with a <code>[1]</code> in front, like <code>[1] 9</code>. That <code>[1]</code> is just R noting that the value shown starts at position 1 of the result – it matters only when a result is a long list of numbers printed across several lines. For a single value you can ignore it.</p>
+<p>One thing you will see in the output: each answer is printed with a <code>[1]</code> in front, like <code>[1] 9</code>. The <code>[1]</code> does not mean the answer is 1. It tells you that the first value shown on that line is the first value in the result, which matters only when a result is a long sequence of values printed across several lines. For a single number you can ignore it.</p>
 <section id="sec-console-objects" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="sec-console-objects">Saving answers as objects</h3>
-<p>A calculator forgets each answer as soon as it shows it. R lets you <strong>save</strong> a value under a name and reuse it later. Most of what follows depends on this.</p>
-<p>You save a value with the <strong>assignment operator</strong>, <code>&lt;-</code> (a less-than sign and a dash, meant to look like a left-pointing arrow). You can also use the <code>=</code> sign, but it is good coding practice to reserve the equals sign for other operations. The thing you save is called an <strong>object</strong>. In the screenshot below I saved <code>a</code> as an object equal to 4 and <code>b</code> as an object equal to <code>a*2</code>.</p>
+<p>A calculator gives you an answer and then forgets it. In R, we often want to save a result so that we can use it again. We do this by creating an <strong>object</strong>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> <span class="dv">4</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Read this as “save 4 as <code>a</code>”. The symbol <code>&lt;-</code> is the <strong>assignment operator</strong>: it assigns the value on the right to the name on the left. We can then use <code>a</code> in another calculation. In the screenshot below I saved <code>a</code> as an object equal to 4 and <code>b</code> as an object equal to <code>a*2</code>.</p>
 <div id="fig-console-assignment" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-console-assignment-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -725,11 +699,12 @@ Figure&nbsp;4.3: Saving objects in the console with <code>&lt;-</code>. Each obj
 </figure>
 </div>
 <p>As you create objects, they appear in Positron’s <strong>Variables</strong> pane on the right (the panel that lists everything you have created). In the screenshot, you can see <code>a</code> and <code>b</code> show up with their values as soon as they are assigned.</p>
+<p>R also allows <code>=</code> for assignment in many situations. In this book we use <code>&lt;-</code>: it keeps assignment visually distinct from <code>=</code> when we name arguments inside functions, and from <code>==</code>, which tests whether two values are equal.</p>
 <p>An object can hold more than a single number. Below, I save a <strong>vector</strong> of five values in an object called <code>yields</code> using the function <code>c()</code>, which <em>combines</em> values. I can then perform operations on <code>yields</code> like calculating its mean.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>yields <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">48</span>, <span class="dv">52</span>, <span class="dv">47</span>, <span class="dv">55</span>, <span class="dv">50</span>)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(yields)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>yields <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">48</span>, <span class="dv">52</span>, <span class="dv">47</span>, <span class="dv">55</span>, <span class="dv">50</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(yields)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; yields &lt;- c(48, 52, 47, 55, 50)
 &gt; mean(yields)
@@ -737,7 +712,8 @@ Figure&nbsp;4.3: Saving objects in the console with <code>&lt;-</code>. Each obj
 </div>
 </div>
 </div>
-<p>This is the basic pattern in R: create objects with <code>&lt;-</code>, and run functions on them. Sometimes we will save the results as new objects when we want to keep them, and we may perform operations on these objects.</p>
+<p>This small example contains the basic pattern we will use throughout R: store data in objects, use functions to do things to those objects, and save new results when we want to use them later.</p>
+<p>Typing commands directly into the console is useful for experimenting, but it is not how we should save an analysis.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
@@ -762,8 +738,8 @@ Figure&nbsp;4.3: Saving objects in the console with <code>&lt;-</code>. Each obj
 </section>
 <section id="sec-first-script" class="level2" data-number="4.4">
 <h2 data-number="4.4" class="anchored" data-anchor-id="sec-first-script"><span class="header-section-number">4.4</span> R Scripts</h2>
-<p>You should only ever type code directly into the console (as we did above) for quick, throwaway calculations. For any real analysis – anything you want to re-run, check, share, or hand in – you need your code written down in a file you can save.</p>
-<p>That file is a <strong>script</strong>: a plain text file (ending in <code>.R</code>) where you <em>write and save</em> your code. The script is the permanent recipe for your analysis: you edit it, save it, and can re-run the whole thing later or share it with someone else.</p>
+<p>Suppose you calculate a mean in the console today and want to repeat the calculation next week with new data. Unless you remember exactly what you typed, the console is not much help. For any analysis you want to save, repeat, check, share, or hand in, write your code in an <strong>R script</strong>.</p>
+<p>A script is a plain text file (ending in <code>.R</code>) containing R code. Think of the script as the recipe for your analysis: the data are the ingredients, and the script records the instructions. If the recipe is complete, you – or someone else – can run it later and reproduce the analysis.</p>
 <section id="creating-and-running-a-script" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="creating-and-running-a-script">Creating and running a script</h3>
 <p>Open Positron and create a new file with <strong>File → New File</strong>, then choose <strong>R File</strong> from the menu that appears:</p>
@@ -778,14 +754,10 @@ Figure&nbsp;4.4: Creating a new R file. <strong>File → New File</strong> opens
 </figure>
 </div>
 <p>Save it as <code>hello.R</code> (or whatever you want), then type (or paste) the following:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># My first R script</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Author: your name</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Date: 2026-09-15</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="st">"Hello, world!"</span>)</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="dv">2</span> <span class="sc">+</span> <span class="dv">2</span></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">5</span>)</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(x)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> <span class="dv">4</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>a<span class="sc">*</span><span class="dv">5</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>b <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">*</span><span class="dv">2</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>a<span class="sc">*</span>b</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Writing code in the script does not run it. Typing these lines just puts text in a file. Look at the script below – the code is written, but the console is still empty and no objects exist yet in the Variables pane:</p>
 <div id="fig-script-before" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -815,13 +787,13 @@ Figure&nbsp;4.6: After running the script, the <strong>console</strong> shows th
 </div>
 <p>Let’s break down what just happened:</p>
 <ul>
-<li><strong>Comments</strong> start with <code>#</code> and are ignored by R. Use them liberally to explain your code.</li>
-<li><code>print("Hello, world!")</code> prints text to the console.</li>
-<li><code>2 + 2</code> evaluates an expression, just like in the console. R prints the result automatically.</li>
-<li><code>x &lt;- c(1, 2, 3, 4, 5)</code> creates a <strong>vector</strong> of the numbers 1 through 5 and stores it under the name <code>x</code>.</li>
-<li><code>mean(x)</code> calls the <code>mean</code> function on <code>x</code> and prints the result.</li>
+<li><code>a &lt;- 4</code> saves 4 as <code>a</code>. Notice that an assignment prints nothing to the console.</li>
+<li><code>a*5</code> evaluates an expression, just like in the console, and prints <code>[1] 20</code>. The result is displayed but not saved anywhere.</li>
+<li><code>b &lt;- 1*2</code> calculates 1×2 and saves the result as <code>b</code>.</li>
+<li><code>a*b</code> prints <code>[1] 8</code>.</li>
 </ul>
-<p>The object <code>x</code> is now stored in <strong>R</strong>, and it stays there until we exit this session or overwrite <code>x</code> with a new value.</p>
+<p>The Variables pane now lists <code>a</code> and <code>b</code>, but nothing from the <code>a*5</code> line – displaying a result and saving one are different things.</p>
+<p>The difference from our earlier console work is that the instructions are now saved. Close R, come back tomorrow, open <code>hello.R</code>, and the code is still there. Run it again and R repeats the same steps.</p>
 <p>This will be the last screenshot of <strong>Positron</strong> that I will show in the textbook. From now on I will just show the code, and sometimes the results of this code.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
@@ -846,19 +818,20 @@ Figure&nbsp;4.6: After running the script, the <strong>console</strong> shows th
 </section>
 <section id="sec-r-basics" class="level2" data-number="4.5">
 <h2 data-number="4.5" class="anchored" data-anchor-id="sec-r-basics"><span class="header-section-number">4.5</span> R Basics: Types, Vectors, Data Frames, Functions</h2>
-<p><strong>R</strong> works by having you store objects – which include simple numbers, vectors, matrices, data frames, regression models, charts, and more. To get started with data, we will learn about two of these objects: vectors and data frames.</p>
-<p>Objects contain values of different types. Common types include character (text), numeric (numbers), and logical (TRUE/FALSE). Somewhat confusingly, the components of an object can themselves have different types. For example, a data frame consists of columns, and each column can contain a different type of data.</p>
+<p>R stores things as <strong>objects</strong>. An object might contain a single number, a sequence of numbers, a table of data, a statistical model, or even a graph. For now, we need two kinds of objects: <strong>vectors</strong>, which hold a sequence of values, and <strong>data frames</strong>, which hold data in rows and columns.</p>
+<p>Values in R also have a <strong>type</strong>. The three types you will meet most often are numeric (numbers such as <code>48</code> or <code>-2</code>), character (text such as <code>"wheat"</code>), and logical (the values <code>TRUE</code> and <code>FALSE</code>). A vector contains values of one type, while a data frame can contain several columns of different types. You do not need to memorize a taxonomy of R objects and types; the important thing is to recognize what kind of information you are working with.</p>
 <section id="vectors" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="vectors">Vectors</h3>
-<p>A <strong>vector</strong> is R’s basic data structure. It is a sequence of values <em>of the same type</em> (all numbers, or all strings, etc.). You create one with <code>c()</code>:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>yields <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">48</span>, <span class="dv">52</span>, <span class="dv">47</span>, <span class="dv">55</span>, <span class="dv">50</span>)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>varieties <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"InVigor"</span>, <span class="st">"DK"</span>, <span class="st">"Clearfield"</span>, <span class="st">"InVigor"</span>, <span class="st">"DK"</span>)</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>is_irrigated <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="cn">TRUE</span>, <span class="cn">FALSE</span>, <span class="cn">FALSE</span>, <span class="cn">TRUE</span>, <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>If a vector is numeric then we can do arithmetic operations on it. For example, say we have a vector of yields in bu per acre and we want to convert it to tonnes per hectare, we can simply multiply the entire vector by a constant conversion factor.</p>
+<p>A <strong>vector</strong> is a sequence of values of the same type. You create one with <code>c()</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>yields <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">48</span>, <span class="dv">52</span>, <span class="dv">47</span>, <span class="dv">55</span>, <span class="dv">50</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>varieties <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"InVigor"</span>, <span class="st">"DK"</span>, <span class="st">"Clearfield"</span>, <span class="st">"InVigor"</span>, <span class="st">"DK"</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>is_irrigated <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="cn">TRUE</span>, <span class="cn">FALSE</span>, <span class="cn">FALSE</span>, <span class="cn">TRUE</span>, <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Character values go inside quotation marks; numbers and the logical values <code>TRUE</code> and <code>FALSE</code> do not.</p>
+<p>One reason vectors are so useful is that R can perform an operation on every value at once. Say the five yields are in bushels per acre and we want tonnes per hectare – we multiply the whole vector by the conversion factor, without writing the calculation five times:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>yields <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">48</span>, <span class="dv">52</span>, <span class="dv">47</span>, <span class="dv">55</span>, <span class="dv">50</span>)   <span class="co"># bushels per acre</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">*</span> <span class="fl">0.0560</span>                   <span class="co"># tonnes per hectare</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>yields <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">48</span>, <span class="dv">52</span>, <span class="dv">47</span>, <span class="dv">55</span>, <span class="dv">50</span>)   <span class="co"># bushels per acre</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">*</span> <span class="fl">0.0560</span>                   <span class="co"># tonnes per hectare</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; yields &lt;- c(48, 52, 47, 55, 50)   # bushels per acre
 &gt; yields * 0.0560                   # tonnes per hectare
@@ -866,19 +839,20 @@ Figure&nbsp;4.6: After running the script, the <strong>console</strong> shows th
 </div>
 </div>
 </div>
+<p>This is called <strong>vectorized</strong> calculation, and it is one of the basic ways R works with data.</p>
 </section>
 <section id="data-frames" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="data-frames">Data Frames</h3>
-<p>A <strong>data frame</strong> is R’s word for a table: rows are observations, columns are variables. This is the main thing we will work with in this class.</p>
+<p>A vector holds one variable. Real datasets usually contain many, and in R a table of data is called a <strong>data frame</strong>. The shape is familiar from Excel: each row is an observation, and each column is a variable.</p>
 <p>You can create one by hand, by combining vectors as in the following example:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>fields <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">field_id =</span> <span class="fu">c</span>(<span class="st">"F01"</span>, <span class="st">"F02"</span>, <span class="st">"F03"</span>, <span class="st">"F04"</span>, <span class="st">"F05"</span>),</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">region =</span> <span class="fu">c</span>(<span class="st">"South"</span>, <span class="st">"South"</span>, <span class="st">"Central"</span>, <span class="st">"North"</span>, <span class="st">"North"</span>),</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">yield =</span> <span class="fu">c</span>(<span class="dv">48</span>, <span class="dv">52</span>, <span class="dv">47</span>, <span class="dv">55</span>, <span class="dv">50</span>)</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>fields</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>fields <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">field_id =</span> <span class="fu">c</span>(<span class="st">"F01"</span>, <span class="st">"F02"</span>, <span class="st">"F03"</span>, <span class="st">"F04"</span>, <span class="st">"F05"</span>),</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">region =</span> <span class="fu">c</span>(<span class="st">"South"</span>, <span class="st">"South"</span>, <span class="st">"Central"</span>, <span class="st">"North"</span>, <span class="st">"North"</span>),</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">yield =</span> <span class="fu">c</span>(<span class="dv">48</span>, <span class="dv">52</span>, <span class="dv">47</span>, <span class="dv">55</span>, <span class="dv">50</span>)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>fields</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; fields &lt;- data.frame(
 +   field_id = c("F01", "F02", "F03", "F04", "F05"),
@@ -895,63 +869,40 @@ Figure&nbsp;4.6: After running the script, the <strong>console</strong> shows th
 </div>
 </div>
 </div>
-<p>But you will almost always <strong>read</strong> a data frame from a file, which is the subject of the next chapter.</p>
-<p>You can access columns with the <code>$</code> operator. For example, to get the column <code>yield</code> in our data frame <code>fields</code> we would type <code>fields$yield</code>. When you type <code>fields$</code>, Positron provides a dropdown of the columns you can choose from.</p>
+<p>Each row is a field; <code>field_id</code>, <code>region</code>, and <code>yield</code> are variables; and each column is itself a vector. We built this data frame by hand so you can see how it is constructed, but you will almost always <strong>read</strong> a data frame from a file, which is the subject of the next chapter.</p>
+<p>To refer to one column, use the <code>$</code> operator: <code>fields$yield</code> is the <code>yield</code> column of <code>fields</code>. When you type <code>fields$</code>, Positron provides a dropdown of the columns you can choose from. Because a column is a vector, you can use it in calculations:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>fields<span class="sc">$</span>yield        <span class="co"># the yield column as a vector</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(fields<span class="sc">$</span>yield)  <span class="co"># mean yield</span></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>fields<span class="sc">$</span>yield <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">58</span>, <span class="dv">62</span>, <span class="dv">57</span>, <span class="dv">65</span>, <span class="dv">60</span>) <span class="do">##Reset the value of the yield column</span></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(fields<span class="sc">$</span>yield)  <span class="co"># get the mean yield of the updated column</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>fields<span class="sc">$</span>yield        <span class="co"># the yield column as a vector</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(fields<span class="sc">$</span>yield)  <span class="co"># mean yield</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; fields$yield        # the yield column as a vector
 [1] 48 52 47 55 50
 &gt; mean(fields$yield)  # mean yield
-[1] 50.4
-&gt; 
-&gt; fields$yield &lt;- c(58, 62, 57, 65, 60) ##Reset the value of the yield column
-&gt; mean(fields$yield)  # get the mean yield of the updated column
-[1] 60.4</code></pre>
+[1] 50.4</code></pre>
 </div>
 </div>
 </div>
-<p>You can also extract any part of the data frame using square brackets denoting the row first then a comma then the column. If you want a whole row, then leave the column blank, and vice-versa.</p>
-<div class="cell">
-<div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>fields[<span class="dv">1</span>, ]         <span class="co"># first row</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>fields[, <span class="dv">1</span>]         <span class="co"># first column</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>fields[<span class="dv">2</span>, <span class="dv">3</span>]        <span class="co"># in the second row, third column</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="console-transcript">
-<pre><code>&gt; fields[1, ]         # first row
-  field_id region yield
-1      F01  South    58
-&gt; fields[, 1]         # first column
-[1] "F01" "F02" "F03" "F04" "F05"
-&gt; fields[2, 3]        # in the second row, third column
-[1] 62</code></pre>
-</div>
-</div>
-</div>
+<p>A data frame is a table, and its columns are vectors. The next chapters cover more convenient tools for choosing rows and columns, creating new variables, and summarizing data frames.</p>
 </section>
 <section id="functions" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="functions">Functions</h3>
-<p>R largely operates by performing <em>functions</em> on <em>objects</em>. We have already seen that there is a function called <code>mean()</code>. There is a nearly infinite variety of functions.</p>
-<p><strong>R</strong> functions generally require arguments. For example, in <code>mean(fields$yield)</code>, the function is <code>mean()</code> and the function’s argument is <code>fields$yield</code>.</p>
+<p>Most of our work in R consists of applying <strong>functions</strong> to objects. A function is an instruction that takes some input, does something with it, and returns a result. We have already used several: <code>c()</code>, <code>mean()</code>, <code>print()</code>, <code>data.frame()</code>.</p>
+<p>The information supplied to a function is called an <strong>argument</strong>. In <code>mean(fields$yield)</code>, the function is <code>mean()</code> and the argument is <code>fields$yield</code>.</p>
 <p>Here are the functions for the descriptive statistics from Module 1:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(fields<span class="sc">$</span>yield)       <span class="co"># Mean</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">median</span>(fields<span class="sc">$</span>yield)     <span class="co"># Median</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="fu">max</span>(fields<span class="sc">$</span>yield)<span class="sc">-</span><span class="fu">min</span>(fields<span class="sc">$</span>yield) <span class="co">#Range</span></span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="fu">var</span>(fields<span class="sc">$</span>yield)        <span class="co"># Variance</span></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="fu">sd</span>(fields<span class="sc">$</span>yield)         <span class="co"># Standard deviation</span></span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="fu">sd</span>(fields<span class="sc">$</span>yield)<span class="sc">/</span><span class="fu">mean</span>(fields<span class="sc">$</span>yield) <span class="co"># Coefficient of variation</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(fields<span class="sc">$</span>yield)       <span class="co"># Mean</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">median</span>(fields<span class="sc">$</span>yield)     <span class="co"># Median</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">max</span>(fields<span class="sc">$</span>yield)<span class="sc">-</span><span class="fu">min</span>(fields<span class="sc">$</span>yield) <span class="co">#Range</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="fu">var</span>(fields<span class="sc">$</span>yield)        <span class="co"># Variance</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="fu">sd</span>(fields<span class="sc">$</span>yield)         <span class="co"># Standard deviation</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="fu">sd</span>(fields<span class="sc">$</span>yield)<span class="sc">/</span><span class="fu">mean</span>(fields<span class="sc">$</span>yield) <span class="co"># Coefficient of variation</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; mean(fields$yield)       # Mean
-[1] 60.4
+[1] 50.4
 &gt; median(fields$yield)     # Median
-[1] 60
+[1] 50
 &gt; max(fields$yield)-min(fields$yield) #Range
 [1] 8
 &gt; var(fields$yield)        # Variance
@@ -959,31 +910,31 @@ Figure&nbsp;4.6: After running the script, the <strong>console</strong> shows th
 &gt; sd(fields$yield)         # Standard deviation
 [1] 3.209361
 &gt; sd(fields$yield)/mean(fields$yield) # Coefficient of variation
-[1] 0.05313512</code></pre>
+[1] 0.0636778</code></pre>
 </div>
 </div>
 </div>
 <p>Some functions take multiple arguments. For example, the function <code>quantile()</code> returns the value at a particular percentile. Its two main arguments are <code>x</code>, the data, and <code>probs</code>, the percentile you want (expressed in decimal form).</p>
-<p>There are two ways to supply the arguments. First, write them in the correct order without naming them. Second, name the arguments, in which case the order does not matter.</p>
+<p>There are two ways to supply the arguments. First, write them in the correct order without naming them. Second, name the arguments, in which case the order does not matter. Named arguments are particularly useful when a function has several options, because the code then tells the reader what each value means.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(fields<span class="sc">$</span>yield, <span class="fl">0.25</span>)              <span class="co"># unnamed arguments, in the correct order</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(<span class="at">probs =</span> <span class="fl">0.25</span>, <span class="at">x =</span> fields<span class="sc">$</span>yield)  <span class="co"># named arguments, in any order</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(fields<span class="sc">$</span>yield, <span class="fl">0.25</span>)              <span class="co"># unnamed arguments, in the correct order</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(<span class="at">probs =</span> <span class="fl">0.25</span>, <span class="at">x =</span> fields<span class="sc">$</span>yield)  <span class="co"># named arguments, in any order</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; quantile(fields$yield, 0.25)              # unnamed arguments, in the correct order
 25% 
- 58 
+ 48 
 &gt; 
 &gt; quantile(probs = 0.25, x = fields$yield)  # named arguments, in any order
 25% 
- 58 </code></pre>
+ 48 </code></pre>
 </div>
 </div>
 </div>
-<p>To get help on a function, type <code>?function_name</code>:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>?mean</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>R will show you the documentation: what the function does, what its arguments mean, what it returns. It is often terse, but it is the authoritative answer.</p>
+<p>You do not need to memorize every function or every argument. To get help on a function, type <code>?</code> followed by its name:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>?mean</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>R will show you the documentation: what the function does, what its arguments mean, what it returns. It is often terse, but it is the authoritative answer, and knowing how to find it matters more than memorizing the details.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
@@ -1008,34 +959,41 @@ Figure&nbsp;4.6: After running the script, the <strong>console</strong> shows th
 </section>
 <section id="sec-good-scripts" class="level2" data-number="4.6">
 <h2 data-number="4.6" class="anchored" data-anchor-id="sec-good-scripts"><span class="header-section-number">4.6</span> Writing Good R Scripts</h2>
-<p>A few habits worth picking up early:</p>
+<p>You now know enough R to write a small analysis. Before we move on to real datasets, a few habits are worth establishing. The goal: someone should be able to open your script, understand what it does, and run it from beginning to end.</p>
 <ol type="1">
-<li><strong>Start every script with a header.</strong> Your name, the date, what the script does, what input it expects, what output it produces.</li>
-<li><strong>Use comments to explain <em>why</em>, not <em>what</em>.</strong> Anyone can read the code and see what it does. The comment should tell them why you did it that way.</li>
-<li><strong>Use descriptive object names.</strong> <code>yields</code>, not <code>x1</code>. <code>mean_yield</code>, not <code>m</code>.</li>
-<li><strong>Break long calculations into named steps.</strong> Assign intermediate results to objects with meaningful names.</li>
-<li><strong>Make your script re-runnable from scratch.</strong> If you have to run commands in a specific order outside the script, something is wrong.</li>
+<li><strong>Give the script a short header.</strong> What the script is for, your name, and the date. For a larger project, also record the expected inputs and outputs.</li>
+<li><strong>Use comments to explain decisions, not to restate the code.</strong> A line beginning with <code>#</code> is a <strong>comment</strong>: R ignores it, so it is a note for the person reading the code. <code>mean_yield &lt;- mean(yields)  # calculate mean yield</code> adds nothing; the code already says that. A comment like <code># Weight by acres because fields differ substantially in size</code> tells the reader something the code cannot.</li>
+<li><strong>Use descriptive object names.</strong> <code>mean_yield</code> and <code>total_acres</code>, not <code>x</code> and <code>data2</code>. A slightly longer name is usually worth it if it makes the code easier to understand.</li>
+<li><strong>Break an analysis into understandable steps.</strong> You do not need to cram everything into one line. Saving intermediate results makes code easier to inspect and debug.</li>
+<li><strong>Make the script runnable from the beginning.</strong> A script should not depend on commands you happened to type into the console earlier. Restart R, run the script from top to bottom, and it should reproduce the analysis.</li>
 </ol>
-<p>A template:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ---</span></span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Title: Farm yield summary</span></span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Author: Your Name</span></span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Date: 2026-09-22</span></span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Description:</span></span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="co">#   Computes total production and the acreage-weighted average</span></span>
-<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a><span class="co">#   yield for the five wheat fields from Module 1.</span></span>
-<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a><span class="co"># ---</span></span>
-<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Data</span></span>
-<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>yields <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">48</span>, <span class="dv">52</span>, <span class="dv">47</span>, <span class="dv">55</span>, <span class="dv">50</span>)    <span class="co"># bushels per acre</span></span>
-<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>acres  <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">310</span>, <span class="dv">220</span>, <span class="dv">95</span>, <span class="dv">180</span>, <span class="dv">150</span>)</span>
-<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Total production</span></span>
-<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>total_bu <span class="ot">&lt;-</span> <span class="fu">sum</span>(yields <span class="sc">*</span> acres)</span>
-<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Farm average (weighted by acres)</span></span>
-<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>total_bu <span class="sc">/</span> <span class="fu">sum</span>(acres)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Six months from now you can read this and know what it does.</p>
+<p>The template below is a complete, if small, data analysis built from what this chapter covered: vectors, arithmetic on them, and functions. It computes total production and the acreage-weighted average yield for the five wheat fields from Module 1.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ---</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Title: Farm yield summary</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Author: Your Name</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Date: 2026-09-22</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Description:</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="co">#   Computes total production and the acreage-weighted</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a><span class="co">#   average yield for five wheat fields.</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a><span class="co"># ---</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Data</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>yields <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">48</span>, <span class="dv">52</span>, <span class="dv">47</span>, <span class="dv">55</span>, <span class="dv">50</span>)    <span class="co"># bushels per acre</span></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>acres  <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">310</span>, <span class="dv">220</span>, <span class="dv">95</span>, <span class="dv">180</span>, <span class="dv">150</span>)</span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Production by field</span></span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>production <span class="ot">&lt;-</span> yields <span class="sc">*</span> acres</span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Total production</span></span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>total_bu <span class="ot">&lt;-</span> <span class="fu">sum</span>(production)</span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. Farm average yield, weighted by acres</span></span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a>weighted_yield <span class="ot">&lt;-</span> total_bu <span class="sc">/</span> <span class="fu">sum</span>(acres)</span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a>total_bu</span>
+<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a>weighted_yield</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>It contains the data, records every calculation, uses meaningful names, and runs from beginning to end. Six months from now you can read this and know what it does.</p>
+<p>In the next chapter, we stop creating tiny datasets by hand and learn how to bring real data into R.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">

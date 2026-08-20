@@ -537,18 +537,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
    
   <ul>
   <li><a href="#learning-objectives" id="toc-learning-objectives" class="nav-link active" data-scroll-target="#learning-objectives">Learning Objectives</a></li>
-  <li><a href="#sec-duplicates" id="toc-sec-duplicates" class="nav-link" data-scroll-target="#sec-duplicates"><span class="header-section-number">9.1</span> Duplicates</a></li>
-  <li><a href="#sec-impossible-values" id="toc-sec-impossible-values" class="nav-link" data-scroll-target="#sec-impossible-values"><span class="header-section-number">9.2</span> Impossible Values</a></li>
-  <li><a href="#sec-categories" id="toc-sec-categories" class="nav-link" data-scroll-target="#sec-categories"><span class="header-section-number">9.3</span> Inconsistent Categories</a></li>
-  <li><a href="#sec-mixed-units" id="toc-sec-mixed-units" class="nav-link" data-scroll-target="#sec-mixed-units"><span class="header-section-number">9.4</span> Mixed Units</a></li>
-  <li><a href="#sec-missing-values" id="toc-sec-missing-values" class="nav-link" data-scroll-target="#sec-missing-values"><span class="header-section-number">9.5</span> Missing Values</a>
+  <li><a href="#sec-clean-names" id="toc-sec-clean-names" class="nav-link" data-scroll-target="#sec-clean-names"><span class="header-section-number">9.1</span> Awkward Column Names</a></li>
+  <li><a href="#sec-duplicates" id="toc-sec-duplicates" class="nav-link" data-scroll-target="#sec-duplicates"><span class="header-section-number">9.2</span> Duplicates</a></li>
+  <li><a href="#sec-impossible-values" id="toc-sec-impossible-values" class="nav-link" data-scroll-target="#sec-impossible-values"><span class="header-section-number">9.3</span> Impossible Values</a></li>
+  <li><a href="#sec-categories" id="toc-sec-categories" class="nav-link" data-scroll-target="#sec-categories"><span class="header-section-number">9.4</span> Inconsistent Categories</a></li>
+  <li><a href="#sec-mixed-units" id="toc-sec-mixed-units" class="nav-link" data-scroll-target="#sec-mixed-units"><span class="header-section-number">9.5</span> Mixed Units</a></li>
+  <li><a href="#sec-missing-values" id="toc-sec-missing-values" class="nav-link" data-scroll-target="#sec-missing-values"><span class="header-section-number">9.6</span> Missing Values</a>
   <ul>
   <li><a href="#missing-values-in-disguise" id="toc-missing-values-in-disguise" class="nav-link" data-scroll-target="#missing-values-in-disguise">Missing values in disguise</a></li>
   <li><a href="#working-with-missing-values" id="toc-working-with-missing-values" class="nav-link" data-scroll-target="#working-with-missing-values">Working with missing values</a></li>
   <li><a href="#when-is-dropping-safe" id="toc-when-is-dropping-safe" class="nav-link" data-scroll-target="#when-is-dropping-safe">When is dropping safe?</a></li>
   </ul></li>
-  <li><a href="#sec-dates-text" id="toc-sec-dates-text" class="nav-link" data-scroll-target="#sec-dates-text"><span class="header-section-number">9.6</span> Dates Stored as Text</a></li>
-  <li><a href="#sec-cleaning-checklist" id="toc-sec-cleaning-checklist" class="nav-link" data-scroll-target="#sec-cleaning-checklist"><span class="header-section-number">9.7</span> A Checklist</a></li>
+  <li><a href="#sec-dates-text" id="toc-sec-dates-text" class="nav-link" data-scroll-target="#sec-dates-text"><span class="header-section-number">9.7</span> Dates Stored as Text</a></li>
+  <li><a href="#sec-reshaping" id="toc-sec-reshaping" class="nav-link" data-scroll-target="#sec-reshaping"><span class="header-section-number">9.8</span> Reshaping: <code>pivot_longer</code> and <code>pivot_wider</code></a></li>
+  <li><a href="#sec-cleaning-checklist" id="toc-sec-cleaning-checklist" class="nav-link" data-scroll-target="#sec-cleaning-checklist"><span class="header-section-number">9.9</span> A Checklist</a></li>
   </ul>
 </nav>
     </div>
@@ -585,39 +587,53 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="objectives">
 <p>By the end of this chapter you should be able to:</p>
 <ol type="1">
+<li>Clean up awkward column names with <code>rename()</code> and <code>janitor::clean_names()</code>.</li>
 <li>Find duplicates, impossible values, inconsistent categories and mixed units in a new file.</li>
 <li>Recognize the disguises missing values wear, and count them properly.</li>
 <li>Decide – and justify – when dropping missing values is safe.</li>
 <li>Spot dates that imported as text, and say why it matters.</li>
+<li>Reshape a dataset between wide and long with <code>pivot_longer</code> and <code>pivot_wider</code>.</li>
 </ol>
 </div>
 </section>
-<section id="sec-duplicates" class="level2" data-number="9.1">
-<h2 data-number="9.1" class="anchored" data-anchor-id="sec-duplicates"><span class="header-section-number">9.1</span> Duplicates</h2>
+<section id="sec-clean-names" class="level2" data-number="9.1">
+<h2 data-number="9.1" class="anchored" data-anchor-id="sec-clean-names"><span class="header-section-number">9.1</span> Awkward Column Names</h2>
+<p>The first thing to fix is often the names. Real files arrive with columns like <code>Yield (bu/ac)</code>, <code>REGION_NAME</code>, or <code>Field ID Number</code> – workable, but annoying to type and easy to mistype. The snake_case convention (<a href="module02b.html#sec-renaming" class="quarto-xref"><span>Section 5.8</span></a>) wants <code>yield_bu_ac</code>, <code>region</code>, <code>field_id</code>.</p>
+<p>For individual columns, <code>rename()</code> does it:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> deliveries <span class="sc">|&gt;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">weight_tonnes =</span> <span class="st">"Weight (t)"</span>,</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">crop =</span> CROP_NAME)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>For wholesale renaming, <code>janitor::clean_names()</code> converts every column to snake_case in one call – lowercase, underscores, special characters stripped. (It comes from the <code>janitor</code> package, not the tidyverse. Install it once with <code>install.packages("janitor")</code>.)</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(janitor)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/grain_deliveries_messy.csv"</span>) <span class="sc">|&gt;</span> <span class="fu">clean_names</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Run it on almost anything you read in.</p>
+</section>
+<section id="sec-duplicates" class="level2" data-number="9.2">
+<h2 data-number="9.2" class="anchored" data-anchor-id="sec-duplicates"><span class="header-section-number">9.2</span> Duplicates</h2>
 <p>There are two kinds, and the second is the harder one.</p>
 <p>An <strong>exact duplicate</strong> is the same row entered twice:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span> <span class="fu">filter</span>(<span class="fu">duplicated</span>(deliveries))     <span class="co"># show them</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span> <span class="fu">distinct</span>()                          <span class="co"># drop them</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span> <span class="fu">filter</span>(<span class="fu">duplicated</span>(deliveries))     <span class="co"># show them</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span> <span class="fu">distinct</span>()                          <span class="co"># drop them</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>A <strong>conflicting duplicate</strong> is the same identifier with different values: ticket <code>T0030</code> appearing twice with two different weights. <code>distinct()</code> leaves these alone, because the rows are not identical. Count to find them:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(ticket_id) <span class="sc">|&gt;</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(n <span class="sc">&gt;</span> <span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(ticket_id) <span class="sc">|&gt;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(n <span class="sc">&gt;</span> <span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>No code fixes this one. Somebody entered the delivery twice, or corrected it and left both rows, and you have to find out which is right. If you cannot, say so in the write-up and explain what you did.</p>
 </section>
-<section id="sec-impossible-values" class="level2" data-number="9.2">
-<h2 data-number="9.2" class="anchored" data-anchor-id="sec-impossible-values"><span class="header-section-number">9.2</span> Impossible Values</h2>
+<section id="sec-impossible-values" class="level2" data-number="9.3">
+<h2 data-number="9.3" class="anchored" data-anchor-id="sec-impossible-values"><span class="header-section-number">9.3</span> Impossible Values</h2>
 <p>Every variable has values it cannot take. A weight cannot be negative, a moisture percentage cannot be 250, and a delivery of exactly zero tonnes is possible but odd.</p>
 <p><code>summary()</code> catches most of this in one line, because impossible values turn up in the minimum and maximum:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(deliveries)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(deliveries)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Then look at the offending rows:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span> <span class="fu">filter</span>(weight_tonnes <span class="sc">&lt;=</span> <span class="dv">0</span> <span class="sc">|</span> moisture_pct <span class="sc">&gt;</span> <span class="dv">100</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span> <span class="fu">filter</span>(weight_tonnes <span class="sc">&lt;=</span> <span class="dv">0</span> <span class="sc">|</span> moisture_pct <span class="sc">&gt;</span> <span class="dv">100</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>A negative weight is probably a sign error or a reversed transaction. A moisture of 250 is probably 25.0 with a lost decimal point. Both of those are guesses, so record them as guesses. Dropping the rows without saying anything is the thing to avoid.</p>
 <p>An impossible value is easy to rule on. A merely <em>implausible</em> one – a canola yield of 95 bu/ac, twice the provincial average – is a judgement call: it might be an error, or the best field in the province. Do not delete a value just because it is extreme. Check it against the source if you can, and if you cannot, analyze the data with and without it and report whether it changes the answer.</p>
 </section>
-<section id="sec-categories" class="level2" data-number="9.3">
-<h2 data-number="9.3" class="anchored" data-anchor-id="sec-categories"><span class="header-section-number">9.3</span> Inconsistent Categories</h2>
+<section id="sec-categories" class="level2" data-number="9.4">
+<h2 data-number="9.4" class="anchored" data-anchor-id="sec-categories"><span class="header-section-number">9.4</span> Inconsistent Categories</h2>
 <p>The same thing spelled several ways is the most common defect I run into, and it is easy to miss because every individual value looks fine. Count the categories:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span> <span class="fu">count</span>(crop)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span> <span class="fu">count</span>(crop)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <pre><code>  crop            n
   "CANOLA"        2
   "Canola"        6
@@ -628,59 +644,59 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   ...</code></pre>
 <p>Three spellings of canola and three of spring wheat, which <code>group_by(crop)</code> reads as six different crops.</p>
 <p>Fix the mechanical cases first:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> deliveries <span class="sc">|&gt;</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">crop =</span> <span class="fu">str_trim</span>(crop),        <span class="co"># strip stray spaces</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">crop =</span> <span class="fu">str_to_title</span>(crop))    <span class="co"># "CANOLA" and "canola" -&gt; "Canola"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> deliveries <span class="sc">|&gt;</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">crop =</span> <span class="fu">str_trim</span>(crop),        <span class="co"># strip stray spaces</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">crop =</span> <span class="fu">str_to_title</span>(crop))    <span class="co"># "CANOLA" and "canola" -&gt; "Canola"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><code>str_to_title</code> handles capitalisation. <code>read_csv</code> already strips surrounding spaces, so <code>str_trim</code> is belt-and-braces here, but other readers do not, and a space you cannot see is a match you cannot explain.</p>
 <p>Genuine synonyms like <code>"Canola"</code> and <code>"Canola/Rapeseed"</code> are a judgement call, so put them in an explicit recode where a reader can see the decision:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> deliveries <span class="sc">|&gt;</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">crop =</span> <span class="fu">case_when</span>(</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    crop <span class="sc">==</span> <span class="st">"Canola/Rapeseed"</span> <span class="sc">~</span> <span class="st">"Canola"</span>,</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    crop <span class="sc">==</span> <span class="st">"Soybean"</span>         <span class="sc">~</span> <span class="st">"Soybeans"</span>,</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    <span class="cn">TRUE</span>                      <span class="sc">~</span> crop</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  ))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> deliveries <span class="sc">|&gt;</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">crop =</span> <span class="fu">case_when</span>(</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    crop <span class="sc">==</span> <span class="st">"Canola/Rapeseed"</span> <span class="sc">~</span> <span class="st">"Canola"</span>,</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    crop <span class="sc">==</span> <span class="st">"Soybean"</span>         <span class="sc">~</span> <span class="st">"Soybeans"</span>,</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    <span class="cn">TRUE</span>                      <span class="sc">~</span> crop</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  ))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
-<section id="sec-mixed-units" class="level2" data-number="9.4">
-<h2 data-number="9.4" class="anchored" data-anchor-id="sec-mixed-units"><span class="header-section-number">9.4</span> Mixed Units</h2>
+<section id="sec-mixed-units" class="level2" data-number="9.5">
+<h2 data-number="9.5" class="anchored" data-anchor-id="sec-mixed-units"><span class="header-section-number">9.5</span> Mixed Units</h2>
 <p>A right value in the wrong unit is harder to catch than a wrong value, because nothing looks broken. In the deliveries file most moisture readings are percentages around 9.5, but a few were entered as decimals: 0.094 rather than 9.4. No error, no warning, and the mean comes out too low.</p>
 <p>Knowing what range the variable should occupy is what catches it:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span> <span class="fu">filter</span>(moisture_pct <span class="sc">&lt;</span> <span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span> <span class="fu">filter</span>(moisture_pct <span class="sc">&lt;</span> <span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Grain moisture is normally 8 to 16 percent, so anything under 1 is in the wrong unit. Convert rather than drop:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> deliveries <span class="sc">|&gt;</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">moisture_pct =</span> <span class="fu">if_else</span>(moisture_pct <span class="sc">&lt;</span> <span class="dv">1</span>, moisture_pct <span class="sc">*</span> <span class="dv">100</span>, moisture_pct))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> deliveries <span class="sc">|&gt;</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">moisture_pct =</span> <span class="fu">if_else</span>(moisture_pct <span class="sc">&lt;</span> <span class="dv">1</span>, moisture_pct <span class="sc">*</span> <span class="dv">100</span>, moisture_pct))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>A file that records its own units, like the <code>units</code> column in <a href="module02c.html#sec-unit-conversion" class="quarto-xref"><span>Section 6.4</span></a>, lets you convert with <code>case_when</code> instead of inferring from magnitude.</p>
 </section>
-<section id="sec-missing-values" class="level2" data-number="9.5">
-<h2 data-number="9.5" class="anchored" data-anchor-id="sec-missing-values"><span class="header-section-number">9.5</span> Missing Values</h2>
-<p>In R, a missing value is <code>NA</code>, and most operations <em>propagate</em> it – any calculation involving <code>NA</code> returns <code>NA</code>, which is why <code>mean()</code> needs <code>na.rm = TRUE</code> (<a href="module02b.html#sec-r-summary-stats" class="quarto-xref"><span>Section 5.7</span></a>). Real files complicate this in two ways: missing values arrive in disguise, and deciding what to do with them takes some thought.</p>
+<section id="sec-missing-values" class="level2" data-number="9.6">
+<h2 data-number="9.6" class="anchored" data-anchor-id="sec-missing-values"><span class="header-section-number">9.6</span> Missing Values</h2>
+<p>In R, a missing value is <code>NA</code>, and most operations <em>propagate</em> it – any calculation involving <code>NA</code> returns <code>NA</code>, which is why <code>mean()</code> needs <code>na.rm = TRUE</code> (<a href="module02b.html#sec-r-summary-stats" class="quarto-xref"><span>Section 5.6</span></a>). Real files complicate this in two ways: missing values arrive in disguise, and deciding what to do with them takes some thought.</p>
 <section id="missing-values-in-disguise" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="missing-values-in-disguise">Missing values in disguise</h3>
 <p>Missing data shows up in real files in several forms: an empty cell, the text <code>"NA"</code>, <code>"N/A"</code>, <code>"-"</code>, <code>"."</code>, or <code>-999</code>. R recognises the blank and <code>NA</code>. The rest come in as ordinary text and turn their column into <code>&lt;chr&gt;</code>.</p>
 <p>Tell <code>read_csv</code> what counts as missing:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/grain_deliveries_messy.csv"</span>,</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>                       <span class="at">na =</span> <span class="fu">c</span>(<span class="st">""</span>, <span class="st">"NA"</span>, <span class="st">"N/A"</span>, <span class="st">"-"</span>, <span class="st">"."</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/grain_deliveries_messy.csv"</span>,</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>                       <span class="at">na =</span> <span class="fu">c</span>(<span class="st">""</span>, <span class="st">"NA"</span>, <span class="st">"N/A"</span>, <span class="st">"-"</span>, <span class="st">"."</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Then count what you have before deciding anything:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span> <span class="fu">summarise</span>(<span class="fu">across</span>(<span class="fu">everything</span>(), <span class="sc">~</span> <span class="fu">sum</span>(<span class="fu">is.na</span>(.))))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span> <span class="fu">summarise</span>(<span class="fu">across</span>(<span class="fu">everything</span>(), <span class="sc">~</span> <span class="fu">sum</span>(<span class="fu">is.na</span>(.))))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>A numeric code like <code>-999</code> is the dangerous one. It will not turn the column to text; it will just be included in the mean as a number, which is another reason to run <code>summary()</code> on arrival and look at the minimum.</p>
 </section>
 <section id="working-with-missing-values" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="working-with-missing-values">Working with missing values</h3>
 <p>A few patterns:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check for missing values</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">is.na</span>(deliveries<span class="sc">$</span>weight_tonnes)              <span class="co"># logical vector</span></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(<span class="fu">is.na</span>(deliveries<span class="sc">$</span>weight_tonnes))          <span class="co"># count of NAs</span></span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove rows with any missing values</span></span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>deliveries_clean <span class="ot">&lt;-</span> deliveries <span class="sc">|&gt;</span> <span class="fu">drop_na</span>()</span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove rows with missing values in specific columns</span></span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>deliveries_clean <span class="ot">&lt;-</span> deliveries <span class="sc">|&gt;</span> <span class="fu">drop_na</span>(weight_tonnes)</span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute a statistic ignoring NAs</span></span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(deliveries<span class="sc">$</span>weight_tonnes, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Replace NAs with a value</span></span>
-<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">weight_tonnes =</span> <span class="fu">replace_na</span>(weight_tonnes, <span class="dv">0</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check for missing values</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">is.na</span>(deliveries<span class="sc">$</span>weight_tonnes)              <span class="co"># logical vector</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(<span class="fu">is.na</span>(deliveries<span class="sc">$</span>weight_tonnes))          <span class="co"># count of NAs</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove rows with any missing values</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>deliveries_clean <span class="ot">&lt;-</span> deliveries <span class="sc">|&gt;</span> <span class="fu">drop_na</span>()</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove rows with missing values in specific columns</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>deliveries_clean <span class="ot">&lt;-</span> deliveries <span class="sc">|&gt;</span> <span class="fu">drop_na</span>(weight_tonnes)</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute a statistic ignoring NAs</span></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(deliveries<span class="sc">$</span>weight_tonnes, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Replace NAs with a value</span></span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">weight_tonnes =</span> <span class="fu">replace_na</span>(weight_tonnes, <span class="dv">0</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="when-is-dropping-safe" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="when-is-dropping-safe">When is dropping safe?</h3>
@@ -688,17 +704,43 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>The honest answer to “what should I do with missing values” is almost always: <em>think about why they are missing</em>, and <em>document what you decided to do</em>. There is no universal fix.</p>
 </section>
 </section>
-<section id="sec-dates-text" class="level2" data-number="9.6">
-<h2 data-number="9.6" class="anchored" data-anchor-id="sec-dates-text"><span class="header-section-number">9.6</span> Dates Stored as Text</h2>
+<section id="sec-dates-text" class="level2" data-number="9.7">
+<h2 data-number="9.7" class="anchored" data-anchor-id="sec-dates-text"><span class="header-section-number">9.7</span> Dates Stored as Text</h2>
 <p>A date column that imported as <code>&lt;chr&gt;</code> cannot be sorted chronologically or used in arithmetic. It happens when the file mixes formats (<code>2025-09-15</code> in some rows, <code>Sept 15, 2025</code> in others), and it is worth catching early because <code>arrange()</code> on a text date sorts alphabetically without complaint.</p>
 <p><code>glimpse()</code> shows the problem (<code>&lt;chr&gt;</code> where you expected <code>&lt;date&gt;</code>). If the format is consistent, tell the reader what it is with <code>col_types</code> (<a href="moduleRDb.html#sec-col-types" class="quarto-xref"><span>Section 7.3</span></a>); if it is mixed, the rows that failed to parse are found the same way as any other type problem:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">is.na</span>(<span class="fu">as.Date</span>(delivery_date))) <span class="sc">|&gt;</span></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(ticket_id, delivery_date)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">is.na</span>(<span class="fu">as.Date</span>(delivery_date))) <span class="sc">|&gt;</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(ticket_id, delivery_date)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Fixing messy dates properly uses tools we have not covered (the <code>lubridate</code> package is the standard one); for this course, it is enough to notice the problem and state the format explicitly when you read the file.</p>
 </section>
-<section id="sec-cleaning-checklist" class="level2" data-number="9.7">
-<h2 data-number="9.7" class="anchored" data-anchor-id="sec-cleaning-checklist"><span class="header-section-number">9.7</span> A Checklist</h2>
+<section id="sec-reshaping" class="level2" data-number="9.8">
+<h2 data-number="9.8" class="anchored" data-anchor-id="sec-reshaping"><span class="header-section-number">9.8</span> Reshaping: <code>pivot_longer</code> and <code>pivot_wider</code></h2>
+<p>The last defect is not a wrong value but a wrong shape. Tidy data (<a href="module02b.html#sec-tidy-data" class="quarto-xref"><span>Section 5.7</span></a>) wants every variable in its own column, and files often arrive with values in the column headers instead – one column per crop, or per year. StatCan downloads have the opposite problem: long where you want wide.</p>
+<p><code>pivot_longer</code> turns column headers into values. You tell it which columns to gather, what to call the column that will hold their <em>names</em>, and what to call the column that will hold their <em>values</em>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>yields_wide</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<pre><code>  region  Canola Wheat Barley
+  South       41    52     64
+  Central     44    55     68
+  North       38    49     60</code></pre>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>yields_long <span class="ot">&lt;-</span> yields_wide <span class="sc">|&gt;</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">c</span>(Canola, Wheat, Barley),</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">"crop"</span>,</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>               <span class="at">values_to =</span> <span class="st">"yield"</span>)</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>yields_long</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<pre><code>  region  crop   yield
+  South   Canola    41
+  South   Wheat     52
+  South   Barley    64
+  Central Canola    44
+  ...</code></pre>
+<p>Nine rows now: one per region-crop combination, with <code>crop</code> and <code>yield</code> as ordinary columns that <code>filter</code> and <code>group_by</code> can use.</p>
+<p><code>pivot_wider</code> goes the other way. Tell it which column holds the names and which holds the values:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>yields_long <span class="sc">|&gt;</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> crop, <span class="at">values_from =</span> yield)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Long is usually what analysis wants; wide is often what people want to read. Expect to pivot in both directions.</p>
+</section>
+<section id="sec-cleaning-checklist" class="level2" data-number="9.9">
+<h2 data-number="9.9" class="anchored" data-anchor-id="sec-cleaning-checklist"><span class="header-section-number">9.9</span> A Checklist</h2>
 <p>Run through this on every new file:</p>
 <ol type="1">
 <li><code>glimpse()</code> – are the column types what you expect?</li>
