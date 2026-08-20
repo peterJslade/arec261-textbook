@@ -7,15 +7,15 @@ This bank holds **20 questions**: five in each of four sections. On the real tes
 Expand each **Answer** block to check your work. Every value has been computed from the real data; when the source files are refreshed the exact numbers may shift slightly, but the method stays the same.
 :::
 
-**The three datasets.**
+**The dataset.**
 
 - **Saskatchewan RM Crop Yields** (1990–2025). Average yield (bu/ac) for eight crops in every Rural Municipality. Wide file `rm_yields_1990plus.csv` for Sections 2–3; long file `rm_yields_1990plus_long.csv` for Section 4. Blank = crop not grown/reported that RM-year.
-- **Manitoba Wheat Variety** (2020–2025). Red spring wheat yield by variety and municipality. `Reported = FALSE` marks a yield **suppressed** by MASC because too few farms grew that variety there.
-- **Canada Field Crops** (StatsCan, 2015–2025). Seeded acres and average yield (bu/ac) for major field crops, by province.
 
-**Grading model.** Visual appearance **20%**, plus **20%** for each of the four sections (Building a Worksheet, Descriptive, Conditional, PivotTables) = 100%. Histograms and PivotTables are marked partly on how clearly they are presented — titles, axis labels, formatting.
+**Working with a single year.** Several questions ask you to work with one year of the data. Do **not** just apply a filter and point a formula at the whole column: as Module 1 explains, a filter hides rows from *you*, not from your formulas. Copy the rows you want onto a new sheet first, or use a conditional function that tests the year. If you copy 2023 out, you will have **295 rows** of data.
 
-> **Vocabulary note.** Everything here uses only Module 1 tools: mean/median/mode, range, IQR, variance, standard deviation, coefficient of variation, percentiles/quartiles, symmetric vs skewed shape, outliers (the 1.5×IQR rule), histograms, relative and absolute references, number and date formatting, `ROUND`, and PivotTables.
+**Grading model.** **10%** for presentation — labelled cells, sensible formats, a reader can follow the sheet — plus **weights shown on each part**, totalling 90% across the four questions. Parts are marked on **follow-through**: if an early part is wrong but the later parts are correctly worked *from your own earlier answer*, the later parts still earn full marks.
+
+> **Vocabulary note.** Everything here uses only Module 1 tools: `SUM`, `AVERAGE`, `COUNT`, `COUNTA`, `MEDIAN`, `MODE.SNGL`, `MIN`, `MAX`, `ROUND`, `SUMPRODUCT`, `STDEV.S`, `VAR.S`, `QUARTILE.INC`, `PERCENTILE.INC`, `IF`, `COUNTIF`, `SUMIF`, `AVERAGEIF`, `XLOOKUP`; relative and absolute references; number and date formatting; sorting and filtering; wide vs long shape; and PivotTables.
 
 ---
 
@@ -42,19 +42,19 @@ Above the table, put the canola price **$14.20** in a single labelled cell.
 
 **(b)** Add a **Total revenue ($)** column: revenue per acre times that field's acres. Format with a thousands separator and no decimals.
 
-**(c)** Under the table, use `SUM` to total the acres and the total revenue.
+**(c)** Under the table, use `SUM` to total the acres, the total bushels (yield × acres), and the total revenue.
 
-**(d)** In a spare cell, write the version of the (a) formula *without* the `$` signs and fill it down two rows, labelled clearly as the incorrect version.
+**(d)** Off to the side, in a column with nothing beneath it, repeat the (a) formula *without* the `$` signs and fill it down all five rows. Label the block clearly as the incorrect version.
 
-**(e)** In one sentence beside it, say what a reader would see in that column and why.
+**(e)** Beside it, write one sentence saying what appears in those cells and why.
 
 <details><summary>Answer</summary>
 
 - (a) `=C2*$B$1` (wherever the price sits) → $585.04, $548.12, $636.16, $512.62, $566.58.
 - (b) `=D2*B2` → $70,204.80 · $131,548.80 · $60,435.20 · $158,912.20 · $99,151.50.
-- (c) Acres **940**; total revenue **$520,252.50**.
-- (d) `=C2*B1` filled down.
-- (e) Every row after the first returns $0.00, because the reference walks down to empty cells. Excel reports no error.
+- (c) Acres **940**; bushels **36,637.5**; total revenue **$520,252.50**.
+- (d) The unanchored version, filled down five rows.
+- (e) The first row is right; every row below it returns **$0.00**, because the price reference walks down into the empty cells beneath the price. Excel reports no error — the column simply fills with zeros.
 </details>
 
 ### Question 2
@@ -84,10 +84,10 @@ Directly above the three yield columns, enter the prices in a single row: Canola
 
 <details><summary>Answer</summary>
 
-- (a) `=B2*B$1` filled across and down.
-- (b) Only the **row** is locked. Filling down must keep pointing at row 1; filling across must let the column move so each crop meets its own price.
+- (a) With prices in row 1 and the first yield in `B3`: `=B3*B$1`, filled across and down. Any layout works provided the price **row** is locked and the column is not.
+- (b) Only the **row** is locked (`B$1`). Filling down must keep pointing at the price row; filling across must let the column move so each crop meets its own price.
 - (c) Canola **$569.70**, Wheat **$427.02**, Barley **$347.54**.
-- (d) **Canola**, by **$142.68** over wheat.
+- (d) **Canola**, by about **$142.69** over wheat (569.704 − 427.019 = 142.685; accept $142.68 or $142.69 — the difference lands exactly on a half-cent).
 - (e) Every column would use the canola price, so wheat and barley revenues would be roughly 70% and 150% too high. The sheet still fills with plausible dollar figures, so nothing signals the error.
 </details>
 
@@ -112,7 +112,7 @@ Date	Crop	Tonnes
 
 **(d)** Use `SUM` to total the tonnes, and `AVERAGE` to find the mean load size.
 
-**(e)** In one sentence, explain how you can tell by looking at a cell whether Excel read a date as a date or as text, and why it matters for part (b).
+**(e)** In one sentence, explain why part (b) would fail if Excel had stored the dates as text rather than as dates.
 
 <details><summary>Answer</summary>
 
@@ -120,7 +120,7 @@ Date	Crop	Tonnes
 - (b) `=A3-A2` filled down → **4, 5, 9, 7** days. If the cell shows `04-Jan-1900` it inherited the date format; change it to Number.
 - (c) `=A6-A2` = **25** days.
 - (d) Total **244.8** tonnes; mean **48.96** tonnes.
-- (e) A real date is right-aligned by default; text is left-aligned. Text dates cannot be subtracted, so (b) would fail.
+- (e) Excel stores a date as a number, which is why subtracting two of them gives a count of days. Text cannot be subtracted, so the formula would return an error instead of a gap.
 </details>
 
 ### Question 4
@@ -136,11 +136,11 @@ D	0.1198
 E	0.1356
 ```
 
-**(a)** Copy the protein column into three further columns so the same five numbers appear four times. Format them, one column each, as: General, Number with 2 decimals, Percentage with 1 decimal, and Percentage with 2 decimals. Label each column with the format used.
+**(a)** Copy the protein column into a second column. Format the first as **General** and the second as **Percentage with 2 decimals**. Label both with the format used.
 
-**(b)** Under every column, compute the average with `AVERAGE`.
+**(b)** Under each column, compute the average with `AVERAGE`, formatting each the same way as the column above it.
 
-**(c)** The four averages display differently but hold the same number. In a spare cell, write that value to four decimal places.
+**(c)** The two averages display differently but hold the same number. In a spare cell, write that value to four decimal places.
 
 **(d)** The contract pays a premium on any load above 13.5% protein. Add a column using `IF` that returns `Yes` or `No`, and use `COUNTIF` to count how many qualify.
 
@@ -148,8 +148,8 @@ E	0.1356
 
 <details><summary>Answer</summary>
 
-- (a) Same five values throughout; only the format differs.
-- (b) All four averages hold the same number, displaying as `0.1316`, `0.13`, `13.2%`, `13.16%`.
+- (a) The same five values twice; only the format differs. General shows `0.1342`, `0.1285`…; Percentage shows `13.42%`, `12.85%`….
+- (b) Both averages hold the same number, displaying as `0.1316` and `13.16%`.
 - (c) **0.1316**.
 - (d) `=IF(B2>0.135,"Yes","No")`; `=COUNTIF(D2:D6,"Yes")` = **2** (loads C and E).
 - (e) The cells hold proportions, not percentages — 0.1342, not 13.42. Nothing is above 13.5, so every row returns `No`. Formatting a cell as a percentage does not change the stored value.
@@ -160,29 +160,31 @@ E	0.1356
 *Paste this block into a blank sheet.*
 
 ```{.plain}
-Bin	Crop	Price ($/bu)	Bushels
-1	Canola	14.20	2400
-2	Wheat	8.35	5100
-3	Barley	5.60	3800
+Field	Acres	Yield (bu/ac)
+North	120	41.2
+South	240	38.6
+Creek	95	44.8
+Home	310	36.1
+Rented	175	39.9
 ```
 
-**(a)** Add a **Value ($)** column and total it with `SUM`. Format as currency.
+**(a)** Use `AVERAGE` to find the plain mean of the five yields.
 
-**(b)** Should the price reference be absolute here? Answer in one sentence and say why.
+**(b)** Add a **Bushels** column (yield × acres) and total it, along with the acres, using `SUM`.
 
-**(c)** In three spare cells below, write the version that anchors the price as `$C$2`, fill it down all three rows, and total it. Label the block as the incorrect version.
+**(c)** The farm's actual average yield is total bushels divided by total acres. Compute it. Format both averages to one decimal place.
 
-**(d)** State the difference between the two totals and which crop's price the incorrect version applied to every bin.
+**(d)** Compute the same figure a second way, in a single cell, using `SUMPRODUCT` over `SUM`.
 
-**(e)** A buyer offers a flat **$0.30/bu** premium on everything in storage. Put the premium in one labelled cell and add a **Value with premium** column that all three rows point at. Explain in one sentence why *this* reference must be absolute when the price one must not.
+**(e)** The two averages in (a) and (c) differ. In two sentences, say which one answers "what did this farm average across all its acres", and explain what the plain mean is treating as equally important.
 
 <details><summary>Answer</summary>
 
-- (a) `=C2*D2` → $34,080 · $42,585 · $21,280. Total **$97,945.00**.
-- (b) **No.** Each row has its own price, so the reference must move with the row.
-- (c) `=$C$2*D2` → $34,080 · $72,420 · $53,960; total **$160,460**.
-- (d) **$62,515** too high. It applies the **canola** price of $14.20 to every bin.
-- (e) `=(C2+$F$1)*D2` → total **$101,335.00**. The premium sits in one cell every row must reach, so it must be anchored; the price sits on each row, so it must not be.
+- (a) `=AVERAGE(C2:C6)` = **40.1** bu/ac.
+- (b) `=B2*C2` filled down; acres **940**, bushels **36,637.5**.
+- (c) `=D7/B7` = **39.0** bu/ac.
+- (d) `=SUMPRODUCT(C2:C6,B2:B6)/SUM(B2:B6)` = **39.0** — the same number in one step.
+- (e) The **weighted** average in (c) answers it, because it counts every bushel once regardless of which field grew it. The plain mean treats each *field* as equally important, so the 95-acre Creek field — the highest yielding of the five — counts as much as the 310-acre Home field, and pulls the answer up by about 1.1 bu/ac.
 </details>
 
 # Section 2 — Descriptive Statistics and Distributions
@@ -241,21 +243,18 @@ Filter to `Year = 2023`, **Canola** column.
 
 **(a)** Build a histogram of the canola yields with about 10–15 bins. Give it a descriptive title and label both axes.
 
-**(b)** Describe the shape in one or two sentences: symmetric, or skewed — and if skewed, in which direction.
+**(b)** State the mean and the median beneath the chart, and describe the shape in one or two sentences: symmetric, or skewed — and if skewed, in which direction. Say how the mean's position relative to the median matches what you see.
 
-**(c)** Compute the mean and median again and mark both on your chart or state them beneath it.
+**(c)** A classmate applies a filter to show only 2023, leaves the full 10,650-row file in place, and writes `=AVERAGE` over the whole canola column. They get **28.29** rather than your figure. In two sentences, explain what they actually computed and why the filter did not help.
 
-**(d)** Explain in one sentence how the position of the mean relative to the median matches the shape you described in (b).
-
-**(e)** A classmate makes the same histogram with 3 bins and concludes the data is symmetric. In one or two sentences, explain what went wrong.
+**(d)** A classmate makes the same histogram with 3 bins and concludes the data is symmetric. In one or two sentences, explain what went wrong.
 
 <details><summary>Answer</summary>
 
 - (a) Histogram, 10–15 bins, titled and labelled.
-- (b) **Left-skewed** (a tail toward the low yields): most RMs cluster between roughly 25 and 50 bu/ac, with a thin tail running down toward 3.4.
-- (c) Mean **33.88**, median **35.50**.
-- (d) The mean sits below the median, which is what a low tail does — the extreme low values pull the average down while the middle value barely moves.
-- (e) Three bins are too coarse to show the tail. Each bin spans about 19 bu/ac, so the low RMs get absorbed into a wide left-hand bar and the asymmetry disappears. Bin width has to be fine enough to reveal the shape without showing random noise.
+- (b) Mean **33.88**, median **35.50**. **Left-skewed** — a tail toward the low yields: most RMs cluster between roughly 25 and 50 bu/ac with a thin tail down to 3.4. The mean sits below the median, which is exactly what a low tail does: the extreme values drag the average down while the middle value barely moves.
+- (c) They computed the mean canola yield across **every year from 1990 to 2025**, not 2023. A filter hides rows from the person looking at the sheet; it does nothing to the range a formula reads. The fix is to copy the 2023 rows to their own sheet, or to use a conditional function that tests the year.
+- (d) Three bins are too coarse to show the tail. Each bin spans about 19 bu/ac, so the low RMs get absorbed into a wide left-hand bar and the asymmetry disappears. Bin width has to be fine enough to reveal the shape without showing random noise.
 </details>
 
 ### Question 9
@@ -324,9 +323,9 @@ Filter to `Year = 2023`.
 
 <details><summary>Answer</summary>
 
-- (a) `=COUNTIF(C2:C290,">40")` = **114** RMs.
-- (b) `=COUNTIF(C2:C290,"<=20")` = **57** RMs.
-- (c) `=AVERAGEIF(C2:C290,">40",D2:D290)` = **77.40** bu/ac.
+- (a) `=COUNTIF(canola_range,">40")` = **114** RMs. (In the shipped file canola is column **E**; use whatever range your 2023 rows occupy.)
+- (b) `=COUNTIF(canola_range,"<=20")` = **57** RMs.
+- (c) `=AVERAGEIF(canola_range,">40",barley_range)` = **77.40** bu/ac. Canola is tested, barley is averaged.
 - (d) All-RM barley mean **54.56**; the good-canola RMs averaged **22.84** bu/ac more.
 - (e) RMs that grew canola well also grew barley well, which points to something affecting both crops rather than to the crops themselves. Growing-season rainfall is the obvious candidate — soil zone and seeding date would also do it.
 </details>
@@ -347,7 +346,7 @@ Filter to `Year = 2023`.
 
 <details><summary>Answer</summary>
 
-- (a) `=IF(C2>$G$1,"Above","Below")` where `G1` holds `=AVERAGE(C2:C290)` = 33.88.
+- (a) `=IF(E2>$M$1,"Above","Below")` where `M1` (any spare cell) holds `=AVERAGE(canola_range)` = 33.88.
 - (b) Above **153**, Below **136**.
 - (c) More RMs sit above the mean than below it (153 to 136), which is the signature of a low tail: a minority of very poor RMs drags the mean down past the middle of the data.
 - (d) Median 35.50 → Above **143**, Below **146**.
@@ -397,15 +396,15 @@ Filter to `Year = 2023`.
 
 **(d)** In one sentence, say when you would prefer `SUMIF` and `COUNTIF` over `AVERAGEIF`.
 
-**(e)** A student writes `=COUNTIF(C2:C290,">AVERAGE(C2:C290)")` to count RMs above the mean, and gets 0. Explain the error in one or two sentences and give the formula that works.
+**(e)** A student writes `=COUNTIF(canola_range,">AVERAGE(canola_range)")` to count RMs above the mean, and gets 0. Explain the error in one or two sentences and give the formula that works.
 
 <details><summary>Answer</summary>
 
-- (a) `=SUMIF(C2:C290,">40")` = **5,399.60**.
+- (a) `=SUMIF(canola_range,">40")` = **5,399.60**.
 - (b) 5,399.60 / 114 = **47.36** bu/ac.
-- (c) `=AVERAGEIF(C2:C290,">40")` = **47.36** — the same.
+- (c) `=AVERAGEIF(canola_range,">40")` = **47.36** — the same.
 - (d) When you need the total as well as the average, or when the criterion range and the averaging range differ in a way that is easier to write out in two steps.
-- (e) Everything inside quotation marks is treated as literal text, so Excel searches for cells containing the characters `>AVERAGE(...)` and finds none. Join the operator to the computed value instead: `=COUNTIF(C2:C290,">"&AVERAGE(C2:C290))` = **153**.
+- (e) Everything inside quotation marks is treated as literal text, so Excel searches for cells containing the characters `>AVERAGE(...)` and finds none. Join the operator to the computed value instead: `=COUNTIF(canola_range,">"&AVERAGE(canola_range))` = **153**.
 </details>
 
 ### Question 15
@@ -425,9 +424,9 @@ Filter to `Year = 2023`.
 <details><summary>Answer</summary>
 
 - (a) Canola above 40: **114**. Barley above 70: **96**.
-- (b) `=AVERAGEIF(D2:D290,">70",C2:C290)` = **46.60** bu/ac — testing barley, averaging canola.
+- (b) `=AVERAGEIF(barley_range,">70",canola_range)` = **46.60** bu/ac — testing barley, averaging canola.
 - (c) The overall canola mean is 33.88, so RMs with strong barley averaged **12.72** bu/ac more canola.
-- (d) `=IF(C2>40,IF(D2>70,"Both",""),"")`.
+- (d) `=IF(E2>40,IF(F2>70,"Both",""),"")` — canola is column E, barley column F.
 - (e) **86** RMs qualify on both counts. That is most of the 96 strong-barley RMs, so good canola and good barley land in largely the same places — consistent with a shared cause such as rainfall rather than anything specific to either crop.
 </details>
 
@@ -441,7 +440,7 @@ Filter to `Year = 2023`.
 
 **(b)** One crop shows an average in the hundreds while the rest are in the tens. Name it and explain in one sentence what has gone wrong with the comparison.
 
-**(c)** Add **Year** to Columns and filter to 2021–2023.
+**(c)** Copy the table from (b) and paste it as values somewhere on your sheet so it survives. Then add **Year** to Columns and filter to 2021–2023.
 
 **(d)** Read off the average canola yield in each of those three years.
 
@@ -466,7 +465,7 @@ Filter to `Year = 2023`.
 
 **(d)** Switch back to Average and add **Count** as a second Values field so both appear side by side.
 
-**(e)** One year has a noticeably lower count than its neighbours. In two sentences, explain why a low count should make you more cautious about that year's average.
+**(e)** The counts are lower in the earliest years of the series than in recent ones. In two sentences, explain why a year built on fewer reporting RMs deserves more caution than one built on more.
 
 <details><summary>Answer</summary>
 
@@ -474,7 +473,7 @@ Filter to `Year = 2023`.
 - (b) Worst: **2002** (15.83), **2003** (17.03), **2001** (18.19). Best: **2025** (43.94), **2016** (42.18), **2019** (40.78).
 - (c) The count is the number of RMs reporting a canola yield that year. It varies because not every RM grows canola every year, and because reporting coverage changes over time.
 - (d) Both fields in Values: Average of Yield and Count of Yield.
-- (e) An average computed from few RMs is more sensitive to any single unusual RM, so it is a less reliable summary of the province. It may also reflect a different set of RMs than other years, so year-to-year comparisons are not quite like for like.
+- (e) An average built from fewer RMs is more sensitive to any single unusual RM, so it is a less reliable summary of the province. It may also cover a different set of RMs than other years, so a year-to-year comparison is not quite like for like.
 </details>
 
 ### Question 18
@@ -487,7 +486,7 @@ Filter to `Year = 2023`.
 
 **(d)** Compute, for each of the three crops, how much its 2022 average exceeded its 2021 average.
 
-**(e)** In two sentences, say which crop recovered most in absolute terms and which recovered most in proportional terms, and explain why the two answers differ.
+**(e)** In two sentences, say which crop recovered most in absolute terms and which in proportional terms. If they are the same crop, say why that is not guaranteed — what would have to be true of a crop for the two answers to disagree?
 
 <details><summary>Answer</summary>
 
@@ -502,20 +501,20 @@ Filter to `Year = 2023`.
 
 **(a)** Build a PivotTable of average **Yield** by **Crop**, with **Year** as a Filter (not in Rows or Columns).
 
-**(b)** Set the filter to 2021 and record the averages for all crops.
+**(b)** Set the filter to 2021 and record the averages for **Canola, Barley and Oats** only.
 
-**(c)** Set it to 2022 and record them again.
+**(c)** Set it to 2022 and record the same three. Paste both sets of values somewhere on your sheet so they survive the filter change.
 
-**(d)** Which crop showed the largest proportional improvement between the two years?
+**(d)** Compute the proportional change for each of the three, and say which improved most.
 
 **(e)** In two sentences, explain the difference between putting Year in the **Filter** area and putting it in **Columns**, and say when you would choose each.
 
 <details><summary>Answer</summary>
 
 - (a) Crop in Rows, Yield in Values set to Average, Year in Filters.
-- (b) 2021 (bu/ac): Canola 21.86, Spring Wheat 30.22, Barley 34.83, Oats 45.06, Peas 22.49, Flax 12.79, Durum 21.69. Lentils are in lb/ac and are not comparable.
-- (c) 2022 (bu/ac): Canola 35.40, Spring Wheat 45.80, Barley 61.33, Oats 85.77, Peas 36.20, Flax 24.10, Durum 40.65.
-- (d) **Oats**, up **90%** (45.06 → 85.77). Flax is next at +88%, then durum at +87%.
+- (b) 2021 (bu/ac): Canola **21.86**, Barley **34.83**, Oats **45.06**.
+- (c) 2022 (bu/ac): Canola **35.40**, Barley **61.33**, Oats **85.77**.
+- (d) Canola +62%, Barley +76%, **Oats +90%** (45.06 → 85.77) — oats improved most.
 - (e) The Filter area shows one year at a time and keeps the table small; Columns shows every year side by side so they can be compared directly. Use a Filter when you want a clean single-period table, and Columns when the comparison across periods is the point.
 </details>
 
@@ -525,9 +524,9 @@ Filter to `Year = 2023`.
 
 **(b)** Add **Count** of Yield alongside the average.
 
-**(c)** Two crops have far fewer observations than the rest. Name them and give their counts.
+**(c)** The counts are not equal across crops. Name the two crops with the fewest observations and give their counts.
 
-**(d)** Compute the same two averages a second way, using `AVERAGEIF` on the long file directly, and confirm they match your PivotTable.
+**(d)** Copy the 2023 rows onto a sheet of their own, then compute those same two averages with `AVERAGEIF` on the crop column, and confirm they match the PivotTable.
 
 **(e)** In two sentences, say why it is worth checking a PivotTable result against a formula at least once, and what kind of mistake this catches.
 
@@ -535,7 +534,7 @@ Filter to `Year = 2023`.
 
 - (a) Crop in Rows, Average of Yield, filtered to 2023.
 - (b) Both fields in Values.
-- (c) **Flax** (**164**) and **Durum** (**173**), against 285–289 for canola, wheat and barley.
-- (d) `=AVERAGEIF(crop_range,"Flax",yield_range)` = **20.31**, and the same for Durum = **29.60** — both match the PivotTable.
+- (c) **Flax** (**164**) and **Durum** (**173**). Lentils (196) and Oats (200) are also well below canola, wheat and barley at 285–289.
+- (d) On the extracted 2023 rows: `=AVERAGEIF(crop_range,"Flax",yield_range)` = **20.31** and the same for Durum = **29.60** — both match. Run the same formula over the *whole* file instead and Flax returns 20.53, the all-years average: the criterion selects the crop, not the year, so the year has to be handled by which rows you point at.
 - (e) A PivotTable silently applies whatever filters are set, and it is easy to leave one on from an earlier step or to summarise the wrong field. Recomputing one figure with a formula catches exactly that kind of error, which produces a plausible-looking number rather than an error message.
 </details>
