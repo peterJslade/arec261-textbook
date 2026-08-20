@@ -1,15 +1,15 @@
 # Describing Data {#sec-describing-data}
 
-Now that you can get numbers into Excel and compute with them, we turn to what those numbers *mean*: how to summarize a column of yields so a human can grasp it, and how to read what the summary is telling you. Everything here uses the Excel skills from the previous two chapters.
+Now that you can get numbers into Excel and compute with them, we turn to what those numbers mean. Most datasets are too large to understand simply by looking at all the observations. Instead, we use summary statistics and charts to describe the data and make its important features easier to see.
 
-Most datasets are so large that we can't quickly look at all the numbers in them.  However, we typically want to get a sense of *what the data looks like* at a glance.  We do that through summary statistics and clever charts.  These statistics and charts *describe* the data.  We can think about four characteristics of data:
+We can think about four characteristics of data:
 
-- **Centre.** Where is the middle or average of the data?
-- **Position.** Where does a particular observation sit relative to the rest -- near the middle, or out toward one end?
-- **Spread.** How *spread out* are the values -- are they tightly clustered or all over the map?
-- **Shape.** What does the distribution of the data *look like* -- is it roughly *symmetric*, with values balanced on either side of the centre, or is it lopsided, with most observations bunched at one end and a few trailing off toward the other?
+- Centre. Where is the data centred -- what is a typical value?
+- Position. Where does a particular observation sit relative to the rest -- near the middle, or out toward one end?
+- Spread. How spread out are the values -- are they tightly clustered or all over the map?
+- Shape. What does the distribution of the data look like -- is it roughly symmetric, with values balanced on either side of the centre, or is it lopsided, with most observations bunched at one end and a few trailing off toward the other?
 
-In this chapter we will learn a) the statistics and charts that summarize the centre, position, spread, and shape of the data; b) how to interpret them; and c) how to calculate them in Excel, using the tools from @sec-excel-start and @sec-excel-further.
+In this chapter, we will learn the statistics and charts used to describe these four characteristics, how to interpret them, and how to calculate and create them in Excel using the tools from @sec-excel-start and @sec-excel-further.
 
 ## Learning Objectives {.unnumbered}
 
@@ -18,15 +18,15 @@ By the end of this chapter, you will be able to:
 
 **Statistical concepts**
 
-- Describe the *centre* of data.
-   - Calculate and interpret the mean, median, and mode -- and choose the right one
-   - Read the mean-median gap as a clue to outliers and the shape of a distribution
-   - Compute a *weighted* average, and see why it can differ from a simple one
-- Describe the *position* of observations within the data.
-   - Compute percentiles and quartiles
-- Describe the *spread* of the data.
-   - Compute range, variance, standard deviation, and coefficient of variation
-- Describe the *shape* of the data.
+- Describe the centre of data.
+   - Calculate and interpret the mean, median, and mode -- and choose the appropriate measure
+   - Use differences between the mean and median as a clue to skewness or extreme values
+   - Calculate a weighted mean, and explain why it can differ from a simple mean
+- Describe the position of observations within the data.
+   - Calculate and interpret percentiles and quartiles
+- Describe the spread of data.
+   - Calculate and interpret the range, variance, standard deviation, and coefficient of variation
+- Describe the shape of data.
    - Construct and interpret histograms
 :::
 
@@ -44,15 +44,31 @@ $$
 
 In Excel: `=AVERAGE(A1:A5)`.
 
-Notation: we write $\bar{x}$ (pronounced "x-bar") for the sample mean. The general formula is:
+::: {.callout-note}
+## Aside: notation
+
+Statistics has a compact notation for referring to data. Each observation is written as $x$ with a subscript giving its position in the dataset, so our five yields are:
+
+|                 | $x_1$ | $x_2$ | $x_3$ | $x_4$ | $x_5$ |
+|-----------------|:-----:|:-----:|:-----:|:-----:|:-----:|
+| Yield (bu/acre) | 48    | 52    | 47    | 55    | 50    |
+
+The letter $n$ stands for the number of observations; here $n = 5$. To refer to an observation without saying which one, we write $x_i$, where $i$ can be any position from 1 to $n$. In this dataset, $x_3 = 47$.
+
+The summation sign $\sum$ means "add up". The subscript and superscript on it give the starting and ending positions:
+
+$$
+\sum_{i=1}^{n} x_i = x_1 + x_2 + x_3 + x_4 + x_5 = 48 + 52 + 47 + 55 + 50 = 252
+$$
+:::
+
+We write $\bar{x}$ (pronounced "x-bar") for the sample mean. The general formula is:
 
 $$
 \bar{x} = \frac{1}{n} \sum_{i=1}^{n} x_i
 $$
 
-where $n$ is the number of observations and $x_i$ is the $i$-th observation.
-
-The mean is the right measure of centre when your data is roughly symmetric and has no extreme outliers. It has the nice property that the total of all values equals $n \bar{x}$, which matters in many practical contexts (total revenue = average price × quantity, etc.).  However, the mean can be very misleading if your data is skewed or has extreme values. For example, if you are looking at farm incomes in a region, a few very large operations can pull the mean way up, so the "average farm income" sounds high, but the *typical* farm earns much less.  You often encounter this issue in the media and political debates about economic growth and the direction of the agricultural sector.
+The mean is often a good description of a typical value when the data is roughly symmetric and has no extreme outliers. When the data is skewed or contains extreme values, however, the mean can give a misleading impression of what is typical. For example, if you are looking at farm incomes in a region, a few very large operations can pull the mean way up, so the “average farm income” may be much higher than the income earned by a typical farm. This distinction comes up frequently in news stories and policy debates: a report that “average farm income rose” does not necessarily mean that the income of the typical farm rose by the same amount.
 
 ### Weighted Average {.unnumbered}
 
@@ -75,7 +91,7 @@ where $x_i$ is each field's yield and $w_i$ is its acres (the **weight**). The w
 =SUMPRODUCT(C5:C9, B5:B9) / SUM(B5:B9)
 ```
 
-This comes out to 52.0 bu/ac, a little *below* the plain 52.5. The gap is telling you that the bigger fields yielded slightly below the smaller ones, so counting every field equally overstated the farm's real average.
+This comes out to 52.0 bu/ac, a little *below* the plain 52.5. The gap is telling you that the bigger fields yielded slightly below the smaller ones, so counting every field equally overstated the farm's acreage-weighted average yield.
 
 Weighted averages are not specific to agriculture: any time you average numbers that stand for different-sized quantities, you weight. If the midterm is worth 30% and the final 70%, and you score 80 and 90, your grade is the weighted average $0.30 \times 80 + 0.70 \times 90 = 87$, not the plain average 85. Grade-point averages (weighting each course's grade by its credit hours), price indexes, and portfolio returns all work the same way.
 
@@ -85,27 +101,27 @@ The **median** is the middle value when the data is sorted. If you have an odd n
 
 For our yields (sorted: 47, 48, 50, 52, 55), the median is 50. In Excel: `=MEDIAN(A1:A5)`.
 
-The median is generally the right measure of centre when your data is skewed or has extreme outliers. To return to our previous example of farm incomes, if there are a handful of very large operations, then the median income is a more honest answer to "what does a typical farm earn?"
+The median is often a better description of a typical value when your data is skewed or has extreme outliers. To return to our previous example of farm incomes, if there are a handful of very large operations, the median income may give a better answer to the question “what does a typical farm earn?”
 
-A classic example: in a hypothetical bar, the average *wealth* of the customers is \$100,000. Elon Musk walks in. The average wealth is now hundreds of millions of dollars. The median barely budges.
+A classic example: suppose the average wealth of the customers in a bar is $100,000. Elon Musk walks in. The average wealth is now hundreds of millions of dollars. The median barely budges.
 
 ### Comparing the Mean and Median {.unnumbered}
 
-You now have two answers to "what is a typical value?" -- and comparing them is more useful than either one alone. The reason goes back to **outliers**: a few extreme values pull the *mean* toward them but barely move the *median*. So the gap between the mean and the median tells you whether extreme values are at work, and in which direction.
+You now have two answers to "what is a typical value?" -- and comparing them can tell you something about the data. The reason is that the mean is pulled toward unusually high or low values, while the median is much less affected by them. So the gap between the mean and median gives you a clue about whether the data is skewed -- stretched farther in one direction than the other.
 
-- **Mean ≈ median.** No side is dominated by extremes; the two measures agree, and the mean is a safe summary.
-- **Mean noticeably *above* median.** A few unusually *high* values are pulling the mean up. Think of farm incomes with a handful of very large operations, or field sizes with one enormous field -- the "average" sounds high, but a typical unit is closer to the median.
-- **Mean noticeably *below* median.** A few unusually *low* values are dragging the mean down. Think of crop yields in a year where a few drought-hit fields failed badly -- most fields did fine, but those few pull the average below what a typical field actually produced.
+- Mean ≈ median. The data may be roughly symmetric: unusually high and low values are not pulling the mean strongly in either direction. In this case, the mean and median tell a similar story.
+- Mean noticeably above median. The distribution may be right-skewed, with some unusually high values pulling the mean upward. Think of farm incomes with a small number of very high-income farms, or field sizes with a few enormous fields -- the mean can be substantially higher than the value for a typical observation.
+- Mean noticeably below median. The distribution may be left-skewed, with some unusually low values pulling the mean downward. Think of crop yields when a small number of badly drought-hit fields have very low yields -- those fields can pull the mean below what a typical field produced.
 
-So a handy rule of thumb: compute both, and look at the gap. A big gap is a flag that outliers are present and that you should report the *median* (and go look at what those extreme values are). A small gap means the two agree and the mean is fine.
+So a handy rule of thumb is to compute both and look at the gap. A large gap is a clue that the distribution may be skewed or contain extreme values. When that happens, look more closely at the data and consider whether the median gives a better description of a typical observation. A small gap means the mean and median are telling a similar story.
 
-(When the extremes cluster on one side like this, the data is **skewed** -- mean above median is called *right-skewed*, mean below median *left-skewed*. Histograms in @sec-charts show this shape directly.)
+We will see skewness directly when we look at histograms in @sec-charts.
 
 ### Mode {.unnumbered}
 
 The **mode** is the most frequently occurring value. In Excel: `=MODE.SNGL(A1:A5)` for a single mode, or `=MODE.MULT(A1:A5)` if you want all of them (for data with multiple modes).
 
-The mode is most useful for **categorical data** ("what is the most common crop in this region?") or for **discrete numeric data** with repeated values. For continuous measurements like yields, the mode is usually not interesting because no two measurements will be exactly equal, or if they are it is often just random chance.
+The mode is most useful for **categorical data** ("what is the most common crop in this region?") or for **discrete numeric data** with repeated values.  For continuous measurements like yields, the mode is usually less useful because exact values may rarely repeat, and which values repeat can depend on how precisely the data is measured or rounded.
 
 ::: {.workbook-callout}
 The **Centre** tab of the workbook below computes all four of these on 32 Saskatchewan barley varieties. Column D holds production (acres × yield), which is what the weighted average needs.
@@ -129,7 +145,7 @@ The **Centre** tab of the workbook below computes all four of these on 32 Saskat
 
 ## Measures of Location: Percentiles and Quartiles {#sec-percentiles}
 
-The mean and median tell you about the centre. Sometimes you want to describe other parts of the distribution. That is what **percentiles** are for.
+The mean and median tell you about the centre of the data. Sometimes, however, we want to know the position of a particular value relative to the rest of the data. That is what **percentiles** are for.
 
 The **$p$-th percentile** is the value at or below which about $p\%$ of the observations fall. The 50th percentile is the median. The 25th percentile is the value below which a quarter of the observations lie; the 75th percentile is the value below which three-quarters lie. These three values -- the 25th, 50th, and 75th percentiles -- are called the **first, second, and third quartiles** ($Q_1$, $Q_2$, $Q_3$).
 
@@ -143,7 +159,7 @@ In Excel:
 
 (Excel has both `.INC` and `.EXC` variants -- inclusive and exclusive. For this course use `.INC`.)
 
-Percentiles are how crop insurance programs define "bad years" (e.g., "a yield in the lowest 10th percentile"), how government agencies define poverty thresholds, and how agronomists describe the performance of a variety ("top-quartile yield").
+Percentiles are used whenever we want to describe where an observation stands relative to others. Standardized test scores are often reported as percentiles, economists use income percentiles to compare households across the income distribution, and agricultural analysts might ask whether a farm’s yield falls in the bottom 10% or whether a variety performs in the top quartile.
 
 ::: {.workbook-callout}
 The **Location** tab computes the quartiles and the 10th and 90th percentiles on the same barley data.
