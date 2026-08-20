@@ -24,15 +24,15 @@ By the end of this chapter you should be able to:
 3. Recognize the disguises missing values wear, and count them properly.
 4. Decide -- and justify -- when dropping missing values is safe.
 5. Spot dates that imported as text, and say why it matters.
-6. Reshape a dataset between wide and long with `pivot_longer` and `pivot_wider`.
+6. Explain what tidy data means, and reshape a dataset between wide and long with `pivot_longer` and `pivot_wider`.
 :::
 
 ## Awkward Column Names {#sec-clean-names}
 
 The first thing to fix is often the names. Real files arrive with columns like
-`Yield (bu/ac)`, `REGION_NAME`, or `Field ID Number` -- workable, but annoying to type and
-easy to mistype. The snake_case convention (@sec-renaming) wants `yield_bu_ac`, `region`,
-`field_id`.
+`Yield (bu/ac)`, `REGION_NAME`, or `Field ID Number` -- readable to a person, but annoying
+to type and easy to mistype in code. This book prefers **snake_case**: lowercase, words
+separated by underscores, short but descriptive -- `yield_bu_ac`, `region`, `field_id`.
 
 For individual columns, `rename()` does it:
 
@@ -261,12 +261,73 @@ Fixing messy dates properly uses tools we have not covered (the `lubridate` pack
 standard one); for this course, it is enough to notice the problem and state the format
 explicitly when you read the file.
 
+## Tidy Data {#sec-tidy-data}
+
+The last defect is not a wrong value but a wrong shape. The tidyverse is built around an
+idea called **tidy data** [@r4ds]. A dataset is tidy when:
+
+1. Every variable has its own **column**.
+2. Every observation has its own **row**.
+3. Every value has its own **cell**.
+
+For example, this dataset is tidy:
+
+```
+  region  crop   yield
+  South   Canola    41
+  South   Wheat     52
+  South   Barley    64
+  Central Canola    44
+  Central Wheat     55
+  Central Barley    68
+```
+
+An observation here is a region-crop combination; the variables are `region`, `crop`, and
+`yield`. Each variable has a column and each observation has a row.
+
+Now compare this version of the same data:
+
+```
+  region  Canola Wheat Barley
+  South       41    52     64
+  Central     44    55     68
+```
+
+This table is easier for a person to read, but it is not tidy. Canola, Wheat, and Barley are
+not three different variables; they are three values of the variable `crop`. This is the
+wide-versus-long distinction from @sec-wide-long, where a PivotTable needed the long form.
+For analysis in R, the long form is usually the more convenient one, because `crop` is an
+ordinary variable that R can filter by, group by, and compare.
+
+### Recognizing untidy data {.unnumbered}
+
+Some common warning signs:
+
+- **Values stored in column names.** A table with columns `region`, `2024`, `2025`, `2026`,
+  where the year columns hold yields. The years are values of a variable called `year`; the
+  tidy version has columns `region`, `year`, `yield`.
+- **More than one variable in a column.** A `region_variety` column containing
+  `"South_InVigor"`. That is two variables, `region` and `variety`, in one column.
+- **One observation spread over several rows.** Price in one row and quantity in another row
+  for the same market and year.
+
+What counts as an observation depends on the dataset and the question, but the basic test is
+always the same: what does one row represent? You should be able to answer that. When you
+first open a dataset, ask what one row represents, what each column represents, whether any
+values are hiding in column names, and whether any column holds several variables at once.
+
+::: {.callout-tip collapse="true"}
+## Other resources — tidy data
+
+- **R for Data Science (2nd ed.)** -- [Chapter 5, "Data tidying"](https://r4ds.hadley.nz/data-tidy) develops the tidy-data idea and shows how datasets are reshaped between long and wide forms.
+- **Video** -- Riffomonas Project, [*Reshaping data to be long or wide with pivot_longer and pivot_wider*](https://www.youtube.com/watch?v=ZVddiwrbrr4).
+:::
+
 ## Reshaping: `pivot_longer` and `pivot_wider` {#sec-reshaping}
 
-The last defect is not a wrong value but a wrong shape.  Tidy data (@sec-tidy-data) wants
-every variable in its own column, and files often arrive with values in the column headers
-instead -- one column per crop, or per year.  StatCan downloads have the opposite problem:
-long where you want wide.
+Fixing the shape is the job of a pair of `tidyr` functions.  Files often arrive with values
+in the column headers -- one column per crop, or per year -- and StatCan downloads have the
+opposite problem: long where you want wide.
 
 `pivot_longer` turns column headers into values.  You tell it which columns to gather, what
 to call the column that will hold their *names*, and what to call the column that will hold

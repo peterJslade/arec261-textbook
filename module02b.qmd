@@ -19,9 +19,8 @@ check that R has read it correctly?
 
 This chapter develops a simple workflow for working with real data: keep everything for an
 analysis in one project folder, refer to files with relative paths, use packages to add
-functions to R, read the data from a CSV file, inspect it before doing any analysis, and
-recognize whether it is organized in a useful shape. These habits are not exciting, but they
-prevent a remarkable number of problems later.
+functions to R, read the data from a CSV file, and inspect it before doing any analysis.
+These habits are not exciting, but they prevent a remarkable number of problems later.
 
 The data we will work with is a small .csv file of canola yield trials (hypothetical data): 120 fields, each with an ID, a fertilizer rate, growing-season rainfall, a variety, and a yield.  It can be downloaded here: [`canola_trial.csv`](practice/data/canola_trial.csv).
 
@@ -36,7 +35,6 @@ By the end of this chapter you should be able to:
 4. Read a CSV file into R as a data frame.
 5. Inspect a new dataset and identify common problems.
 6. Calculate basic summary statistics while handling missing values correctly.
-7. Explain what tidy data means and recognize data that needs to be reshaped.
 :::
 
 ## One Folder Per Project {#sec-project-folder}
@@ -327,85 +325,6 @@ missing values. We return to missing data properly when we clean datasets in @se
 - **Video** -- Rob Spencer, [*Descriptive statistics using the `summary` function*](https://www.youtube.com/watch?v=rPSKX6460gY) -- a short walkthrough of `summary()`.
 - **Video** -- Dr E Research Videos, [*Basic summary statistics in R*](https://www.youtube.com/watch?v=8XFmPP93w_Y) -- mean, median, standard deviation, and the number summary.
 :::
-
-## Tidy Data {#sec-tidy-data}
-
-Before analyzing a dataset, we also need to think about its shape. The tidyverse is built
-around an idea called **tidy data** [@r4ds]. A dataset is tidy when:
-
-1. Every variable has its own **column**.
-2. Every observation has its own **row**.
-3. Every value has its own **cell**.
-
-For example, this dataset is tidy:
-
-```
-  region  crop   yield
-  South   Canola    41
-  South   Wheat     52
-  South   Barley    64
-  Central Canola    44
-  Central Wheat     55
-  Central Barley    68
-```
-
-An observation here is a region-crop combination; the variables are `region`, `crop`, and
-`yield`. Each variable has a column and each observation has a row.
-
-Now compare this version of the same data:
-
-```
-  region  Canola Wheat Barley
-  South       41    52     64
-  Central     44    55     68
-```
-
-This table is easier for a person to read, but it is not tidy. Canola, Wheat, and Barley are
-not three different variables; they are three values of the variable `crop`. This is the
-wide-versus-long distinction from @sec-wide-long, where a PivotTable needed the long form.
-For analysis in R, the long form is usually the more convenient one, because `crop` is an
-ordinary variable that R can filter by, group by, and compare.
-
-### Recognizing untidy data {.unnumbered}
-
-Some common warning signs:
-
-- **Values stored in column names.** A table with columns `region`, `2024`, `2025`, `2026`,
-  where the year columns hold yields. The years are values of a variable called `year`; the
-  tidy version has columns `region`, `year`, `yield`.
-- **More than one variable in a column.** A `region_variety` column containing
-  `"South_InVigor"`. That is two variables, `region` and `variety`, in one column.
-- **One observation spread over several rows.** Price in one row and quantity in another row
-  for the same market and year.
-
-What counts as an observation depends on the dataset and the question, but the basic test is
-always the same: what does one row represent? You should be able to answer that. When you
-first open a dataset, ask what one row represents, what each column represents, whether any
-values are hiding in column names, and whether any column holds several variables at once.
-
-Reshaping a dataset between the wide and long forms is done by a pair of functions,
-`pivot_longer` and `pivot_wider`, covered with the rest of the cleaning toolkit in
-@sec-reshaping. For now, the goal is to recognize the shape that analysis wants.
-
-::: {.callout-tip collapse="true"}
-## Other resources — tidy data
-
-- **R for Data Science (2nd ed.)** -- [Chapter 5, "Data tidying"](https://r4ds.hadley.nz/data-tidy) develops the tidy-data idea and shows how datasets are reshaped between long and wide forms.
-- **Video** -- Riffomonas Project, [*Reshaping data to be long or wide with pivot_longer and pivot_wider*](https://www.youtube.com/watch?v=ZVddiwrbrr4).
-:::
-
-## Column Names {#sec-renaming}
-
-Column names matter because we type them repeatedly. Real datasets sometimes arrive with
-names like `Yield (bu/ac)`, `REGION_NAME`, or `Field ID Number` -- readable to a person, but
-awkward in code. This book prefers names like `yield_bu_ac`, `region`, and `field_id`:
-lowercase, words separated by underscores, short but descriptive. This style is called
-**snake_case**.
-
-You do not need to fix every imperfect name immediately. But when you inspect a new dataset
-with `names()`, look for names that will make the analysis unnecessarily awkward. The next
-chapter shows how to rename columns in code, and @sec-cleaning covers cleaning up a whole
-set of bad names at once.
 
 ## Putting the Workflow Together {#sec-data-workflow}
 
