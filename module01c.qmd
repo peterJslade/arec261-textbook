@@ -206,7 +206,9 @@ For a data analyst, the spread is very informative.  If the values are spread ou
 
 ### Range {.unnumbered}
 
-The simplest measure of the spread of the data is the **range**, which is just the maximum value minus the minimum value. In Excel: `=MAX(A1:A100) - MIN(A1:A100)`. The range is easy to understand but it is very sensitive to outliers -- a single bad measurement can blow up the range dramatically.  Suppose, for example, that one of the tightly-clustered fields in @fig-spread-hail experiences a hail storm that wipes out its crop. That single field increases the range from 8.9 to 40.6 bu/ac -- more than four times larger -- even though it is only one field in 30. The interquartile range, described below, barely moves (3.4 to 3.6), because it ignores the extremes entirely.
+The simplest measure of spread is the **range**: the maximum value minus the minimum value. In Excel: `=MAX(A1:A100) - MIN(A1:A100)`. The range is easy to understand, but it is very sensitive to extreme values -- a single unusual observation can change it dramatically.
+
+Suppose, for example, that one of the tightly clustered fields in @fig-spread-hail experiences a hailstorm that wipes out its crop. That single field increases the range from 8.9 to 40.6 bu/ac -- more than quadrupling it -- even though only one of the 30 fields has changed. The interquartile range, described below, barely moves, from 3.4 to 3.6 bu/ac, because it focuses on the middle half of the data rather than the extremes.
 
 ```{r}
 #| label: fig-spread-hail
@@ -230,10 +232,10 @@ A potentially more useful measure is the **interquartile range** or IQR, which m
 
 A better way to measure the spread of the data is to examine how far each observation is from the mean.  That is to say for each observation we could calculate $x_i-\bar{x}$, add them all up and divide by $n$.  However, if we did this we would find that some of the deviations are negative and others are positive.  By the definition of a mean, they would all cancel out, giving us zero.  
 
-A more useful approach is to calculate the absolute value of these differences -- this is called the mean absolute deviation (MAD):
+A more useful approach is to calculate the absolute value of these differences -- this is called the **mean absolute deviation (MAD)**:
 
 $$
-MAD = \frac{\sum_{i=1}^{n} |x_i - \bar{x}|}{n}.
+\text{MAD} = \frac{\sum_{i=1}^{n} |x_i - \bar{x}|}{n}
 $$
 
 Note that the straight lines in the equation above denote absolute value -- that is to say if a negative number is between these lines, we treat it as a positive number.  If our data is very spread out (panel A of @fig-spread) we would get a large MAD; if it is tightly clustered (panel B) we would get a small one.  If we find a MAD of 8 bu/acre then this means that on average a farm's yields are 8 bu/acre different (either higher or lower) than the mean.  Of course, some farms will have yields that are closer to the mean and others will have yields that are farther.
@@ -242,17 +244,21 @@ There is no simple command to calculate the MAD in Excel -- you would need to fi
 
 ### Variance {.unnumbered}
 
-It turns out that an even more useful way of calculating the spread of the data is not to take the absolute value of the differences between each observation and the mean, but to square these differences and then divide by $n$.  This is called the **variance**.  We denote the variance of a population as $\sigma^2$ and the variance of a sample as $s^2$.  For technical reasons, which we won't get into in this class, when we have a sample of data we divide by $n-1$ rather than $n$, so that:
+Another way to prevent positive and negative deviations from cancelling out is to square them. Squaring has the additional effect of giving more weight to observations that are far from the mean. The average of these squared deviations is called the **variance**.
+
+We denote the variance of a population as $\sigma^2$ and the variance of a sample as $s^2$. For technical reasons that we won't get into in this class, when we calculate the variance of a sample we divide by $n-1$ rather than $n$:
 
 $$
 s^2 = \frac{1}{n-1} \sum_{i=1}^{n} (x_i - \bar{x})^2
 $$
 
-In Excel: `=VAR.S(A1:A5)` for a sample, `=VAR.P(A1:A5)` for a full population (which divides by $n$). Use `VAR.S` unless you have a specific reason not to.
+In Excel: `=VAR.S(A1:A5)` for a sample and `=VAR.P(A1:A5)` for a full population. Use `VAR.S` unless you are working with a complete population.
+
+Variance is extremely useful in statistics, but it has an awkward interpretation. Because we squared the deviations, the variance is also measured in squared units. If yield is measured in bu/acre, for example, its variance is measured in $(\text{bu/acre})^2$. To get back to the original units, we take the square root of the variance -- which gives us the standard deviation.
 
 ### Standard Deviation {.unnumbered}
 
-The variance has an awkward property: its units are the squared units of the original data. If your yields are in bushels per acre, the variance is in "bushels per acre squared," which is not easy to interpret. The **standard deviation** fixes this by taking the square root of the variance:
+The **standard deviation** is the square root of the variance:
 
 $$
 s = \sqrt{s^2} = \sqrt{\frac{1}{n-1} \sum_{i=1}^{n} (x_i - \bar{x})^2}
@@ -272,11 +278,9 @@ $$
 CV = \frac{s}{\bar{x}}
 $$
 
-I say it is helpful because it can compare the spread of two datasets with very different means. Suppose barley averages 55 bu/ac with a standard deviation of 11 (CV = 11/55 = 0.20), while wheat averages 40 bu/ac with a standard deviation of 10 (CV = 10/40 = 0.25). Wheat's standard deviation is *smaller* in absolute terms (10 vs 11), yet relative to its own average, wheat is *more* variable (CV 0.25 vs 0.20). The CV captures that relative variability: a CV of 0.1 means the standard deviation is 10% of the mean, regardless of how big the mean is. So the CV lets you fairly compare the variability of two things measured on very different scales.
+I say it is helpful because it can compare the spread of two datasets with very different means. Suppose barley averages 55 bu/ac with a standard deviation of 11 (CV = 11/55 = 0.20), while wheat averages 40 bu/ac with a standard deviation of 10 (CV = 10/40 = 0.25). Wheat's standard deviation is *smaller* in absolute terms (10 vs 11), yet relative to its own average, wheat is *more* variable (CV 0.25 vs 0.20). The CV captures that relative variability: a CV of 0.1 means the standard deviation is 10% of the mean. So the CV lets you fairly compare the variability of two things measured on very different scales.
 
-However, in other contexts -- particularly when the data can be close to zero or negative -- the CV can be misleading. Suppose we wanted to compare the variability of farm income in a "good" year to farm incomes in a "bad" year.  In a bad year, the mean income might be close to zero or negative.  In that case, the CV would explode to infinity or become negative, which is not intuitive. 
-
-Use the coefficient of variation with caution.
+However, in other contexts -- particularly when the data can be close to zero or negative -- the CV can be misleading. Suppose we wanted to compare the variability of farm income in a "good" year to farm incomes in a "bad" year.  In a bad year, the mean of income might be close to zero or negative.  In that case, the CV would explode to infinity or become negative.  Use the coefficient of variation with caution.
 
 ::: {.workbook-callout}
 The **Spread** tab works through all five measures on the barley varieties, so you can see how each responds to the same data.
@@ -300,8 +304,7 @@ The **Spread** tab works through all five measures on the barley varieties, so y
 :::
 
 ## Visualizing the Distribution of the Data {#sec-charts}
-
-The **distribution** of the data refers to how often different values, or ranges of values, occur in a dataset. It tells you more than any single summary number can, because very different-looking datasets can share the same summary statistics. @fig-shape shows two sets of 60 farm yields with *identical means* (40 bu/ac) and *identical ranges* (26 to 54 bu/ac), yet they look nothing alike. In panel A the observations sit in two separate clusters; in panel B they are dense in the middle and thin out toward either edge.
+The distribution of data describes how the observations are spread across different values – which values are common, which are rare, and the overall shape they form. A distribution can reveal things that no single summary number can, because very different-looking datasets can share the same summary statistics. @fig-shape shows two sets of 60 farm yields with identical means (40 bu/ac) and identical ranges (26 to 54 bu/ac), yet they look nothing alike. In panel A, the observations sit in two separate clusters; in panel B, they are concentrated in the middle and thin out toward either edge.
 
 ```{r}
 #| label: fig-shape
@@ -321,16 +324,16 @@ strip_plot(shapes$unimodal, "B. Dense in the middle, thinning toward the edges",
            xlim = c(20, 60), mean_at = 40)
 ```
 
-The two clusters in panel A are a signal worth chasing: perhaps those farms differ in variety, soil zone, or seeding date, and what looks like one population is really two. Note also that the mean of 40 bu/ac in panel A describes a yield that *almost no farm actually achieved* -- a good reminder that a summary statistic is not a substitute for looking at your data.
+The two clusters in panel A are a signal worth chasing: perhaps those farms differ in variety, soil zone, or seeding date, and what looks like one population is really two. Note also that the mean of 40 bu/ac in panel A describes a yield that almost no farm actually achieved – a good reminder that a summary statistic is not a substitute for looking at your data.
 
-Perhaps the simplest way to visualize the shape of the distribution is through a histogram.  A histogram divides the range of the data into **bins** and plots a bar showing how many observations fall in each bin. It shows you at a glance whether the data is roughly **symmetric** (balanced around the centre), **skewed** (a long tail on one side, the mean-above-median pattern from @sec-central-tendency), or has **outliers** (a few values sitting far from the rest).
+Perhaps the simplest way to visualize the shape of a distribution is with a histogram. A histogram divides the range of the data into bins and uses bars to show how many observations fall into each one. It lets you see at a glance whether the data is roughly symmetric (balanced around the centre), skewed (stretched farther in one direction than the other, as we discussed in @sec-central-tendency), or contains outliers (a few observations sitting far from the rest).
 
-**How to make one in Excel**: select the data, **Insert → Statistical Chart → Histogram**. Right-click the horizontal axis → **Format Axis** to control the bin width.
+How to make one in Excel: select the data, then choose Insert → Statistical Chart → Histogram. Right-click the horizontal axis and choose Format Axis to control the bin width.
 
-**Tips**: bin width matters a lot. Too few bins and you hide the shape; too many and you see random noise. A rule of thumb: start with about $\sqrt{n}$ bins where $n$ is the sample size, then adjust. Try a few different bin widths and pick the one that makes the shape clearest.
+Tips: Bin width matters. Too few bins can hide important features of the distribution; too many can make random variation look important. As a rough starting point, try about $\sqrt{n}$ bins, where $n$ is the number of observations. Then try a few different bin widths and check whether the main features of the distribution remain visible.
 
 ::: {.workbook-callout}
-The **Histogram** tab holds the barley yields in a single column, ready to chart.
+The **Histogram** tab contains three histograms.  In my view the first one has a reasonable number of bins.  The next two have too many and too few.
 
 ::: {.excel-embed}
 <iframe width="402" height="700" frameborder="0" scrolling="no" src="https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7Bd5cfe169-4900-4832-800c-8c721cc6690d%7D&action=embedview&ActiveCell='Histogram'!A1&wdAllowInteractivity=False&wdDownloadButton=True&wdInConfigurator=True"></iframe>
@@ -342,13 +345,9 @@ The **Histogram** tab holds the barley yields in a single column, ready to chart
 
 
 ::: {.callout-tip collapse="true"}
-## Other resources — charts
+## Other resources — histograms
 
-- **OpenStax, *Introductory Statistics 2e*** -- [§2.2 "Histograms, Frequency Polygons, and Time Series Graphs"](https://openstax.org/books/introductory-statistics-2e/pages/2-2-histograms-frequency-polygons-and-time-series-graphs) and [§2.4 "Box Plots"](https://openstax.org/books/introductory-statistics-2e/pages/2-4-box-plots).
-- **Excel for Dummies** -- *Microsoft 365 Excel for Dummies*, the chapter on creating charts.
-- **Microsoft Support** -- [Create a chart from start to finish](https://support.microsoft.com/en-us/office/create-a-chart-from-start-to-finish-0baf399e-dd61-4e18-8a73-b3fd5d5680c2).
-- **Video (build charts in Excel)** -- Simon Sez IT, [*How to create Excel charts and graphs*](https://www.youtube.com/watch?v=Rc42BdN_rKk).
+- **OpenStax, *Introductory Statistics 2e*** -- [§2.2 "Histograms, Frequency Polygons, and Time Series Graphs"](https://openstax.org/books/introductory-statistics-2e/pages/2-2-histograms-frequency-polygons-and-time-series-graphs).
 - **Video (histogram in Excel)** -- [*Histogram chart & box and whisker chart in Excel*](https://www.youtube.com/watch?v=xuyUK_sUEDw).
-- **Video (choosing a chart)** -- Maven Analytics, [*How to choose the best chart for your data*](https://www.youtube.com/watch?v=fBgk_cNCnsk).
 - **Video (histograms, concept)** -- StatQuest with Josh Starmer, [*Histograms, clearly explained*](https://www.youtube.com/watch?v=qBigTkBLU6g).
 :::
