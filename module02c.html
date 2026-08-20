@@ -697,7 +697,13 @@ window.Quarto = {
 <span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Read in the data</span></span>
 <span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>trial_data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/canola_trial.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Before the functions, one principle to understand. Suppose we run:</p>
+</section>
+<section id="sec-verbs-basic" class="level2" data-number="6.1">
+<h2 data-number="6.1" class="anchored" data-anchor-id="sec-verbs-basic"><span class="header-section-number">6.1</span> Data Manipulation Functions</h2>
+<p>Two of the four basic functions mainly affect the rows: <code>filter()</code> chooses rows, and <code>arrange()</code> changes their order. Two mainly affect the columns: <code>select()</code> chooses columns, and <code>mutate()</code> creates or changes them. Each takes the data frame as its first argument, followed by what to do with it.</p>
+<section id="filter-keep-certain-rows" class="level3" data-number="6.1.1">
+<h3 data-number="6.1.1" class="anchored" data-anchor-id="filter-keep-certain-rows"><span class="header-section-number">6.1.1</span> <code>filter()</code>: Keep Certain Rows</h3>
+<p><code>filter()</code> keeps the rows that satisfy a condition:</p>
 <div class="cell">
 <div class="cell-output-display">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(trial_data, yield_bu_acre <span class="sc">&gt;</span> <span class="dv">50</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -720,27 +726,20 @@ window.Quarto = {
 </div>
 </div>
 </div>
-<p>R displays the fields with yields above 50 bu/ac, but it does not remove the other fields from <code>trial_data</code> – check <code>nrow(trial_data)</code> and all 120 rows are still there. <code>filter()</code> takes <code>trial_data</code> as input and returns a <em>new</em> data frame as output; if we only display that output, R does not save it. To keep the result, assign it to an object:</p>
+<p>Read this as: from <code>trial_data</code>, keep the rows where <code>yield_bu_acre</code> is greater than 50.</p>
+<p>Notice that <code>filter()</code> displays the high-yielding fields but does not remove the other fields from <code>trial_data</code> – check <code>nrow(trial_data)</code> and all 120 rows are still there. Every function in this chapter works the same way: it takes a data frame as input and returns a <em>new</em> data frame as output, and if we only display that output, R does not save it. To keep a result, assign it to an object:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>high_yield <span class="ot">&lt;-</span> <span class="fu">filter</span>(trial_data, yield_bu_acre <span class="sc">&gt;</span> <span class="dv">50</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Now there are two objects: <code>trial_data</code>, the original 120 fields, and <code>high_yield</code>, the filtered subset. This is a useful feature – you can experiment with transformations without changing the original data. Throughout the chapter, an example without <code>&lt;-</code> is just displaying a result; add a name in front when you want to keep it.</p>
-</section>
-<section id="sec-verbs-basic" class="level2" data-number="6.1">
-<h2 data-number="6.1" class="anchored" data-anchor-id="sec-verbs-basic"><span class="header-section-number">6.1</span> Data Manipulation Functions</h2>
-<p>Two of the four basic functions mainly affect the rows: <code>filter()</code> chooses rows, and <code>arrange()</code> changes their order. Two mainly affect the columns: <code>select()</code> chooses columns, and <code>mutate()</code> creates or changes them. Each takes the data frame as its first argument, followed by what to do with it.</p>
-<section id="filter-keep-certain-rows" class="level3" data-number="6.1.1">
-<h3 data-number="6.1.1" class="anchored" data-anchor-id="filter-keep-certain-rows"><span class="header-section-number">6.1.1</span> <code>filter()</code>: Keep Certain Rows</h3>
-<p><code>filter()</code> keeps the rows that satisfy a condition:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(trial_data, yield_bu_acre <span class="sc">&gt;</span> <span class="dv">50</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Read this as: from <code>trial_data</code>, keep the rows where <code>yield_bu_acre</code> is greater than 50. Text variables work too:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(trial_data, variety <span class="sc">==</span> <span class="st">"InVigor"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Now there are two objects: <code>trial_data</code>, the original 120 fields, and <code>high_yield</code>, the filtered subset. That is a useful feature – you can experiment without changing the original data. Throughout the chapter, an example without <code>&lt;-</code> is just displaying a result.</p>
+<p>Text variables work too:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(trial_data, variety <span class="sc">==</span> <span class="st">"InVigor"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Note the <strong>two</strong> equals signs: <code>==</code> asks whether two things are equal, so <code>variety == "InVigor"</code> asks “is <code>variety</code> equal to <code>"InVigor"</code>?”. A single <code>=</code> has a different job in R – naming arguments, as in <code>mean(x, na.rm = TRUE)</code> – so writing <code>variety = "InVigor"</code> inside <code>filter()</code> will not do what you want. Also note the quotation marks: <code>"InVigor"</code> with quotes is text; <code>InVigor</code> without quotes would be read as the name of an object, which probably doesn’t exist and would cause an error.</p>
 <p>You can combine conditions with <code>&amp;</code> (and – both must be true), <code>|</code> (or – at least one must be true), and <code>!</code> (not):</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(trial_data, yield_bu_acre <span class="sc">&gt;</span> <span class="dv">50</span> <span class="sc">&amp;</span> variety <span class="sc">==</span> <span class="st">"InVigor"</span>)</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(trial_data, fertilizer_kg_ha <span class="sc">&lt;</span> <span class="dv">80</span> <span class="sc">|</span> fertilizer_kg_ha <span class="sc">&gt;</span> <span class="dv">160</span>)</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(trial_data, <span class="sc">!</span><span class="fu">is.na</span>(rainfall_mm))  <span class="co"># is.na() asks if a value is missing; ! keeps the non-missing</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(trial_data, yield_bu_acre <span class="sc">&gt;</span> <span class="dv">50</span> <span class="sc">&amp;</span> variety <span class="sc">==</span> <span class="st">"InVigor"</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(trial_data, fertilizer_kg_ha <span class="sc">&lt;</span> <span class="dv">80</span> <span class="sc">|</span> fertilizer_kg_ha <span class="sc">&gt;</span> <span class="dv">160</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(trial_data, <span class="sc">!</span><span class="fu">is.na</span>(rainfall_mm))  <span class="co"># is.na() asks if a value is missing; ! keeps the non-missing</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>That last one is not hypothetical: three of our fields have no rainfall reading, and this is how you would set them aside.</p>
 <p>When you want to match several possible values of the same variable, <code>%in%</code> is easier to read:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(trial_data, variety <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"InVigor"</span>, <span class="st">"DEKALB"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(trial_data, variety <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"InVigor"</span>, <span class="st">"DEKALB"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>You do not need to memorize every comparison operator. The idea is that <code>filter()</code> chooses observations by asking a TRUE/FALSE question about each row.</p>
 </section>
 <section id="select-keep-certain-columns" class="level3" data-number="6.1.2">
@@ -748,7 +747,7 @@ window.Quarto = {
 <p><code>select()</code> chooses variables rather than observations:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">select</span>(trial_data, field_id, variety, yield_bu_acre)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">select</span>(trial_data, field_id, variety, yield_bu_acre)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; select(trial_data, field_id, variety, yield_bu_acre)
 # A tibble: 120 × 3
@@ -769,8 +768,8 @@ window.Quarto = {
 </div>
 </div>
 <p>The result has the same rows but only those three columns – especially useful with datasets containing dozens or hundreds of variables. You can also drop a column by putting <code>-</code> in front of its name, or keep a range of adjacent columns:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">select</span>(trial_data, <span class="sc">-</span>rainfall_mm)                 <span class="co"># everything except rainfall</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">select</span>(trial_data, field_id<span class="sc">:</span>rainfall_mm)         <span class="co"># the columns from field_id through rainfall_mm</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">select</span>(trial_data, <span class="sc">-</span>rainfall_mm)                 <span class="co"># everything except rainfall</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">select</span>(trial_data, field_id<span class="sc">:</span>rainfall_mm)         <span class="co"># the columns from field_id through rainfall_mm</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>A relative of <code>select()</code> is <code>rename()</code>, which changes a column’s name without dropping anything: <code>rename(trial_data, yield = yield_bu_acre)</code>.</p>
 <p>Keep the pair straight: <code>filter()</code> works on rows, <code>select()</code> on columns.</p>
 </section>
@@ -779,7 +778,7 @@ window.Quarto = {
 <p><code>mutate()</code> creates a new variable or changes an existing one. Suppose we want yield in tonnes per hectare rather than bushels per acre:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mutate</span>(trial_data, <span class="at">yield_t_ha =</span> yield_bu_acre <span class="sc">*</span> <span class="fl">0.0560</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mutate</span>(trial_data, <span class="at">yield_t_ha =</span> yield_bu_acre <span class="sc">*</span> <span class="fl">0.0560</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; mutate(trial_data, yield_t_ha = yield_bu_acre * 0.0560)
 # A tibble: 120 × 6
@@ -801,16 +800,16 @@ window.Quarto = {
 </div>
 <p>The result contains all the original columns plus a new <code>yield_t_ha</code>. Read the expression as: create <code>yield_t_ha</code> and set it equal to <code>yield_bu_acre</code> × 0.0560. This is the R version of adding a formula column in Excel.</p>
 <p>You can create several variables in one call, and later expressions can use variables created earlier in the same <code>mutate()</code>:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mutate</span>(trial_data,</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>       <span class="at">yield_t_ha =</span> yield_bu_acre <span class="sc">*</span> <span class="fl">0.0560</span>,</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>       <span class="at">kg_n_per_bu =</span> fertilizer_kg_ha <span class="sc">/</span> yield_bu_acre)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mutate</span>(trial_data,</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>       <span class="at">yield_t_ha =</span> yield_bu_acre <span class="sc">*</span> <span class="fl">0.0560</span>,</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>       <span class="at">kg_n_per_bu =</span> fertilizer_kg_ha <span class="sc">/</span> yield_bu_acre)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="arrange-sort-rows" class="level3" data-number="6.1.4">
 <h3 data-number="6.1.4" class="anchored" data-anchor-id="arrange-sort-rows"><span class="header-section-number">6.1.4</span> <code>arrange()</code>: Sort Rows</h3>
 <p><code>arrange()</code> changes the order of the rows. <code>arrange(trial_data, yield_bu_acre)</code> sorts from lowest yield to highest; wrap the column in <code>desc()</code> to sort the other way:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">arrange</span>(trial_data, <span class="fu">desc</span>(yield_bu_acre))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">arrange</span>(trial_data, <span class="fu">desc</span>(yield_bu_acre))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; arrange(trial_data, desc(yield_bu_acre))
 # A tibble: 120 × 5
@@ -836,15 +835,15 @@ window.Quarto = {
 <section id="sec-pipe" class="level2" data-number="6.2">
 <h2 data-number="6.2" class="anchored" data-anchor-id="sec-pipe"><span class="header-section-number">6.2</span> The Pipe <code>|&gt;</code></h2>
 <p>Real questions usually take more than one function. Suppose we want to know: among the InVigor fields, what are the field IDs and yields, ordered from highest to lowest? We know every operation we need – filter to InVigor, select the two columns, arrange by descending yield. Without a pipe, each step’s output becomes the next step’s first argument, and the calls nest:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">arrange</span>(<span class="fu">select</span>(<span class="fu">filter</span>(trial_data, variety <span class="sc">==</span> <span class="st">"InVigor"</span>), field_id, yield_bu_acre),</span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>        <span class="fu">desc</span>(yield_bu_acre))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">arrange</span>(<span class="fu">select</span>(<span class="fu">filter</span>(trial_data, variety <span class="sc">==</span> <span class="st">"InVigor"</span>), field_id, yield_bu_acre),</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>        <span class="fu">desc</span>(yield_bu_acre))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>That works, but you have to start reading in the middle and work outward. The <strong>pipe</strong>, <code>|&gt;</code>, lets us write the analysis in the order we think about it. The pipe takes whatever is on its <em>left</em> and feeds it as the first argument to the function on its <em>right</em>, so <code>trial_data |&gt; filter(variety == "InVigor")</code> is exactly <code>filter(trial_data, variety == "InVigor")</code>. Read <code>|&gt;</code> as the word “then”:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>trial_data <span class="sc">|&gt;</span></span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(variety <span class="sc">==</span> <span class="st">"InVigor"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(field_id, yield_bu_acre) <span class="sc">|&gt;</span></span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(yield_bu_acre))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>trial_data <span class="sc">|&gt;</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(variety <span class="sc">==</span> <span class="st">"InVigor"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(field_id, yield_bu_acre) <span class="sc">|&gt;</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(yield_bu_acre))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; trial_data |&gt;
 +   filter(variety == "InVigor") |&gt;
@@ -869,10 +868,10 @@ window.Quarto = {
 </div>
 <p>Take <code>trial_data</code>, <em>then</em> keep the InVigor fields, <em>then</em> keep two columns, <em>then</em> sort. Once we use the pipe, we no longer repeat the data-frame name in every function, and a multi-step analysis reads top to bottom. From here on the examples use the pipe. (Older code uses <code>%&gt;%</code> for the same idea; <code>|&gt;</code> is the modern built-in version.)</p>
 <p>To keep a result, assign the whole pipeline to an object:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>invigor_yields <span class="ot">&lt;-</span> trial_data <span class="sc">|&gt;</span></span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(variety <span class="sc">==</span> <span class="st">"InVigor"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(field_id, yield_bu_acre) <span class="sc">|&gt;</span></span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(yield_bu_acre))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>invigor_yields <span class="ot">&lt;-</span> trial_data <span class="sc">|&gt;</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(variety <span class="sc">==</span> <span class="st">"InVigor"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(field_id, yield_bu_acre) <span class="sc">|&gt;</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(yield_bu_acre))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <section id="debugging-a-pipeline" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="debugging-a-pipeline">Debugging a pipeline</h3>
 <p>Pipelines also give you a way to debug. When a pipeline produces a result that looks wrong, do not stare at the whole thing and guess. Run it one step at a time: run the first step alone, check the result, add the second step, check again, and keep going. The first point where the data stops looking the way you expect is where the problem is. This works because every step does one thing – and the same habit is how you check a pipeline an AI assistant wrote for you.</p>
@@ -885,12 +884,12 @@ window.Quarto = {
 <h3 data-number="6.3.1" class="anchored" data-anchor-id="summarise-many-rows-become-one"><span class="header-section-number">6.3.1</span> <code>summarise()</code>: Many Rows Become One</h3>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>trial_data <span class="sc">|&gt;</span></span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_yield =</span> <span class="fu">mean</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">sd_yield =</span> <span class="fu">sd</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">n_fields =</span> <span class="fu">n</span>()</span>
-<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>trial_data <span class="sc">|&gt;</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_yield =</span> <span class="fu">mean</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">sd_yield =</span> <span class="fu">sd</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">n_fields =</span> <span class="fu">n</span>()</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; trial_data |&gt;
 +   summarise(
@@ -913,13 +912,13 @@ window.Quarto = {
 <p>The overall mean may not be what we want. Suppose we want the mean yield for each variety. <code>group_by()</code> doesn’t change the data – it tells subsequent operations to apply <em>per group</em>:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>trial_data <span class="sc">|&gt;</span></span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(variety) <span class="sc">|&gt;</span></span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
-<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_yield =</span> <span class="fu">mean</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">sd_yield =</span> <span class="fu">sd</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">n_fields =</span> <span class="fu">n</span>()</span>
-<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>trial_data <span class="sc">|&gt;</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(variety) <span class="sc">|&gt;</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_yield =</span> <span class="fu">mean</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">sd_yield =</span> <span class="fu">sd</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">n_fields =</span> <span class="fu">n</span>()</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; trial_data |&gt;
 +   group_by(variety) |&gt;
@@ -952,11 +951,11 @@ window.Quarto = {
 <p>The transformation is exactly what <code>mutate()</code> is for:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>trial_converted <span class="ot">&lt;-</span> trial_data <span class="sc">|&gt;</span></span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">yield_t_ha =</span> yield_bu_acre <span class="sc">*</span> <span class="fl">0.0560</span>)</span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>trial_converted <span class="sc">|&gt;</span></span>
-<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(field_id, yield_bu_acre, yield_t_ha)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>trial_converted <span class="ot">&lt;-</span> trial_data <span class="sc">|&gt;</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">yield_t_ha =</span> yield_bu_acre <span class="sc">*</span> <span class="fl">0.0560</span>)</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>trial_converted <span class="sc">|&gt;</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(field_id, yield_bu_acre, yield_t_ha)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; trial_converted &lt;- trial_data |&gt;
 +   mutate(yield_t_ha = yield_bu_acre * 0.0560)
@@ -986,13 +985,13 @@ window.Quarto = {
 <p>Sometimes a new variable depends on a condition. Suppose we want to class each field’s nitrogen rate as low, medium, or high. <code>case_when</code> handles it – read this one to understand it rather than to memorize it:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>trial_data <span class="sc">|&gt;</span></span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">n_rate =</span> <span class="fu">case_when</span>(</span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>    fertilizer_kg_ha <span class="sc">&lt;</span> <span class="dv">100</span> <span class="sc">~</span> <span class="st">"low"</span>,</span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>    fertilizer_kg_ha <span class="sc">&lt;</span> <span class="dv">150</span> <span class="sc">~</span> <span class="st">"medium"</span>,</span>
-<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>    <span class="cn">TRUE</span>                   <span class="sc">~</span> <span class="st">"high"</span></span>
-<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>  )) <span class="sc">|&gt;</span></span>
-<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(field_id, fertilizer_kg_ha, n_rate)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>trial_data <span class="sc">|&gt;</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">n_rate =</span> <span class="fu">case_when</span>(</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>    fertilizer_kg_ha <span class="sc">&lt;</span> <span class="dv">100</span> <span class="sc">~</span> <span class="st">"low"</span>,</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>    fertilizer_kg_ha <span class="sc">&lt;</span> <span class="dv">150</span> <span class="sc">~</span> <span class="st">"medium"</span>,</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>    <span class="cn">TRUE</span>                   <span class="sc">~</span> <span class="st">"high"</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>  )) <span class="sc">|&gt;</span></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(field_id, fertilizer_kg_ha, n_rate)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; trial_data |&gt;
 +   mutate(n_rate = case_when(
@@ -1024,12 +1023,12 @@ window.Quarto = {
 <section id="sec-writing-output" class="level2" data-number="6.5">
 <h2 data-number="6.5" class="anchored" data-anchor-id="sec-writing-output"><span class="header-section-number">6.5</span> Writing Output</h2>
 <p>Results so far have existed only inside R. To save one as a file that can be opened in Excel or sent to someone else, pass the object and a filename to <code>write_csv</code>. With our project layout, results go in <code>output/</code>:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>variety_summary <span class="ot">&lt;-</span> trial_data <span class="sc">|&gt;</span></span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(variety) <span class="sc">|&gt;</span></span>
-<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield =</span> <span class="fu">mean</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">n_fields =</span> <span class="fu">n</span>())</span>
-<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a><span class="fu">write_csv</span>(variety_summary, <span class="st">"output/variety_summary.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>variety_summary <span class="ot">&lt;-</span> trial_data <span class="sc">|&gt;</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(variety) <span class="sc">|&gt;</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield =</span> <span class="fu">mean</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">n_fields =</span> <span class="fu">n</span>())</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a><span class="fu">write_csv</span>(variety_summary, <span class="st">"output/variety_summary.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><code>read_csv</code> brings data into R; <code>write_csv</code> sends a data frame out to a file. Because the output is created by the script, you can always recreate it by running the script again.</p>
 </section>
 <section id="sec-dplyr-combining" class="level2" data-number="6.6">
@@ -1037,18 +1036,18 @@ window.Quarto = {
 <p>We now have enough tools to answer a realistic question: for each variety and nitrogen-rate class, what was the mean yield in t/ha, and how many fields were observed? Show the highest-yielding class first within each variety.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>variety_n_summary <span class="ot">&lt;-</span> trial_data <span class="sc">|&gt;</span></span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">yield_t_ha =</span> yield_bu_acre <span class="sc">*</span> <span class="fl">0.0560</span>,</span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">n_rate =</span> <span class="fu">case_when</span>(</span>
-<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>           fertilizer_kg_ha <span class="sc">&lt;</span> <span class="dv">100</span> <span class="sc">~</span> <span class="st">"low"</span>,</span>
-<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>           fertilizer_kg_ha <span class="sc">&lt;</span> <span class="dv">150</span> <span class="sc">~</span> <span class="st">"medium"</span>,</span>
-<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>           <span class="cn">TRUE</span>                   <span class="sc">~</span> <span class="st">"high"</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(variety, n_rate) <span class="sc">|&gt;</span></span>
-<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield_t_ha =</span> <span class="fu">mean</span>(yield_t_ha, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>            <span class="at">n_fields =</span> <span class="fu">n</span>(),</span>
-<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a>            <span class="at">.groups =</span> <span class="st">"drop"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(variety, <span class="fu">desc</span>(mean_yield_t_ha))</span>
-<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a>variety_n_summary</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>variety_n_summary <span class="ot">&lt;-</span> trial_data <span class="sc">|&gt;</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">yield_t_ha =</span> yield_bu_acre <span class="sc">*</span> <span class="fl">0.0560</span>,</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">n_rate =</span> <span class="fu">case_when</span>(</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>           fertilizer_kg_ha <span class="sc">&lt;</span> <span class="dv">100</span> <span class="sc">~</span> <span class="st">"low"</span>,</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>           fertilizer_kg_ha <span class="sc">&lt;</span> <span class="dv">150</span> <span class="sc">~</span> <span class="st">"medium"</span>,</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>           <span class="cn">TRUE</span>                   <span class="sc">~</span> <span class="st">"high"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(variety, n_rate) <span class="sc">|&gt;</span></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield_t_ha =</span> <span class="fu">mean</span>(yield_t_ha, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>            <span class="at">n_fields =</span> <span class="fu">n</span>(),</span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>            <span class="at">.groups =</span> <span class="st">"drop"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(variety, <span class="fu">desc</span>(mean_yield_t_ha))</span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>variety_n_summary</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; variety_n_summary &lt;- trial_data |&gt;
 +   mutate(yield_t_ha = yield_bu_acre * 0.0560,
@@ -1090,14 +1089,14 @@ window.Quarto = {
 <p>Which fields yielded above the average for their own variety? This needs one new idea: <code>mutate()</code> can operate within groups.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>above_variety_average <span class="ot">&lt;-</span> trial_data <span class="sc">|&gt;</span></span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(variety) <span class="sc">|&gt;</span></span>
-<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">variety_mean =</span> <span class="fu">mean</span>(yield_bu_acre)) <span class="sc">|&gt;</span></span>
-<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">|&gt;</span></span>
-<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(yield_bu_acre <span class="sc">&gt;</span> variety_mean) <span class="sc">|&gt;</span></span>
-<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(field_id, variety, yield_bu_acre, variety_mean) <span class="sc">|&gt;</span></span>
-<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(variety, <span class="fu">desc</span>(yield_bu_acre))</span>
-<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>above_variety_average</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>above_variety_average <span class="ot">&lt;-</span> trial_data <span class="sc">|&gt;</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(variety) <span class="sc">|&gt;</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">variety_mean =</span> <span class="fu">mean</span>(yield_bu_acre)) <span class="sc">|&gt;</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">|&gt;</span></span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(yield_bu_acre <span class="sc">&gt;</span> variety_mean) <span class="sc">|&gt;</span></span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(field_id, variety, yield_bu_acre, variety_mean) <span class="sc">|&gt;</span></span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(variety, <span class="fu">desc</span>(yield_bu_acre))</span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>above_variety_average</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; above_variety_average &lt;- trial_data |&gt;
 +   group_by(variety) |&gt;
