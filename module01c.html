@@ -825,7 +825,8 @@ Figure&nbsp;3.1: Thirty farm yields, each dot one field. Both sets average 40 bu
 <p>For a data analyst, the spread is very informative. If the values are spread out then we should be curious about what causes this spread. If these fields are far away from each other then maybe the spread is due to weather. But if they are in the same Township, with reasonably similar weather, then it may be due to management practices such as varietal choice, nitrogen application rates, or seeding dates. When we are dealing with large datasets it can be difficult to just look at how spread out points are on a one-dimensional graph. It is therefore handy to be able to distill the spread of data into a single number. In this section we will examine several different measures of spread, each of which has its strengths and weaknesses.</p>
 <section id="range" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="range">Range</h3>
-<p>The simplest measure of the spread of the data is the <strong>range</strong>, which is just the maximum value minus the minimum value. In Excel: <code>=MAX(A1:A100) - MIN(A1:A100)</code>. The range is easy to understand but it is very sensitive to outliers – a single bad measurement can blow up the range dramatically. Suppose, for example, that one of the tightly-clustered fields in <a href="#fig-spread-hail" class="quarto-xref">Figure&nbsp;<span>3.2</span></a> experiences a hail storm that wipes out its crop. That single field increases the range from 8.9 to 40.6 bu/ac – more than four times larger – even though it is only one field in 30. The interquartile range, described below, barely moves (3.4 to 3.6), because it ignores the extremes entirely.</p>
+<p>The simplest measure of spread is the <strong>range</strong>: the maximum value minus the minimum value. In Excel: <code>=MAX(A1:A100) - MIN(A1:A100)</code>. The range is easy to understand, but it is very sensitive to extreme values – a single unusual observation can change it dramatically.</p>
+<p>Suppose, for example, that one of the tightly clustered fields in <a href="#fig-spread-hail" class="quarto-xref">Figure&nbsp;<span>3.2</span></a> experiences a hailstorm that wipes out its crop. That single field increases the range from 8.9 to 40.6 bu/ac – more than quadrupling it – even though only one of the 30 fields has changed. The interquartile range, described below, barely moves, from 3.4 to 3.6 bu/ac, because it focuses on the middle half of the data rather than the extremes.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-spread-hail" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -846,24 +847,26 @@ Figure&nbsp;3.2: One hailed-out field. The range explodes; the interquartile ran
 <section id="mean-absolute-deviation" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="mean-absolute-deviation">Mean absolute deviation</h3>
 <p>A better way to measure the spread of the data is to examine how far each observation is from the mean. That is to say for each observation we could calculate <span class="math inline">\(x_i-\bar{x}\)</span>, add them all up and divide by <span class="math inline">\(n\)</span>. However, if we did this we would find that some of the deviations are negative and others are positive. By the definition of a mean, they would all cancel out, giving us zero.</p>
-<p>A more useful approach is to calculate the absolute value of these differences – this is called the mean absolute deviation (MAD):</p>
+<p>A more useful approach is to calculate the absolute value of these differences – this is called the <strong>mean absolute deviation (MAD)</strong>:</p>
 <p><span class="math display">\[
-MAD = \frac{\sum_{i=1}^{n} |x_i - \bar{x}|}{n}.
+\text{MAD} = \frac{\sum_{i=1}^{n} |x_i - \bar{x}|}{n}
 \]</span></p>
 <p>Note that the straight lines in the equation above denote absolute value – that is to say if a negative number is between these lines, we treat it as a positive number. If our data is very spread out (panel A of <a href="#fig-spread" class="quarto-xref">Figure&nbsp;<span>3.1</span></a>) we would get a large MAD; if it is tightly clustered (panel B) we would get a small one. If we find a MAD of 8 bu/acre then this means that on average a farm’s yields are 8 bu/acre different (either higher or lower) than the mean. Of course, some farms will have yields that are closer to the mean and others will have yields that are farther.</p>
 <p>There is no simple command to calculate the MAD in Excel – you would need to first calculate the mean, then the absolute difference between each observation and the mean, and then sum these absolute values.</p>
 </section>
 <section id="variance" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="variance">Variance</h3>
-<p>It turns out that an even more useful way of calculating the spread of the data is not to take the absolute value of the differences between each observation and the mean, but to square these differences and then divide by <span class="math inline">\(n\)</span>. This is called the <strong>variance</strong>. We denote the variance of a population as <span class="math inline">\(\sigma^2\)</span> and the variance of a sample as <span class="math inline">\(s^2\)</span>. For technical reasons, which we won’t get into in this class, when we have a sample of data we divide by <span class="math inline">\(n-1\)</span> rather than <span class="math inline">\(n\)</span>, so that:</p>
+<p>Another way to prevent positive and negative deviations from cancelling out is to square them. Squaring has the additional effect of giving more weight to observations that are far from the mean. The average of these squared deviations is called the <strong>variance</strong>.</p>
+<p>We denote the variance of a population as <span class="math inline">\(\sigma^2\)</span> and the variance of a sample as <span class="math inline">\(s^2\)</span>. For technical reasons that we won’t get into in this class, when we calculate the variance of a sample we divide by <span class="math inline">\(n-1\)</span> rather than <span class="math inline">\(n\)</span>:</p>
 <p><span class="math display">\[
 s^2 = \frac{1}{n-1} \sum_{i=1}^{n} (x_i - \bar{x})^2
 \]</span></p>
-<p>In Excel: <code>=VAR.S(A1:A5)</code> for a sample, <code>=VAR.P(A1:A5)</code> for a full population (which divides by <span class="math inline">\(n\)</span>). Use <code>VAR.S</code> unless you have a specific reason not to.</p>
+<p>In Excel: <code>=VAR.S(A1:A5)</code> for a sample and <code>=VAR.P(A1:A5)</code> for a full population. Use <code>VAR.S</code> unless you are working with a complete population.</p>
+<p>Variance is extremely useful in statistics, but it has an awkward interpretation. Because we squared the deviations, the variance is also measured in squared units. If yield is measured in bu/acre, for example, its variance is measured in <span class="math inline">\((\text{bu/acre})^2\)</span>. To get back to the original units, we take the square root of the variance – which gives us the standard deviation.</p>
 </section>
 <section id="standard-deviation" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="standard-deviation">Standard Deviation</h3>
-<p>The variance has an awkward property: its units are the squared units of the original data. If your yields are in bushels per acre, the variance is in “bushels per acre squared,” which is not easy to interpret. The <strong>standard deviation</strong> fixes this by taking the square root of the variance:</p>
+<p>The <strong>standard deviation</strong> is the square root of the variance:</p>
 <p><span class="math display">\[
 s = \sqrt{s^2} = \sqrt{\frac{1}{n-1} \sum_{i=1}^{n} (x_i - \bar{x})^2}
 \]</span></p>
@@ -877,9 +880,8 @@ s = \sqrt{s^2} = \sqrt{\frac{1}{n-1} \sum_{i=1}^{n} (x_i - \bar{x})^2}
 <p><span class="math display">\[
 CV = \frac{s}{\bar{x}}
 \]</span></p>
-<p>I say it is helpful because it can compare the spread of two datasets with very different means. Suppose barley averages 55 bu/ac with a standard deviation of 11 (CV = 11/55 = 0.20), while wheat averages 40 bu/ac with a standard deviation of 10 (CV = 10/40 = 0.25). Wheat’s standard deviation is <em>smaller</em> in absolute terms (10 vs 11), yet relative to its own average, wheat is <em>more</em> variable (CV 0.25 vs 0.20). The CV captures that relative variability: a CV of 0.1 means the standard deviation is 10% of the mean, regardless of how big the mean is. So the CV lets you fairly compare the variability of two things measured on very different scales.</p>
-<p>However, in other contexts – particularly when the data can be close to zero or negative – the CV can be misleading. Suppose we wanted to compare the variability of farm income in a “good” year to farm incomes in a “bad” year. In a bad year, the mean income might be close to zero or negative. In that case, the CV would explode to infinity or become negative, which is not intuitive.</p>
-<p>Use the coefficient of variation with caution.</p>
+<p>I say it is helpful because it can compare the spread of two datasets with very different means. Suppose barley averages 55 bu/ac with a standard deviation of 11 (CV = 11/55 = 0.20), while wheat averages 40 bu/ac with a standard deviation of 10 (CV = 10/40 = 0.25). Wheat’s standard deviation is <em>smaller</em> in absolute terms (10 vs 11), yet relative to its own average, wheat is <em>more</em> variable (CV 0.25 vs 0.20). The CV captures that relative variability: a CV of 0.1 means the standard deviation is 10% of the mean. So the CV lets you fairly compare the variability of two things measured on very different scales.</p>
+<p>However, in other contexts – particularly when the data can be close to zero or negative – the CV can be misleading. Suppose we wanted to compare the variability of farm income in a “good” year to farm incomes in a “bad” year. In a bad year, the mean of income might be close to zero or negative. In that case, the CV would explode to infinity or become negative. Use the coefficient of variation with caution.</p>
 <div class="workbook-callout">
 <p>The <strong>Spread</strong> tab works through all five measures on the barley varieties, so you can see how each responds to the same data.</p>
 <div class="excel-embed">
@@ -915,7 +917,7 @@ CV = \frac{s}{\bar{x}}
 </section>
 <section id="sec-charts" class="level2" data-number="3.4">
 <h2 data-number="3.4" class="anchored" data-anchor-id="sec-charts"><span class="header-section-number">3.4</span> Visualizing the Distribution of the Data</h2>
-<p>The <strong>distribution</strong> of the data refers to how often different values, or ranges of values, occur in a dataset. It tells you more than any single summary number can, because very different-looking datasets can share the same summary statistics. <a href="#fig-shape" class="quarto-xref">Figure&nbsp;<span>3.3</span></a> shows two sets of 60 farm yields with <em>identical means</em> (40 bu/ac) and <em>identical ranges</em> (26 to 54 bu/ac), yet they look nothing alike. In panel A the observations sit in two separate clusters; in panel B they are dense in the middle and thin out toward either edge.</p>
+<p>The distribution of data describes how the observations are spread across different values – which values are common, which are rare, and the overall shape they form. A distribution can reveal things that no single summary number can, because very different-looking datasets can share the same summary statistics. <a href="#fig-shape" class="quarto-xref">Figure&nbsp;<span>3.3</span></a> shows two sets of 60 farm yields with identical means (40 bu/ac) and identical ranges (26 to 54 bu/ac), yet they look nothing alike. In panel A, the observations sit in two separate clusters; in panel B, they are concentrated in the middle and thin out toward either edge.</p>
 <div id="fig-shape" class="quarto-layout-panel">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-shape-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -953,12 +955,12 @@ Figure&nbsp;3.3: Two datasets with the same mean and the same range, but very di
 </figcaption>
 </figure>
 </div>
-<p>The two clusters in panel A are a signal worth chasing: perhaps those farms differ in variety, soil zone, or seeding date, and what looks like one population is really two. Note also that the mean of 40 bu/ac in panel A describes a yield that <em>almost no farm actually achieved</em> – a good reminder that a summary statistic is not a substitute for looking at your data.</p>
-<p>Perhaps the simplest way to visualize the shape of the distribution is through a histogram. A histogram divides the range of the data into <strong>bins</strong> and plots a bar showing how many observations fall in each bin. It shows you at a glance whether the data is roughly <strong>symmetric</strong> (balanced around the centre), <strong>skewed</strong> (a long tail on one side, the mean-above-median pattern from <a href="#sec-central-tendency" class="quarto-xref"><span>Section 3.1</span></a>), or has <strong>outliers</strong> (a few values sitting far from the rest).</p>
-<p><strong>How to make one in Excel</strong>: select the data, <strong>Insert → Statistical Chart → Histogram</strong>. Right-click the horizontal axis → <strong>Format Axis</strong> to control the bin width.</p>
-<p><strong>Tips</strong>: bin width matters a lot. Too few bins and you hide the shape; too many and you see random noise. A rule of thumb: start with about <span class="math inline">\(\sqrt{n}\)</span> bins where <span class="math inline">\(n\)</span> is the sample size, then adjust. Try a few different bin widths and pick the one that makes the shape clearest.</p>
+<p>The two clusters in panel A are a signal worth chasing: perhaps those farms differ in variety, soil zone, or seeding date, and what looks like one population is really two. Note also that the mean of 40 bu/ac in panel A describes a yield that almost no farm actually achieved – a good reminder that a summary statistic is not a substitute for looking at your data.</p>
+<p>Perhaps the simplest way to visualize the shape of a distribution is with a histogram. A histogram divides the range of the data into bins and uses bars to show how many observations fall into each one. It lets you see at a glance whether the data is roughly symmetric (balanced around the centre), skewed (stretched farther in one direction than the other, as we discussed in <a href="#sec-central-tendency" class="quarto-xref"><span>Section 3.1</span></a>), or contains outliers (a few observations sitting far from the rest).</p>
+<p>How to make one in Excel: select the data, then choose Insert → Statistical Chart → Histogram. Right-click the horizontal axis and choose Format Axis to control the bin width.</p>
+<p>Tips: Bin width matters. Too few bins can hide important features of the distribution; too many can make random variation look important. As a rough starting point, try about <span class="math inline">\(\sqrt{n}\)</span> bins, where <span class="math inline">\(n\)</span> is the number of observations. Then try a few different bin widths and check whether the main features of the distribution remain visible.</p>
 <div class="workbook-callout">
-<p>The <strong>Histogram</strong> tab holds the barley yields in a single column, ready to chart.</p>
+<p>The <strong>Histogram</strong> tab contains three histograms. In my view the first one has a reasonable number of bins. The next two have too many and too few.</p>
 <div class="excel-embed">
 <iframe width="402" height="700" frameborder="0" scrolling="no" src="https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7Bd5cfe169-4900-4832-800c-8c721cc6690d%7D&amp;action=embedview&amp;ActiveCell='Histogram'!A1&amp;wdAllowInteractivity=False&amp;wdDownloadButton=True&amp;wdInConfigurator=True">
 </iframe>
@@ -971,19 +973,15 @@ Figure&nbsp;3.3: Two datasets with the same mean and the same range, but very di
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Tip</span>Other resources — charts
+<span class="screen-reader-only">Tip</span>Other resources — histograms
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
 <div id="callout-5" class="callout-5-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <ul>
-<li><strong>OpenStax, <em>Introductory Statistics 2e</em></strong> – <a href="https://openstax.org/books/introductory-statistics-2e/pages/2-2-histograms-frequency-polygons-and-time-series-graphs">§2.2 “Histograms, Frequency Polygons, and Time Series Graphs”</a> and <a href="https://openstax.org/books/introductory-statistics-2e/pages/2-4-box-plots">§2.4 “Box Plots”</a>.</li>
-<li><strong>Excel for Dummies</strong> – <em>Microsoft 365 Excel for Dummies</em>, the chapter on creating charts.</li>
-<li><strong>Microsoft Support</strong> – <a href="https://support.microsoft.com/en-us/office/create-a-chart-from-start-to-finish-0baf399e-dd61-4e18-8a73-b3fd5d5680c2">Create a chart from start to finish</a>.</li>
-<li><strong>Video (build charts in Excel)</strong> – Simon Sez IT, <a href="https://www.youtube.com/watch?v=Rc42BdN_rKk"><em>How to create Excel charts and graphs</em></a>.</li>
+<li><strong>OpenStax, <em>Introductory Statistics 2e</em></strong> – <a href="https://openstax.org/books/introductory-statistics-2e/pages/2-2-histograms-frequency-polygons-and-time-series-graphs">§2.2 “Histograms, Frequency Polygons, and Time Series Graphs”</a>.</li>
 <li><strong>Video (histogram in Excel)</strong> – <a href="https://www.youtube.com/watch?v=xuyUK_sUEDw"><em>Histogram chart &amp; box and whisker chart in Excel</em></a>.</li>
-<li><strong>Video (choosing a chart)</strong> – Maven Analytics, <a href="https://www.youtube.com/watch?v=fBgk_cNCnsk"><em>How to choose the best chart for your data</em></a>.</li>
 <li><strong>Video (histograms, concept)</strong> – StatQuest with Josh Starmer, <a href="https://www.youtube.com/watch?v=qBigTkBLU6g"><em>Histograms, clearly explained</em></a>.</li>
 </ul>
 </div>
