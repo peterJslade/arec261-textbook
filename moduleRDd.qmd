@@ -19,11 +19,39 @@ glimpse(deliveries)
 ::: {.objectives}
 By the end of this chapter you should be able to:
 
-1. Find duplicates, impossible values, inconsistent categories and mixed units in a new file.
-2. Recognize the disguises missing values wear, and count them properly.
-3. Decide -- and justify -- when dropping missing values is safe.
-4. Spot dates that imported as text, and say why it matters.
+1. Clean up awkward column names with `rename()` and `janitor::clean_names()`.
+2. Find duplicates, impossible values, inconsistent categories and mixed units in a new file.
+3. Recognize the disguises missing values wear, and count them properly.
+4. Decide -- and justify -- when dropping missing values is safe.
+5. Spot dates that imported as text, and say why it matters.
+6. Reshape a dataset between wide and long with `pivot_longer` and `pivot_wider`.
 :::
+
+## Awkward Column Names {#sec-clean-names}
+
+The first thing to fix is often the names. Real files arrive with columns like
+`Yield (bu/ac)`, `REGION_NAME`, or `Field ID Number` -- workable, but annoying to type and
+easy to mistype. The snake_case convention (@sec-renaming) wants `yield_bu_ac`, `region`,
+`field_id`.
+
+For individual columns, `rename()` does it:
+
+```r
+deliveries <- deliveries |>
+  rename(weight_tonnes = "Weight (t)",
+         crop = CROP_NAME)
+```
+
+For wholesale renaming, `janitor::clean_names()` converts every column to snake_case in one
+call -- lowercase, underscores, special characters stripped. (It comes from the `janitor`
+package, not the tidyverse. Install it once with `install.packages("janitor")`.)
+
+```r
+library(janitor)
+deliveries <- read_csv("data/grain_deliveries_messy.csv") |> clean_names()
+```
+
+Run it on almost anything you read in.
 
 ## Duplicates {#sec-duplicates}
 
@@ -232,6 +260,59 @@ deliveries |>
 Fixing messy dates properly uses tools we have not covered (the `lubridate` package is the
 standard one); for this course, it is enough to notice the problem and state the format
 explicitly when you read the file.
+
+## Reshaping: `pivot_longer` and `pivot_wider` {#sec-reshaping}
+
+The last defect is not a wrong value but a wrong shape.  Tidy data (@sec-tidy-data) wants
+every variable in its own column, and files often arrive with values in the column headers
+instead -- one column per crop, or per year.  StatCan downloads have the opposite problem:
+long where you want wide.
+
+`pivot_longer` turns column headers into values.  You tell it which columns to gather, what
+to call the column that will hold their *names*, and what to call the column that will hold
+their *values*:
+
+```r
+yields_wide
+```
+
+```
+  region  Canola Wheat Barley
+  South       41    52     64
+  Central     44    55     68
+  North       38    49     60
+```
+
+```r
+yields_long <- yields_wide |>
+  pivot_longer(cols = c(Canola, Wheat, Barley),
+               names_to = "crop",
+               values_to = "yield")
+yields_long
+```
+
+```
+  region  crop   yield
+  South   Canola    41
+  South   Wheat     52
+  South   Barley    64
+  Central Canola    44
+  ...
+```
+
+Nine rows now: one per region-crop combination, with `crop` and `yield` as ordinary columns
+that `filter` and `group_by` can use.
+
+`pivot_wider` goes the other way.  Tell it which column holds the names and which holds the
+values:
+
+```r
+yields_long |>
+  pivot_wider(names_from = crop, values_from = yield)
+```
+
+Long is usually what analysis wants; wide is often what people want to read.  Expect to
+pivot in both directions.
 
 ## A Checklist {#sec-cleaning-checklist}
 
