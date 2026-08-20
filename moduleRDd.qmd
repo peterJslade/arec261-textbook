@@ -1,0 +1,263 @@
+# Cleaning Data {#sec-cleaning}
+
+Assume a new file is broken until you have checked.  It was typed by someone in a hurry and
+exported by software that had its own ideas about formatting.  This chapter is a tour of the
+defects that show up most often, how to find them, and what to do about them.
+
+The examples below use `grain_deliveries_messy.csv`, a small file of grain deliveries carrying
+every defect in this chapter.
+
+```r
+library(tidyverse)
+
+deliveries <- read_csv("data/grain_deliveries_messy.csv")
+glimpse(deliveries)
+```
+
+## Learning Objectives {.unnumbered}
+
+::: {.objectives}
+By the end of this chapter you should be able to:
+
+1. Find duplicates, impossible values, inconsistent categories and mixed units in a new file.
+2. Recognize the disguises missing values wear, and count them properly.
+3. Decide -- and justify -- when dropping missing values is safe.
+4. Spot dates that imported as text, and say why it matters.
+:::
+
+## Duplicates {#sec-duplicates}
+
+There are two kinds, and the second is the harder one.
+
+An **exact duplicate** is the same row entered twice:
+
+```r
+deliveries |> filter(duplicated(deliveries))     # show them
+deliveries |> distinct()                          # drop them
+```
+
+A **conflicting duplicate** is the same identifier with different values: ticket `T0030`
+appearing twice with two different weights.  `distinct()` leaves these alone, because the rows
+are not identical.  Count to find them:
+
+```r
+deliveries |>
+  count(ticket_id) |>
+  filter(n > 1)
+```
+
+No code fixes this one.  Somebody entered the delivery twice, or corrected it and left both
+rows, and you have to find out which is right.  If you cannot, say so in the write-up and
+explain what you did.
+
+## Impossible Values {#sec-impossible-values}
+
+Every variable has values it cannot take.  A weight cannot be negative, a moisture percentage
+cannot be 250, and a delivery of exactly zero tonnes is possible but odd.
+
+`summary()` catches most of this in one line, because impossible values turn up in the minimum
+and maximum:
+
+```r
+summary(deliveries)
+```
+
+Then look at the offending rows:
+
+```r
+deliveries |> filter(weight_tonnes <= 0 | moisture_pct > 100)
+```
+
+A negative weight is probably a sign error or a reversed transaction.  A moisture of 250 is
+probably 25.0 with a lost decimal point.  Both of those are guesses, so record them as guesses.
+Dropping the rows without saying anything is the thing to avoid.
+
+An impossible value is easy to rule on.  A merely *implausible* one -- a canola yield of 95
+bu/ac, twice the provincial average -- is a judgement call: it might be an error, or the best
+field in the province.  Do not delete a value just because it is extreme.  Check it against
+the source if you can, and if you cannot, analyze the data with and without it and report
+whether it changes the answer.
+
+## Inconsistent Categories {#sec-categories}
+
+The same thing spelled several ways is the most common defect I run into, and it is easy to
+miss because every individual value looks fine.  Count the categories:
+
+```r
+deliveries |> count(crop)
+```
+
+```
+  crop            n
+  "CANOLA"        2
+  "Canola"        6
+  "canola"        4
+  "Spring Wheat"  2
+  "Spring wheat"  8
+  "spring wheat"  5
+  ...
+```
+
+Three spellings of canola and three of spring wheat, which `group_by(crop)` reads as six
+different crops.
+
+Fix the mechanical cases first:
+
+```r
+deliveries <- deliveries |>
+  mutate(crop = str_trim(crop),        # strip stray spaces
+         crop = str_to_title(crop))    # "CANOLA" and "canola" -> "Canola"
+```
+
+`str_to_title` handles capitalisation.  `read_csv` already strips surrounding spaces, so
+`str_trim` is belt-and-braces here, but other readers do not, and a space you cannot see is a
+match you cannot explain.
+
+Genuine synonyms like `"Canola"` and `"Canola/Rapeseed"` are a judgement call, so put them in
+an explicit recode where a reader can see the decision:
+
+```r
+deliveries <- deliveries |>
+  mutate(crop = case_when(
+    crop == "Canola/Rapeseed" ~ "Canola",
+    crop == "Soybean"         ~ "Soybeans",
+    TRUE                      ~ crop
+  ))
+```
+
+## Mixed Units {#sec-mixed-units}
+
+A right value in the wrong unit is harder to catch than a wrong value, because nothing looks
+broken.  In the deliveries file most moisture readings are percentages around 9.5, but a few
+were entered as decimals: 0.094 rather than 9.4.  No error, no warning, and the mean comes out
+too low.
+
+Knowing what range the variable should occupy is what catches it:
+
+```r
+deliveries |> filter(moisture_pct < 1)
+```
+
+Grain moisture is normally 8 to 16 percent, so anything under 1 is in the wrong unit.  Convert
+rather than drop:
+
+```r
+deliveries <- deliveries |>
+  mutate(moisture_pct = if_else(moisture_pct < 1, moisture_pct * 100, moisture_pct))
+```
+
+A file that records its own units, like the `units` column in @sec-unit-conversion, lets you
+convert with `case_when` instead of inferring from magnitude.
+
+## Missing Values {#sec-missing-values}
+
+In R, a missing value is `NA`, and most operations *propagate* it -- any calculation
+involving `NA` returns `NA`, which is why `mean()` needs `na.rm = TRUE`
+(@sec-r-summary-stats).  Real files complicate this in two ways: missing values arrive in
+disguise, and deciding what to do with them takes some thought.
+
+### Missing values in disguise {.unnumbered}
+
+Missing data shows up in real files in several forms: an empty cell, the text `"NA"`,
+`"N/A"`, `"-"`, `"."`, or `-999`.  R recognises the blank and `NA`.  The rest come in as
+ordinary text and turn their column into `<chr>`.
+
+Tell `read_csv` what counts as missing:
+
+```r
+deliveries <- read_csv("data/grain_deliveries_messy.csv",
+                       na = c("", "NA", "N/A", "-", "."))
+```
+
+Then count what you have before deciding anything:
+
+```r
+deliveries |> summarise(across(everything(), ~ sum(is.na(.))))
+```
+
+A numeric code like `-999` is the dangerous one.  It will not turn the column to text; it will
+just be included in the mean as a number, which is another reason to run `summary()` on arrival
+and look at the minimum.
+
+### Working with missing values {.unnumbered}
+
+A few patterns:
+
+```r
+# Check for missing values
+is.na(deliveries$weight_tonnes)              # logical vector
+sum(is.na(deliveries$weight_tonnes))          # count of NAs
+
+# Remove rows with any missing values
+deliveries_clean <- deliveries |> drop_na()
+
+# Remove rows with missing values in specific columns
+deliveries_clean <- deliveries |> drop_na(weight_tonnes)
+
+# Compute a statistic ignoring NAs
+mean(deliveries$weight_tonnes, na.rm = TRUE)
+
+# Replace NAs with a value
+deliveries |> mutate(weight_tonnes = replace_na(weight_tonnes, 0))
+```
+
+### When is dropping safe? {.unnumbered}
+
+It depends on *why* the values are missing.  If data is missing completely at random (a
+sensor failed arbitrarily), dropping missing values gives you unbiased estimates, just with
+less data.  If data is missing for a reason related to the value itself (only high-yielding
+fields were reported), dropping them can bias your results -- you will systematically
+overestimate yields.
+
+The honest answer to "what should I do with missing values" is almost always: *think about
+why they are missing*, and *document what you decided to do*.  There is no universal fix.
+
+## Dates Stored as Text {#sec-dates-text}
+
+A date column that imported as `<chr>` cannot be sorted chronologically or used in
+arithmetic.  It happens when the file mixes formats (`2025-09-15` in some rows,
+`Sept 15, 2025` in others), and it is worth catching early because `arrange()` on a text
+date sorts alphabetically without complaint.
+
+`glimpse()` shows the problem (`<chr>` where you expected `<date>`).  If the format is
+consistent, tell the reader what it is with `col_types` (@sec-col-types); if it is mixed,
+the rows that failed to parse are found the same way as any other type problem:
+
+```r
+deliveries |>
+  filter(is.na(as.Date(delivery_date))) |>
+  select(ticket_id, delivery_date)
+```
+
+Fixing messy dates properly uses tools we have not covered (the `lubridate` package is the
+standard one); for this course, it is enough to notice the problem and state the format
+explicitly when you read the file.
+
+## A Checklist {#sec-cleaning-checklist}
+
+Run through this on every new file:
+
+1. `glimpse()` -- are the column types what you expect?
+2. `summary()` -- are the minimums and maximums possible?
+3. `count()` each categorical column -- are the categories consistent?
+4. Count rows, and check for duplicated identifiers.
+5. Count `NA`s per column, and ask whether the missingness is random.
+6. Check the range of each numeric column against what the unit should be.
+
+## Test Bank Sample {#sec-module3-clean-test}
+
+1. (Duplicates.) Distinguish an exact duplicate from a conflicting duplicate. Why does `distinct()` only solve one of them?
+2. (Categories.) Give three ways the same crop name can appear in a file, and say what `group_by(crop)` would do with them.
+3. (Units.) Why is a value in the wrong unit harder to catch than a value that is simply wrong?
+4. (Missing.) A column codes missing values as `-999`. Why is this more dangerous than coding them as `"N/A"`?
+5. (Missing.) Why is it dangerous to blindly drop missing values? Under what conditions is it safe?
+6. (Dates.) A date column imported as text. Name one thing that silently goes wrong if you analyze it anyway.
+
+## Practice Exercises {#sec-module3-clean-practice}
+
+1. Read `grain_deliveries_messy.csv` and find every duplicated `ticket_id`. How many are exact duplicates and how many conflict?
+2. Find the impossible values in the file. For each, say what you think the intended value was and why.
+3. Count the spellings of each crop. Clean them with `str_trim` and `str_to_title`, then check the count again.
+4. Three moisture readings are in the wrong unit. Find them, convert them, and say how you knew.
+5. Re-read the file telling `read_csv` what counts as missing, then count the `NA`s in every column. Which column has the most, and do you have a guess why?
+6. Run the full checklist on a dataset you have not seen before (any StatCan download works). Write down what you found.

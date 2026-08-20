@@ -1,8 +1,10 @@
 # Getting Data {#sec-getting-data}
 
-Agricultural data usually arrives as an Excel workbook rather than a CSV, often with a title
-and a couple of blank rows above the table.  This chapter covers reading those files, and
-getting data out of Statistics Canada.
+Every dataset in the book so far has arrived as a tidy CSV with sensible column names.  Data
+does not normally show up that way.  It shows up as an Excel workbook somebody emailed you,
+with the numbers starting on row 8, or as a download from a statistical agency with metadata
+above and below the table.  This chapter covers reading those files, and getting data from
+the two big public sources for agricultural data: Statistics Canada and the USDA.
 
 ## Learning Objectives {.unnumbered}
 
@@ -12,7 +14,9 @@ By the end of this chapter you should be able to:
 1. Read an Excel workbook into R, including a specific sheet.
 2. Handle a file whose header does not start on the first row.
 3. Check what R guessed about your column types, and correct it.
-4. Download a table from Statistics Canada and get it into a usable shape.
+4. Download a table from Statistics Canada, from the website or with the `cansim` package.
+5. Pull US data from the USDA's QuickStats API.
+6. Record where a dataset came from and when you downloaded it.
 :::
 
 ## Excel Files {#sec-readxl}
@@ -128,31 +132,114 @@ When your numbers disagree with somebody else's, this is usually why.
 
 The files need work once you have them.  Expect metadata rows above and below the table, column
 names with spaces and units in them, footnote markers stuck to numbers, and a shape that is
-long where you want wide.  The reshaping tools in @sec-tidy-data and the cleaning in
-@sec-cleaning are what these files need.
+long where you want wide.  The skipping in @sec-skip-rows, the reshaping in @sec-tidy-data,
+and the cleaning in @sec-cleaning are what these files need.
 
-There is also an R package, **cansim**, that pulls tables by number:
+## R Packages for Data {#sec-data-packages}
+
+Some data providers have an R package that fetches tables directly, skipping the website.
+For Statistics Canada the package is **cansim**, which pulls tables by their table number:
 
 ```r
 library(cansim)
 wheat <- get_cansim("32-10-0359-01")
 ```
 
-This skips the download and records which table you used in the script itself, which makes the
-analysis re-runnable when the data is revised.  It is the better habit once you are comfortable
-with the tables.
+This has two advantages over downloading by hand.  The table number is recorded in the script
+itself, so the analysis is re-runnable when the data is revised.  And there are no clicks to
+forget: anyone running the script gets the same table.
+
+What comes back still needs the usual work -- StatCan's column names have spaces and
+capitals (`clean_names()` helps), and the data is long, one row per
+year-geography-commodity combination.  Filter to what you want in R:
+
+```r
+sask_wheat <- wheat |>
+  clean_names() |>
+  filter(geo == "Saskatchewan",
+         harvest_disposition == "Average yield (kilograms per hectare)")
+```
+
+(The column and category names differ by table; run `glimpse()` and `count()` on the columns
+to see what a new table contains.)
+
+## APIs: The USDA {#sec-apis}
+
+An **API** (application programming interface) is a way for a program to request data from a
+website directly, instead of a person clicking a download button.  The request is a line of
+code, so it is recorded, repeatable, and easy to change.  Packages like `cansim` are friendly
+wrappers around an API; here we use one a step closer to the raw form.
+
+US agricultural data comes from the USDA's **QuickStats** database, and the R package for it
+is **rnassqs**.  QuickStats requires a free API key -- a password that identifies who is
+asking -- which you request at <https://quickstats.nass.usda.gov/api/> and use once per
+session:
+
+```r
+library(rnassqs)
+nassqs_auth(key = "YOUR-KEY-HERE")
+
+us_canola <- nassqs(commodity_desc = "CANOLA",
+                    statisticcat_desc = "YIELD",
+                    agg_level_desc = "NATIONAL",
+                    year = 2015:2025)
+```
+
+The parameter names take some finding.  The practical approach is to build the query you want
+on the [QuickStats website](https://quickstats.nass.usda.gov/) first -- its dropdown menus use
+the same field names -- and then mirror the choices in code.  If the API defeats you, the
+website also has a plain **Spreadsheet** download button, and reading that file is the same
+skill as @sec-skip-rows.
+
+One caution: an API key identifies *you*.  Keep it out of any script you share or post
+publicly -- a common habit is to keep the key in a separate file that you do not share, and
+have the script read it from there.
+
+We will use the Canadian and US canola data together in the next chapter, where the two
+tables get merged into one.
+
+## Say Where It Came From {#sec-readme}
+
+Every project gets a `README.md` at the top of the folder, saying what the project is and where
+the data came from.  It does not need to be long.
+
+```
+# Canola yields, Canada and US
+
+Question: how do Canadian and US canola yields compare over the
+last decade?
+
+Data
+  data/canada_canola.csv
+    StatCan table 32-10-0359-01, downloaded 2026-08-18 via cansim.
+  data/us_canola.csv
+    USDA NASS QuickStats, national canola yield, downloaded 2026-08-18.
+
+Scripts
+  R/01_get_data.R   pulls both tables, writes the CSVs above
+  R/02_merge.R      harmonizes units, joins the tables
+```
+
+The source and the download date are the parts that matter.  A file called
+`yields_final.csv` with no provenance is close to useless a year later: you cannot tell whether
+it is the 2024 or the 2025 release, whether you already cleaned it, or whether the numbers were
+revised after you downloaded them.  Statistics Canada revises past figures, so "downloaded
+2026-08-18" is doing real work.
 
 ## Test Bank Sample {#sec-module3-getting-test}
 
 1. (Sheets.) You read an Excel file and get one column of notes. What went wrong, and which function tells you what is in the file?
 2. (Header.) You read a spreadsheet and the columns are called `...2`, `...3`. What does that mean and how do you fix it?
 3. (Types.) A numeric column imports as text. Give two values that would cause this, and say what breaks as a result.
-4. (Provenance.) Why does the date you downloaded a StatCan table matter?
-5. (Workflow.) Why is it usually better to download a wide selection and filter in R than to narrow the selection on the website?
+4. (Workflow.) Why is it usually better to download a wide selection from StatCan and filter in R than to narrow the selection on the website?
+5. (Packages.) What are two advantages of pulling a StatCan table with `cansim` over downloading it from the website?
+6. (APIs.) What is an API key, and why should it not appear in a script you share?
+7. (Provenance.) Why does the date you downloaded a StatCan table matter?
 
 ## Practice Exercises {#sec-module3-getting-practice}
 
 1. Read a multi-sheet Excel workbook. List its sheets, then read the second one.
 2. Read a file whose header starts on row 4. Confirm the column names are right before going further.
 3. Run `glimpse()` on a dataset you did not create. Is every column the type you expected?
-4. Download a crop yield table from Statistics Canada for Saskatchewan. Get it into R, filter to one crop, and record in a README where it came from and when.
+4. Pull a crop yield table with `get_cansim()`, filter it to Saskatchewan canola, and record in a README where it came from and when.
+5. Request a QuickStats API key and pull the US national canola yield series with `rnassqs`. (If the API defeats you, download the same query from the website as a spreadsheet and read it in -- and note which route you took in your README.)

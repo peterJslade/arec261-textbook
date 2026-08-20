@@ -1,8 +1,8 @@
-# Joining and Cleaning {#sec-joining-cleaning}
+# Merging Data {#sec-merging-data}
 
-Data arrives in pieces: yields in one file, prices in another, weather in a third.  It also
-arrives with problems that nobody mentions.  This chapter covers putting the pieces together
-and finding out what is wrong with them.
+Data arrives in pieces: yields in one file, prices in another, weather in a third.  Answering
+a real question usually means putting two or more of the pieces together.  This chapter
+covers joins: how they work, how they fail, and how to check them.
 
 ## Learning Objectives {.unnumbered}
 
@@ -12,7 +12,7 @@ By the end of this chapter you should be able to:
 1. Join two tables on a shared key with `left_join()` and friends.
 2. Say what happens to rows that do not match, and check for them.
 3. Explain why a join can return more rows than it started with.
-4. Find duplicates, impossible values, inconsistent categories and mixed units in a new file.
+4. Harmonize units and category names so that two real datasets can be merged.
 :::
 
 ## Joining Two Tables {#sec-joins}
@@ -64,8 +64,8 @@ data calls it `"Canola/Rapeseed"` and the price list says `"Canola"`.  The trial
 different people, and a join matches on exact text, so every canola row comes back with a
 missing price.
 
-Reconciling the categories is @sec-cleaning below.  Checking before you assume the join worked
-is the habit worth building.
+Reconciling the categories is part of cleaning (@sec-cleaning, the next chapter).  Checking
+before you assume the join worked is the habit worth building.
 
 ### The row-count trap {.unnumbered}
 
@@ -94,185 +94,64 @@ yields |> left_join(prices, by = c("crop", "year"))
 This is the composite key from @sec-lookup, where RM and year had to be glued together with `&`
 to identify a row.  R lets you name several key columns instead of building one.
 
-## Cleaning a New File {#sec-cleaning}
+## A Worked Example: Canadian and US Canola Yields {#sec-canada-us-merge}
 
-Assume a new file is broken until you have checked.  It was typed by someone in a hurry and
-exported by software that had its own ideas about formatting.
+The Canadian and US canola data from @sec-getting-data make a realistic merge, because the
+two tables agree on almost nothing: different column names, different units, different
+geography labels.  The work before the join is most of the work.
 
-The examples below use `grain_deliveries_messy.csv`, a small file of grain deliveries carrying
-every defect in this section.
-
-```r
-deliveries <- read_csv("data/grain_deliveries_messy.csv")
-glimpse(deliveries)
-```
-
-### Duplicates {.unnumbered}
-
-There are two kinds, and the second is the harder one.
-
-An **exact duplicate** is the same row entered twice:
+Suppose the Canadian table has national average yield in kilograms per hectare, and the US
+table reports pounds per acre.  Neither can be compared until both are in the same unit.
+Prepare each table separately: keep the columns you need, convert to tonnes per hectare, and
+give the yield column a name that says whose it is:
 
 ```r
-deliveries |> filter(duplicated(deliveries))     # show them
-deliveries |> distinct()                          # drop them
+canada <- canada_raw |>
+  clean_names() |>
+  filter(geo == "Canada") |>
+  mutate(canada_t_ha = value / 1000) |>          # kg/ha -> t/ha
+  select(year = ref_date, canada_t_ha)
+
+us <- us_raw |>
+  clean_names() |>
+  mutate(us_t_ha = value * 0.00112) |>           # lb/ac -> t/ha
+  select(year, us_t_ha)
 ```
 
-A **conflicting duplicate** is the same identifier with different values: ticket `T0030`
-appearing twice with two different weights.  `distinct()` leaves these alone, because the rows
-are not identical.  Count to find them:
+Now the join is the easy part.  The key is `year`:
 
 ```r
-deliveries |>
-  count(ticket_id) |>
-  filter(n > 1)
-```
+both <- canada |>
+  left_join(us, by = "year")
 
-No code fixes this one.  Somebody entered the delivery twice, or corrected it and left both
-rows, and you have to find out which is right.  If you cannot, say so in the write-up and
-explain what you did.
-
-### Impossible values {.unnumbered}
-
-Every variable has values it cannot take.  A weight cannot be negative, a moisture percentage
-cannot be 250, and a delivery of exactly zero tonnes is possible but odd.
-
-`summary()` catches most of this in one line, because impossible values turn up in the minimum
-and maximum:
-
-```r
-summary(deliveries)
-```
-
-Then look at the offending rows:
-
-```r
-deliveries |> filter(weight_tonnes <= 0 | moisture_pct > 100)
-```
-
-A negative weight is probably a sign error or a reversed transaction.  A moisture of 250 is
-probably 25.0 with a lost decimal point.  Both of those are guesses, so record them as guesses.
-Dropping the rows without saying anything is the thing to avoid.
-
-### Inconsistent categories {.unnumbered}
-
-The same thing spelled several ways is the most common defect I run into, and it is easy to
-miss because every individual value looks fine.  Count the categories:
-
-```r
-deliveries |> count(crop)
+both
 ```
 
 ```
-  crop            n
-  "CANOLA"        2
-  "Canola"        6
-  "canola"        4
-  "Spring Wheat"  2
-  "Spring wheat"  8
-  "spring wheat"  5
-  ...
+   year canada_t_ha us_t_ha
+   <dbl>      <dbl>   <dbl>
+ 1  2015       1.85    1.66
+ 2  2016       2.06    1.71
+ 3  2017       2.28    1.87
+ ...
 ```
 
-Three spellings of canola and three of spring wheat, which `group_by(crop)` reads as six
-different crops.
+One table, one row per year, both countries' yields in the same unit.  Run the checks anyway:
+`nrow(both)` should equal `nrow(canada)`, and `anti_join(canada, us, by = "year")` shows any
+years one source has and the other does not -- a data release usually lags a year on one side
+or the other, and it is better to find that now than in a chart.
 
-Fix the mechanical cases first:
-
-```r
-deliveries <- deliveries |>
-  mutate(crop = str_trim(crop),        # strip stray spaces
-         crop = str_to_title(crop))    # "CANOLA" and "canola" -> "Canola"
-```
-
-`str_to_title` handles capitalisation.  `read_csv` already strips surrounding spaces, so
-`str_trim` is belt-and-braces here, but other readers do not, and a space you cannot see is a
-match you cannot explain.
-
-Genuine synonyms like `"Canola"` and `"Canola/Rapeseed"` are a judgement call, so put them in
-an explicit recode where a reader can see the decision:
-
-```r
-deliveries <- deliveries |>
-  mutate(crop = case_when(
-    crop == "Canola/Rapeseed" ~ "Canola",
-    crop == "Soybean"         ~ "Soybeans",
-    TRUE                      ~ crop
-  ))
-```
-
-### Mixed units {.unnumbered}
-
-A right value in the wrong unit is harder to catch than a wrong value, because nothing looks
-broken.  In the deliveries file most moisture readings are percentages around 9.5, but a few
-were entered as decimals: 0.094 rather than 9.4.  No error, no warning, and the mean comes out
-too low.
-
-Knowing what range the variable should occupy is what catches it:
-
-```r
-deliveries |> filter(moisture_pct < 1)
-```
-
-Grain moisture is normally 8 to 16 percent, so anything under 1 is in the wrong unit.  Convert
-rather than drop:
-
-```r
-deliveries <- deliveries |>
-  mutate(moisture_pct = if_else(moisture_pct < 1, moisture_pct * 100, moisture_pct))
-```
-
-A file that records its own units, like the `units` column in @sec-unit-conversion, lets you
-convert with `case_when` instead of inferring from magnitude.
-
-### Missing values in disguise {.unnumbered}
-
-Missing data (@sec-missing-values) shows up in real files in several forms: an empty
-cell, the text `"NA"`, `"N/A"`, `"-"`, `"."`, or `-999`.  R recognises the blank and `NA`.  The
-rest come in as ordinary text and turn their column into `<chr>`.
-
-Tell `read_csv` what counts as missing:
-
-```r
-deliveries <- read_csv("data/grain_deliveries_messy.csv",
-                       na = c("", "NA", "N/A", "-", "."))
-```
-
-Then count what you have before deciding anything:
-
-```r
-deliveries |> summarise(across(everything(), ~ sum(is.na(.))))
-```
-
-A numeric code like `-999` is the dangerous one.  It will not turn the column to text; it will
-just be included in the mean as a number, which is another reason to run `summary()` on arrival
-and look at the minimum.
-
-### A checklist {.unnumbered}
-
-Run through this on every new file:
-
-1. `glimpse()` -- are the column types what you expect?
-2. `summary()` -- are the minimums and maximums possible?
-3. `count()` each categorical column -- are the categories consistent?
-4. Count rows, and check for duplicated identifiers.
-5. Count `NA`s per column, and ask whether the missingness is random.
-6. Check the range of each numeric column against what the unit should be.
-
-## Test Bank Sample {#sec-module3-clean-test}
+## Test Bank Sample {#sec-module3-merge-test}
 
 1. (Joins.) What is the difference between `left_join` and `inner_join`, and which is safer when you are not sure the keys match?
 2. (Diagnosis.) After a join, a column you expected to be full is entirely `NA`. What is the most likely cause, and which function finds it?
 3. (Row counts.) You join 60 yield rows to a price table and get 240 rows. Explain what happened and how to fix it.
-4. (Duplicates.) Distinguish an exact duplicate from a conflicting duplicate. Why does `distinct()` only solve one of them?
-5. (Categories.) Give three ways the same crop name can appear in a file, and say what `group_by(crop)` would do with them.
-6. (Units.) Why is a value in the wrong unit harder to catch than a value that is simply wrong?
+4. (Keys.) A prices table has one row per crop per year. What should the `by` argument be when joining field-level yields to it, and why?
+5. (Units.) You want to merge a Canadian yield series in kg/ha with a US series in lb/ac. What has to happen before the join, and why does the join itself not catch the problem?
 
-## Practice Exercises {#sec-module3-clean-practice}
+## Practice Exercises {#sec-module3-merge-practice}
 
 1. Join the variety trial yields to `crop_prices.csv`. Use `anti_join` to find the crops that did not match, and list them.
 2. Reconcile the crop names so the join succeeds, then compute revenue per acre by crop.
-3. Read `grain_deliveries_messy.csv` and find every duplicated `ticket_id`. How many are exact duplicates and how many conflict?
-4. Find the impossible values in the file. For each, say what you think the intended value was and why.
-5. Count the spellings of each crop. Clean them with `str_trim` and `str_to_title`, then check the count again.
-6. Three moisture readings are in the wrong unit. Find them, convert them, and say how you knew.
+3. Using the Canadian and US canola tables you pulled in the last chapter, convert both to t/ha and join them by year. Which years appear in one table but not the other?
+4. Deliberately join the field yields to a per-crop-per-year price table on `crop` alone. Confirm the row count grows, explain the result, then fix the key.
