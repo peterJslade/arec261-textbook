@@ -36,12 +36,16 @@ f_t = Font(name="Arial", size=12, bold=True, color="4A7C59")
 CEN = Alignment(horizontal="center")
 
 
-def write_data(path, ds, years=None, crop=None):
+def write_data(path, ds, years=None, crop=None, unit_bu=False):
     rows = list(csv.DictReader(open(f"{DATA}/{FILES[ds]}")))
     # A question about one crop ships that crop only, so the pivot the student
     # builds from this Data tab reproduces the answer key exactly.
     if crop:
         rows = [r for r in rows if r.get("Crop", "").strip().lower() == crop.lower()]
+    # several questions say "bu/ac" -- the long file also carries lentils in lb/ac,
+    # which would sit at the top of any yield ranking as a pure unit artefact
+    if unit_bu:
+        rows = [r for r in rows if r.get("Unit", "bu/ac").strip() == "bu/ac"]
     # The long RM file is 71k rows and the pivot cache copies every record, so a
     # question about two named years ships those years only -- both to keep the
     # workbook small and because that is the slice the question is about.
@@ -72,7 +76,7 @@ def build(qno, spec):
     ds = spec["ds"]
     path = f"{OUT}/q{int(qno):03d}.xlsx"
     n, cols = write_data(path, ds, spec.get("years") or None,
-                         spec.get("crop"))
+                         spec.get("crop"), spec.get("unit_bu", False))
 
     vf = spec.get("valfield") or VALFIELD[ds]
     values = [{"field": vf, "agg": a.lower(),
