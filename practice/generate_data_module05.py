@@ -78,6 +78,14 @@ for i in range(1, N + 1):
         "yield_bu_acre": round(yield_bu, 1),
     })
 
+# Three fields lost their rain-gauge readings (the Module 5 missing-data
+# example). Blank them in the file; the report below uses complete cases,
+# which is also what cor(use = "complete.obs") and lm() see.
+MISSING_RAIN_IDS = {"C012", "C047", "C088"}
+for r in rows:
+    if r["field_id"] in MISSING_RAIN_IDS:
+        r["rainfall_mm"] = ""
+
 out = os.path.join(DATA_DIR, "canola_trial.csv")
 with open(out, "w", newline="") as f:
     w = csv.DictWriter(f, fieldnames=list(rows[0]))
@@ -114,9 +122,11 @@ def ols(y, xs):
                     M[r][cc] -= f * M[c][cc]
     return [M[r][k] / M[r][r] for r in range(k)]
 
-fert = col("fertilizer_kg_ha")
-rain = col("rainfall_mm")
-y = col("yield_bu_acre")
+# Complete cases only: what cor(use = "complete.obs") and lm() operate on.
+cc = [r for r in rows if r["rainfall_mm"] != ""]
+fert = [r["fertilizer_kg_ha"] for r in cc]
+rain = [r["rainfall_mm"] for r in cc]
+y = [r["yield_bu_acre"] for r in cc]
 
 print(f"wrote {out}  ({len(rows)} rows)")
 print()

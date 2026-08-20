@@ -295,24 +295,23 @@ since Module 1; only the way we ask the computer to calculate them has.
 
 ### Missing values {.unnumbered}
 
-Real datasets often contain missing observations, which R represents as `NA`. Our trial data
-happens to be complete -- the data viewer showed 0% missing for every column -- but suppose
-one of four yields had not been recorded:
+Real datasets often contain missing observations, which R represents as `NA`. In our trial
+data, three fields have no rainfall reading -- a rain gauge fails, or a value never gets
+recorded. You may have spotted them already: `summary(trial_data)` above reports `NA's :3`
+under `rainfall_mm`. Watch what happens when we take the mean of that column:
 
 ```{r}
 #| eval: true
 #| echo: false
 console('
-harvested <- c(56.7, 62.0, NA, 48.9)
+mean(trial_data$rainfall_mm)
 
-mean(harvested)
-
-mean(harvested, na.rm = TRUE)
+mean(trial_data$rainfall_mm, na.rm = TRUE)
 ')
 ```
 
-The first call says: calculate the mean of these observations. One of them is unknown, so R
-cannot calculate the mean, and it returns `NA` rather than silently discarding information.
+The first call says: calculate the mean of these observations. Three of them are unknown, so
+R cannot calculate the mean, and it returns `NA` rather than silently discarding information.
 The second call, with `na.rm = TRUE` ("remove NAs"), says: calculate the mean using the
 observations that are not missing. That may be exactly what we want -- but now the decision
 is visible in the code.

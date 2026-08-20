@@ -194,25 +194,32 @@ summary(model2)
 ```
 Coefficients:
                  Estimate Std. Error t value Pr(>|t|)
-(Intercept)      24.0629     1.9458   12.37   <2e-16 ***
-fertilizer_kg_ha  0.1397     0.0144    9.69   <2e-16 ***
-rainfall_mm       0.0520     0.0085    6.15   2.4e-08 ***
+(Intercept)      23.9015     2.0237   11.81   <2e-16 ***
+fertilizer_kg_ha  0.1345     0.0147    9.12  3.1e-15 ***
+rainfall_mm       0.0556     0.0087    6.39  3.8e-09 ***
+
+Residual standard error: 3.306 on 114 degrees of freedom
+  (3 observations deleted due to missingness)
 ```
 
+One line to notice before the coefficients: `lm()` quietly dropped the three fields with no
+rainfall reading, so this model is fit on 117 fields rather than 120.  It tells you so, but
+only in that one parenthetical -- another reason to know your data before you model it.
+
 Look at what happened to the fertilizer coefficient.  On its own it was **0.181**.  With
-rainfall in the model it is **0.140** -- about a quarter smaller.  Nothing about the fields
+rainfall in the model it is **0.135** -- about a quarter smaller.  Nothing about the fields
 changed.  What changed is the question the number answers.
 
 ### What a coefficient means now {.unnumbered}
 
 In the simple regression, 0.181 was the average yield difference between fields that differ by
 one kg/ha of nitrogen -- *any* two such fields.  But in this trial, fields with more nitrogen
-also tended to get more rain: the correlation between the two was 0.47, which you computed in
+also tended to get more rain: the correlation between the two was 0.46, which you computed in
 @sec-correlation-chapter.  Farmers put fertilizer where they expect it to pay, and that means
 the better-watered land.  So a heavily fertilized field was, on average, also a wetter field,
 and the 0.181 was quietly crediting nitrogen with some of the rain's work.
 
-The multiple regression separates them.  Its 0.140 is the expected yield difference between
+The multiple regression separates them.  Its 0.135 is the expected yield difference between
 two fields that differ by one kg/ha of nitrogen *and get the same rainfall*.  That is the
 number you want if you are deciding how much nitrogen to buy.
 
@@ -236,7 +243,7 @@ does more than a random column would.  The trial models:
 |                              | $R^2$ | Adjusted $R^2$ |
 |------------------------------|-------|----------------|
 | yield ~ fertilizer           | 0.568 | 0.564          |
-| yield ~ fertilizer + rainfall| 0.674 | 0.668          |
+| yield ~ fertilizer + rainfall| 0.665 | 0.659          |
 
 Rainfall passes that test.  When you are comparing models with different numbers of
 predictors, compare the adjusted figure.
@@ -279,11 +286,13 @@ Slope 0.181 bu/ac per kg/ha, $R^2 = 0.568$.
 **4. Ask what else could explain it.**
 
 ```r
-cor(trial$fertilizer_kg_ha, trial$rainfall_mm)     # 0.470
+cor(trial$fertilizer_kg_ha, trial$rainfall_mm,
+    use = "complete.obs")                          # 0.461
 ```
 
 Fertilizer and rainfall move together in this trial, and rainfall affects yield too.  The
-simple slope is therefore suspect.
+simple slope is therefore suspect.  (The `use = "complete.obs"` drops the three fields with
+no rainfall reading; without it the correlation is `NA`.)
 
 **5. Control for it.**
 
@@ -292,17 +301,18 @@ model2 <- lm(yield_bu_acre ~ fertilizer_kg_ha + rainfall_mm, data = trial)
 summary(model2)
 ```
 
-The nitrogen coefficient falls to 0.140 and adjusted $R^2$ improves from 0.564 to 0.668.
+The nitrogen coefficient falls to 0.135 and adjusted $R^2$ improves from 0.564 to 0.659.
 
 **6. Write it down.**
 
-> Across 120 canola fields, nitrogen rate and yield were strongly correlated ($r = 0.75$).  A
+> Across 120 canola fields, nitrogen rate and yield were strongly correlated ($r = 0.74$).  A
 > simple regression put the association at 0.18 bu/ac per kg/ha of N.  However, nitrogen rate
-> was itself correlated with growing-season rainfall ($r = 0.47$), so this figure conflates the
-> two.  Holding rainfall fixed, the estimated nitrogen effect is 0.14 bu/ac per kg/ha
-> (adjusted $R^2 = 0.67$).  Fields in this trial received between 58 and 187 kg/ha, and the
-> estimate should not be extended beyond that range.  Because nitrogen was not randomly
-> assigned, these are associations; an unmeasured variable could still be driving both.
+> was itself correlated with growing-season rainfall ($r = 0.46$), so this figure conflates the
+> two.  Holding rainfall fixed, the estimated nitrogen effect is 0.13 bu/ac per kg/ha
+> (adjusted $R^2 = 0.66$; three fields lacking a rainfall reading were excluded).  Fields in
+> this trial received between 58 and 187 kg/ha, and the estimate should not be extended
+> beyond that range.  Because nitrogen was not randomly assigned, these are associations; an
+> unmeasured variable could still be driving both.
 
 That last sentence is the one students leave out.  Write it anyway.
 
