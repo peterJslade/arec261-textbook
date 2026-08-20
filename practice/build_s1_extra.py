@@ -317,11 +317,18 @@ def q16():
     put(ws,last+1,2,f"=SUM(B{first}:B{last})",font=f_bold,fill=lock_fill,fmt=INT,align=centre)
     put(ws,last+1,3,f"={FT}(B{last+1})",font=f_form)
     stat(ws,last+3,"SUM including the total row",f"=SUM(B{first}:B{last+1})",INT)
-    note(ws,last+5,
-        "7,675 against 15,350. The total row already holds the five fields, so "
-        "including it adds the whole farm a second time. Leave a blank row under a "
-        "table, or look at what the range highlights before pressing Enter.",4)
-    finish(ws,[("A",26),("B",14),("C",26),("D",30)],last+5)
+    # the opposite failure: two fields added below a range that never widened
+    r0 = last + 5
+    put(ws,r0,1,"Two fields added later",font=f_bold)
+    for k,(n,v) in enumerate((("Xena",1615),("Yardley",940))):
+        put(ws,r0+1+k,1,n); put(ws,r0+1+k,2,v,fmt=INT,align=centre)
+    stat(ws,r0+4,"The original five-row SUM",f"=SUM(B{first}:B{last})",INT)
+    stat(ws,r0+5,"SUM over all seven",f"=SUM(B{first}:B{last},B{r0+1}:B{r0+2})",INT)
+    note(ws,r0+7,
+        "7,675 / 15,350 / 7,675 / 10,230. A range can reach too far and swallow the "
+        "total row, doubling the answer, or fall short and miss rows added later. "
+        "Neither raises an error -- both just return a plausible number.",4)
+    finish(ws,[("A",28),("B",14),("C",26),("D",30)],r0+7)
     return wb
 
 

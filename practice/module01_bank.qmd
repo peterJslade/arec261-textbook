@@ -127,7 +127,7 @@ Date	Crop	Tonnes	Km hauled
 <details><summary>Answer</summary>
 
 - (a) Dates formatted with a short month name (`DD-MMM-YY`); tonnes `0.0`.
-- (b) `=A3-A2` filled down → **4, 5, 9, 7** days. If the cell shows `04-Jan-1900` it inherited the date format; change it to Number.
+- (b) `=A3-A2` filled down → **4, 5, 9, 7** days. A fresh cell returns these as plain numbers. If yours shows something like `04-Jan-1900`, that cell already carries a date format -- change it to Number.
 - (c) `=A6-A2` = **25** days. `=COUNT(C2:C6)` = **5**; `=COUNTA(B2:B6)` = **5**. `COUNT` counts only numbers, and the Crop column holds text, so it would return 0 — `COUNTA` counts any non-empty cell.
 - (d) `=(4.10+0.085*D2)*C2*(1-0.015)` filled down → **$306.85, $318.90, $385.50, $524.35, $353.39**; total **$1,889.00**.
 - (e) Without the parentheses Excel applies multiplication before addition, so it computes $4.10 *plus* (0.085 × km × tonnes × 0.985) — the base rate is added once for the whole load instead of being charged on every tonne. The base and the per-kilometre rate must be grouped first: `=(4.10+0.085*D2)*C2*(1-0.015)`.
@@ -418,8 +418,8 @@ Sample	0.78
 
 <details><summary>Answer</summary>
 
-- (a) With yields in `B2:B4`, the base price in `D1`, and factors in `B6:B8` laid out across as a row, the fill formula is `=$B2*$D$1*C$5`-style: the crop reference locks the **column**, the factor reference locks the **row**, and the price is fully locked.
-- (b) The crop yield needs `$B2` (column locked, row free) so it changes down but not across. The factor needs `C$5` (row locked, column free) so it changes across but not down. The base price needs `$D$1` because it never changes.
+- (a) The layout is the student's own; the answer workbook puts the base price in `B4`, the yields down `B8:B10`, and the three grade factors across `C7:E7`. The fill formula is then `=$B8*$B$4*C$7`, written once in `C8` and filled across and down.
+- (b) The yield reference `$B8` has an **absolute column and a relative row**, so it stays in column B while moving down the crops. The factor reference `C$7` has a **relative column and an absolute row**, so it moves across the grades while staying on row 7. The base price `$B$4` is absolute in both, because it never changes.
 - (c) Currency, `$#,##0`.
 - (d) `=MAX(...)` over the grid = **$1,028** — barley at No. 1.
 - (e) Every cell shows the same number, **$585** (canola at No. 1), because nothing moves when the formula is filled.
@@ -493,7 +493,7 @@ Westgate	2026-05-12	2026-09-22
 - (b) `=MIN` **120**; `=MAX` **136**; `=AVERAGE` **130.2** days.
 - (c) `=MAX(D2:D6)-MIN(D2:D6)` = **16** days.
 - (d) Shortest **Tamarack** at 120 days; longest **Verdant** at 136 days; a gap of **16** days.
-- (e) The result cell inherited the date format from the cells being subtracted, so Excel is showing the number 120 as a date. Change the cell's format to Number.
+- (e) The cell is carrying a date format, so Excel is displaying the number 120 as a date -- 120 days after 30 December 1899. The value is right; only the format is wrong. Set the cell to Number.
 
 📗 **[Answer workbook](../practice/answers/s1_q13.xlsx)** — the finished sheet, with the formulas live and a `FORMULATEXT` column showing what was typed.
 
@@ -586,17 +586,17 @@ Westgate	1420
 
 **(c)** Explain why the second figure is exactly twice the first.
 
-**(d)** A colleague's sheet reports 15,350 bushels for this farm. Using your answers, say what they almost certainly did.
+**(d)** Two more fields are added below the table: `Xena 1615` and `Yardley 940`. Type them in directly under the last row, above your total. Report what your original `SUM` from (a) now shows, and what the true total should be.
 
-**(e)** State, in one sentence, the habit that prevents this when a sheet grows subtotal rows.
+**(e)** Using (b) and (d), describe the two opposite ways a `SUM` range can be wrong, and state the habit that guards against both.
 
 <details><summary>Answer</summary>
 
 - (a) `=SUM(B2:B6)` = **7,675** bushels.
 - (b) `=SUM(B2:B7)` = **15,350** — the range now swallows the total row.
 - (c) The total row already holds the sum of the five fields. Including it adds every bushel a second time, so the answer is exactly double.
-- (d) They pointed a `SUM` at a range that included a subtotal, counting the whole farm twice.
-- (e) Keep totals outside the range you sum — leave a blank row, or check what the range highlights before pressing Enter.
+- (d) The original `=SUM(B2:B6)` still reads **7,675**. It was written for five rows and does not widen when rows are inserted below it, so the two new fields are simply missing. The true total is **10,230** — a shortfall of 2,555 bushels that nothing on the sheet flags.
+- (e) A range can reach too far and swallow a subtotal, doubling the answer (b), or fall short and miss rows that were added later (d). Both return a plausible number with no error. Check what the range actually highlights before pressing Enter, and check it again after the sheet grows.
 
 📗 **[Answer workbook](../practice/answers/s1_q16.xlsx)** — the finished sheet, with the formulas live and a `FORMULATEXT` column showing what was typed.
 
@@ -726,7 +726,7 @@ Date	Tonnes
 
 **(c)** Compute the total span from first delivery to last, and the total and average tonnes.
 
-**(d)** Format one date cell as **General** and report the number you see. Explain what that number is.
+**(d)** Format the **first** date cell as **General** and report the number you see. Explain what that number is.
 
 **(e)** The dates arrive as text on a colleague's machine. They subtract two of them and get a sensible-looking day count anyway. Explain how that is possible, and what *would* break.
 
@@ -735,7 +735,7 @@ Date	Tonnes
 - (a) Real dates sit **right**-aligned by default; text sits left. That alignment is the quickest check before anything else.
 - (b) `=A3-A2` filled down → **8, 7, 14, 11** days.
 - (c) Span `=A6-A2` = **40** days; total **254.5** tonnes; average **50.9** tonnes.
-- (d) **46,261** — the number of days since 30 December 1899, which is how Excel stores that date. Dates are numbers wearing a format.
+- (d) **46,261** — the serial number Excel stores for 27 August 2026. A date is a count of days held as an ordinary number, which is why one date can be subtracted from another. (The count runs from 30 December 1899, though the figure matters more than the origin.)
 - (e) Excel converts date-shaped text when it is used in arithmetic, so a subtraction still returns the right number of days. The damage shows up in the range functions instead: `COUNT`, `SUM` and `AVERAGE` skip text entirely, so a column of text dates counts as **zero** values rather than raising an error. Sorting goes alphabetically too. A formula that quietly returns 0 is worse than one that fails.
 
 📗 **[Answer workbook](../practice/answers/s1_q20.xlsx)** — the finished sheet, with the formulas live and a `FORMULATEXT` column showing what was typed.
