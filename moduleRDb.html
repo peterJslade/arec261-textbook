@@ -602,15 +602,29 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>prices <span class="ot">&lt;-</span> <span class="fu">read_delim</span>(<span class="st">"data/prices.txt"</span>, <span class="at">delim =</span> <span class="st">";"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <section id="sec-csv-excel" class="level3" data-number="7.1.1">
 <h3 data-number="7.1.1" class="anchored" data-anchor-id="sec-csv-excel"><span class="header-section-number">7.1.1</span> Opening a CSV in Excel</h3>
-<p>Double-clicking a CSV opens it in Excel, and Excel makes its own guesses about every column on the way in. The ones that go wrong:</p>
+<p>Double-clicking a CSV opens it in Excel, and Excel makes its own guesses about every column on the way in. To see them, download <a href="practice/data/elevator_tickets.csv"><code>elevator_tickets.csv</code></a>, twenty grain delivery tickets, and open it both ways: once by double-clicking, and once in a text editor. The ones that go wrong:</p>
 <ul>
 <li>Leading zeros disappear. An ID like <code>00451</code> becomes <code>451</code>, and a Saskatchewan RM number or a postal code loses its shape.</li>
 <li>Long numbers turn into scientific notation. A 16-digit account number displays as <code>1.23E+15</code>, and the last digits are rounded away for good.</li>
 <li>Anything that looks like a date becomes one. <code>3-4</code> becomes March 4th, and the gene name <code>MARCH1</code> became a date often enough that geneticists renamed the gene.</li>
 <li>On a computer set to a European locale, a semicolon-separated file lands entirely in column A, and <code>1.5</code> is read as text because the decimal mark is expected to be a comma.</li>
 </ul>
-<p>None of this matters if you only look. It matters when you save, because Excel writes its guesses back over the original file. If you need to open a CSV in Excel, use <strong>Data &gt; Get Data &gt; From Text/CSV</strong> (on a Mac, <strong>Data &gt; Get Data (Power Query)</strong>) instead of double-clicking. The import window shows a preview, lets you pick the delimiter, and, under <strong>Transform Data</strong>, lets you set each column’s type before anything is loaded: text for IDs, date for dates, decimal for numbers. It is the Excel version of <code>col_types</code>. Save the result as <code>.xlsx</code> if you want to keep the types and formatting; saving as CSV throws them away again.</p>
-<p>If a file has already landed in one column, <strong>Data &gt; Text to Columns</strong> splits it after the fact. Choose <strong>Delimited</strong>, tick the separator the file uses, and the last step of the wizard lets you set each column to Text, Date or General, which is the fix for leading zeros and for dates as well. The same tool splits a column that holds two values, like <code>"Swift Current, SK"</code> into a town and a province.</p>
+<p>In the tickets file, <code>ticket_id</code> loses its zeros, <code>permit_book</code> becomes <code>4.52E+15</code>, and a <code>lot_code</code> of <code>3-4</code> turns into 4-Mar.</p>
+<!-- Screenshot: elevator_tickets.csv opened by double-clicking. Show columns A-C.
+![The tickets file opened by double-clicking. Ticket `00001` has become `1`, the permit book
+number is in scientific notation, and lot `3-4` is now a date.](images/csv_doubleclick.png){#fig-csv-doubleclick}
+-->
+<p>None of this matters if you only look. It matters when you save, because Excel writes its guesses back over the original file. If you need to open a CSV in Excel, use <strong>Data &gt; Get Data &gt; From Text/CSV</strong> (on a Mac, <strong>Data &gt; Get Data (Power Query)</strong>) instead of double-clicking. The import window shows a preview, lets you pick the delimiter, and, under <strong>Transform Data</strong>, lets you set each column’s type before anything is loaded: text for IDs, date for dates, decimal for numbers. It is the Excel version of <code>col_types</code>.</p>
+<!-- Screenshot: the Power Query / From Text/CSV preview for elevator_tickets.csv, ideally
+with the ticket_id column type dropdown open showing Text.
+![The import preview.  Set `ticket_id`, `permit_book` and `lot_code` to Text before loading.](images/csv_getdata.png){#fig-csv-getdata}
+-->
+<p>Save the result as <code>.xlsx</code> if you want to keep the types and formatting; saving as CSV throws them away again.</p>
+<p><a href="practice/data/elevator_tickets_semicolon.csv"><code>elevator_tickets_semicolon.csv</code></a> is the same twenty tickets as a European-style file: semicolons between columns and commas for decimals. Double-clicked, the whole thing lands in column A. <strong>Data &gt; Text to Columns</strong> splits it after the fact. Choose <strong>Delimited</strong>, tick the separator the file uses, and the last step of the wizard lets you set each column to Text, Date or General, which is the fix for leading zeros and for dates as well. <strong>Advanced</strong> on that step is where you tell it the decimal mark is a comma, so <code>27,4</code> becomes 27.4 rather than 274. The same tool splits a column that holds two values, like <code>"Swift Current, SK"</code>, into a town and a province.</p>
+<!-- Screenshot: Text to Columns step 3 with ticket_id selected and Text chosen; or the
+Advanced dialog showing decimal separator set to comma.
+![Step 3 of Text to Columns: each column gets a type, and **Advanced** sets the decimal mark.](images/csv_text_to_columns.png){#fig-csv-text-to-columns}
+-->
 </section>
 <section id="sec-col-types" class="level3" data-number="7.1.2">
 <h3 data-number="7.1.2" class="anchored" data-anchor-id="sec-col-types"><span class="header-section-number">7.1.2</span> Check what R guessed</h3>
