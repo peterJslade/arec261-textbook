@@ -61,7 +61,26 @@ div.sourceCode
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="site_libs/quarto-nav/quarto-nav.js"></script>
@@ -549,8 +568,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#when-is-dropping-safe" id="toc-when-is-dropping-safe" class="nav-link" data-scroll-target="#when-is-dropping-safe">When is dropping safe?</a></li>
   </ul></li>
   <li><a href="#sec-dates-text" id="toc-sec-dates-text" class="nav-link" data-scroll-target="#sec-dates-text"><span class="header-section-number">9.7</span> Dates Stored as Text</a></li>
-  <li><a href="#sec-reshaping" id="toc-sec-reshaping" class="nav-link" data-scroll-target="#sec-reshaping"><span class="header-section-number">9.8</span> Reshaping: <code>pivot_longer</code> and <code>pivot_wider</code></a></li>
-  <li><a href="#sec-cleaning-checklist" id="toc-sec-cleaning-checklist" class="nav-link" data-scroll-target="#sec-cleaning-checklist"><span class="header-section-number">9.9</span> A Checklist</a></li>
+  <li><a href="#sec-tidy-data" id="toc-sec-tidy-data" class="nav-link" data-scroll-target="#sec-tidy-data"><span class="header-section-number">9.8</span> Tidy Data</a>
+  <ul>
+  <li><a href="#recognizing-untidy-data" id="toc-recognizing-untidy-data" class="nav-link" data-scroll-target="#recognizing-untidy-data">Recognizing untidy data</a></li>
+  </ul></li>
+  <li><a href="#sec-reshaping" id="toc-sec-reshaping" class="nav-link" data-scroll-target="#sec-reshaping"><span class="header-section-number">9.9</span> Reshaping: <code>pivot_longer</code> and <code>pivot_wider</code></a></li>
+  <li><a href="#sec-cleaning-checklist" id="toc-sec-cleaning-checklist" class="nav-link" data-scroll-target="#sec-cleaning-checklist"><span class="header-section-number">9.10</span> A Checklist</a></li>
   </ul>
 </nav>
     </div>
@@ -592,13 +615,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>Recognize the disguises missing values wear, and count them properly.</li>
 <li>Decide – and justify – when dropping missing values is safe.</li>
 <li>Spot dates that imported as text, and say why it matters.</li>
-<li>Reshape a dataset between wide and long with <code>pivot_longer</code> and <code>pivot_wider</code>.</li>
+<li>Explain what tidy data means, and reshape a dataset between wide and long with <code>pivot_longer</code> and <code>pivot_wider</code>.</li>
 </ol>
 </div>
 </section>
 <section id="sec-clean-names" class="level2" data-number="9.1">
 <h2 data-number="9.1" class="anchored" data-anchor-id="sec-clean-names"><span class="header-section-number">9.1</span> Awkward Column Names</h2>
-<p>The first thing to fix is often the names. Real files arrive with columns like <code>Yield (bu/ac)</code>, <code>REGION_NAME</code>, or <code>Field ID Number</code> – workable, but annoying to type and easy to mistype. The snake_case convention (<a href="module02b.html#sec-renaming" class="quarto-xref"><span>Section 5.8</span></a>) wants <code>yield_bu_ac</code>, <code>region</code>, <code>field_id</code>.</p>
+<p>The first thing to fix is often the names. Real files arrive with columns like <code>Yield (bu/ac)</code>, <code>REGION_NAME</code>, or <code>Field ID Number</code> – readable to a person, but annoying to type and easy to mistype in code. This book prefers <strong>snake_case</strong>: lowercase, words separated by underscores, short but descriptive – <code>yield_bu_ac</code>, <code>region</code>, <code>field_id</code>.</p>
 <p>For individual columns, <code>rename()</code> does it:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> deliveries <span class="sc">|&gt;</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">weight_tonnes =</span> <span class="st">"Weight (t)"</span>,</span>
@@ -713,20 +736,72 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(ticket_id, delivery_date)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Fixing messy dates properly uses tools we have not covered (the <code>lubridate</code> package is the standard one); for this course, it is enough to notice the problem and state the format explicitly when you read the file.</p>
 </section>
-<section id="sec-reshaping" class="level2" data-number="9.8">
-<h2 data-number="9.8" class="anchored" data-anchor-id="sec-reshaping"><span class="header-section-number">9.8</span> Reshaping: <code>pivot_longer</code> and <code>pivot_wider</code></h2>
-<p>The last defect is not a wrong value but a wrong shape. Tidy data (<a href="module02b.html#sec-tidy-data" class="quarto-xref"><span>Section 5.7</span></a>) wants every variable in its own column, and files often arrive with values in the column headers instead – one column per crop, or per year. StatCan downloads have the opposite problem: long where you want wide.</p>
+<section id="sec-tidy-data" class="level2" data-number="9.8">
+<h2 data-number="9.8" class="anchored" data-anchor-id="sec-tidy-data"><span class="header-section-number">9.8</span> Tidy Data</h2>
+<p>The last defect is not a wrong value but a wrong shape. The tidyverse is built around an idea called <strong>tidy data</strong> <span class="citation" data-cites="r4ds">(<a href="references.html#ref-r4ds" role="doc-biblioref">Wickham et al. 2023</a>)</span>. A dataset is tidy when:</p>
+<ol type="1">
+<li>Every variable has its own <strong>column</strong>.</li>
+<li>Every observation has its own <strong>row</strong>.</li>
+<li>Every value has its own <strong>cell</strong>.</li>
+</ol>
+<p>For example, this dataset is tidy:</p>
+<pre><code>  region  crop   yield
+  South   Canola    41
+  South   Wheat     52
+  South   Barley    64
+  Central Canola    44
+  Central Wheat     55
+  Central Barley    68</code></pre>
+<p>An observation here is a region-crop combination; the variables are <code>region</code>, <code>crop</code>, and <code>yield</code>. Each variable has a column and each observation has a row.</p>
+<p>Now compare this version of the same data:</p>
+<pre><code>  region  Canola Wheat Barley
+  South       41    52     64
+  Central     44    55     68</code></pre>
+<p>This table is easier for a person to read, but it is not tidy. Canola, Wheat, and Barley are not three different variables; they are three values of the variable <code>crop</code>. This is the wide-versus-long distinction from <a href="module01b.html#sec-wide-long" class="quarto-xref"><span>Section 2.4</span></a>, where a PivotTable needed the long form. For analysis in R, the long form is usually the more convenient one, because <code>crop</code> is an ordinary variable that R can filter by, group by, and compare.</p>
+<section id="recognizing-untidy-data" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="recognizing-untidy-data">Recognizing untidy data</h3>
+<p>Some common warning signs:</p>
+<ul>
+<li><strong>Values stored in column names.</strong> A table with columns <code>region</code>, <code>2024</code>, <code>2025</code>, <code>2026</code>, where the year columns hold yields. The years are values of a variable called <code>year</code>; the tidy version has columns <code>region</code>, <code>year</code>, <code>yield</code>.</li>
+<li><strong>More than one variable in a column.</strong> A <code>region_variety</code> column containing <code>"South_InVigor"</code>. That is two variables, <code>region</code> and <code>variety</code>, in one column.</li>
+<li><strong>One observation spread over several rows.</strong> Price in one row and quantity in another row for the same market and year.</li>
+</ul>
+<p>What counts as an observation depends on the dataset and the question, but the basic test is always the same: what does one row represent? You should be able to answer that. When you first open a dataset, ask what one row represents, what each column represents, whether any values are hiding in column names, and whether any column holds several variables at once.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Other resources — tidy data
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<ul>
+<li><strong>R for Data Science (2nd ed.)</strong> – <a href="https://r4ds.hadley.nz/data-tidy">Chapter 5, “Data tidying”</a> develops the tidy-data idea and shows how datasets are reshaped between long and wide forms.</li>
+<li><strong>Video</strong> – Riffomonas Project, <a href="https://www.youtube.com/watch?v=ZVddiwrbrr4"><em>Reshaping data to be long or wide with pivot_longer and pivot_wider</em></a>.</li>
+</ul>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="sec-reshaping" class="level2" data-number="9.9">
+<h2 data-number="9.9" class="anchored" data-anchor-id="sec-reshaping"><span class="header-section-number">9.9</span> Reshaping: <code>pivot_longer</code> and <code>pivot_wider</code></h2>
+<p>Fixing the shape is the job of a pair of <code>tidyr</code> functions. Files often arrive with values in the column headers – one column per crop, or per year – and StatCan downloads have the opposite problem: long where you want wide.</p>
 <p><code>pivot_longer</code> turns column headers into values. You tell it which columns to gather, what to call the column that will hold their <em>names</em>, and what to call the column that will hold their <em>values</em>:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>yields_wide</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>yields_wide</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <pre><code>  region  Canola Wheat Barley
   South       41    52     64
   Central     44    55     68
   North       38    49     60</code></pre>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>yields_long <span class="ot">&lt;-</span> yields_wide <span class="sc">|&gt;</span></span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">c</span>(Canola, Wheat, Barley),</span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">"crop"</span>,</span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>               <span class="at">values_to =</span> <span class="st">"yield"</span>)</span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>yields_long</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>yields_long <span class="ot">&lt;-</span> yields_wide <span class="sc">|&gt;</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">c</span>(Canola, Wheat, Barley),</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">"crop"</span>,</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>               <span class="at">values_to =</span> <span class="st">"yield"</span>)</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>yields_long</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <pre><code>  region  crop   yield
   South   Canola    41
   South   Wheat     52
@@ -735,12 +810,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   ...</code></pre>
 <p>Nine rows now: one per region-crop combination, with <code>crop</code> and <code>yield</code> as ordinary columns that <code>filter</code> and <code>group_by</code> can use.</p>
 <p><code>pivot_wider</code> goes the other way. Tell it which column holds the names and which holds the values:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>yields_long <span class="sc">|&gt;</span></span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> crop, <span class="at">values_from =</span> yield)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>yields_long <span class="sc">|&gt;</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> crop, <span class="at">values_from =</span> yield)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Long is usually what analysis wants; wide is often what people want to read. Expect to pivot in both directions.</p>
 </section>
-<section id="sec-cleaning-checklist" class="level2" data-number="9.9">
-<h2 data-number="9.9" class="anchored" data-anchor-id="sec-cleaning-checklist"><span class="header-section-number">9.9</span> A Checklist</h2>
+<section id="sec-cleaning-checklist" class="level2" data-number="9.10">
+<h2 data-number="9.10" class="anchored" data-anchor-id="sec-cleaning-checklist"><span class="header-section-number">9.10</span> A Checklist</h2>
 <p>Run through this on every new file:</p>
 <ol type="1">
 <li><code>glimpse()</code> – are the column types what you expect?</li>
@@ -752,6 +827,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </ol>
 
 
+<div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
+<div id="ref-r4ds" class="csl-entry" role="listitem">
+Wickham, Hadley, Mine Çetinkaya-Rundel, and Garrett Grolemund. 2023. <em>R for Data Science</em>. Second. O’Reilly Media. <a href="https://r4ds.hadley.nz/">https://r4ds.hadley.nz/</a>.
+</div>
+</div>
 </section>
 
 </main> <!-- /main -->

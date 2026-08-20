@@ -430,7 +430,7 @@
     "href": "module02b.html",
     "title": "5  Working with Data in R",
     "section": "",
-    "text": "Learning Objectives\nIn the last chapter, we created small datasets directly in R. Real data analysis usually starts somewhere else: with a file. That creates a few practical questions. Where should the file go? How does R find it? How do we bring it into R? And once it is there, how do we check that R has read it correctly?\nThis chapter develops a simple workflow for working with real data: keep everything for an analysis in one project folder, refer to files with relative paths, use packages to add functions to R, read the data from a CSV file, inspect it before doing any analysis, and recognize whether it is organized in a useful shape. These habits are not exciting, but they prevent a remarkable number of problems later.\nThe data we will work with is a small .csv file of canola yield trials (hypothetical data): 120 fields, each with an ID, a fertilizer rate, growing-season rainfall, a variety, and a yield. It can be downloaded here: canola_trial.csv.",
+    "text": "Learning Objectives\nIn the last chapter, we created small datasets directly in R. Real data analysis usually starts somewhere else: with a file. That creates a few practical questions. Where should the file go? How does R find it? How do we bring it into R? And once it is there, how do we check that R has read it correctly?\nThis chapter develops a simple workflow for working with real data: keep everything for an analysis in one project folder, refer to files with relative paths, use packages to add functions to R, read the data from a CSV file, and inspect it before doing any analysis. These habits are not exciting, but they prevent a remarkable number of problems later.\nThe data we will work with is a small .csv file of canola yield trials (hypothetical data): 120 fields, each with an ID, a fertilizer rate, growing-season rainfall, a variety, and a yield. It can be downloaded here: canola_trial.csv.",
     "crumbs": [
       "Feedback",
       "Module 2: Introduction to R",
@@ -442,7 +442,7 @@
     "href": "module02b.html#learning-objectives",
     "title": "5  Working with Data in R",
     "section": "",
-    "text": "By the end of this chapter you should be able to:\n\nSet up a self-contained project folder for an analysis.\nExplain the difference between an absolute and a relative path.\nInstall and load an R package, and explain the difference between the two.\nRead a CSV file into R as a data frame.\nInspect a new dataset and identify common problems.\nCalculate basic summary statistics while handling missing values correctly.\nExplain what tidy data means and recognize data that needs to be reshaped.",
+    "text": "By the end of this chapter you should be able to:\n\nSet up a self-contained project folder for an analysis.\nExplain the difference between an absolute and a relative path.\nInstall and load an R package, and explain the difference between the two.\nRead a CSV file into R as a data frame.\nInspect a new dataset and identify common problems.\nCalculate basic summary statistics while handling missing values correctly.",
     "crumbs": [
       "Feedback",
       "Module 2: Introduction to R",
@@ -522,35 +522,11 @@
     ]
   },
   {
-    "objectID": "module02b.html#sec-tidy-data",
-    "href": "module02b.html#sec-tidy-data",
-    "title": "5  Working with Data in R",
-    "section": "5.7 Tidy Data",
-    "text": "5.7 Tidy Data\nBefore analyzing a dataset, we also need to think about its shape. The tidyverse is built around an idea called tidy data (Wickham et al. 2023). A dataset is tidy when:\n\nEvery variable has its own column.\nEvery observation has its own row.\nEvery value has its own cell.\n\nFor example, this dataset is tidy:\n  region  crop   yield\n  South   Canola    41\n  South   Wheat     52\n  South   Barley    64\n  Central Canola    44\n  Central Wheat     55\n  Central Barley    68\nAn observation here is a region-crop combination; the variables are region, crop, and yield. Each variable has a column and each observation has a row.\nNow compare this version of the same data:\n  region  Canola Wheat Barley\n  South       41    52     64\n  Central     44    55     68\nThis table is easier for a person to read, but it is not tidy. Canola, Wheat, and Barley are not three different variables; they are three values of the variable crop. This is the wide-versus-long distinction from Section 2.4, where a PivotTable needed the long form. For analysis in R, the long form is usually the more convenient one, because crop is an ordinary variable that R can filter by, group by, and compare.\n\nRecognizing untidy data\nSome common warning signs:\n\nValues stored in column names. A table with columns region, 2024, 2025, 2026, where the year columns hold yields. The years are values of a variable called year; the tidy version has columns region, year, yield.\nMore than one variable in a column. A region_variety column containing \"South_InVigor\". That is two variables, region and variety, in one column.\nOne observation spread over several rows. Price in one row and quantity in another row for the same market and year.\n\nWhat counts as an observation depends on the dataset and the question, but the basic test is always the same: what does one row represent? You should be able to answer that. When you first open a dataset, ask what one row represents, what each column represents, whether any values are hiding in column names, and whether any column holds several variables at once.\nReshaping a dataset between the wide and long forms is done by a pair of functions, pivot_longer and pivot_wider, covered with the rest of the cleaning toolkit in Section 9.8. For now, the goal is to recognize the shape that analysis wants.\n\n\n\n\n\n\nTipOther resources — tidy data\n\n\n\n\n\n\nR for Data Science (2nd ed.) – Chapter 5, “Data tidying” develops the tidy-data idea and shows how datasets are reshaped between long and wide forms.\nVideo – Riffomonas Project, Reshaping data to be long or wide with pivot_longer and pivot_wider.",
-    "crumbs": [
-      "Feedback",
-      "Module 2: Introduction to R",
-      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Working with Data in R</span>"
-    ]
-  },
-  {
-    "objectID": "module02b.html#sec-renaming",
-    "href": "module02b.html#sec-renaming",
-    "title": "5  Working with Data in R",
-    "section": "5.8 Column Names",
-    "text": "5.8 Column Names\nColumn names matter because we type them repeatedly. Real datasets sometimes arrive with names like Yield (bu/ac), REGION_NAME, or Field ID Number – readable to a person, but awkward in code. This book prefers names like yield_bu_ac, region, and field_id: lowercase, words separated by underscores, short but descriptive. This style is called snake_case.\nYou do not need to fix every imperfect name immediately. But when you inspect a new dataset with names(), look for names that will make the analysis unnecessarily awkward. The next chapter shows how to rename columns in code, and Chapter 9 covers cleaning up a whole set of bad names at once.",
-    "crumbs": [
-      "Feedback",
-      "Module 2: Introduction to R",
-      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Working with Data in R</span>"
-    ]
-  },
-  {
     "objectID": "module02b.html#sec-data-workflow",
     "href": "module02b.html#sec-data-workflow",
     "title": "5  Working with Data in R",
-    "section": "5.9 Putting the Workflow Together",
-    "text": "5.9 Putting the Workflow Together\nThe whole chapter fits in one short script. With the project set up as:\ncanola_yields/\n  data/\n    canola_trial.csv\n  code/\n    01_explore.R\n  output/\nopen canola_yields/ in Positron and create code/01_explore.R:\n# ---\n# Title: Explore the canola trial data\n# Author: Your Name\n# Date: 2026-09-29\n# ---\n\n# Load packages\nlibrary(tidyverse)\n\n# Read data\ntrial_data &lt;- read_csv(\"data/canola_trial.csv\")\n\n# Inspect structure\nnrow(trial_data)\nnames(trial_data)\nglimpse(trial_data)\n\n# Inspect values\nsummary(trial_data)\n\n# Summarize yield\nmean(trial_data$yield_bu_acre, na.rm = TRUE)\nmedian(trial_data$yield_bu_acre, na.rm = TRUE)\nsd(trial_data$yield_bu_acre, na.rm = TRUE)\nNotice what the script does not contain: no setwd(), no reliance on manually edited data, and no jump straight from reading the file to analysis without checking what came in. It follows the workflow this chapter has been building: open the project, load packages, read the data, inspect it, check for problems, and only then analyze.\nIn the next chapter, we learn how to manipulate the data itself: selecting columns, filtering rows, creating variables, sorting observations, and calculating summaries for groups.\n\n\n\n\nWickham, Hadley, Mine Çetinkaya-Rundel, and Garrett Grolemund. 2023. R for Data Science. Second. O’Reilly Media. https://r4ds.hadley.nz/.",
+    "section": "5.7 Putting the Workflow Together",
+    "text": "5.7 Putting the Workflow Together\nThe whole chapter fits in one short script. With the project set up as:\ncanola_yields/\n  data/\n    canola_trial.csv\n  code/\n    01_explore.R\n  output/\nopen canola_yields/ in Positron and create code/01_explore.R:\n# ---\n# Title: Explore the canola trial data\n# Author: Your Name\n# Date: 2026-09-29\n# ---\n\n# Load packages\nlibrary(tidyverse)\n\n# Read data\ntrial_data &lt;- read_csv(\"data/canola_trial.csv\")\n\n# Inspect structure\nnrow(trial_data)\nnames(trial_data)\nglimpse(trial_data)\n\n# Inspect values\nsummary(trial_data)\n\n# Summarize yield\nmean(trial_data$yield_bu_acre, na.rm = TRUE)\nmedian(trial_data$yield_bu_acre, na.rm = TRUE)\nsd(trial_data$yield_bu_acre, na.rm = TRUE)\nNotice what the script does not contain: no setwd(), no reliance on manually edited data, and no jump straight from reading the file to analysis without checking what came in. It follows the workflow this chapter has been building: open the project, load packages, read the data, inspect it, check for problems, and only then analyze.\nIn the next chapter, we learn how to manipulate the data itself: selecting columns, filtering rows, creating variables, sorting observations, and calculating summaries for groups.",
     "crumbs": [
       "Feedback",
       "Module 2: Introduction to R",
@@ -730,7 +706,7 @@
     "href": "moduleRDb.html#sec-statcan",
     "title": "7  Getting Data",
     "section": "7.4 Statistics Canada",
-    "text": "7.4 Statistics Canada\nMost Canadian agricultural data starts at Statistics Canada. The tables are free, and the interface takes some getting used to: find the table you want, use Add/Remove data to choose years, geographies and commodities, then Download as CSV.\nTwo things are worth knowing before you do.\nDownload the whole table and filter in R. Narrowing the selection on the website makes a smaller file, but the selection then lives in a series of clicks you will not remember. In a script it is written down, and re-running with different years means editing one line.\nRecord the date you downloaded it. StatCan revises past figures as better information arrives, so the same table downloaded twice can differ. Put the date in your README (Section 7.7). When your numbers disagree with somebody else’s, this is usually why.\nThe files need work once you have them. Expect metadata rows above and below the table, column names with spaces and units in them, footnote markers stuck to numbers, and a shape that is long where you want wide. The skipping in Section 7.2, the reshaping in Section 9.8, and the cleaning in Chapter 9 are what these files need.",
+    "text": "7.4 Statistics Canada\nMost Canadian agricultural data starts at Statistics Canada. The tables are free, and the interface takes some getting used to: find the table you want, use Add/Remove data to choose years, geographies and commodities, then Download as CSV.\nTwo things are worth knowing before you do.\nDownload the whole table and filter in R. Narrowing the selection on the website makes a smaller file, but the selection then lives in a series of clicks you will not remember. In a script it is written down, and re-running with different years means editing one line.\nRecord the date you downloaded it. StatCan revises past figures as better information arrives, so the same table downloaded twice can differ. Put the date in your README (Section 7.7). When your numbers disagree with somebody else’s, this is usually why.\nThe files need work once you have them. Expect metadata rows above and below the table, column names with spaces and units in them, footnote markers stuck to numbers, and a shape that is long where you want wide. The skipping in Section 7.2, the reshaping in Section 9.9, and the cleaning in Chapter 9 are what these files need.",
     "crumbs": [
       "Feedback",
       "Module 3: Getting and Combining Data",
@@ -838,7 +814,7 @@
     "href": "moduleRDd.html#learning-objectives",
     "title": "9  Cleaning Data",
     "section": "",
-    "text": "By the end of this chapter you should be able to:\n\nClean up awkward column names with rename() and janitor::clean_names().\nFind duplicates, impossible values, inconsistent categories and mixed units in a new file.\nRecognize the disguises missing values wear, and count them properly.\nDecide – and justify – when dropping missing values is safe.\nSpot dates that imported as text, and say why it matters.\nReshape a dataset between wide and long with pivot_longer and pivot_wider.",
+    "text": "By the end of this chapter you should be able to:\n\nClean up awkward column names with rename() and janitor::clean_names().\nFind duplicates, impossible values, inconsistent categories and mixed units in a new file.\nRecognize the disguises missing values wear, and count them properly.\nDecide – and justify – when dropping missing values is safe.\nSpot dates that imported as text, and say why it matters.\nExplain what tidy data means, and reshape a dataset between wide and long with pivot_longer and pivot_wider.",
     "crumbs": [
       "Feedback",
       "Module 3: Getting and Combining Data",
@@ -850,7 +826,7 @@
     "href": "moduleRDd.html#sec-clean-names",
     "title": "9  Cleaning Data",
     "section": "9.1 Awkward Column Names",
-    "text": "9.1 Awkward Column Names\nThe first thing to fix is often the names. Real files arrive with columns like Yield (bu/ac), REGION_NAME, or Field ID Number – workable, but annoying to type and easy to mistype. The snake_case convention (Section 5.8) wants yield_bu_ac, region, field_id.\nFor individual columns, rename() does it:\ndeliveries &lt;- deliveries |&gt;\n  rename(weight_tonnes = \"Weight (t)\",\n         crop = CROP_NAME)\nFor wholesale renaming, janitor::clean_names() converts every column to snake_case in one call – lowercase, underscores, special characters stripped. (It comes from the janitor package, not the tidyverse. Install it once with install.packages(\"janitor\").)\nlibrary(janitor)\ndeliveries &lt;- read_csv(\"data/grain_deliveries_messy.csv\") |&gt; clean_names()\nRun it on almost anything you read in.",
+    "text": "9.1 Awkward Column Names\nThe first thing to fix is often the names. Real files arrive with columns like Yield (bu/ac), REGION_NAME, or Field ID Number – readable to a person, but annoying to type and easy to mistype in code. This book prefers snake_case: lowercase, words separated by underscores, short but descriptive – yield_bu_ac, region, field_id.\nFor individual columns, rename() does it:\ndeliveries &lt;- deliveries |&gt;\n  rename(weight_tonnes = \"Weight (t)\",\n         crop = CROP_NAME)\nFor wholesale renaming, janitor::clean_names() converts every column to snake_case in one call – lowercase, underscores, special characters stripped. (It comes from the janitor package, not the tidyverse. Install it once with install.packages(\"janitor\").)\nlibrary(janitor)\ndeliveries &lt;- read_csv(\"data/grain_deliveries_messy.csv\") |&gt; clean_names()\nRun it on almost anything you read in.",
     "crumbs": [
       "Feedback",
       "Module 3: Getting and Combining Data",
@@ -930,11 +906,23 @@
     ]
   },
   {
+    "objectID": "moduleRDd.html#sec-tidy-data",
+    "href": "moduleRDd.html#sec-tidy-data",
+    "title": "9  Cleaning Data",
+    "section": "9.8 Tidy Data",
+    "text": "9.8 Tidy Data\nThe last defect is not a wrong value but a wrong shape. The tidyverse is built around an idea called tidy data (Wickham et al. 2023). A dataset is tidy when:\n\nEvery variable has its own column.\nEvery observation has its own row.\nEvery value has its own cell.\n\nFor example, this dataset is tidy:\n  region  crop   yield\n  South   Canola    41\n  South   Wheat     52\n  South   Barley    64\n  Central Canola    44\n  Central Wheat     55\n  Central Barley    68\nAn observation here is a region-crop combination; the variables are region, crop, and yield. Each variable has a column and each observation has a row.\nNow compare this version of the same data:\n  region  Canola Wheat Barley\n  South       41    52     64\n  Central     44    55     68\nThis table is easier for a person to read, but it is not tidy. Canola, Wheat, and Barley are not three different variables; they are three values of the variable crop. This is the wide-versus-long distinction from Section 2.4, where a PivotTable needed the long form. For analysis in R, the long form is usually the more convenient one, because crop is an ordinary variable that R can filter by, group by, and compare.\n\nRecognizing untidy data\nSome common warning signs:\n\nValues stored in column names. A table with columns region, 2024, 2025, 2026, where the year columns hold yields. The years are values of a variable called year; the tidy version has columns region, year, yield.\nMore than one variable in a column. A region_variety column containing \"South_InVigor\". That is two variables, region and variety, in one column.\nOne observation spread over several rows. Price in one row and quantity in another row for the same market and year.\n\nWhat counts as an observation depends on the dataset and the question, but the basic test is always the same: what does one row represent? You should be able to answer that. When you first open a dataset, ask what one row represents, what each column represents, whether any values are hiding in column names, and whether any column holds several variables at once.\n\n\n\n\n\n\nTipOther resources — tidy data\n\n\n\n\n\n\nR for Data Science (2nd ed.) – Chapter 5, “Data tidying” develops the tidy-data idea and shows how datasets are reshaped between long and wide forms.\nVideo – Riffomonas Project, Reshaping data to be long or wide with pivot_longer and pivot_wider.",
+    "crumbs": [
+      "Feedback",
+      "Module 3: Getting and Combining Data",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Cleaning Data</span>"
+    ]
+  },
+  {
     "objectID": "moduleRDd.html#sec-reshaping",
     "href": "moduleRDd.html#sec-reshaping",
     "title": "9  Cleaning Data",
-    "section": "9.8 Reshaping: pivot_longer and pivot_wider",
-    "text": "9.8 Reshaping: pivot_longer and pivot_wider\nThe last defect is not a wrong value but a wrong shape. Tidy data (Section 5.7) wants every variable in its own column, and files often arrive with values in the column headers instead – one column per crop, or per year. StatCan downloads have the opposite problem: long where you want wide.\npivot_longer turns column headers into values. You tell it which columns to gather, what to call the column that will hold their names, and what to call the column that will hold their values:\nyields_wide\n  region  Canola Wheat Barley\n  South       41    52     64\n  Central     44    55     68\n  North       38    49     60\nyields_long &lt;- yields_wide |&gt;\n  pivot_longer(cols = c(Canola, Wheat, Barley),\n               names_to = \"crop\",\n               values_to = \"yield\")\nyields_long\n  region  crop   yield\n  South   Canola    41\n  South   Wheat     52\n  South   Barley    64\n  Central Canola    44\n  ...\nNine rows now: one per region-crop combination, with crop and yield as ordinary columns that filter and group_by can use.\npivot_wider goes the other way. Tell it which column holds the names and which holds the values:\nyields_long |&gt;\n  pivot_wider(names_from = crop, values_from = yield)\nLong is usually what analysis wants; wide is often what people want to read. Expect to pivot in both directions.",
+    "section": "9.9 Reshaping: pivot_longer and pivot_wider",
+    "text": "9.9 Reshaping: pivot_longer and pivot_wider\nFixing the shape is the job of a pair of tidyr functions. Files often arrive with values in the column headers – one column per crop, or per year – and StatCan downloads have the opposite problem: long where you want wide.\npivot_longer turns column headers into values. You tell it which columns to gather, what to call the column that will hold their names, and what to call the column that will hold their values:\nyields_wide\n  region  Canola Wheat Barley\n  South       41    52     64\n  Central     44    55     68\n  North       38    49     60\nyields_long &lt;- yields_wide |&gt;\n  pivot_longer(cols = c(Canola, Wheat, Barley),\n               names_to = \"crop\",\n               values_to = \"yield\")\nyields_long\n  region  crop   yield\n  South   Canola    41\n  South   Wheat     52\n  South   Barley    64\n  Central Canola    44\n  ...\nNine rows now: one per region-crop combination, with crop and yield as ordinary columns that filter and group_by can use.\npivot_wider goes the other way. Tell it which column holds the names and which holds the values:\nyields_long |&gt;\n  pivot_wider(names_from = crop, values_from = yield)\nLong is usually what analysis wants; wide is often what people want to read. Expect to pivot in both directions.",
     "crumbs": [
       "Feedback",
       "Module 3: Getting and Combining Data",
@@ -945,8 +933,8 @@
     "objectID": "moduleRDd.html#sec-cleaning-checklist",
     "href": "moduleRDd.html#sec-cleaning-checklist",
     "title": "9  Cleaning Data",
-    "section": "9.9 A Checklist",
-    "text": "9.9 A Checklist\nRun through this on every new file:\n\nglimpse() – are the column types what you expect?\nsummary() – are the minimums and maximums possible?\ncount() each categorical column – are the categories consistent?\nCount rows, and check for duplicated identifiers.\nCount NAs per column, and ask whether the missingness is random.\nCheck the range of each numeric column against what the unit should be.",
+    "section": "9.10 A Checklist",
+    "text": "9.10 A Checklist\nRun through this on every new file:\n\nglimpse() – are the column types what you expect?\nsummary() – are the minimums and maximums possible?\ncount() each categorical column – are the categories consistent?\nCount rows, and check for duplicated identifiers.\nCount NAs per column, and ask whether the missingness is random.\nCheck the range of each numeric column against what the unit should be.\n\n\n\n\n\nWickham, Hadley, Mine Çetinkaya-Rundel, and Garrett Grolemund. 2023. R for Data Science. Second. O’Reilly Media. https://r4ds.hadley.nz/.",
     "crumbs": [
       "Feedback",
       "Module 3: Getting and Combining Data",

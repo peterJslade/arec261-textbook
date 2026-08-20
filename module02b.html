@@ -61,26 +61,7 @@ div.sourceCode
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-/* CSS for citations */
-div.csl-bib-body { }
-div.csl-entry {
-  clear: both;
-}
-.hanging-indent div.csl-entry {
-  margin-left:2em;
-  text-indent:-2em;
-}
-div.csl-left-margin {
-  min-width:2em;
-  float:left;
-}
-div.csl-right-inline {
-  margin-left:2em;
-  padding-left:1em;
-}
-div.csl-indent {
-  margin-left: 2em;
-}</style>
+</style>
 
 
 <script src="site_libs/quarto-nav/quarto-nav.js"></script>
@@ -571,12 +552,7 @@ div.csl-indent {
   <ul>
   <li><a href="#missing-values" id="toc-missing-values" class="nav-link" data-scroll-target="#missing-values">Missing values</a></li>
   </ul></li>
-  <li><a href="#sec-tidy-data" id="toc-sec-tidy-data" class="nav-link" data-scroll-target="#sec-tidy-data"><span class="header-section-number">5.7</span> Tidy Data</a>
-  <ul>
-  <li><a href="#recognizing-untidy-data" id="toc-recognizing-untidy-data" class="nav-link" data-scroll-target="#recognizing-untidy-data">Recognizing untidy data</a></li>
-  </ul></li>
-  <li><a href="#sec-renaming" id="toc-sec-renaming" class="nav-link" data-scroll-target="#sec-renaming"><span class="header-section-number">5.8</span> Column Names</a></li>
-  <li><a href="#sec-data-workflow" id="toc-sec-data-workflow" class="nav-link" data-scroll-target="#sec-data-workflow"><span class="header-section-number">5.9</span> Putting the Workflow Together</a></li>
+  <li><a href="#sec-data-workflow" id="toc-sec-data-workflow" class="nav-link" data-scroll-target="#sec-data-workflow"><span class="header-section-number">5.7</span> Putting the Workflow Together</a></li>
   </ul>
 </nav>
     </div>
@@ -603,7 +579,7 @@ div.csl-indent {
 
 
 <p>In the last chapter, we created small datasets directly in R. Real data analysis usually starts somewhere else: with a file. That creates a few practical questions. Where should the file go? How does R find it? How do we bring it into R? And once it is there, how do we check that R has read it correctly?</p>
-<p>This chapter develops a simple workflow for working with real data: keep everything for an analysis in one project folder, refer to files with relative paths, use packages to add functions to R, read the data from a CSV file, inspect it before doing any analysis, and recognize whether it is organized in a useful shape. These habits are not exciting, but they prevent a remarkable number of problems later.</p>
+<p>This chapter develops a simple workflow for working with real data: keep everything for an analysis in one project folder, refer to files with relative paths, use packages to add functions to R, read the data from a CSV file, and inspect it before doing any analysis. These habits are not exciting, but they prevent a remarkable number of problems later.</p>
 <p>The data we will work with is a small .csv file of canola yield trials (hypothetical data): 120 fields, each with an ID, a fertilizer rate, growing-season rainfall, a variety, and a yield. It can be downloaded here: <a href="practice/data/canola_trial.csv"><code>canola_trial.csv</code></a>.</p>
 <section id="learning-objectives" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="learning-objectives">Learning Objectives</h2>
@@ -616,7 +592,6 @@ div.csl-indent {
 <li>Read a CSV file into R as a data frame.</li>
 <li>Inspect a new dataset and identify common problems.</li>
 <li>Calculate basic summary statistics while handling missing values correctly.</li>
-<li>Explain what tidy data means and recognize data that needs to be reshaped.</li>
 </ol>
 </div>
 </section>
@@ -996,66 +971,8 @@ $ yield_bu_acre    &lt;dbl&gt; 56.7, 62.0, 53.6, 51.2, 49.2, 51.2, 49.0, 56.8, 6
 </div>
 </section>
 </section>
-<section id="sec-tidy-data" class="level2" data-number="5.7">
-<h2 data-number="5.7" class="anchored" data-anchor-id="sec-tidy-data"><span class="header-section-number">5.7</span> Tidy Data</h2>
-<p>Before analyzing a dataset, we also need to think about its shape. The tidyverse is built around an idea called <strong>tidy data</strong> <span class="citation" data-cites="r4ds">(<a href="references.html#ref-r4ds" role="doc-biblioref">Wickham et al. 2023</a>)</span>. A dataset is tidy when:</p>
-<ol type="1">
-<li>Every variable has its own <strong>column</strong>.</li>
-<li>Every observation has its own <strong>row</strong>.</li>
-<li>Every value has its own <strong>cell</strong>.</li>
-</ol>
-<p>For example, this dataset is tidy:</p>
-<pre><code>  region  crop   yield
-  South   Canola    41
-  South   Wheat     52
-  South   Barley    64
-  Central Canola    44
-  Central Wheat     55
-  Central Barley    68</code></pre>
-<p>An observation here is a region-crop combination; the variables are <code>region</code>, <code>crop</code>, and <code>yield</code>. Each variable has a column and each observation has a row.</p>
-<p>Now compare this version of the same data:</p>
-<pre><code>  region  Canola Wheat Barley
-  South       41    52     64
-  Central     44    55     68</code></pre>
-<p>This table is easier for a person to read, but it is not tidy. Canola, Wheat, and Barley are not three different variables; they are three values of the variable <code>crop</code>. This is the wide-versus-long distinction from <a href="module01b.html#sec-wide-long" class="quarto-xref"><span>Section 2.4</span></a>, where a PivotTable needed the long form. For analysis in R, the long form is usually the more convenient one, because <code>crop</code> is an ordinary variable that R can filter by, group by, and compare.</p>
-<section id="recognizing-untidy-data" class="level3 unnumbered">
-<h3 class="unnumbered anchored" data-anchor-id="recognizing-untidy-data">Recognizing untidy data</h3>
-<p>Some common warning signs:</p>
-<ul>
-<li><strong>Values stored in column names.</strong> A table with columns <code>region</code>, <code>2024</code>, <code>2025</code>, <code>2026</code>, where the year columns hold yields. The years are values of a variable called <code>year</code>; the tidy version has columns <code>region</code>, <code>year</code>, <code>yield</code>.</li>
-<li><strong>More than one variable in a column.</strong> A <code>region_variety</code> column containing <code>"South_InVigor"</code>. That is two variables, <code>region</code> and <code>variety</code>, in one column.</li>
-<li><strong>One observation spread over several rows.</strong> Price in one row and quantity in another row for the same market and year.</li>
-</ul>
-<p>What counts as an observation depends on the dataset and the question, but the basic test is always the same: what does one row represent? You should be able to answer that. When you first open a dataset, ask what one row represents, what each column represents, whether any values are hiding in column names, and whether any column holds several variables at once.</p>
-<p>Reshaping a dataset between the wide and long forms is done by a pair of functions, <code>pivot_longer</code> and <code>pivot_wider</code>, covered with the rest of the cleaning toolkit in <a href="moduleRDd.html#sec-reshaping" class="quarto-xref"><span>Section 9.8</span></a>. For now, the goal is to recognize the shape that analysis wants.</p>
-<div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Tip</span>Other resources — tidy data
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-6" class="callout-6-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<ul>
-<li><strong>R for Data Science (2nd ed.)</strong> – <a href="https://r4ds.hadley.nz/data-tidy">Chapter 5, “Data tidying”</a> develops the tidy-data idea and shows how datasets are reshaped between long and wide forms.</li>
-<li><strong>Video</strong> – Riffomonas Project, <a href="https://www.youtube.com/watch?v=ZVddiwrbrr4"><em>Reshaping data to be long or wide with pivot_longer and pivot_wider</em></a>.</li>
-</ul>
-</div>
-</div>
-</div>
-</section>
-</section>
-<section id="sec-renaming" class="level2" data-number="5.8">
-<h2 data-number="5.8" class="anchored" data-anchor-id="sec-renaming"><span class="header-section-number">5.8</span> Column Names</h2>
-<p>Column names matter because we type them repeatedly. Real datasets sometimes arrive with names like <code>Yield (bu/ac)</code>, <code>REGION_NAME</code>, or <code>Field ID Number</code> – readable to a person, but awkward in code. This book prefers names like <code>yield_bu_ac</code>, <code>region</code>, and <code>field_id</code>: lowercase, words separated by underscores, short but descriptive. This style is called <strong>snake_case</strong>.</p>
-<p>You do not need to fix every imperfect name immediately. But when you inspect a new dataset with <code>names()</code>, look for names that will make the analysis unnecessarily awkward. The next chapter shows how to rename columns in code, and <a href="moduleRDd.html" class="quarto-xref"><span>Chapter 9</span></a> covers cleaning up a whole set of bad names at once.</p>
-</section>
-<section id="sec-data-workflow" class="level2" data-number="5.9">
-<h2 data-number="5.9" class="anchored" data-anchor-id="sec-data-workflow"><span class="header-section-number">5.9</span> Putting the Workflow Together</h2>
+<section id="sec-data-workflow" class="level2" data-number="5.7">
+<h2 data-number="5.7" class="anchored" data-anchor-id="sec-data-workflow"><span class="header-section-number">5.7</span> Putting the Workflow Together</h2>
 <p>The whole chapter fits in one short script. With the project set up as:</p>
 <pre><code>canola_yields/
   data/
@@ -1064,39 +981,34 @@ $ yield_bu_acre    &lt;dbl&gt; 56.7, 62.0, 53.6, 51.2, 49.2, 51.2, 49.0, 56.8, 6
     01_explore.R
   output/</code></pre>
 <p>open <code>canola_yields/</code> in Positron and create <code>code/01_explore.R</code>:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ---</span></span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Title: Explore the canola trial data</span></span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Author: Your Name</span></span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Date: 2026-09-29</span></span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="co"># ---</span></span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Load packages</span></span>
-<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Read data</span></span>
-<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>trial_data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/canola_trial.csv"</span>)</span>
-<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Inspect structure</span></span>
-<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(trial_data)</span>
-<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(trial_data)</span>
-<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(trial_data)</span>
-<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Inspect values</span></span>
-<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(trial_data)</span>
-<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Summarize yield</span></span>
-<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(trial_data<span class="sc">$</span>yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a><span class="fu">median</span>(trial_data<span class="sc">$</span>yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a><span class="fu">sd</span>(trial_data<span class="sc">$</span>yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ---</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Title: Explore the canola trial data</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Author: Your Name</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Date: 2026-09-29</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="co"># ---</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Load packages</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Read data</span></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>trial_data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/canola_trial.csv"</span>)</span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Inspect structure</span></span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(trial_data)</span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(trial_data)</span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(trial_data)</span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Inspect values</span></span>
+<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(trial_data)</span>
+<span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-21"><a href="#cb20-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Summarize yield</span></span>
+<span id="cb20-22"><a href="#cb20-22" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(trial_data<span class="sc">$</span>yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb20-23"><a href="#cb20-23" aria-hidden="true" tabindex="-1"></a><span class="fu">median</span>(trial_data<span class="sc">$</span>yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb20-24"><a href="#cb20-24" aria-hidden="true" tabindex="-1"></a><span class="fu">sd</span>(trial_data<span class="sc">$</span>yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Notice what the script does not contain: no <code>setwd()</code>, no reliance on manually edited data, and no jump straight from reading the file to analysis without checking what came in. It follows the workflow this chapter has been building: open the project, load packages, read the data, inspect it, check for problems, and only then analyze.</p>
 <p>In the next chapter, we learn how to manipulate the data itself: selecting columns, filtering rows, creating variables, sorting observations, and calculating summaries for groups.</p>
 
 
-<div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
-<div id="ref-r4ds" class="csl-entry" role="listitem">
-Wickham, Hadley, Mine Çetinkaya-Rundel, and Garrett Grolemund. 2023. <em>R for Data Science</em>. Second. O’Reilly Media. <a href="https://r4ds.hadley.nz/">https://r4ds.hadley.nz/</a>.
-</div>
-</div>
 </section>
 
 </main> <!-- /main -->
