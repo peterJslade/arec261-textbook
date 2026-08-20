@@ -2,95 +2,80 @@
 
 Every dataset in the book so far has arrived as a tidy CSV with sensible column names.  Data
 does not normally show up that way.  It shows up as an Excel workbook somebody emailed you,
-with the numbers starting on row 8, or as a download from a statistical agency with metadata
-above and below the table.  This chapter covers reading those files, and getting data from
-the two big public sources for agricultural data: Statistics Canada and the USDA.
+with the numbers starting on row 8, as a file sitting behind a link on a government dashboard,
+or as a table you have to request from a statistical agency.  This chapter covers reading the
+common file types, and the three ways data gets from a provider to your computer: a direct
+download, an R package written for that provider, and an API.
 
 ## Learning Objectives {.unnumbered}
 
 ::: {.objectives}
 By the end of this chapter you should be able to:
 
-1. Read an Excel workbook into R, including a specific sheet.
-2. Handle a file whose header does not start on the first row.
-3. Check what R guessed about your column types, and correct it.
-4. Download a table from Statistics Canada, from the website or with the `cansim` package.
-5. Pull US data from the USDA's QuickStats API.
-6. Record where a dataset came from and when you downloaded it.
+1. Read CSV, TSV and other delimited text files into R.
+2. Check what R guessed about your column types, and correct it.
+3. Read an Excel workbook, including a specific sheet and a header that does not start on row 1.
+4. Read a file directly from a URL, and keep a copy.
+5. Fetch a Statistics Canada table with the `cansim` package.
+6. Explain what an API is and pull data from one, using the USDA as the example.
+7. Record where a dataset came from and when you downloaded it.
 :::
 
-## Excel Files {#sec-readxl}
+## CSV and Related Files {#sec-csv-files}
 
-The tidyverse package for reading `.xlsx` files is **readxl**.  It installs with the tidyverse
-but is not loaded by `library(tidyverse)`, so load it separately:
+A **CSV** (comma-separated values) file is plain text.  Each line is a row, and commas separate
+the columns.  There is no formatting, no formulas, and no second sheet, which is why it is the
+usual format for passing data between programs.  The tidyverse function is `read_csv()`:
 
 ```r
 library(tidyverse)
-library(readxl)
 
-deliveries <- read_excel("data/deliveries.xlsx")
+deliveries <- read_csv("data/deliveries.csv")
 ```
 
-A workbook can hold several sheets, and `read_excel` takes the first one unless you say
-otherwise.  Check what is in the file before assuming:
+The same idea comes with other separators.  A **TSV** uses tabs instead of commas, and
+`read_tsv()` reads it.  A `.txt` file is usually one of the two with a different extension;
+open it in a text editor to see which.  Anything else -- semicolons are common in files from
+Europe, where the comma is the decimal mark -- goes through `read_delim()` with the separator
+spelled out:
 
 ```r
-excel_sheets("data/deliveries.xlsx")
+prices <- read_tsv("data/prices.tsv")
+prices <- read_delim("data/prices.txt", delim = ";")
 ```
 
-```
-[1] "Notes"  "2024"  "2025"  "Summary"
-```
+If you open a CSV by double-clicking it, Excel opens it, and Excel will happily convert a
+column of ID numbers to scientific notation or a date column to its own format and save the
+result back over your file.  Read CSVs into R from the file; look at them in Excel if you
+like, but do not save from there.
 
-The first sheet here is a page of notes, so reading the file without checking would hand you
-that instead of the data.  Ask for the sheet you want, by name or number:
+### Check what R guessed {#sec-col-types}
 
-```r
-deliveries <- read_excel("data/deliveries.xlsx", sheet = "2025")
-```
-
-## When the Header Is Not on Row 1 {#sec-skip-rows}
-
-Spreadsheets built by people usually have something above the table: a title, a note about
-units, a blank row or two.  R takes the first row as column names regardless, which produces
-something like this:
+`read_csv()` guesses each column's type from the first thousand values and reports what it
+decided:
 
 ```
-# A tibble: 62 x 6
-  `Saskatchewan grain deliveries` ...2   ...3   ...4
-  <chr>                           <chr>  <chr>  <chr>
-1 NA                              NA     NA     NA
-2 Ticket                          Date   Crop   Weight
+Rows: 62 Columns: 6
+── Column specification ──────────────────────────────
+Delimiter: ","
+chr  (2): ticket_id, crop
+dbl  (3): weight_tonnes, moisture, price
+date (1): delivery_date
 ```
 
-Column names like `...2` and a first row of `NA` mean the real header is further down.  Count
-the rows above it and skip them:
-
-```r
-deliveries <- read_excel("data/deliveries.xlsx", sheet = "2025", skip = 3)
-```
-
-`read_csv` takes the same argument.  Print the object after reading it either way; the shape of
-what comes back is the quickest check that you read the right thing.
-
-## Check What R Guessed {#sec-col-types}
-
-`read_csv` and `read_excel` guess each column's type from the first few hundred values.  The
-guess is usually right, and wrong in one particular way that matters.
-
-A numeric column that contains a single text value comes in as text.  A weight typed as
-`"38.2 t"` with the unit in the cell will do it, as will `"N/A"` or a footnote marker.  Once
+Read this every time.  The guess is usually right, and wrong in one particular way that
+matters: a numeric column that contains a single text value comes in as text.  A weight typed
+as `"38.2 t"` with the unit in the cell will do it, as will `"N/A"` or a footnote marker.  Once
 the column is text, `mean()` fails, and `arrange()` sorts alphabetically, which puts 100
 between 10 and 11.
 
-Look at what you got:
+`glimpse()` shows the same information with a few values of each column alongside:
 
 ```r
 glimpse(deliveries)
 ```
 
-Every column is labelled: `<dbl>` for numbers, `<chr>` for text, `<date>` for dates.  If
-something you expect to be numeric says `<chr>`, find the value that caused it:
+If something you expect to be numeric says `<chr>`, find the value that caused it:
 
 ```r
 deliveries |>
@@ -112,49 +97,141 @@ deliveries <- read_csv("data/deliveries.csv",
 ```
 
 For a file you read repeatedly this is worth doing.  It documents what you expect, and it fails
-loudly when the file changes rather than quietly doing something else.
+loudly when the file changes rather than doing something else without telling you.
 
-## Statistics Canada {#sec-statcan}
+## Excel Files {#sec-readxl}
 
-Most Canadian agricultural data starts at Statistics Canada.  The tables are free, and the
-interface takes some getting used to: find the table you want, use **Add/Remove data** to
-choose years, geographies and commodities, then **Download** as CSV.
+The tidyverse package for reading `.xlsx` files is **readxl**.  It installs with the tidyverse
+but is not loaded by `library(tidyverse)`, so load it separately:
 
-Two things are worth knowing before you do.
+```r
+library(readxl)
 
-Download the whole table and filter in R.  Narrowing the selection on the website makes a
-smaller file, but the selection then lives in a series of clicks you will not remember.  In a
-script it is written down, and re-running with different years means editing one line.
+deliveries <- read_excel("data/deliveries.xlsx")
+```
 
-Record the date you downloaded it.  StatCan revises past figures as better information arrives,
-so the same table downloaded twice can differ.  Put the date in your README (@sec-readme).
-When your numbers disagree with somebody else's, this is usually why.
+A workbook can hold several sheets, and `read_excel()` takes the first one unless you say
+otherwise.  Check what is in the file before assuming:
 
-The files need work once you have them.  Expect metadata rows above and below the table, column
-names with spaces and units in them, footnote markers stuck to numbers, and a shape that is
-long where you want wide.  The skipping in @sec-skip-rows, the reshaping in @sec-reshaping,
-and the cleaning in @sec-cleaning are what these files need.
+```r
+excel_sheets("data/deliveries.xlsx")
+```
+
+```
+[1] "Notes"  "2024"  "2025"  "Summary"
+```
+
+The first sheet here is a page of notes, so reading the file without checking would hand you
+that instead of the data.  Ask for the sheet you want, by name or number:
+
+```r
+deliveries <- read_excel("data/deliveries.xlsx", sheet = "2025")
+```
+
+`read_excel()` guesses column types the same way `read_csv()` does, and the same check
+applies.
+
+### When the header is not on row 1 {#sec-skip-rows}
+
+Spreadsheets built by people usually have something above the table: a title, a note about
+units, a blank row or two.  R takes the first row as column names regardless, which produces
+something like this:
+
+```
+# A tibble: 62 x 6
+  `Saskatchewan grain deliveries` ...2   ...3   ...4
+  <chr>                           <chr>  <chr>  <chr>
+1 NA                              NA     NA     NA
+2 Ticket                          Date   Crop   Weight
+```
+
+Column names like `...2` and a first row of `NA` mean the real header is further down.  Count
+the rows above it and skip them:
+
+```r
+deliveries <- read_excel("data/deliveries.xlsx", sheet = "2025", skip = 3)
+```
+
+`read_csv()` takes the same argument.  Print the object after reading it either way; the
+shape of what comes back is the quickest check that you read the right thing.
+
+## Direct Downloads {#sec-direct-download}
+
+A lot of public data is just a file behind a link.  The Saskatchewan government's dashboard
+publishes crop yields by rural municipality going back to 1938 as a single CSV:
+
+<https://dashboard.saskatchewan.ca/export/rm-yields-data/4950.csv>
+
+You can click the link, save the file into `data/`, and read it as above.  Or you can hand the
+URL to `read_csv()` and let it fetch the file for you:
+
+```r
+rm_yields <- read_csv("https://dashboard.saskatchewan.ca/export/rm-yields-data/4950.csv")
+glimpse(rm_yields)
+```
+
+```
+Rows: 26,197
+Columns: 18
+$ Year           <dbl> 1938, 1939, 1940, 1941, 1942, 1943, 1944, 1945, …
+$ RM             <dbl> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, …
+$ `Winter Wheat` <dbl> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+$ Canola         <dbl> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+$ `Spring Wheat` <dbl> 4, 9, 12, 18, 20, 21, 20, 16, 13, 15, 16, 18, 18, …
+...
+```
+
+One row per RM per year, and one column per crop.  The column names have spaces in them,
+which is why `Winter Wheat` is printed in backticks; `clean_names()` (@sec-clean-names) deals
+with that.  And the table is wide, one column per crop, where most of what we do later wants
+it long, one row per RM-year-crop.  That is @sec-reshaping.  The units are not in the file at
+all; they are on the dashboard page the link came from.  Write them down while you are there.
+
+Reading straight from the URL is convenient and has a problem: the file can change or
+disappear, and then your script stops working or gives different answers.  The habit to build
+is to download once, keep the copy, and read from the copy:
+
+```r
+download.file("https://dashboard.saskatchewan.ca/export/rm-yields-data/4950.csv",
+              destfile = "data/rm_yields.csv")
+
+rm_yields <- read_csv("data/rm_yields.csv")
+```
+
+The URL is recorded in the script, the file you analysed is on disk, and the download date
+goes in the README (@sec-readme).
 
 ## R Packages for Data {#sec-data-packages}
 
-Some data providers have an R package that fetches tables directly, skipping the website.
-For Statistics Canada the package is **cansim**, which pulls tables by their table number:
+Some data providers have an R package that fetches their tables directly, skipping the
+website.  Most Canadian agricultural data starts at Statistics Canada, and the package for it
+is **cansim**, which pulls a table by its table number:
 
 ```r
 library(cansim)
 wheat <- get_cansim("32-10-0359-01")
 ```
 
-This has two advantages over downloading by hand.  The table number is recorded in the script
-itself, so the analysis is re-runnable when the data is revised.  And there are no clicks to
-forget: anyone running the script gets the same table.
+You can instead get the same table from the StatCan website: find the table, use
+**Add/Remove data** to choose years, geographies and commodities, then **Download** as CSV.
+The package is better for two reasons.  The table number is recorded in the script, so the
+analysis is re-runnable when the data is revised.  And there are no clicks to forget: anyone
+running the script gets the same table, where a selection made on the website lives in a
+series of choices you will not remember next month.  If you do download from the website,
+download the whole table and filter in R.
+
+Either way, record the date.  StatCan revises past figures as better information arrives, so
+the same table downloaded twice can differ.  When your numbers disagree with somebody else's,
+this is usually why.
 
 What comes back still needs the usual work.  StatCan's column names have spaces and
-capitals; `clean_names()`, from the `janitor` package, converts them all to snake_case in
-one call (@sec-clean-names covers it properly).  And the data is long, one row per
-year-geography-commodity combination.  Filter to what you want in R:
+capitals, so `clean_names()` again.  The data is long, one row per year-geography-commodity
+combination, and a website download also has metadata rows above and below the table and
+footnote markers stuck to numbers.  Filter to what you want in R:
 
 ```r
+library(janitor)
+
 sask_wheat <- wheat |>
   clean_names() |>
   filter(geo == "Saskatchewan",
@@ -164,17 +241,23 @@ sask_wheat <- wheat |>
 (The column and category names differ by table; run `glimpse()` and `count()` on the columns
 to see what a new table contains.)
 
-## APIs: The USDA {#sec-apis}
+## APIs {#sec-apis}
 
 An **API** (application programming interface) is a way for a program to request data from a
-website directly, instead of a person clicking a download button.  The request is a line of
-code, so it is recorded, repeatable, and easy to change.  Packages like `cansim` are friendly
-wrappers around an API; here we use one a step closer to the raw form.
+website directly, instead of a person clicking a download button.  You send a request that
+says what you want -- which commodity, which years, which geography -- and the server sends
+back just that.  The request is a line of code, so it is recorded, repeatable, and easy to
+change.  Packages like `cansim` are friendly wrappers around an API.  Most providers also let
+you use the API more directly, through a package that mirrors its options one for one.
 
-US agricultural data comes from the USDA's **QuickStats** database, and the R package for it
-is **rnassqs**.  QuickStats requires a free API key -- a password that identifies who is
-asking -- which you request at <https://quickstats.nass.usda.gov/api/> and use once per
-session:
+Many APIs ask for a **key**: a free password that identifies who is asking, which you request
+once from the provider and use in every session.  A key identifies *you*, so keep it out of
+any script you share or post publicly.  The common habit is to keep the key in a separate file
+that you do not share and have the script read it from there.
+
+The USDA is a good example.  US agricultural data comes from its **QuickStats** database, the
+R package for it is **rnassqs**, and the key comes from
+<https://quickstats.nass.usda.gov/api/>:
 
 ```r
 library(rnassqs)
@@ -192,9 +275,8 @@ the same field names -- and then mirror the choices in code.  If the API defeats
 website also has a plain **Spreadsheet** download button, and reading that file is the same
 skill as @sec-skip-rows.
 
-One caution: an API key identifies *you*.  Keep it out of any script you share or post
-publicly -- a common habit is to keep the key in a separate file that you do not share, and
-have the script read it from there.
+Other APIs you may meet work the same way: the FAO's FAOSTAT, the World Bank, and most
+weather services all have an R package, a key, and a set of parameter names to learn.
 
 We will use the Canadian and US canola data together in the next chapter, where the two
 tables get merged into one.
@@ -215,9 +297,12 @@ Data
     StatCan table 32-10-0359-01, downloaded 2026-08-18 via cansim.
   data/us_canola.csv
     USDA NASS QuickStats, national canola yield, downloaded 2026-08-18.
+  data/rm_yields.csv
+    Saskatchewan RM crop yields, dashboard.saskatchewan.ca,
+    downloaded 2026-08-18.
 
 Scripts
-  R/01_get_data.R   pulls both tables, writes the CSVs above
+  R/01_get_data.R   pulls the tables, writes the CSVs above
   R/02_merge.R      harmonizes units, joins the tables
 ```
 
@@ -226,4 +311,3 @@ The source and the download date are the parts that matter.  A file called
 it is the 2024 or the 2025 release, whether you already cleaned it, or whether the numbers were
 revised after you downloaded them.  Statistics Canada revises past figures, so "downloaded
 2026-08-18" is doing real work.
-
