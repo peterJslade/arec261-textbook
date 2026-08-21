@@ -10,12 +10,17 @@ source("../_console.R")
 ::: {.callout-note}
 ## How this test bank works
 
-This bank holds **40 questions**, ten in each section. Section 1 gives you the data inside the question; Sections 2--4 use the **Saskatchewan RM Crop Yields (long)** dataset. On the real test you receive **four questions -- one from each section** -- and you submit **a single, well-commented R script**: a header block at the top, a clearly labelled section for each question, and your sentence answers written as comments. The script should run from top to bottom in a project folder that has the csv in `data/`. Each question is designed to take about **8--10 minutes**.
+This bank holds **40 questions**, ten in each section. Section 1 gives you the data inside the question; Section 2 uses the **canola-only** RM yields file, and Sections 3--4 the full **eight-crop long** file (both described below). On the real test you receive **four questions -- one from each section** -- and you submit **a single, well-commented R script**: a header block at the top, a clearly labelled section for each question, and your sentence answers written as comments. The script should run from top to bottom in a project folder that has the csvs in `data/`. Each question is designed to take about **8--10 minutes**.
 
 Expand each **Answer** block to check your work. Every value has been computed from the real data; if the source file is refreshed the exact numbers may shift slightly, but the method stays the same.
 :::
 
-**The dataset.** [`rm_yields_1990plus_long.csv`](data/rm_yields_1990plus_long.csv) -- average yield for eight crops in every Saskatchewan Rural Municipality, 1990--2025, one row per RM-year-crop. Columns: `Year`, `RM`, `Crop`, `Yield`, `Unit`. You worked with the wide version of this data in Module 1; this is the long form, with `Crop` as a variable. **Lentils are recorded in pounds per acre; every other crop is in bushels per acre** -- the `Unit` column says which. Save it into your project's `data/` folder.
+**The data.** Two files, both in your project's `data/` folder:
+
+- [`rm_canola_1990plus.csv`](data/rm_canola_1990plus.csv) -- average **canola** yield in every Saskatchewan Rural Municipality, 1990--2025, one row per RM-year. **Section 2** uses this file: one crop, one unit, so its summary statistics mean something.
+- [`rm_yields_1990plus_long.csv`](data/rm_yields_1990plus_long.csv) -- the same data for all **eight crops**, one row per RM-year-crop. **Sections 3 and 4** use this file. You worked with the wide version in Module 1; this is the long form, with `Crop` as a variable. **Lentils are recorded in pounds per acre; every other crop is in bushels per acre** -- the `Unit` column says which, and several questions turn on it.
+
+Both files have the same five columns: `Year`, `RM`, `Crop`, `Yield`, `Unit`.
 
 **Grading model.** **20%** for script presentation -- a header block, comments in the style of the module, clearly labelled question sections, and a script that runs from top to bottom in a fresh session. The remaining **80%** is split evenly across the four questions, and evenly across the parts within each question. Parts are marked on **follow-through**: if an early part is wrong but the later parts are correctly worked *from your own earlier answer*, the later parts still earn full marks. Where a part asks for a sentence, write it as a comment in your script.
 
@@ -27,7 +32,7 @@ Expand each **Answer** block to check your work. Every value has been computed f
 A real test looks like this -- one question from each section (here Questions 1, 16, 25, and 36):
 
 1. *Five canola fields yielded 52.3, 47.8, 55.1, 44.6, and 50.9 bu/ac, on 160, 320, 240, 130, and 200 acres. Create the two vectors; convert the yields to t/ha; compute the mean and sd of the yields; compute total production and the acreage-weighted average yield.*
-2. *Compute the mean, median, and standard deviation of `Yield`, and its 90th percentile. The mean is nearly four times the median -- in a comment, say what a gap like that tells you and what feature of this dataset produces it.*
+2. *Compute the mean, median, and standard deviation of canola `Yield`, and its 90th percentile. In a comment: the mean sits a little above the median -- what does that direction of gap suggest about the shape of canola yields?*
 3. *Filter to the lentil rows, saving as `lentils` (how many rows?); add a `yield_kg_ha` column (multiply by 1.12), saving back to `lentils`; compute the mean of the new column and of the original, and check their ratio.*
 4. *In one pipeline, compute each RM's mean Spring Wheat yield across all years, sorted best-first. Report the top three RMs. In a comment: what did each row of the input represent, and what does each row of the result represent?*
 
@@ -73,28 +78,30 @@ total_bu / sum(acres)    # 50.35 bu/ac
 # fields differ in size, so each yield should count by its acres.
 
 # ============================================================
-# Section 2 (Question 16): summary statistics for Yield
+# Section 2 (Question 16): summary statistics for canola
 # ============================================================
 
-# Read the data using a relative path from the project folder
-rm_yields <- read_csv("data/rm_yields_1990plus_long.csv")
+# Read the canola file using a relative path from the project folder
+rm_canola <- read_csv("data/rm_canola_1990plus.csv")
 
-# Centre and spread of the whole Yield column
-mean(rm_yields$Yield)      # 142.82
-median(rm_yields$Yield)    # 36.24
-sd(rm_yields$Yield)        # 358.99
+# Centre and spread of the canola yields
+mean(rm_canola$Yield)      # 28.29 bu/ac
+median(rm_canola$Yield)    # 26.9 bu/ac
+sd(rm_canola$Yield)        # 10.06 bu/ac
 
 # 90th percentile
-quantile(rm_yields$Yield, 0.9)   # 102.2
+quantile(rm_canola$Yield, 0.9)   # 42.5 bu/ac
 
-# The mean sits far above the median, which flags unusually large
-# values pulling it up. Here they are the lentil yields, recorded
-# in pounds per acre while every other crop is in bushels (see the
-# Unit column) -- a units artifact, not a story about good crops.
+# The mean sits a little above the median, which suggests mild
+# right skew: the best RM-years pull the mean up more than the
+# worst years pull it down.
 
 # ============================================================
 # Section 3 (Question 25): converting the lentil yields
 # ============================================================
+
+# Read the full eight-crop file
+rm_yields <- read_csv("data/rm_yields_1990plus_long.csv")
 
 # Keep only the lentil rows
 lentils <- filter(rm_yields, Crop == "Lentils")
@@ -388,13 +395,13 @@ trial
 
 # Section 2 — Reading and Inspecting Data
 
-*These questions use [`rm_yields_1990plus_long.csv`](data/rm_yields_1990plus_long.csv) in your project's `data/` folder. Answer in the Section 2 block of your script.*
+*These questions use the canola-only file, [`rm_canola_1990plus.csv`](data/rm_canola_1990plus.csv), in your project's `data/` folder. Answer in the Section 2 block of your script.*
 
 ### Question 11
 
 **(a)** In a comment at the top of your script, sketch your project's folder layout (the subfolders and where the csv sits).
 
-**(b)** Load the tidyverse and read the file into an object called `rm_yields`, using a relative path.
+**(b)** Load the tidyverse and read the canola file into an object called `rm_canola`, using a relative path.
 
 **(c)** Report the number of rows, the number of columns, and the column names using functions.
 
@@ -404,11 +411,11 @@ trial
 
 ```r
 library(tidyverse)
-rm_yields <- read_csv("data/rm_yields_1990plus_long.csv")
-nrow(rm_yields); ncol(rm_yields); names(rm_yields)
+rm_canola <- read_csv("data/rm_canola_1990plus.csv")
+nrow(rm_canola); ncol(rm_canola); names(rm_canola)
 ```
 
-- (c) **71,104 rows**, **5 columns**: `Year`, `RM`, `Crop`, `Yield`, `Unit`.
+- (c) **10,039 rows**, **5 columns**: `Year`, `RM`, `Crop`, `Yield`, `Unit`.
 - (d) The path is relative to the project folder, and the grader opens the same self-contained folder -- so `data/...` exists on their machine too. An absolute path names one particular computer's user and folder layout.
 </details>
 
@@ -417,7 +424,7 @@ nrow(rm_yields); ncol(rm_yields); names(rm_yields)
 A classmate's script reads the data like this:
 
 ```r
-rm_yields <- read_csv("C:\\Users\\jordan\\Desktop\\stats stuff\\rm_yields_1990plus_long.csv")
+rm_canola <- read_csv("C:\\Users\\jordan\\Desktop\\stats stuff\\rm_canola_1990plus.csv")
 ```
 
 It runs on their laptop and fails on everyone else's.
@@ -431,7 +438,7 @@ It runs on their laptop and fails on everyone else's.
 <details><summary>Answer</summary>
 
 - (a) The absolute path names one specific machine (user `jordan`, a Desktop folder), so it exists nowhere else; and backslashes mean something special inside an R string -- paths in R use forward slashes even on Windows.
-- (b) `rm_yields <- read_csv("data/rm_yields_1990plus_long.csv")`.
+- (b) `rm_canola <- read_csv("data/rm_canola_1990plus.csv")`.
 - (c) Opening the project folder in Positron (**File → Open Folder…**) makes that folder R's starting point, so relative paths begin from it.
 </details>
 
@@ -443,7 +450,7 @@ You organized the course as one big folder and opened `AREC_261/` in Positron:
 AREC_261/
   module_2/
     data/
-      rm_yields_1990plus_long.csv
+      rm_canola_1990plus.csv
     code/
   README.md
 ```
@@ -456,14 +463,14 @@ AREC_261/
 
 <details><summary>Answer</summary>
 
-- (a) `rm_yields <- read_csv("module_2/data/rm_yields_1990plus_long.csv")`.
-- (b) The starting point changed: relative paths begin at the folder you opened. With `module_2/` open, the path is `data/rm_yields_1990plus_long.csv`.
-- (c) From `AREC_261`, R goes into `module_2`, then into `data`, and finds `rm_yields_1990plus_long.csv` -- each `/` steps into a subfolder.
+- (a) `rm_canola <- read_csv("module_2/data/rm_canola_1990plus.csv")`.
+- (b) The starting point changed: relative paths begin at the folder you opened. With `module_2/` open, the path is `data/rm_canola_1990plus.csv`.
+- (c) From `AREC_261`, R goes into `module_2`, then into `data`, and finds `rm_canola_1990plus.csv` -- each `/` steps into a subfolder.
 </details>
 
 ### Question 14
 
-**(a)** Run `glimpse()` on `rm_yields`. In a comment: which columns are text (`<chr>`) and which are numeric (`<dbl>`)?
+**(a)** Run `glimpse()` on `rm_canola`. In a comment: which columns are text (`<chr>`) and which are numeric (`<dbl>`)?
 
 **(b)** When `read_csv()` ran, it printed a note about the file. In a comment: what did that note report, and why does the module say to read it every time?
 
@@ -478,55 +485,55 @@ AREC_261/
 
 ### Question 15
 
-**(a)** Run `summary(rm_yields)`. From its output, report the minimum, median, and maximum of `Yield`.
+**(a)** Run `summary(rm_canola)`. From its output, report the minimum, median, and maximum of `Yield`, and the first and last `Year`.
 
-**(b)** The maximum is **3,411** -- almost a hundred times the median. In a comment: is this an error in the data? Use another column in the dataset to explain what is going on.
+**(b)** In a comment: work through the module's inspection questions for this file. Are the yields in a plausible range for canola in bu/ac? Are the years what the file name promises? Are there missing values?
 
-**(c)** In a comment: which of the module's inspect-your-data questions did part (b) just answer ("are the values in plausible ranges?"), and why would a mean of the whole `Yield` column be a misleading number to report?
+**(c)** The minimum is below 2 bu/ac. In a comment: is a canola yield that low necessarily a data error? What kind of year could produce it?
 
 <details><summary>Answer</summary>
 
-- (a) Min **0**, median **36.24**, max **3411**.
-- (b) Not an error: the `Unit` column shows lentils are recorded in **pounds** per acre while every other crop is in bushels. A lentil yield of ~3,400 lb/ac is a real value on a different scale.
-- (c) The plausible-ranges check. The column mixes two units, so its overall mean (**142.8**) averages pounds with bushels -- a number with no meaningful interpretation.
+- (a) Yield: min **1.9**, median **26.9**, max **61**. Years **1990** to **2025**.
+- (b) Yes -- everything sits between about 2 and 61 bu/ac, sensible for canola; the years run 1990--2025 as advertised; and `summary()` reports no NA counts, so no missing values.
+- (c) Not necessarily -- an RM average that low is what a severe drought or a widespread crop failure looks like. Extreme is not the same as wrong; it is a value to investigate, not delete.
 </details>
 
 ### Question 16
 
-**(a)** Compute the mean, median, and standard deviation of `rm_yields$Yield`.
+**(a)** Compute the mean, median, and standard deviation of `rm_canola$Yield`.
 
 **(b)** Compute the 90th percentile of `Yield`.
 
-**(c)** The mean (**142.8**) is nearly four times the median (**36.2**). In a comment: using Module 1's language about means and medians, what does a gap like that tell you, and what feature of this dataset produces it?
+**(c)** The mean sits a little above the median. In a comment: using Module 1's language about means and medians, what does that direction of gap suggest about the shape of canola yields?
 
 <details><summary>Answer</summary>
 
 ```r
-mean(rm_yields$Yield)
-median(rm_yields$Yield)
-sd(rm_yields$Yield)
-quantile(rm_yields$Yield, 0.9)
+mean(rm_canola$Yield)
+median(rm_canola$Yield)
+sd(rm_canola$Yield)
+quantile(rm_canola$Yield, 0.9)
 ```
 
-- (a) Mean **142.82**, median **36.24**, sd **358.99**.
-- (b) 90th percentile **102.2**.
-- (c) A mean far above the median flags unusually large values pulling it up -- here the lentil yields recorded in pounds, which sit far above every bushel figure. The gap is a units artifact, not a story about good crops.
+- (a) Mean **28.29**, median **26.9**, sd **10.06**.
+- (b) 90th percentile **42.5**.
+- (c) A mean above the median suggests mild right skew: the very best RM-years pull the mean up more than the worst years pull it down.
 </details>
 
 ### Question 17
 
-Open `rm_yields_1990plus_long.csv` in Positron's data viewer (click the file in the Explorer pane).
+Open `rm_canola_1990plus.csv` in Positron's data viewer (click the file in the Explorer pane).
 
 **(a)** In a comment: what percentage of values are missing in each column, according to the viewer?
 
-**(b)** In a comment: expand the `Yield` column's summary. Describe the shape of its histogram in one phrase, and connect it to what you found in Question 15.
+**(b)** In a comment: expand the `Yield` column's summary. Describe the shape of its histogram in one phrase, and say whether it matches your mean-versus-median reading from Question 16.
 
 **(c)** A classmate says "the file is open in the viewer, so it's loaded into R." In a comment: correct them, and say what actually loads it.
 
 <details><summary>Answer</summary>
 
 - (a) 0% missing in every column.
-- (b) A tall spike at low values with a long right tail -- the lentil pound-scale yields stretch the axis far past everything else.
+- (b) A single hump around the mid-20s with a longer tail to the right -- consistent with the mean sitting a little above the median.
 - (c) The viewer is Positron showing you the file; nothing exists in R until `read_csv()` runs and the result is assigned to an object.
 </details>
 
@@ -536,18 +543,18 @@ Open `rm_yields_1990plus_long.csv` in Positron's data viewer (click the file in 
 
 **(b)** Compute the interquartile range twice: once with `IQR()`, once by subtracting your two percentiles.
 
-**(c)** In a comment: the IQR (**29.6**) is small next to the standard deviation (**359**). Which is giving the more honest picture of a *typical* crop's spread here, and why?
+**(c)** In a comment: say what the interquartile range from (b) means in words, for a reader who farms.
 
 <details><summary>Answer</summary>
 
 ```r
-quantile(rm_yields$Yield, c(0.25, 0.75))
-IQR(rm_yields$Yield)
+quantile(rm_canola$Yield, c(0.25, 0.75))
+IQR(rm_canola$Yield)
 ```
 
-- (a) 25th **25.3**, 75th **54.9**.
-- (b) Both give **29.6**.
-- (c) The IQR: it describes the middle half of the data and ignores the extremes, while the standard deviation is blown up by the lentil pound-scale values.
+- (a) 25th **21**, 75th **35.4**.
+- (b) Both give **14.4**.
+- (c) The middle half of all RM-year canola yields falls between 21 and 35.4 bu/ac -- a typical RM in a typical year lands somewhere in that 14-bushel window.
 </details>
 
 ### Question 19
@@ -592,7 +599,7 @@ You spot an obviously wrong yield value in the csv. A classmate suggests opening
 
 # Section 3 — Data Manipulation Functions
 
-*Same dataset. Answer in the Section 3 block of your script. These questions use one function at a time; save intermediate results to objects where a later part needs them.*
+*From here on, use the full eight-crop file: read [`rm_yields_1990plus_long.csv`](data/rm_yields_1990plus_long.csv) into an object called `rm_yields` at the start of your Section 3 block. These questions use one function at a time; save intermediate results to objects where a later part needs them.*
 
 ### Question 21
 
@@ -813,7 +820,7 @@ head(arrange(rm_yields, desc(Yield)))
 
 # Section 4 — Pipelines and Grouped Summaries
 
-*Same dataset. Answer in the Section 4 block of your script. Write multi-step work as pipelines with `|>`, one step per line.*
+*Still the full eight-crop file (`rm_yields`). Answer in the Section 4 block of your script. Write multi-step work as pipelines with `|>`, one step per line.*
 
 ### Question 31
 
