@@ -413,8 +413,6 @@ trial_data |>
 Take `trial_data`, *then* divide the observations by variety, *then* calculate the
 statistics separately for each variety. The result has one row per variety. This is the R equivalent of a PivotTable.
 
-Grouping is state that can affect later operations. After a grouped `summarise()` you sometimes want the ordinary, ungrouped data frame back: `.groups = "drop"` inside `summarise()` does that, and the `ungroup()` function -- which appears in the last example of this chapter -- is the general tool.
-
 The central pattern -- `data |> group_by(group_variable) |> summarise(...)` -- appears
 throughout the rest of the book.
 
@@ -477,38 +475,6 @@ Each line does one simple thing, and that is the reason for pipes: a good pipeli
 logic of an analysis visible. Saving the table is one more line:
 `write_csv(variety_summary_100, "output/variety_summary_100.csv")`.
 
-### A slightly harder example {.unnumbered}
-
-Which fields yielded above the average for their own variety? This needs one new idea:
-`mutate()` can operate within groups.
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-above_variety_average <- trial_data |>
-  group_by(variety) |>
-  mutate(variety_mean = mean(yield_bu_acre)) |>
-  ungroup() |>
-  filter(yield_bu_acre > variety_mean) |>
-  select(field_id, variety, yield_bu_acre, variety_mean) |>
-  arrange(variety, desc(yield_bu_acre))
-above_variety_average
-')
-```
-
-The important step is `group_by(variety)` followed by `mutate()`. Because the data is
-grouped by variety, `mean()` is calculated separately within each variety -- and unlike
-`summarise()`, `mutate()` keeps every field and adds its variety's mean as a new column on
-each one. This is also where `ungroup()` earns its place: we are finished calculating within
-varieties, so we remove the grouping and the later steps treat the result as an ordinary
-data frame.
-
-You do not need to produce this second pipeline from memory. You should be able to read it
-from top to bottom and explain what each step is doing. As analyses become more complicated
--- and especially once AI helps generate the code -- that is the skill that matters: looking
-at a sequence of operations and deciding whether it actually answers the question you
-intended to ask.
 
 ::: {.callout-tip collapse="true"}
 ## Other resources — dplyr
