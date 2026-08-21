@@ -24,7 +24,7 @@ Both files have the same five columns: `Year`, `RM`, `Crop`, `Yield`, `Unit`.
 
 **Grading model.** **20%** for script presentation -- a header block, comments in the style of the module, clearly labelled question sections, and a script that runs from top to bottom in a fresh session. The remaining **80%** is split evenly across the four questions, and evenly across the parts within each question. Parts are marked on **follow-through**: if an early part is wrong but the later parts are correctly worked *from your own earlier answer*, the later parts still earn full marks. Where a part asks for a sentence, write it as a comment in your script.
 
-> **Vocabulary note.** Everything here uses only Module 2 tools: `<-`, arithmetic on vectors, `c()`, `data.frame()`, `$`, `mean`, `median`, `sd`, `var`, `min`, `max`, `range`, `sum`, `quantile` (with `probs`), `IQR`, `nrow`, `ncol`, `names`, `head`, `print`, `glimpse`, `summary`, `library()`, `install.packages()`, `read_csv` with relative paths, `filter` (with `==`, `>`, `<`, `&`, `|`, `!`, `%in%`), `select` (including `-` and `:`), `rename`, `mutate`, `arrange` and `desc`, the pipe `|>`, `summarise`, `n()`, `group_by`, and `write_csv`. Nothing beyond that is needed.
+> **Vocabulary note.** Everything here uses only Module 2 tools: `<-`, arithmetic on vectors, `c()`, `data.frame()`, `$`, `mean`, `median`, `sd`, `var`, `min`, `max`, `range`, `sum`, `quantile` (with `probs`), `IQR`, `nrow`, `ncol`, `names`, `head`, `print`, `glimpse`, `summary`, `library()`, `install.packages()`, `read_csv` with relative paths, `filter` (with `==`, `>`, `<`, `>=`, `&`, `|`, `!`, `%in%`), `select` (including `-` and `:`), `rename`, `mutate`, `arrange` and `desc`, the pipe `|>`, `summarise`, `n()`, `group_by`, and `write_csv`. Nothing beyond that is needed.
 
 ::: {.callout-note collapse="true"}
 ## A sample test, with a full-marks answer script
@@ -166,7 +166,7 @@ total_bu / sum(acres)
 
 - (b) 2.93, 2.68, 3.09, 2.50, 2.85 t/ha.
 - (c) Mean **50.14**, sd **4.06**.
-- (d) Total **52,866 bu**; weighted average **50.35 bu/ac** (slightly higher than the plain mean because the larger fields yielded a little less than the small high-yield field pulls up).
+- (d) Total **52,866 bu**; weighted average **50.35 bu/ac**.
 </details>
 
 ### Question 2
@@ -239,11 +239,14 @@ x * y
 
 **(c)** A fifth line, `y <- y * 2`, is now run. In a comment: what does the Variables pane show afterwards, and did the line print anything?
 
+**(d)** Predict what a sixth line, `x * y`, would print now. Then type all six lines into the console yourself and check every prediction from (a)--(d) against what actually happens.
+
 <details><summary>Answer</summary>
 
 - (a) Only the second and fourth lines print: `[1] 24` and `[1] 40`. Assignments print nothing.
 - (b) `x = 8` and `y = 5`. The result of `x * 3` was displayed but never assigned, so it is not saved anywhere -- displaying a result and saving one are different things.
 - (c) `y` is now 10 (the old value was used to compute the new one, then overwritten); `x` is still 8. Nothing printed -- it is an assignment.
+- (d) `[1] 80` -- x is 8 and y is now 10.
 </details>
 
 ### Question 5
@@ -256,11 +259,14 @@ A student opens a new file in Positron, types a script that creates three object
 
 **(c)** In a comment: after running it, where do results appear, and where do the created objects appear?
 
+**(d)** Reproduce the situation yourself: write a script that creates three objects, save it, and confirm the Variables pane is still empty. Then run it and, in a comment, report what the console showed and what the Variables pane now lists.
+
 <details><summary>Answer</summary>
 
 - (a) Writing code in a script does not run it -- typing puts text in a file, and nothing happens until the code is executed.
 - (b) The **Run** button (source the whole file, or Execute code for selected lines), or **Cmd+Enter** (Mac) / **Ctrl+Enter** (Windows) to run the selected lines or the line under the cursor.
 - (c) Results print in the **console**; created objects appear in the **Variables** pane.
+- (d) Three assignments print nothing to the console; the Variables pane lists the three objects with their values.
 </details>
 
 ### Question 6
@@ -326,14 +332,14 @@ total_bu <- sum(yields * acres)
 total_bu / sum(acres)
 ```
 
-- (c) Restart R and run the script from top to bottom: it should reproduce the analysis without any commands typed into the console. (The weighted average, for reference, is **40.35 bu/ac**.)
+- (c) Restart R and run the script from top to bottom: it should reproduce the analysis without any commands typed into the console. (The weighted average, for reference, is **40.4 bu/ac**.)
 </details>
 
 ### Question 8
 
 Five barley fields yielded 68.2, 71.5, 64.9, 74.1, and 66.3 bu/ac. Five lentil fields yielded 1450, 1720, 1280, 1610, and 1390 lb/ac.
 
-**(a)** Compute the mean and standard deviation of each crop's yields.
+**(a)** Compute the mean, the standard deviation, and the range (maximum minus minimum) of each crop's yields.
 
 **(b)** The lentil standard deviation is far larger. In a comment: why can the two standard deviations not be compared directly?
 
@@ -344,28 +350,38 @@ Five barley fields yielded 68.2, 71.5, 64.9, 74.1, and 66.3 bu/ac. Five lentil f
 ```r
 barley  <- c(68.2, 71.5, 64.9, 74.1, 66.3)
 lentils <- c(1450, 1720, 1280, 1610, 1390)
+max(barley) - min(barley)
+max(lentils) - min(lentils)
 sd(barley) / mean(barley)
 sd(lentils) / mean(lentils)
 ```
 
-- (a) Barley mean **69.0**, sd **3.77**; lentils mean **1490**, sd **175.36**.
+- (a) Barley mean **69.0**, sd **3.77**, range **9.2**; lentils mean **1490**, sd **175.36**, range **440**.
 - (b) They are in different units (bushels vs pounds per acre) and on very different scales, so the raw spreads are not comparable.
 - (c) CV barley **0.055**, lentils **0.118** -- lentil yields are more variable relative to their own average.
 </details>
 
 ### Question 9
 
-**(a)** In a comment: `quantile()` has two main arguments. Name them and say what each is.
+**(a)** Using the pea yields from Question 3, compute the 10th and 90th percentiles in one `quantile()` call with **named** arguments.
 
-**(b)** In a comment: you cannot remember what the `probs` argument of `quantile()` expects. What do you type to get the official documentation?
+**(b)** In a comment: `quantile()` has two main arguments. Name them and say what each is.
 
-**(c)** A classmate writes `Quantile(peas, 0.5)` and gets `could not find function "Quantile"`. In a comment: what went wrong?
+**(c)** In a comment: you cannot remember what the `probs` argument of `quantile()` expects. What do you type to get the official documentation?
+
+**(d)** A classmate writes `Quantile(peas, 0.5)` and gets `could not find function "Quantile"`. In a comment: what went wrong?
 
 <details><summary>Answer</summary>
 
-- (a) `x`, the data, and `probs`, the percentile you want expressed in decimal form.
-- (b) `?quantile`.
-- (c) R is exact about names: `Quantile` with a capital Q is not the same as `quantile`, and no function by that name exists.
+```r
+peas <- c(31, 44, 27, 50, 38, 42, 35, 47, 29, 40)
+quantile(x = peas, probs = c(0.1, 0.9))
+```
+
+- (a) 10th percentile **28.8**, 90th percentile **47.3**.
+- (b) `x`, the data, and `probs`, the percentile you want expressed in decimal form.
+- (c) `?quantile`.
+- (d) R is exact about names: `Quantile` with a capital Q is not the same as `quantile`, and no function by that name exists.
 </details>
 
 ### Question 10
@@ -384,7 +400,9 @@ A trial records, for each field: the crop grown, the seeded acres, and whether t
 crop      <- c("Canola", "Wheat", "Peas", "Canola")
 acres     <- c(160, 320, 240, 130)
 irrigated <- c(TRUE, FALSE, FALSE, TRUE)
-trial <- data.frame(crop, acres, irrigated)
+trial <- data.frame(crop = crop,
+                    acres = acres,
+                    irrigated = irrigated)
 trial
 ```
 
@@ -435,11 +453,14 @@ It runs on their laptop and fails on everyone else's.
 
 **(c)** In a comment: the classmate asks "but with your short path, how does R know where to start looking?" Answer in one sentence.
 
+**(d)** Your fixed line could itself fail with `Error: 'data/rm_canola_yields_1990_2025.csv' does not exist in current working directory (...)`. In a comment: what is the first thing to check?
+
 <details><summary>Answer</summary>
 
 - (a) The absolute path names one specific machine (user `jordan`, a Desktop folder), so it exists nowhere else; and backslashes mean something special inside an R string -- paths in R use forward slashes even on Windows.
 - (b) `rm_canola <- read_csv("data/rm_canola_yields_1990_2025.csv")`.
 - (c) Opening the project folder in Positron (**File → Open Folder…**) makes that folder R's starting point, so relative paths begin from it.
+- (d) That the folder opened in Positron is the project folder -- the one that contains `data/` with the csv inside. If some other folder is open, the relative path starts from the wrong place.
 </details>
 
 ### Question 13
@@ -474,13 +495,13 @@ AREC_261/
 
 **(b)** When `read_csv()` ran, it printed a note about the file. In a comment: what did that note report, and why does the module say to read it every time?
 
-**(c)** `Year` came in as a number. In a comment: would `"2024"` (with quotes) in a filter comparison against `Year` behave the same as `2024`? What is the difference between the two?
+**(c)** `Year` came in as numeric (`<dbl>`). In a comment: which type of value is each of `2024` and `"2024"`? Why do we want a column we will compute with stored as numbers rather than as text?
 
 <details><summary>Answer</summary>
 
 - (a) `Crop` and `Unit` are `<chr>`; `Year`, `RM`, and `Yield` are `<dbl>`.
 - (b) The row and column counts and its guess at each column's type (here `chr (2)` and `dbl (3)`). R guesses well but not perfectly, so the note is the first check that the file read the way you expect.
-- (c) No -- `"2024"` is text and `2024` is a number; they are different types of value. The comparison wants the number.
+- (c) `2024` is numeric; `"2024"` is character (text). Numbers stored as text stop behaving like numbers -- you cannot do arithmetic with them, and sorting turns alphabetical -- so a column you will compute with should show `<dbl>`, not `<chr>`.
 </details>
 
 ### Question 15
@@ -494,13 +515,13 @@ AREC_261/
 <details><summary>Answer</summary>
 
 - (a) Yield: min **1.9**, median **26.9**, max **61**. Years **1990** to **2025**.
-- (b) Yes -- everything sits between about 2 and 61 bu/ac, sensible for canola; the years run 1990--2025 as advertised; and `summary()` reports no NA counts, so no missing values.
+- (b) Yes -- everything sits between about 2 and 61 bu/ac, sensible for canola; the years run 1990--2025 as advertised; and `summary()` prints an `NA's` count only when a column has missing values -- no such line appears, so there are none.
 - (c) Not necessarily -- an RM average that low is what a severe drought or a widespread crop failure looks like. Extreme is not the same as wrong; it is a value to investigate, not delete.
 </details>
 
 ### Question 16
 
-**(a)** Compute the mean, median, and standard deviation of `rm_canola$Yield`.
+**(a)** Compute the mean, median, standard deviation, and variance of `rm_canola$Yield`.
 
 **(b)** Compute the 90th percentile of `Yield`.
 
@@ -512,10 +533,11 @@ AREC_261/
 mean(rm_canola$Yield)
 median(rm_canola$Yield)
 sd(rm_canola$Yield)
+var(rm_canola$Yield)
 quantile(rm_canola$Yield, 0.9)
 ```
 
-- (a) Mean **28.29**, median **26.9**, sd **10.06**.
+- (a) Mean **28.29**, median **26.9**, sd **10.06**, variance **101.21** (the sd squared, in squared units).
 - (b) 90th percentile **42.5**.
 - (c) A mean above the median suggests mild right skew: the very best RM-years pull the mean up more than the worst years pull it down.
 </details>
@@ -524,7 +546,7 @@ quantile(rm_canola$Yield, 0.9)
 
 Open `rm_canola_yields_1990_2025.csv` in Positron's data viewer (click the file in the Explorer pane).
 
-**(a)** In a comment: what percentage of values are missing in each column, according to the viewer?
+**(a)** In a comment: according to the viewer's summary panel, does any column have missing values?
 
 **(b)** In a comment: expand the `Yield` column's summary. Describe the shape of its histogram in one phrase, and say whether it matches your mean-versus-median reading from Question 16.
 
@@ -532,7 +554,7 @@ Open `rm_canola_yields_1990_2025.csv` in Positron's data viewer (click the file 
 
 <details><summary>Answer</summary>
 
-- (a) 0% missing in every column.
+- (a) No -- the summary panel shows 0% missing for every column.
 - (b) A single hump around the mid-20s with a longer tail to the right -- consistent with the mean sitting a little above the median.
 - (c) The viewer is Positron showing you the file; nothing exists in R until `read_csv()` runs and the result is assigned to an object.
 </details>
@@ -569,13 +591,16 @@ Error in read_csv(...) : could not find function "read_csv"
 
 **(b)** In a comment: they object, "but I installed the tidyverse last week!" Explain the difference between installing and loading, and how often each is done.
 
-**(c)** In a comment: why does `install.packages("tidyverse")` need quotation marks while `library(tidyverse)` does not need them?
+**(c)** In a comment: state the quotes rule -- where do quotation marks go when installing, and when loading?
+
+**(d)** The tidyverse is a collection of packages. In comments, name the four core ones from the module and the job each does.
 
 <details><summary>Answer</summary>
 
 - (a) The package is not loaded in this session; run `library(tidyverse)` first.
 - (b) Installing downloads the package onto the computer -- once per computer. Loading switches it on -- once per script or session. Installation does not carry across sessions as loaded.
-- (c) It is a quirk to memorize at this stage: quotes when you install, none when you load.
+- (c) Quotes when you install (`install.packages("tidyverse")`), none when you load (`library(tidyverse)`).
+- (d) `readr` reads data, `dplyr` manipulates it, `tidyr` reshapes it, `ggplot2` makes graphs.
 </details>
 
 ### Question 20
@@ -591,7 +616,7 @@ You spot an obviously wrong yield value in the csv. A classmate suggests opening
 <details><summary>Answer</summary>
 
 - (a) It overwrites the only copy of the raw data and leaves no record of what changed. Keep the file exactly as it arrived and make the correction in the R script, where it leaves a trail.
-- (b) Spaces and punctuation, and a `FINAL (2)` version tag doing a job version control should do. Something like `rm_yields_long.csv`.
+- (b) Spaces and punctuation, and a `FINAL (2)` tag that will only ever breed a `FINAL (3)`. Something like `rm_yields_long.csv`.
 - (c) As YYYY-MM-DD, e.g. `2026-10-08_rm_yields.csv` -- alphabetical order is then also chronological order.
 </details>
 
@@ -639,12 +664,13 @@ ncol(canola_slim)
 ```r
 oats_barley <- filter(rm_yields, Crop == "Oats" | Crop == "Barley")
 nrow(oats_barley)
-nrow(filter(rm_yields, Crop %in% c("Oats", "Barley")))
+oats_barley2 <- filter(rm_yields, Crop %in% c("Oats", "Barley"))
+nrow(oats_barley2)
 arrange(oats_barley, desc(Yield))
 ```
 
 - (a, b) **19,709 rows** both ways.
-- (c) Oats, RM **369**, in **2025**, at **165.1 bu/ac**.
+- (c) A tie at **165.1 bu/ac**: Oats in RM **369** (2025) and Oats in RM **438** (2020) share the maximum, so either is a correct top row.
 - (d) `&` requires both conditions true of the *same row*, and no single row's crop is both Oats and Barley. "Or" is the right connector.
 </details>
 
@@ -656,7 +682,7 @@ arrange(oats_barley, desc(Yield))
 
 **(c)** From your 2023 data frame, select `RM` and `Yield` and sort best-first. Which RM tops the list, at what yield?
 
-**(d)** In a comment: rewrite the condition "yield above 60 and the crop is *not* Spring Wheat" using `!`, and say what each of `&`, `|`, `!` requires.
+**(d)** In a comment: rewrite the condition "yield above 60 and the crop is *not* Spring Wheat" using `!`.
 
 <details><summary>Answer</summary>
 
@@ -671,12 +697,12 @@ arrange(sw_best, desc(Yield))
 
 - (a) **430 rows**. (b) **52 rows**.
 - (c) RM **187**, at **74.7 bu/ac**.
-- (d) `filter(rm_yields, Yield > 60 & !Crop == "Spring Wheat")`. `&` needs both conditions true, `|` needs at least one true, `!` flips a condition.
+- (d) `filter(rm_yields, Yield > 60 & !Crop == "Spring Wheat")`.
 </details>
 
 ### Question 24
 
-**(a)** Make a version of the data with only `Year`, `RM`, `Crop`, and `Yield` -- once by *naming what you keep*, once by *dropping* what you don't want -- and confirm the two give the same column names.
+**(a)** Make a version of the data with only `Year`, `RM`, `Crop`, and `Yield` -- once by *naming what you keep*, once by *dropping* what you don't want -- saving each, and confirm the two have the same column names. Then make a third version keeping the adjacent-column range `Year:Crop`, and report its column names.
 
 **(b)** Rename `Yield` to `yield_per_acre` in the full data, saving the result, and show the new column names.
 
@@ -685,15 +711,19 @@ arrange(sw_best, desc(Yield))
 <details><summary>Answer</summary>
 
 ```r
-names(select(rm_yields, Year, RM, Crop, Yield))
-names(select(rm_yields, -Unit))
+kept    <- select(rm_yields, Year, RM, Crop, Yield)
+dropped <- select(rm_yields, -Unit)
+names(kept)
+names(dropped)
+ranged  <- select(rm_yields, Year:Crop)
+names(ranged)
 renamed <- rename(rm_yields, yield_per_acre = Yield)
 names(renamed)
 peas_2025 <- filter(renamed, Crop == "Peas" & Year == 2025)
 nrow(peas_2025)
 ```
 
-- (a) Identical: `Year`, `RM`, `Crop`, `Yield` both ways.
+- (a) Identical: `Year`, `RM`, `Crop`, `Yield` both ways; the range version keeps `Year`, `RM`, `Crop`.
 - (b) `Year`, `RM`, `Crop`, `yield_per_acre`, `Unit`.
 - (c) **285 rows**.
 </details>
@@ -823,7 +853,9 @@ arrange(canola_232, desc(Yield))
 
 **(b)** Sort the data by `Yield` in descending order into a new object, select its `Crop`, `Yield`, and `Unit` columns into another, and display the first six rows of that (leaving `rm_yields` unchanged throughout).
 
-**(c)** In a comment: every row in (b) is the same crop. Which one, why those rows, and what would you check before comparing their values with the other crops?
+**(c)** Now sort by `Crop` first and by descending `Yield` within each crop, into a new object, and display its first six rows. Which crop fills them, and why that crop?
+
+**(d)** In a comment: every row in (b) is the same crop. Which one, why those rows, and what would you check before comparing their values with the other crops?
 
 <details><summary>Answer</summary>
 
@@ -832,9 +864,13 @@ head(rm_yields)
 sorted <- arrange(rm_yields, desc(Yield))
 top_cols <- select(sorted, Crop, Yield, Unit)
 head(top_cols)
+by_crop <- arrange(rm_yields, Crop, desc(Yield))
+head(by_crop)
 ```
 
-- (b, c) All lentils -- their yields are recorded in pounds per acre, so they dominate the top of any sort on `Yield`. Before comparing across crops you would check the `Unit` column and convert to a common unit.
+- (c) All Barley -- `Crop` sorts alphabetically first, so the display starts with Barley's own best yields (RM 380 in 2025 at 122 bu/ac on top).
+
+- (b, d) All lentils -- their yields are recorded in pounds per acre, so they dominate the top of any sort on `Yield`. Before comparing across crops you would check the `Unit` column and convert to a common unit.
 </details>
 
 ---
@@ -1035,11 +1071,14 @@ rm_yields |>
 
 **(c)** Write the corrected pipeline.
 
+**(d)** In a comment: your corrected pipeline works, but a classmate's copy of it still gives odd results even though their code now matches yours. What does the module say to try before hunting further?
+
 <details><summary>Answer</summary>
 
 - (a) Run the first step alone and check the result looks right (the canola rows), then add the second step and check again -- the first step where the data stops looking right is the problem.
 - (b) The second filter: `&` demands both conditions true of the same row, and no yield is simultaneously below 15 and above 55. The question said "or".
 - (c) Replace `&` with `|`: `filter(Yield < 15 | Yield > 55)`.
+- (d) Restart R and run the script from the top in a fresh session -- leftover objects from the console, or stale versions of a data frame, disappear on a clean run.
 </details>
 
 ### Question 40
