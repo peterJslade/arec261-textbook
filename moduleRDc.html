@@ -664,47 +664,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 data-number="8.3" class="anchored" data-anchor-id="sec-three-table-merge"><span class="header-section-number">8.3</span> A Worked Example: Three Tables</h2>
 <p>Most questions need more than two tables, and the tables are usually different kinds of thing. Here are three, all real, and all available to download:</p>
 <ul>
-<li><a href="practice/data/rm_yields_2015_2024.csv"><code>rm_yields_2015_2024.csv</code></a>: the Saskatchewan RM yields from <a href="moduleRDb.html#sec-direct-download" class="quarto-xref"><span>Section 7.3</span></a>, cut down to 2015 to 2024 and seven crops. One row per RM per year, yields in bushels per acre.</li>
+<li><a href="practice/data/rm_yields_2015_2024.csv"><code>rm_yields_2015_2024.csv</code></a>: the Saskatchewan RM yields from <a href="moduleRDb.html#sec-direct-download" class="quarto-xref"><span>Section 7.3</span></a>, cut down to 2015 to 2024 and six crops. One row per RM per year, yields in bushels per acre.</li>
 <li><a href="practice/data/rm_lookup.csv"><code>rm_lookup.csv</code></a>: one row per RM, with its name, census division and 2021 population from Statistics Canada, and the nearest of sixteen Environment Canada weather stations, with the distance to it in kilometres.</li>
 <li><a href="practice/data/station_precip.csv"><code>station_precip.csv</code></a>: one row per weather station per year, with total May to August precipitation in millimetres, computed from Environment Canada’s daily records, and a count of days with no reading.</li>
 </ul>
 <p>The question is whether canola yields track growing-season rain. Answering it needs a yield, a rain total, and a way to connect the two, and each of those is in a different file. The lookup table is the bridge: it is the only file that knows which station goes with which RM.</p>
 <p>Read all three and look at them:</p>
 <div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code>Rows: 2,950
-Columns: 8
-$ year         &lt;dbl&gt; 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 202…
-$ rm           &lt;dbl&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, …
-$ spring_wheat &lt;dbl&gt; 34.32, 40.50, 45.97, 50.00, 50.90, 56.00, 46.20, 52.40, 5…
-$ durum        &lt;dbl&gt; 29.18, 38.40, NA, NA, NA, NA, NA, NA, NA, NA, 32.67, 54.4…
-$ canola       &lt;dbl&gt; 28.65, 32.10, 39.19, 39.20, 32.40, 39.90, 33.20, 37.40, 3…
-$ barley       &lt;dbl&gt; 50.96, 68.10, NA, 76.00, 83.50, 94.00, 63.70, 90.30, 53.0…
-$ oats         &lt;dbl&gt; 56.36, 75.70, 85.82, 96.00, 102.10, 120.20, 84.00, 105.60…
-$ peas         &lt;dbl&gt; 37.7, 26.2, 43.4, 42.0, 43.8, 48.4, 37.7, 47.4, 44.9, 40.…
-Rows: 296
-Columns: 6
-$ rm_number       &lt;dbl&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 17, 18, 19, 31,…
-$ rm_name         &lt;chr&gt; "Argyle", "Mount Pleasant", "Enniskillen", "Coalfields…
-$ census_division &lt;chr&gt; "Division No.  1", "Division No.  1", "Division No.  1…
-$ population_2021 &lt;dbl&gt; 331, 419, 422, 330, 1279, 277, 220, 269, 211, 125, 263…
-$ weather_station &lt;chr&gt; "Kipling", "Kipling", "Kipling", "Weyburn", "Weyburn",…
-$ station_km      &lt;dbl&gt; 145, 133, 123, 104, 83, 69, 62, 69, 84, 115, 136, 157,…
-Rows: 160
-Columns: 4
-$ station           &lt;chr&gt; "Indian Head CDA", "Indian Head CDA", "Indian Head C…
-$ year              &lt;dbl&gt; 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023…
-$ precip_may_aug_mm &lt;dbl&gt; 207.3, 254.7, 116.6, 148.0, 212.8, 113.4, 295.1, 285…
-$ days_missing      &lt;dbl&gt; 1, 2, 1, 2, 2, 2, 1, 5, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0…</code></pre>
-</div>
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/rm_yields_2015_2024.csv"</span>) <span class="sc">|&gt;</span> <span class="fu">clean_names</span>()</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>rms    <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/rm_lookup.csv"</span>) <span class="sc">|&gt;</span> <span class="fu">clean_names</span>()</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>rain   <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/station_precip.csv"</span>) <span class="sc">|&gt;</span> <span class="fu">clean_names</span>()</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(yields)</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(rms)</span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(rain)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/rm_yields_2015_2024.csv"</span>) <span class="sc">|&gt;</span> <span class="fu">clean_names</span>()</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>rms    <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/rm_lookup.csv"</span>) <span class="sc">|&gt;</span> <span class="fu">clean_names</span>()</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>rain   <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/station_precip.csv"</span>) <span class="sc">|&gt;</span> <span class="fu">clean_names</span>()</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(yields)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(rms)</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(rain)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; yields &lt;- read_csv("data/rm_yields_2015_2024.csv") |&gt; clean_names()
 Rows: 2950 Columns: 8
@@ -734,8 +708,32 @@ dbl (3): Year, Precip_May_Aug_mm, Days_Missing
 ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
 &gt; 
 &gt; glimpse(yields)
+Rows: 2,950
+Columns: 8
+$ year         &lt;dbl&gt; 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 202…
+$ rm           &lt;dbl&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, …
+$ spring_wheat &lt;dbl&gt; 34.32, 40.50, 45.97, 50.00, 50.90, 56.00, 46.20, 52.40, 5…
+$ durum        &lt;dbl&gt; 29.18, 38.40, NA, NA, NA, NA, NA, NA, NA, NA, 32.67, 54.4…
+$ canola       &lt;dbl&gt; 28.65, 32.10, 39.19, 39.20, 32.40, 39.90, 33.20, 37.40, 3…
+$ barley       &lt;dbl&gt; 50.96, 68.10, NA, 76.00, 83.50, 94.00, 63.70, 90.30, 53.0…
+$ oats         &lt;dbl&gt; 56.36, 75.70, 85.82, 96.00, 102.10, 120.20, 84.00, 105.60…
+$ peas         &lt;dbl&gt; 37.7, 26.2, 43.4, 42.0, 43.8, 48.4, 37.7, 47.4, 44.9, 40.…
 &gt; glimpse(rms)
-&gt; glimpse(rain)</code></pre>
+Rows: 296
+Columns: 6
+$ rm_number       &lt;dbl&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 17, 18, 19, 31,…
+$ rm_name         &lt;chr&gt; "Argyle", "Mount Pleasant", "Enniskillen", "Coalfields…
+$ census_division &lt;chr&gt; "Division No.  1", "Division No.  1", "Division No.  1…
+$ population_2021 &lt;dbl&gt; 331, 419, 422, 330, 1279, 277, 220, 269, 211, 125, 263…
+$ weather_station &lt;chr&gt; "Kipling", "Kipling", "Kipling", "Weyburn", "Weyburn",…
+$ station_km      &lt;dbl&gt; 145, 133, 123, 104, 83, 69, 62, 69, 84, 115, 136, 157,…
+&gt; glimpse(rain)
+Rows: 160
+Columns: 4
+$ station           &lt;chr&gt; "Indian Head CDA", "Indian Head CDA", "Indian Head C…
+$ year              &lt;dbl&gt; 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023…
+$ precip_may_aug_mm &lt;dbl&gt; 207.3, 254.7, 116.6, 148.0, 212.8, 113.4, 295.1, 285…
+$ days_missing      &lt;dbl&gt; 1, 2, 1, 2, 2, 2, 1, 5, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0…</code></pre>
 </div>
 </div>
 </div>
@@ -745,15 +743,15 @@ dbl (3): Year, Precip_May_Aug_mm, Days_Missing
 <p>Check what will not match, then join, then check the row count:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(rms, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"rm"</span> <span class="ot">=</span> <span class="st">"rm_number"</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(rm)</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>with_station <span class="ot">&lt;-</span> yields <span class="sc">|&gt;</span></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(rms, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"rm"</span> <span class="ot">=</span> <span class="st">"rm_number"</span>))</span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(yields)</span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(with_station)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(rms, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"rm"</span> <span class="ot">=</span> <span class="st">"rm_number"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(rm)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>with_station <span class="ot">&lt;-</span> yields <span class="sc">|&gt;</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(rms, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"rm"</span> <span class="ot">=</span> <span class="st">"rm_number"</span>))</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(yields)</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(with_station)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; yields |&gt;
 +   anti_join(rms, by = c("rm" = "rm_number")) |&gt;
@@ -778,14 +776,14 @@ dbl (3): Year, Precip_May_Aug_mm, Days_Missing
 <p>The key now has two parts. The station name in <code>with_station</code> is called <code>weather_station</code>, the year is called <code>year</code> on both sides, and both are needed to identify one rain total:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>with_station <span class="sc">|&gt;</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(rain, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"weather_station"</span> <span class="ot">=</span> <span class="st">"station"</span>, <span class="st">"year"</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(weather_station, year)</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>merged <span class="ot">&lt;-</span> with_station <span class="sc">|&gt;</span></span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(rain, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"weather_station"</span> <span class="ot">=</span> <span class="st">"station"</span>, <span class="st">"year"</span>))</span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(merged)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>with_station <span class="sc">|&gt;</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(rain, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"weather_station"</span> <span class="ot">=</span> <span class="st">"station"</span>, <span class="st">"year"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(weather_station, year)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>merged <span class="ot">&lt;-</span> with_station <span class="sc">|&gt;</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(rain, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"weather_station"</span> <span class="ot">=</span> <span class="st">"station"</span>, <span class="st">"year"</span>))</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(merged)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; with_station |&gt;
 +   anti_join(rain, by = c("weather_station" = "station", "year")) |&gt;
@@ -804,9 +802,9 @@ dbl (3): Year, Precip_May_Aug_mm, Days_Missing
 <p>Here is what the row-count trap looks like when you leave <code>year</code> out of the key:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>with_station <span class="sc">|&gt;</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(rain, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"weather_station"</span> <span class="ot">=</span> <span class="st">"station"</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nrow</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>with_station <span class="sc">|&gt;</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(rain, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"weather_station"</span> <span class="ot">=</span> <span class="st">"station"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nrow</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; with_station |&gt;
 +   left_join(rain, by = c("weather_station" = "station")) |&gt;
@@ -827,14 +825,14 @@ Warning: Detected an unexpected many-to-many relationship between `x` and `y`.
 <p>One table, one row per RM-year, with the yield and the season’s rain side by side:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>merged <span class="sc">|&gt;</span></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(year, rm, rm_name, canola, weather_station, precip_may_aug_mm)</span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>merged <span class="sc">|&gt;</span></span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(canola)) <span class="sc">|&gt;</span></span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(year) <span class="sc">|&gt;</span></span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">canola_bu_ac =</span> <span class="fu">mean</span>(canola),</span>
-<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">rain_mm =</span> <span class="fu">mean</span>(precip_may_aug_mm))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>merged <span class="sc">|&gt;</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(year, rm, rm_name, canola, weather_station, precip_may_aug_mm)</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>merged <span class="sc">|&gt;</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(canola)) <span class="sc">|&gt;</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(year) <span class="sc">|&gt;</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">canola_bu_ac =</span> <span class="fu">mean</span>(canola),</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">rain_mm =</span> <span class="fu">mean</span>(precip_may_aug_mm))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; merged |&gt;
 +   select(year, rm, rm_name, canola, weather_station, precip_may_aug_mm)

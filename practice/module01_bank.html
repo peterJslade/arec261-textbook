@@ -1177,38 +1177,45 @@ Answer
 </section>
 <section id="question-12" class="level3">
 <h3 class="anchored" data-anchor-id="question-12">Question 12</h3>
-<p><em>Paste this block into a blank sheet. Two cells are deliberately empty.</em></p>
-<pre class="plain"><code>Field   Yield (bu/ac)
-Birch   46.9
-Coulee  
-Draw    52.7
-Flats   not seeded
-Gully   44.3
-Hollow  </code></pre>
-<p><strong>(a)</strong> Use <code>COUNT</code> and <code>COUNTA</code> on the yield column. Report both numbers and explain why they differ.</p>
-<p><strong>(b)</strong> Use <code>AVERAGE</code> on the yield column. State how many values it used.</p>
-<p><strong>(c)</strong> Compute the same average a second way, as <code>SUM</code> divided by <code>COUNT</code>, and confirm the two agree.</p>
-<p><strong>(d)</strong> A colleague suggests typing <code>0</code> into the two blank cells “so the column is complete.” Compute what the average becomes, and explain why that is the wrong fix.</p>
-<p><strong>(e)</strong> State, in one sentence, what a blank cell means here that a zero does not.</p>
+<p><em>Paste this block into a blank sheet, keeping the blank rows between the three groups.</em></p>
+<pre class="plain"><code>Parcel  Acres
+Home quarter    
+NW  142
+SW  318
+NE  96
+    
+River section   
+North strip 205
+South strip 177
+    
+East lease  
+Field 1 264
+Field 2 88
+Field 3 131</code></pre>
+<p><strong>(a)</strong> Use <code>SUM</code> with a <strong>single</strong> range covering the whole block, from the first acreage to the last. Report what it returns.</p>
+<p><strong>(b)</strong> Now total the acres properly, using one <code>SUM</code> that takes all three ranges separated by commas. Report the farm total.</p>
+<p><strong>(c)</strong> A 60-acre parcel is rented mid-season and never given a row. Extend your formula from (b) to include it as an individual number inside the same <code>SUM</code>. Report the new total.</p>
+<p><strong>(d)</strong> Explain why the answer to (a) matches the answer to (b), and why that agreement is luck rather than proof.</p>
+<p><strong>(e)</strong> A colleague writes <code>=SUM(B3:B5)</code> and reports 556 acres as the farm total. Explain what went wrong and why nothing on their sheet flags it.</p>
 <details>
 <summary>
 Answer
 </summary>
 <ul>
 <li><ol type="a">
-<li><code>=COUNT(B2:B7)</code> = <strong>3</strong> (only the numbers); <code>=COUNTA(B2:B7)</code> = <strong>4</strong> (the numbers plus the text “not seeded”). <code>COUNT</code> ignores text; <code>COUNTA</code> counts anything that is not empty.</li>
+<li><code>=SUM(B3:B14)</code> = <strong>1,421</strong> acres. The blank rows and the text labels are simply skipped.</li>
 </ol></li>
 <li><ol start="2" type="a">
-<li><code>=AVERAGE(B2:B7)</code> = <strong>47.97</strong>, over <strong>3</strong> values. Blanks and text are skipped.</li>
+<li><code>=SUM(B3:B5,B8:B9,B12:B14)</code> = <strong>1,421</strong> acres — the same figure, but now the formula names exactly the cells that are meant to be in it.</li>
 </ol></li>
 <li><ol start="3" type="a">
-<li><code>=SUM(B2:B7)/COUNT(B2:B7)</code> = <strong>47.97</strong> — the same.</li>
+<li><code>=SUM(B3:B5,B8:B9,B12:B14,60)</code> = <strong>1,481</strong> acres. A function can take individual numbers alongside its ranges.</li>
 </ol></li>
 <li><ol start="4" type="a">
-<li>With two zeros the average falls to <strong>28.78</strong>. That treats “we have no number” as “the field yielded nothing,” which is a claim about the world, not a repair to the spreadsheet.</li>
+<li>They agree only because everything between the first and last acreage happens to belong in the total. Put a subtotal, a note, or another dataset in one of those blank rows and the single range picks it up without warning; the three named ranges do not.</li>
 </ol></li>
 <li><ol start="5" type="a">
-<li>A blank says the value is unknown or not applicable; a zero says the value is known and it is none.</li>
+<li>They summed only the Home quarter — the first block of three rows — and reported it as the whole farm. The number is a plausible acreage, no error appears, and the sheet gives no sign that two-thirds of the land is missing.</li>
 </ol></li>
 </ul>
 <p>📗 <strong><a href="../practice/answers/s1_q12.xlsx">Answer workbook</a></strong> — the finished sheet, with the formulas live and a <code>FORMULATEXT</code> column showing what was typed.</p>
@@ -1518,39 +1525,36 @@ Answer
 </section>
 <section id="question-21" class="level3">
 <h3 class="anchored" data-anchor-id="question-21">Question 21</h3>
-<p><em>Paste this block into a blank sheet.</em></p>
-<pre class="plain"><code>Field   Acres
-Kestrel 120
-Meadowvale  240
-Nightjar    95</code></pre>
-<pre class="plain"><code>Scenario    Rate (lb/ac)
-Low 2.4
-Mid 2.9
-High    3.5</code></pre>
-<p><strong>(a)</strong> Lay the three scenarios across a row and build a grid of total seed required (acres × rate) for each field under each scenario. Write <strong>one</strong> formula and fill it both ways.</p>
-<p><strong>(b)</strong> State your formula and explain which reference is locked by column and which by row.</p>
-<p><strong>(c)</strong> Total each scenario column with <code>SUM</code> and report the three farm totals.</p>
-<p><strong>(d)</strong> Seed costs $1.85 per pound. Add a row converting each scenario total to a cost, with the price in one locked cell. Format as currency.</p>
-<p><strong>(e)</strong> Explain in one sentence why this layout is better than building three separate tables.</p>
+<p><em>Paste this block into a blank sheet. Each bin is square, so its floor is the side length squared.</em></p>
+<pre class="plain"><code>Bin Side (m)    Depth (m)
+Bin 1   7.5 4.2
+Bin 2   9.0 3.8
+Bin 3   11.25   5.0
+Bin 4   6.4 4.5</code></pre>
+<p><strong>(a)</strong> Add a <strong>Floor area (m²)</strong> column using the <code>^</code> operator to square the side length. Show two decimals.</p>
+<p><strong>(b)</strong> Add a <strong>Volume (m³)</strong> column: floor area times depth. Total it with <code>SUM</code> and show one decimal.</p>
+<p><strong>(c)</strong> Grain weighs about 0.75 tonnes per cubic metre. Put that figure in a cell of its own and add a <strong>Capacity (t)</strong> column, rounded to whole tonnes with <code>ROUND</code>.</p>
+<p><strong>(d)</strong> In two spare cells, enter <code>=4*3^2</code> and <code>=(4*3)^2</code>. Report both results and explain why they differ.</p>
+<p><strong>(e)</strong> A classmate computes Bin 3’s floor area as <code>=11.25*2</code> and gets 22.5. In one sentence, say what they have actually calculated.</p>
 <details>
 <summary>
 Answer
 </summary>
 <ul>
 <li><ol type="a">
-<li>With acres in <code>B2:B4</code> and rates laid across in <code>C6:E6</code>, the fill formula is <code>=$B2*C$6</code>.</li>
+<li><code>=B2^2</code> filled down → <strong>56.25, 81.00, 126.56, 40.96</strong> m².</li>
 </ol></li>
 <li><ol start="2" type="a">
-<li><code>$B2</code> locks the <strong>column</strong> so the acres come from column B wherever the formula lands, but the row still moves down. <code>C$6</code> locks the <strong>row</strong> so the rate always comes from row 6, but the column still moves across.</li>
+<li><code>=D2*C2</code> → <strong>236.3, 307.8, 632.8, 184.3</strong> m³; total <strong>1,361.2</strong> m³.</li>
 </ol></li>
 <li><ol start="3" type="a">
-<li>Low <strong>1,092.0</strong> lb; Mid <strong>1,319.5</strong> lb; High <strong>1,592.5</strong> lb.</li>
+<li><code>=ROUND(E2*$H$1,0)</code> → <strong>177, 231, 475, 138</strong> tonnes.</li>
 </ol></li>
 <li><ol start="4" type="a">
-<li><code>=C8*$G$1</code> → Low <strong>$2,020.20</strong>; Mid <strong>$2,441.08</strong>; High <strong>$2,946.13</strong>.</li>
+<li><code>=4*3^2</code> returns <strong>36</strong> and <code>=(4*3)^2</code> returns <strong>144</strong>. Exponents are evaluated before multiplication, so the first squares the 3 and then multiplies by 4. The brackets in the second force the multiplication first, and 12 squared is 144.</li>
 </ol></li>
 <li><ol start="5" type="a">
-<li>One formula covers all nine cells, so changing an acre figure or a rate updates everything at once — three separate tables would need three separate edits and could drift apart.</li>
+<li>They doubled the side length instead of squaring it. <code>11.25*2</code> is 22.5 m, which is a distance, not an area — squaring gives 126.56 m².</li>
 </ol></li>
 </ul>
 <p>📗 <strong><a href="../practice/answers/s1_q21.xlsx">Answer workbook</a></strong> — the finished sheet, with the formulas live and a <code>FORMULATEXT</code> column showing what was typed.</p>
@@ -1787,39 +1791,40 @@ Answer
 </section>
 <section id="question-28" class="level3">
 <h3 class="anchored" data-anchor-id="question-28">Question 28</h3>
-<p><em>Paste this block into a blank sheet.</em></p>
-<pre class="plain"><code>Field   Acres   Rate (lb/ac)
-Field 1 86  3.4
-Field 2 142 2.9
-Field 3 64  4.1
-Field 4 119 3.2</code></pre>
-<p><strong>(a)</strong> Add a <strong>Pounds</strong> column and total it with <code>SUM</code>. Total the acres as well.</p>
-<p><strong>(b)</strong> Compute the farm’s blended rate: total pounds divided by total acres.</p>
-<p><strong>(c)</strong> Compute the same figure in a single cell with <code>SUMPRODUCT</code> over <code>SUM</code>, and confirm the two agree.</p>
-<p><strong>(d)</strong> Use <code>AVERAGE</code> on the rate column and compare. Report both figures and explain which one you would give the supplier when ordering.</p>
-<p><strong>(e)</strong> Explain in one sentence why the two figures differ in the direction they do here.</p>
+<p><em>This question is about what Excel does to data on the way in. Type the block below into a blank sheet exactly as shown, into a column you have left as <strong>General</strong> format.</em></p>
+<pre class="plain"><code>RM ID   Variety Yield (bu/ac)
+00127   SEPT1   41.2
+00308   AAC2    38.6
+01045   MAR2    44.8
+00276   BW945   36.1
+00519   1-3 39.9</code></pre>
+<p><strong>(a)</strong> Report what appears in the <strong>RM ID</strong> column and in the <strong>Variety</strong> column. Three of the five varieties will not read back as you typed them.</p>
+<p><strong>(b)</strong> For each value Excel changed, say what it turned into and why Excel thought that was helpful.</p>
+<p><strong>(c)</strong> Now format a fresh pair of columns as <strong>Text</strong> <em>before</em> typing, and enter the same RM IDs and varieties again. Report what you get.</p>
+<p><strong>(d)</strong> Explain why this matters more for a <code>.csv</code> file than for an <code>.xlsx</code> file.</p>
+<p><strong>(e)</strong> The yields are unaffected throughout. Compute their mean and count, and explain in one sentence why a sheet can be badly wrong even when every number in it is right.</p>
 <details>
 <summary>
 Answer
 </summary>
 <ul>
 <li><ol type="a">
-<li><code>=B2*C2</code> → 292.4, 411.8, 262.4, 380.8; total <strong>1,347.4</strong> lb. Acres <strong>411</strong>.</li>
+<li>The RM IDs lose their leading zeros and become <strong>127, 308, 1045, 276, 519</strong>, right-aligned as numbers. <code>SEPT1</code>, <code>MAR2</code> and <code>1-3</code> become the dates <strong>1-Sep</strong>, <strong>2-Mar</strong> and <strong>3-Jan</strong>. <code>AAC2</code> and <code>BW945</code> survive.</li>
 </ol></li>
 <li><ol start="2" type="a">
-<li><code>=D6/B6</code> = <strong>3.28</strong> lb/ac.</li>
+<li>Excel reads a leading-zero string as a number and drops the zeros, because to a number they carry no value. It reads <code>SEPT1</code>, <code>MAR2</code> and <code>1-3</code> as abbreviated dates. Each guess is reasonable in isolation and wrong here.</li>
 </ol></li>
 <li><ol start="3" type="a">
-<li><code>=SUMPRODUCT(B2:B5,C2:C5)/SUM(B2:B5)</code> = <strong>3.28</strong> — the same in one step.</li>
+<li>With the columns formatted as Text first, all five IDs and all five variety codes come back exactly as typed. Setting the type before the data arrives is what prevents the guess.</li>
 </ol></li>
 <li><ol start="4" type="a">
-<li><code>=AVERAGE(C2:C5)</code> = <strong>3.40</strong> lb/ac against a blended <strong>3.28</strong>. Order on the blended rate, or better on the total of <strong>1,347.4 lb</strong> — that is the amount of product the farm actually needs.</li>
+<li>An <code>.xlsx</code> file stores the type of every cell, so a workbook reopens holding what it held. A <code>.csv</code> is only text, with no type information, so Excel guesses afresh on every open — and a file that has been opened, guessed at, and saved has lost the original values, not just their display. This is why the chapter recommends Data → Get Data → From Text/CSV, where the column types can be set before anything is read.</li>
 </ol></li>
 <li><ol start="5" type="a">
-<li>The blended rate sits below the plain average because the two heaviest rates are on the two smallest fields, so they carry less weight once acres are accounted for.</li>
+<li>Mean <strong>40.12</strong> bu/ac over <strong>5</strong> values. The identifiers are what let a yield be matched to the right RM and the right variety; corrupt them and the numbers are perfectly accurate measurements of nothing you can name.</li>
 </ol></li>
 </ul>
-<p>📗 <strong><a href="../practice/answers/s1_q28.xlsx">Answer workbook</a></strong> — the finished sheet, with the formulas live and a <code>FORMULATEXT</code> column showing what was typed.</p>
+<p>📗 <strong><a href="../practice/answers/s1_q28.xlsx">Answer workbook</a></strong> — the finished sheet, showing each value as typed, as Excel converts it, and as it survives when the column is set to Text first.</p>
 </details>
 </section>
 <section id="question-29" class="level3">
