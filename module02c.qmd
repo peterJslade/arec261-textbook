@@ -4,7 +4,8 @@
 #| include: false
 #| eval: true
 source("_console.R")
-suppressMessages({library(dplyr); library(readr); library(tidyr)})
+# No library() calls here: the first console() chunk runs library(tidyverse)
+# itself, so its transcript shows the full attach message a student sees.
 trial_data <- readr::read_csv("practice/data/canola_trial.csv", show_col_types = FALSE)
 ```
 
@@ -48,7 +49,10 @@ We continue with the canola trial data from the last chapter, in the same projec
 Since this chapter does a new job, it gets a new script: `code/2_data_manipulation.R`.
 Start it with a header, then load the tidyverse and read the data in:
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
 # ---
 # Title: Manipulating the canola trial data
 # Author: Your Name
@@ -63,6 +67,7 @@ library(tidyverse)
 
 # Read in the data
 trial_data <- read_csv("data/canola_trial.csv")
+')
 ```
 
 ## Data Manipulation Functions {#sec-verbs-basic}
@@ -419,17 +424,25 @@ Results so far have existed only inside R. To save one as a file that can be ope
 or sent to someone else, pass the object and a filename to `write_csv`. With our project
 layout, results go in `output/`:
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
+## Summarise mean yields by variety
 variety_summary <- trial_data |>
   group_by(variety) |>
   summarise(mean_yield = mean(yield_bu_acre, na.rm = TRUE),
             n_fields = n())
 
+## Write the summary table to the output folder
 write_csv(variety_summary, "output/variety_summary.csv")
+')
 ```
 
-`read_csv` brings data into R; `write_csv` sends a data frame out to a file. Because the
-output is created by the script, you can always recreate it by running the script again.
+Notice that `write_csv` prints nothing to the console -- the result is the file itself,
+which appears in `output/`. `read_csv` brings data into R; `write_csv` sends a data frame
+out to a file. Because the output is created by the script, you can always recreate it by
+running the script again.
 
 ## Combining It All {#sec-dplyr-combining}
 
