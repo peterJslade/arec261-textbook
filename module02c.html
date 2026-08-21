@@ -549,10 +549,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#group_by-calculate-separately-for-groups" id="toc-group_by-calculate-separately-for-groups" class="nav-link" data-scroll-target="#group_by-calculate-separately-for-groups"><span class="header-section-number">6.3.2</span> <code>group_by()</code>: Calculate Separately for Groups</a></li>
   </ul></li>
   <li><a href="#sec-writing-output" id="toc-sec-writing-output" class="nav-link" data-scroll-target="#sec-writing-output"><span class="header-section-number">6.4</span> Writing Output</a></li>
-  <li><a href="#sec-dplyr-combining" id="toc-sec-dplyr-combining" class="nav-link" data-scroll-target="#sec-dplyr-combining"><span class="header-section-number">6.5</span> Combining It All</a>
-  <ul>
-  <li><a href="#a-slightly-harder-example" id="toc-a-slightly-harder-example" class="nav-link" data-scroll-target="#a-slightly-harder-example">A slightly harder example</a></li>
-  </ul></li>
+  <li><a href="#sec-dplyr-combining" id="toc-sec-dplyr-combining" class="nav-link" data-scroll-target="#sec-dplyr-combining"><span class="header-section-number">6.5</span> Combining It All</a></li>
   </ul>
 </nav>
     </div>
@@ -1341,7 +1338,6 @@ dbl (3): fertilizer_kg_ha, rainfall_mm, yield_bu_acre
 </div>
 </div>
 <p>Take <code>trial_data</code>, <em>then</em> divide the observations by variety, <em>then</em> calculate the statistics separately for each variety. The result has one row per variety. This is the R equivalent of a PivotTable.</p>
-<p>Grouping is state that can affect later operations. After a grouped <code>summarise()</code> you sometimes want the ordinary, ungrouped data frame back: <code>.groups = "drop"</code> inside <code>summarise()</code> does that, and the <code>ungroup()</code> function – which appears in the last example of this chapter – is the general tool.</p>
 <p>The central pattern – <code>data |&gt; group_by(group_variable) |&gt; summarise(...)</code> – appears throughout the rest of the book.</p>
 </section>
 </section>
@@ -1412,47 +1408,6 @@ dbl (3): fertilizer_kg_ha, rainfall_mm, yield_bu_acre
 <li><strong>Sort</strong> from highest mean yield to lowest.</li>
 </ol>
 <p>Each line does one simple thing, and that is the reason for pipes: a good pipeline makes the logic of an analysis visible. Saving the table is one more line: <code>write_csv(variety_summary_100, "output/variety_summary_100.csv")</code>.</p>
-<section id="a-slightly-harder-example" class="level3 unnumbered">
-<h3 class="unnumbered anchored" data-anchor-id="a-slightly-harder-example">A slightly harder example</h3>
-<p>Which fields yielded above the average for their own variety? This needs one new idea: <code>mutate()</code> can operate within groups.</p>
-<div class="cell">
-<div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>above_variety_average <span class="ot">&lt;-</span> trial_data <span class="sc">|&gt;</span></span>
-<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(variety) <span class="sc">|&gt;</span></span>
-<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">variety_mean =</span> <span class="fu">mean</span>(yield_bu_acre)) <span class="sc">|&gt;</span></span>
-<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">|&gt;</span></span>
-<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(yield_bu_acre <span class="sc">&gt;</span> variety_mean) <span class="sc">|&gt;</span></span>
-<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(field_id, variety, yield_bu_acre, variety_mean) <span class="sc">|&gt;</span></span>
-<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(variety, <span class="fu">desc</span>(yield_bu_acre))</span>
-<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a>above_variety_average</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="console-transcript">
-<pre><code>&gt; above_variety_average &lt;- trial_data |&gt;
-+   group_by(variety) |&gt;
-+   mutate(variety_mean = mean(yield_bu_acre)) |&gt;
-+   ungroup() |&gt;
-+   filter(yield_bu_acre &gt; variety_mean) |&gt;
-+   select(field_id, variety, yield_bu_acre, variety_mean) |&gt;
-+   arrange(variety, desc(yield_bu_acre))
-&gt; above_variety_average
-# A tibble: 57 × 4
-   field_id variety    yield_bu_acre variety_mean
-   &lt;chr&gt;    &lt;chr&gt;              &lt;dbl&gt;        &lt;dbl&gt;
- 1 C098     Clearfield          63.6         53.5
- 2 C070     Clearfield          63.2         53.5
- 3 C079     Clearfield          63.2         53.5
- 4 C064     Clearfield          62.9         53.5
- 5 C093     Clearfield          60           53.5
- 6 C081     Clearfield          59.3         53.5
- 7 C067     Clearfield          59.2         53.5
- 8 C020     Clearfield          58.9         53.5
- 9 C103     Clearfield          58.9         53.5
-10 C042     Clearfield          58           53.5
-# ℹ 47 more rows</code></pre>
-</div>
-</div>
-</div>
-<p>The important step is <code>group_by(variety)</code> followed by <code>mutate()</code>. Because the data is grouped by variety, <code>mean()</code> is calculated separately within each variety – and unlike <code>summarise()</code>, <code>mutate()</code> keeps every field and adds its variety’s mean as a new column on each one. This is also where <code>ungroup()</code> earns its place: we are finished calculating within varieties, so we remove the grouping and the later steps treat the result as an ordinary data frame.</p>
-<p>You do not need to produce this second pipeline from memory. You should be able to read it from top to bottom and explain what each step is doing. As analyses become more complicated – and especially once AI helps generate the code – that is the skill that matters: looking at a sequence of operations and deciding whether it actually answers the question you intended to ask.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
@@ -1475,7 +1430,6 @@ dbl (3): fertilizer_kg_ha, rainfall_mm, yield_bu_acre
 </div>
 
 
-</section>
 </section>
 
 </main> <!-- /main -->
