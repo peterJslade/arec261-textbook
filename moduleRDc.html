@@ -540,6 +540,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#sec-joins" id="toc-sec-joins" class="nav-link" data-scroll-target="#sec-joins"><span class="header-section-number">8.1</span> Joining Two Tables</a>
   <ul>
   <li><a href="#the-four-joins-you-need" id="toc-the-four-joins-you-need" class="nav-link" data-scroll-target="#the-four-joins-you-need">The four joins you need</a></li>
+  <li><a href="#one-to-one-one-to-many-many-to-many" id="toc-one-to-one-one-to-many-many-to-many" class="nav-link" data-scroll-target="#one-to-one-one-to-many-many-to-many">One-to-one, one-to-many, many-to-many</a></li>
   <li><a href="#check-what-did-not-match" id="toc-check-what-did-not-match" class="nav-link" data-scroll-target="#check-what-did-not-match">Check what did not match</a></li>
   <li><a href="#the-row-count-trap" id="toc-the-row-count-trap" class="nav-link" data-scroll-target="#the-row-count-trap">The row-count trap</a></li>
   </ul></li>
@@ -548,6 +549,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul>
   <li><a href="#first-join-yields-to-the-lookup" id="toc-first-join-yields-to-the-lookup" class="nav-link" data-scroll-target="#first-join-yields-to-the-lookup">First join: yields to the lookup</a></li>
   <li><a href="#second-join-add-the-rain" id="toc-second-join-add-the-rain" class="nav-link" data-scroll-target="#second-join-add-the-rain">Second join: add the rain</a></li>
+  <li><a href="#the-same-merge-in-excel" id="toc-the-same-merge-in-excel" class="nav-link" data-scroll-target="#the-same-merge-in-excel">The same merge in Excel</a></li>
   <li><a href="#what-you-can-now-do" id="toc-what-you-can-now-do" class="nav-link" data-scroll-target="#what-you-can-now-do">What you can now do</a></li>
   </ul></li>
   </ul>
@@ -582,10 +584,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>By the end of this chapter you should be able to:</p>
 <ol type="1">
 <li>Join two tables on a shared key with <code>left_join()</code> and friends.</li>
+<li>Say whether a join is one-to-one, many-to-one or many-to-many, and what that does to the row count.</li>
 <li>Say what happens to rows that do not match, and check for them.</li>
 <li>Explain why a join can return more rows than it started with.</li>
 <li>Harmonize units and category names so that two real datasets can be merged.</li>
-<li>Combine three tables with different keys and different units of observation.</li>
+<li>Combine three tables with different keys and different units of observation, in R and in Excel.</li>
 </ol>
 </div>
 </section>
@@ -610,26 +613,38 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><strong><code>anti_join(a, b)</code></strong> keeps rows of <code>a</code> with no match in <code>b</code>. It returns no columns from <code>b</code> at all, which sounds useless until you need to find out what failed to match.</li>
 </ul>
 </section>
+<section id="one-to-one-one-to-many-many-to-many" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="one-to-one-one-to-many-many-to-many">One-to-one, one-to-many, many-to-many</h3>
+<p>Joins also differ in how many rows on each side share a key value, and that decides what comes back.</p>
+<ul>
+<li><strong>One-to-one (1:1).</strong> Each key appears once in both tables. Two tables of national yields by year, joined on year. The result has the same rows as either input.</li>
+<li><strong>One-to-many (1:n) or many-to-one (n:1).</strong> The key is unique on one side and repeats on the other. A table of RM yields (many rows per RM, one per year) joined to a table of RM names (one row per RM) is many-to-one. The result has as many rows as the “many” side, and every row picks up exactly one name. This is what most joins are, and what <code>XLOOKUP</code> does in Excel.</li>
+<li><strong>Many-to-many (n:n).</strong> The key repeats on both sides. Each row on the left matches every row with the same key on the right, and the result multiplies. Occasionally you want this. Usually it means the key is incomplete, and it is the subject of the row-count trap below.</li>
+</ul>
+<p>Know which one you expect before you join. dplyr lets you say so, and stops if the data disagrees:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">left_join</span>(rms, <span class="at">by =</span> <span class="st">"rm"</span>, <span class="at">relationship =</span> <span class="st">"many-to-one"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>If <code>rms</code> turned out to have two rows for some RM, that line errors instead of handing back extra rows.</p>
+</section>
 <section id="check-what-did-not-match" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="check-what-did-not-match">Check what did not match</h3>
 <p><code>left_join</code> does not complain when nothing matches. It hands you a column of <code>NA</code> and lets you carry on, so a join can fail completely without producing an error.</p>
 <p><code>anti_join</code> is how you look:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(prices, <span class="at">by =</span> <span class="st">"crop"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(crop)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(prices, <span class="at">by =</span> <span class="st">"crop"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(crop)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Run that on real Saskatchewan data and the problem shows up straight away. The variety trial data calls it <code>"Canola/Rapeseed"</code> and the price list says <code>"Canola"</code>. The trial says <code>"Soybean"</code>, the prices say <code>"Soybeans"</code>. Neither file is wrong. They were written by different people, and a join matches on exact text, so every canola row comes back with a missing price.</p>
 <p>Reconciling the categories is part of cleaning (<a href="moduleRDd.html" class="quarto-xref"><span>Chapter 9</span></a>, the next chapter). Checking before you assume the join worked is the habit worth building.</p>
 </section>
 <section id="the-row-count-trap" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="the-row-count-trap">The row-count trap</h3>
 <p>A join can return more rows than it started with.</p>
-<p>This happens when the key is not unique in the second table. If <code>prices</code> has one row per crop, each yield row matches one price and the row count does not change. If <code>prices</code> has one row per crop <em>per year</em> and you join on crop alone, every yield row matches several price rows and R returns all the combinations. Sixty fields become two hundred and forty, and every summary computed afterwards is wrong in a way that still looks plausible.</p>
+<p>This is the many-to-many case arriving uninvited. The key is not unique in the second table. If <code>prices</code> has one row per crop, each yield row matches one price and the row count does not change. If <code>prices</code> has one row per crop <em>per year</em> and you join on crop alone, every yield row matches several price rows and R returns all the combinations. Sixty fields become two hundred and forty, and every summary computed afterwards is wrong in a way that still looks plausible.</p>
 <p>Check the count:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(yields)                                    <span class="co"># before</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>joined <span class="ot">&lt;-</span> yields <span class="sc">|&gt;</span> <span class="fu">left_join</span>(prices, <span class="at">by =</span> <span class="st">"crop"</span>)</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(joined)                                    <span class="co"># after -- should be the same</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(yields)                                    <span class="co"># before</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>joined <span class="ot">&lt;-</span> yields <span class="sc">|&gt;</span> <span class="fu">left_join</span>(prices, <span class="at">by =</span> <span class="st">"crop"</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(joined)                                    <span class="co"># after -- should be the same</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>If it grew, the key is incomplete. Join on everything that identifies a row:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">left_join</span>(prices, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"crop"</span>, <span class="st">"year"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">left_join</span>(prices, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"crop"</span>, <span class="st">"year"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>This is the composite key from <a href="module01b.html#sec-lookup" class="quarto-xref"><span>Section 2.2</span></a>, where RM and year had to be glued together with <code>&amp;</code> to identify a row. R lets you name several key columns instead of building one.</p>
 </section>
 </section>
@@ -637,21 +652,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 data-number="8.2" class="anchored" data-anchor-id="sec-canada-us-merge"><span class="header-section-number">8.2</span> A Worked Example: Canadian and US Canola Yields</h2>
 <p>The Canadian and US canola data from <a href="moduleRDb.html" class="quarto-xref"><span>Chapter 7</span></a> make a realistic merge, because the two tables agree on almost nothing: different column names, different units, different geography labels. The work before the join is most of the work.</p>
 <p>Suppose the Canadian table has national average yield in kilograms per hectare, and the US table reports pounds per acre. Neither can be compared until both are in the same unit. Prepare each table separately: keep the columns you need, convert to tonnes per hectare, and give the yield column a name that says whose it is:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>canada <span class="ot">&lt;-</span> canada_raw <span class="sc">|&gt;</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">clean_names</span>() <span class="sc">|&gt;</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(geo <span class="sc">==</span> <span class="st">"Canada"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">canada_t_ha =</span> value <span class="sc">/</span> <span class="dv">1000</span>) <span class="sc">|&gt;</span>          <span class="co"># kg/ha -&gt; t/ha</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="at">year =</span> ref_date, canada_t_ha)</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>us <span class="ot">&lt;-</span> us_raw <span class="sc">|&gt;</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">clean_names</span>() <span class="sc">|&gt;</span></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">us_t_ha =</span> value <span class="sc">*</span> <span class="fl">0.00112</span>) <span class="sc">|&gt;</span>           <span class="co"># lb/ac -&gt; t/ha</span></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(year, us_t_ha)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>canada <span class="ot">&lt;-</span> canada_raw <span class="sc">|&gt;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">clean_names</span>() <span class="sc">|&gt;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(geo <span class="sc">==</span> <span class="st">"Canada"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">canada_t_ha =</span> value <span class="sc">/</span> <span class="dv">1000</span>) <span class="sc">|&gt;</span>          <span class="co"># kg/ha -&gt; t/ha</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="at">year =</span> ref_date, canada_t_ha)</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>us <span class="ot">&lt;-</span> us_raw <span class="sc">|&gt;</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">clean_names</span>() <span class="sc">|&gt;</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">us_t_ha =</span> value <span class="sc">*</span> <span class="fl">0.00112</span>) <span class="sc">|&gt;</span>           <span class="co"># lb/ac -&gt; t/ha</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(year, us_t_ha)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Now the join is the easy part. The key is <code>year</code>:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>both <span class="ot">&lt;-</span> canada <span class="sc">|&gt;</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(us, <span class="at">by =</span> <span class="st">"year"</span>)</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>both</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>both <span class="ot">&lt;-</span> canada <span class="sc">|&gt;</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(us, <span class="at">by =</span> <span class="st">"year"</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>both</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <pre><code>   year canada_t_ha us_t_ha
    &lt;dbl&gt;      &lt;dbl&gt;   &lt;dbl&gt;
  1  2015       1.85    1.66
@@ -672,13 +687,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Read all three and look at them:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/rm_yields_2015_2024.csv"</span>) <span class="sc">|&gt;</span> <span class="fu">clean_names</span>()</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>rms    <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/rm_lookup.csv"</span>) <span class="sc">|&gt;</span> <span class="fu">clean_names</span>()</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>rain   <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/station_precip.csv"</span>) <span class="sc">|&gt;</span> <span class="fu">clean_names</span>()</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(yields)</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(rms)</span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(rain)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/rm_yields_2015_2024.csv"</span>) <span class="sc">|&gt;</span> <span class="fu">clean_names</span>()</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>rms    <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/rm_lookup.csv"</span>) <span class="sc">|&gt;</span> <span class="fu">clean_names</span>()</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>rain   <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/station_precip.csv"</span>) <span class="sc">|&gt;</span> <span class="fu">clean_names</span>()</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(yields)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(rms)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(rain)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; yields &lt;- read_csv("data/rm_yields_2015_2024.csv") |&gt; clean_names()
 Rows: 2950 Columns: 8
@@ -743,15 +758,15 @@ $ days_missing      &lt;dbl&gt; 1, 2, 1, 2, 2, 2, 1, 5, 0, 1, 0, 0, 0, 0, 0, 0, 
 <p>Check what will not match, then join, then check the row count:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(rms, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"rm"</span> <span class="ot">=</span> <span class="st">"rm_number"</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(rm)</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>with_station <span class="ot">&lt;-</span> yields <span class="sc">|&gt;</span></span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(rms, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"rm"</span> <span class="ot">=</span> <span class="st">"rm_number"</span>))</span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(yields)</span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(with_station)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(rms, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"rm"</span> <span class="ot">=</span> <span class="st">"rm_number"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(rm)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>with_station <span class="ot">&lt;-</span> yields <span class="sc">|&gt;</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(rms, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"rm"</span> <span class="ot">=</span> <span class="st">"rm_number"</span>))</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(yields)</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(with_station)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; yields |&gt;
 +   anti_join(rms, by = c("rm" = "rm_number")) |&gt;
@@ -776,14 +791,14 @@ $ days_missing      &lt;dbl&gt; 1, 2, 1, 2, 2, 2, 1, 5, 0, 1, 0, 0, 0, 0, 0, 0, 
 <p>The key now has two parts. The station name in <code>with_station</code> is called <code>weather_station</code>, the year is called <code>year</code> on both sides, and both are needed to identify one rain total:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>with_station <span class="sc">|&gt;</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(rain, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"weather_station"</span> <span class="ot">=</span> <span class="st">"station"</span>, <span class="st">"year"</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(weather_station, year)</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>merged <span class="ot">&lt;-</span> with_station <span class="sc">|&gt;</span></span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(rain, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"weather_station"</span> <span class="ot">=</span> <span class="st">"station"</span>, <span class="st">"year"</span>))</span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(merged)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>with_station <span class="sc">|&gt;</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(rain, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"weather_station"</span> <span class="ot">=</span> <span class="st">"station"</span>, <span class="st">"year"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(weather_station, year)</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>merged <span class="ot">&lt;-</span> with_station <span class="sc">|&gt;</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(rain, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"weather_station"</span> <span class="ot">=</span> <span class="st">"station"</span>, <span class="st">"year"</span>))</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(merged)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; with_station |&gt;
 +   anti_join(rain, by = c("weather_station" = "station", "year")) |&gt;
@@ -802,9 +817,9 @@ $ days_missing      &lt;dbl&gt; 1, 2, 1, 2, 2, 2, 1, 5, 0, 1, 0, 0, 0, 0, 0, 0, 
 <p>Here is what the row-count trap looks like when you leave <code>year</code> out of the key:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>with_station <span class="sc">|&gt;</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(rain, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"weather_station"</span> <span class="ot">=</span> <span class="st">"station"</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nrow</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>with_station <span class="sc">|&gt;</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(rain, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"weather_station"</span> <span class="ot">=</span> <span class="st">"station"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nrow</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; with_station |&gt;
 +   left_join(rain, by = c("weather_station" = "station")) |&gt;
@@ -820,19 +835,35 @@ Warning: Detected an unexpected many-to-many relationship between `x` and `y`.
 </div>
 <p>Each RM-year matched all ten years of its station’s rain, so 2,950 rows became 29,500. Recent versions of dplyr print a warning about an unexpected many-to-many relationship when this happens. Read it when it appears; it is telling you the key is incomplete.</p>
 </section>
+<section id="the-same-merge-in-excel" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="the-same-merge-in-excel">The same merge in Excel</h3>
+<p>Both joins are <code>XLOOKUP</code>s. The workbook below has the three tables on three sheets and does the merge in formula columns beside thirty of the yield rows.</p>
+<p>The first join is many-to-one, and it is the ordinary <code>XLOOKUP</code>: look up the RM number in the lookup sheet and return the station. The second needs two keys, so both sides are glued together with <code>&amp; "|" &amp;</code>, the composite-key form from <a href="module01b.html#sec-lookup" class="quarto-xref"><span>Section 2.2</span></a>:</p>
+<pre><code>=XLOOKUP(I5 &amp; "|" &amp; A5,
+         Precip!A:A &amp; "|" &amp; Precip!B:B,
+         Precip!C:C)</code></pre>
+<p>The row-count trap looks different in Excel. Leave the year out and <code>XLOOKUP</code> does not multiply the rows; it returns the <em>first</em> match for the station, so every year gets 2015’s rain, and nothing flags it. Column K of the workbook shows this. R warns about the many-to-many match; Excel does not, so the check is to look at a few rows where you already know the answer.</p>
+<p>Where R has <code>anti_join</code>, Excel has <code>#N/A</code>: an <code>XLOOKUP</code> that finds nothing returns it, and <code>COUNTIF(range, "#N/A")</code> at the foot of the column counts the failures.</p>
+<div class="workbook-callout">
+<!-- iframe embed goes here once the workbook is uploaded to SharePoint; follow the
+mod01_sum.xlsx block in module01a.qmd -->
+<p><a href="textbook_examples/mod03_merge_excel.xlsx">Download this workbook</a></p>
+</div>
+<p>Formulas are fine at thirty rows and fine at three thousand. Past that, or when the same merge has to be redone every month, <strong>Power Query</strong> (Data &gt; Get Data, then <strong>Merge Queries</strong>) does the join the way R does, with a dialog that asks for the key columns and the join type, and records the step so it can be re-run.</p>
+</section>
 <section id="what-you-can-now-do" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="what-you-can-now-do">What you can now do</h3>
 <p>One table, one row per RM-year, with the yield and the season’s rain side by side:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>merged <span class="sc">|&gt;</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(year, rm, rm_name, canola, weather_station, precip_may_aug_mm)</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>merged <span class="sc">|&gt;</span></span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(canola)) <span class="sc">|&gt;</span></span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(year) <span class="sc">|&gt;</span></span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">canola_bu_ac =</span> <span class="fu">mean</span>(canola),</span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">rain_mm =</span> <span class="fu">mean</span>(precip_may_aug_mm))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>merged <span class="sc">|&gt;</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(year, rm, rm_name, canola, weather_station, precip_may_aug_mm)</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>merged <span class="sc">|&gt;</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(canola)) <span class="sc">|&gt;</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(year) <span class="sc">|&gt;</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">canola_bu_ac =</span> <span class="fu">mean</span>(canola),</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">rain_mm =</span> <span class="fu">mean</span>(precip_may_aug_mm))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; merged |&gt;
 +   select(year, rm, rm_name, canola, weather_station, precip_may_aug_mm)
