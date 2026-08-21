@@ -617,11 +617,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>This bank holds <strong>40 questions</strong>, ten in each section. Section 1 gives you the data inside the question; Sections 2–4 use the <strong>Saskatchewan RM Crop Yields (long)</strong> dataset. On the real test you receive <strong>four questions – one from each section</strong> – and you submit <strong>a single, well-commented R script</strong>: a header block at the top, a clearly labelled section for each question, and your sentence answers written as comments. The script should run from top to bottom in a project folder that has the csv in <code>data/</code>. Each question is designed to take about <strong>8–10 minutes</strong>.</p>
+<p>This bank holds <strong>40 questions</strong>, ten in each section. Section 1 gives you the data inside the question; Section 2 uses the <strong>canola-only</strong> RM yields file, and Sections 3–4 the full <strong>eight-crop long</strong> file (both described below). On the real test you receive <strong>four questions – one from each section</strong> – and you submit <strong>a single, well-commented R script</strong>: a header block at the top, a clearly labelled section for each question, and your sentence answers written as comments. The script should run from top to bottom in a project folder that has the csvs in <code>data/</code>. Each question is designed to take about <strong>8–10 minutes</strong>.</p>
 <p>Expand each <strong>Answer</strong> block to check your work. Every value has been computed from the real data; if the source file is refreshed the exact numbers may shift slightly, but the method stays the same.</p>
 </div>
 </div>
-<p><strong>The dataset.</strong> <a href="data/rm_yields_1990plus_long.csv"><code>rm_yields_1990plus_long.csv</code></a> – average yield for eight crops in every Saskatchewan Rural Municipality, 1990–2025, one row per RM-year-crop. Columns: <code>Year</code>, <code>RM</code>, <code>Crop</code>, <code>Yield</code>, <code>Unit</code>. You worked with the wide version of this data in Module 1; this is the long form, with <code>Crop</code> as a variable. <strong>Lentils are recorded in pounds per acre; every other crop is in bushels per acre</strong> – the <code>Unit</code> column says which. Save it into your project’s <code>data/</code> folder.</p>
+<p><strong>The data.</strong> Two files, both in your project’s <code>data/</code> folder:</p>
+<ul>
+<li><a href="data/rm_canola_1990plus.csv"><code>rm_canola_1990plus.csv</code></a> – average <strong>canola</strong> yield in every Saskatchewan Rural Municipality, 1990–2025, one row per RM-year. <strong>Section 2</strong> uses this file: one crop, one unit, so its summary statistics mean something.</li>
+<li><a href="data/rm_yields_1990plus_long.csv"><code>rm_yields_1990plus_long.csv</code></a> – the same data for all <strong>eight crops</strong>, one row per RM-year-crop. <strong>Sections 3 and 4</strong> use this file. You worked with the wide version in Module 1; this is the long form, with <code>Crop</code> as a variable. <strong>Lentils are recorded in pounds per acre; every other crop is in bushels per acre</strong> – the <code>Unit</code> column says which, and several questions turn on it.</li>
+</ul>
+<p>Both files have the same five columns: <code>Year</code>, <code>RM</code>, <code>Crop</code>, <code>Yield</code>, <code>Unit</code>.</p>
 <p><strong>Grading model.</strong> <strong>20%</strong> for script presentation – a header block, comments in the style of the module, clearly labelled question sections, and a script that runs from top to bottom in a fresh session. The remaining <strong>80%</strong> is split evenly across the four questions, and evenly across the parts within each question. Parts are marked on <strong>follow-through</strong>: if an early part is wrong but the later parts are correctly worked <em>from your own earlier answer</em>, the later parts still earn full marks. Where a part asks for a sentence, write it as a comment in your script.</p>
 <blockquote class="blockquote">
 <p><strong>Vocabulary note.</strong> Everything here uses only Module 2 tools: <code>&lt;-</code>, arithmetic on vectors, <code>c()</code>, <code>data.frame()</code>, <code>$</code>, <code>mean</code>, <code>median</code>, <code>sd</code>, <code>var</code>, <code>min</code>, <code>max</code>, <code>range</code>, <code>sum</code>, <code>quantile</code> (with <code>probs</code>), <code>IQR</code>, <code>nrow</code>, <code>ncol</code>, <code>names</code>, <code>head</code>, <code>print</code>, <code>glimpse</code>, <code>summary</code>, <code>library()</code>, <code>install.packages()</code>, <code>read_csv</code> with relative paths, <code>filter</code> (with <code>==</code>, <code>&gt;</code>, <code>&lt;</code>, <code>&amp;</code>, <code>|</code>, <code>!</code>, <code>%in%</code>), <code>select</code> (including <code>-</code> and <code>:</code>), <code>rename</code>, <code>mutate</code>, <code>arrange</code> and <code>desc</code>, the pipe <code>|&gt;</code>, <code>summarise</code>, <code>n()</code>, <code>group_by</code>, and <code>write_csv</code>. Nothing beyond that is needed.</p>
@@ -641,7 +646,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>A real test looks like this – one question from each section (here Questions 1, 16, 25, and 36):</p>
 <ol type="1">
 <li><em>Five canola fields yielded 52.3, 47.8, 55.1, 44.6, and 50.9 bu/ac, on 160, 320, 240, 130, and 200 acres. Create the two vectors; convert the yields to t/ha; compute the mean and sd of the yields; compute total production and the acreage-weighted average yield.</em></li>
-<li><em>Compute the mean, median, and standard deviation of <code>Yield</code>, and its 90th percentile. The mean is nearly four times the median – in a comment, say what a gap like that tells you and what feature of this dataset produces it.</em></li>
+<li><em>Compute the mean, median, and standard deviation of canola <code>Yield</code>, and its 90th percentile. In a comment: the mean sits a little above the median – what does that direction of gap suggest about the shape of canola yields?</em></li>
 <li><em>Filter to the lentil rows, saving as <code>lentils</code> (how many rows?); add a <code>yield_kg_ha</code> column (multiply by 1.12), saving back to <code>lentils</code>; compute the mean of the new column and of the original, and check their ratio.</em></li>
 <li><em>In one pipeline, compute each RM’s mean Spring Wheat yield across all years, sorted best-first. Report the top three RMs. In a comment: what did each row of the input represent, and what does each row of the result represent?</em></li>
 </ol>
@@ -684,56 +689,58 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a><span class="co"># fields differ in size, so each yield should count by its acres.</span></span>
 <span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================================</span></span>
-<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a><span class="co"># Section 2 (Question 16): summary statistics for Yield</span></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a><span class="co"># Section 2 (Question 16): summary statistics for canola</span></span>
 <span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================================</span></span>
 <span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the data using a relative path from the project folder</span></span>
-<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>rm_yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/rm_yields_1990plus_long.csv"</span>)</span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the canola file using a relative path from the project folder</span></span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>rm_canola <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/rm_canola_1990plus.csv"</span>)</span>
 <span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a><span class="co"># Centre and spread of the whole Yield column</span></span>
-<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(rm_yields<span class="sc">$</span>Yield)      <span class="co"># 142.82</span></span>
-<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a><span class="fu">median</span>(rm_yields<span class="sc">$</span>Yield)    <span class="co"># 36.24</span></span>
-<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a><span class="fu">sd</span>(rm_yields<span class="sc">$</span>Yield)        <span class="co"># 358.99</span></span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a><span class="co"># Centre and spread of the canola yields</span></span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(rm_canola<span class="sc">$</span>Yield)      <span class="co"># 28.29 bu/ac</span></span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a><span class="fu">median</span>(rm_canola<span class="sc">$</span>Yield)    <span class="co"># 26.9 bu/ac</span></span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a><span class="fu">sd</span>(rm_canola<span class="sc">$</span>Yield)        <span class="co"># 10.06 bu/ac</span></span>
 <span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a><span class="co"># 90th percentile</span></span>
-<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(rm_yields<span class="sc">$</span>Yield, <span class="fl">0.9</span>)   <span class="co"># 102.2</span></span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(rm_canola<span class="sc">$</span>Yield, <span class="fl">0.9</span>)   <span class="co"># 42.5 bu/ac</span></span>
 <span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a><span class="co"># The mean sits far above the median, which flags unusually large</span></span>
-<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a><span class="co"># values pulling it up. Here they are the lentil yields, recorded</span></span>
-<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a><span class="co"># in pounds per acre while every other crop is in bushels (see the</span></span>
-<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a><span class="co"># Unit column) -- a units artifact, not a story about good crops.</span></span>
-<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================================</span></span>
-<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a><span class="co"># Section 3 (Question 25): converting the lentil yields</span></span>
-<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================================</span></span>
-<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a><span class="co"># Keep only the lentil rows</span></span>
-<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a>lentils <span class="ot">&lt;-</span> <span class="fu">filter</span>(rm_yields, Crop <span class="sc">==</span> <span class="st">"Lentils"</span>)</span>
-<span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(lentils)    <span class="co"># 6,338 rows</span></span>
-<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a><span class="co"># Add the converted column (1 lb/ac is about 1.12 kg/ha) and</span></span>
-<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a><span class="co"># overwrite lentils with the version that has the extra column</span></span>
-<span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a>lentils <span class="ot">&lt;-</span> <span class="fu">mutate</span>(lentils, <span class="at">yield_kg_ha =</span> Yield <span class="sc">*</span> <span class="fl">1.12</span>)</span>
-<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-68"><a href="#cb1-68" aria-hidden="true" tabindex="-1"></a><span class="co"># Means of the new and original columns</span></span>
-<span id="cb1-69"><a href="#cb1-69" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(lentils<span class="sc">$</span>yield_kg_ha)   <span class="co"># 1,353.4 kg/ha</span></span>
-<span id="cb1-70"><a href="#cb1-70" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(lentils<span class="sc">$</span>Yield)         <span class="co"># 1,208.39 lb/ac</span></span>
-<span id="cb1-71"><a href="#cb1-71" aria-hidden="true" tabindex="-1"></a><span class="co"># Their ratio is 1.12, the conversion factor -- multiplying every</span></span>
-<span id="cb1-72"><a href="#cb1-72" aria-hidden="true" tabindex="-1"></a><span class="co"># value by a constant multiplies the mean by the same constant.</span></span>
-<span id="cb1-73"><a href="#cb1-73" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-74"><a href="#cb1-74" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================================</span></span>
-<span id="cb1-75"><a href="#cb1-75" aria-hidden="true" tabindex="-1"></a><span class="co"># Section 4 (Question 36): best wheat-growing RMs</span></span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a><span class="co"># The mean sits a little above the median, which suggests mild</span></span>
+<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a><span class="co"># right skew: the best RM-years pull the mean up more than the</span></span>
+<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a><span class="co"># worst years pull it down.</span></span>
+<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================================</span></span>
+<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a><span class="co"># Section 3 (Question 25): converting the lentil yields</span></span>
+<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================================</span></span>
+<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the full eight-crop file</span></span>
+<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a>rm_yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/rm_yields_1990plus_long.csv"</span>)</span>
+<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a><span class="co"># Keep only the lentil rows</span></span>
+<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a>lentils <span class="ot">&lt;-</span> <span class="fu">filter</span>(rm_yields, Crop <span class="sc">==</span> <span class="st">"Lentils"</span>)</span>
+<span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(lentils)    <span class="co"># 6,338 rows</span></span>
+<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a><span class="co"># Add the converted column (1 lb/ac is about 1.12 kg/ha) and</span></span>
+<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a><span class="co"># overwrite lentils with the version that has the extra column</span></span>
+<span id="cb1-68"><a href="#cb1-68" aria-hidden="true" tabindex="-1"></a>lentils <span class="ot">&lt;-</span> <span class="fu">mutate</span>(lentils, <span class="at">yield_kg_ha =</span> Yield <span class="sc">*</span> <span class="fl">1.12</span>)</span>
+<span id="cb1-69"><a href="#cb1-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-70"><a href="#cb1-70" aria-hidden="true" tabindex="-1"></a><span class="co"># Means of the new and original columns</span></span>
+<span id="cb1-71"><a href="#cb1-71" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(lentils<span class="sc">$</span>yield_kg_ha)   <span class="co"># 1,353.4 kg/ha</span></span>
+<span id="cb1-72"><a href="#cb1-72" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(lentils<span class="sc">$</span>Yield)         <span class="co"># 1,208.39 lb/ac</span></span>
+<span id="cb1-73"><a href="#cb1-73" aria-hidden="true" tabindex="-1"></a><span class="co"># Their ratio is 1.12, the conversion factor -- multiplying every</span></span>
+<span id="cb1-74"><a href="#cb1-74" aria-hidden="true" tabindex="-1"></a><span class="co"># value by a constant multiplies the mean by the same constant.</span></span>
+<span id="cb1-75"><a href="#cb1-75" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-76"><a href="#cb1-76" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================================</span></span>
-<span id="cb1-77"><a href="#cb1-77" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-78"><a href="#cb1-78" aria-hidden="true" tabindex="-1"></a>rm_yields <span class="sc">|&gt;</span>                              <span class="co"># take the data, THEN</span></span>
-<span id="cb1-79"><a href="#cb1-79" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Crop <span class="sc">==</span> <span class="st">"Spring Wheat"</span>) <span class="sc">|&gt;</span>       <span class="co"># keep spring wheat, THEN</span></span>
-<span id="cb1-80"><a href="#cb1-80" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(RM) <span class="sc">|&gt;</span>                         <span class="co"># split the rows by RM, THEN</span></span>
-<span id="cb1-81"><a href="#cb1-81" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield =</span> <span class="fu">mean</span>(Yield)) <span class="sc">|&gt;</span>  <span class="co"># one row per RM: its mean, THEN</span></span>
-<span id="cb1-82"><a href="#cb1-82" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(mean_yield))               <span class="co"># best RMs on top</span></span>
-<span id="cb1-83"><a href="#cb1-83" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-84"><a href="#cb1-84" aria-hidden="true" tabindex="-1"></a><span class="co"># Top three: RM 369 (47.6), RM 333 (47.2), RM 368 (47.2) bu/ac.</span></span>
-<span id="cb1-85"><a href="#cb1-85" aria-hidden="true" tabindex="-1"></a><span class="co"># Each input row was one RM-year observation of spring wheat; each</span></span>
-<span id="cb1-86"><a href="#cb1-86" aria-hidden="true" tabindex="-1"></a><span class="co"># result row is one RM, its years collapsed into a single mean.</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-77"><a href="#cb1-77" aria-hidden="true" tabindex="-1"></a><span class="co"># Section 4 (Question 36): best wheat-growing RMs</span></span>
+<span id="cb1-78"><a href="#cb1-78" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================================</span></span>
+<span id="cb1-79"><a href="#cb1-79" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-80"><a href="#cb1-80" aria-hidden="true" tabindex="-1"></a>rm_yields <span class="sc">|&gt;</span>                              <span class="co"># take the data, THEN</span></span>
+<span id="cb1-81"><a href="#cb1-81" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Crop <span class="sc">==</span> <span class="st">"Spring Wheat"</span>) <span class="sc">|&gt;</span>       <span class="co"># keep spring wheat, THEN</span></span>
+<span id="cb1-82"><a href="#cb1-82" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(RM) <span class="sc">|&gt;</span>                         <span class="co"># split the rows by RM, THEN</span></span>
+<span id="cb1-83"><a href="#cb1-83" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield =</span> <span class="fu">mean</span>(Yield)) <span class="sc">|&gt;</span>  <span class="co"># one row per RM: its mean, THEN</span></span>
+<span id="cb1-84"><a href="#cb1-84" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(mean_yield))               <span class="co"># best RMs on top</span></span>
+<span id="cb1-85"><a href="#cb1-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-86"><a href="#cb1-86" aria-hidden="true" tabindex="-1"></a><span class="co"># Top three: RM 369 (47.6), RM 333 (47.2), RM 368 (47.2) bu/ac.</span></span>
+<span id="cb1-87"><a href="#cb1-87" aria-hidden="true" tabindex="-1"></a><span class="co"># Each input row was one RM-year observation of spring wheat; each</span></span>
+<span id="cb1-88"><a href="#cb1-88" aria-hidden="true" tabindex="-1"></a><span class="co"># result row is one RM, its years collapsed into a single mean.</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; # ---
 &gt; # Title: Module 2 test
@@ -786,10 +793,42 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 &gt; # fields differ in size, so each yield should count by its acres.
 &gt; 
 &gt; # ============================================================
-&gt; # Section 2 (Question 16): summary statistics for Yield
+&gt; # Section 2 (Question 16): summary statistics for canola
 &gt; # ============================================================
 &gt; 
-&gt; # Read the data using a relative path from the project folder
+&gt; # Read the canola file using a relative path from the project folder
+&gt; rm_canola &lt;- read_csv("data/rm_canola_1990plus.csv")
+Rows: 10039 Columns: 5
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: ","
+chr (2): Crop, Unit
+dbl (3): Year, RM, Yield
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+&gt; 
+&gt; # Centre and spread of the canola yields
+&gt; mean(rm_canola$Yield)      # 28.29 bu/ac
+[1] 28.29239
+&gt; median(rm_canola$Yield)    # 26.9 bu/ac
+[1] 26.9
+&gt; sd(rm_canola$Yield)        # 10.06 bu/ac
+[1] 10.06019
+&gt; 
+&gt; # 90th percentile
+&gt; quantile(rm_canola$Yield, 0.9)   # 42.5 bu/ac
+ 90% 
+42.5 
+&gt; 
+&gt; # The mean sits a little above the median, which suggests mild
+&gt; # right skew: the best RM-years pull the mean up more than the
+&gt; # worst years pull it down.
+&gt; 
+&gt; # ============================================================
+&gt; # Section 3 (Question 25): converting the lentil yields
+&gt; # ============================================================
+&gt; 
+&gt; # Read the full eight-crop file
 &gt; rm_yields &lt;- read_csv("data/rm_yields_1990plus_long.csv")
 Rows: 71104 Columns: 5
 ── Column specification ────────────────────────────────────────────────────────
@@ -799,28 +838,6 @@ dbl (3): Year, RM, Yield
 
 ℹ Use `spec()` to retrieve the full column specification for this data.
 ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
-&gt; 
-&gt; # Centre and spread of the whole Yield column
-&gt; mean(rm_yields$Yield)      # 142.82
-[1] 142.8213
-&gt; median(rm_yields$Yield)    # 36.24
-[1] 36.24
-&gt; sd(rm_yields$Yield)        # 358.99
-[1] 358.9881
-&gt; 
-&gt; # 90th percentile
-&gt; quantile(rm_yields$Yield, 0.9)   # 102.2
-  90% 
-102.2 
-&gt; 
-&gt; # The mean sits far above the median, which flags unusually large
-&gt; # values pulling it up. Here they are the lentil yields, recorded
-&gt; # in pounds per acre while every other crop is in bushels (see the
-&gt; # Unit column) -- a units artifact, not a story about good crops.
-&gt; 
-&gt; # ============================================================
-&gt; # Section 3 (Question 25): converting the lentil yields
-&gt; # ============================================================
 &gt; 
 &gt; # Keep only the lentil rows
 &gt; lentils &lt;- filter(rm_yields, Crop == "Lentils")
@@ -1153,11 +1170,11 @@ Answer
 </section>
 <section id="section-2-reading-and-inspecting-data" class="level1">
 <h1>Section 2 — Reading and Inspecting Data</h1>
-<p><em>These questions use <a href="data/rm_yields_1990plus_long.csv"><code>rm_yields_1990plus_long.csv</code></a> in your project’s <code>data/</code> folder. Answer in the Section 2 block of your script.</em></p>
+<p><em>These questions use the canola-only file, <a href="data/rm_canola_1990plus.csv"><code>rm_canola_1990plus.csv</code></a>, in your project’s <code>data/</code> folder. Answer in the Section 2 block of your script.</em></p>
 <section id="question-11" class="level3">
 <h3 class="anchored" data-anchor-id="question-11">Question 11</h3>
 <p><strong>(a)</strong> In a comment at the top of your script, sketch your project’s folder layout (the subfolders and where the csv sits).</p>
-<p><strong>(b)</strong> Load the tidyverse and read the file into an object called <code>rm_yields</code>, using a relative path.</p>
+<p><strong>(b)</strong> Load the tidyverse and read the canola file into an object called <code>rm_canola</code>, using a relative path.</p>
 <p><strong>(c)</strong> Report the number of rows, the number of columns, and the column names using functions.</p>
 <p><strong>(d)</strong> In a comment: why will your <code>read_csv()</code> line work on the grader’s computer, when a full path starting <code>C:/Users/...</code> would not?</p>
 <details>
@@ -1165,11 +1182,11 @@ Answer
 Answer
 </summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>rm_yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/rm_yields_1990plus_long.csv"</span>)</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(rm_yields); <span class="fu">ncol</span>(rm_yields); <span class="fu">names</span>(rm_yields)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>rm_canola <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/rm_canola_1990plus.csv"</span>)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(rm_canola); <span class="fu">ncol</span>(rm_canola); <span class="fu">names</span>(rm_canola)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <ul>
 <li><ol start="3" type="a">
-<li><strong>71,104 rows</strong>, <strong>5 columns</strong>: <code>Year</code>, <code>RM</code>, <code>Crop</code>, <code>Yield</code>, <code>Unit</code>.</li>
+<li><strong>10,039 rows</strong>, <strong>5 columns</strong>: <code>Year</code>, <code>RM</code>, <code>Crop</code>, <code>Yield</code>, <code>Unit</code>.</li>
 </ol></li>
 <li><ol start="4" type="a">
 <li>The path is relative to the project folder, and the grader opens the same self-contained folder – so <code>data/...</code> exists on their machine too. An absolute path names one particular computer’s user and folder layout.</li>
@@ -1180,7 +1197,7 @@ Answer
 <section id="question-12" class="level3">
 <h3 class="anchored" data-anchor-id="question-12">Question 12</h3>
 <p>A classmate’s script reads the data like this:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>rm_yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"C:</span><span class="sc">\\</span><span class="st">Users</span><span class="sc">\\</span><span class="st">jordan</span><span class="sc">\\</span><span class="st">Desktop</span><span class="sc">\\</span><span class="st">stats stuff</span><span class="sc">\\</span><span class="st">rm_yields_1990plus_long.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>rm_canola <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"C:</span><span class="sc">\\</span><span class="st">Users</span><span class="sc">\\</span><span class="st">jordan</span><span class="sc">\\</span><span class="st">Desktop</span><span class="sc">\\</span><span class="st">stats stuff</span><span class="sc">\\</span><span class="st">rm_canola_1990plus.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>It runs on their laptop and fails on everyone else’s.</p>
 <p><strong>(a)</strong> In a comment: give two separate problems with this line (one about where the path points, one about the backslashes).</p>
 <p><strong>(b)</strong> Rewrite the line the way the module recommends, assuming the csv is in the project’s <code>data/</code> folder.</p>
@@ -1194,7 +1211,7 @@ Answer
 <li>The absolute path names one specific machine (user <code>jordan</code>, a Desktop folder), so it exists nowhere else; and backslashes mean something special inside an R string – paths in R use forward slashes even on Windows.</li>
 </ol></li>
 <li><ol start="2" type="a">
-<li><code>rm_yields &lt;- read_csv("data/rm_yields_1990plus_long.csv")</code>.</li>
+<li><code>rm_canola &lt;- read_csv("data/rm_canola_1990plus.csv")</code>.</li>
 </ol></li>
 <li><ol start="3" type="a">
 <li>Opening the project folder in Positron (<strong>File → Open Folder…</strong>) makes that folder R’s starting point, so relative paths begin from it.</li>
@@ -1208,7 +1225,7 @@ Answer
 <pre><code>AREC_261/
   module_2/
     data/
-      rm_yields_1990plus_long.csv
+      rm_canola_1990plus.csv
     code/
   README.md</code></pre>
 <p><strong>(a)</strong> Write the <code>read_csv()</code> line that works with this setup.</p>
@@ -1220,20 +1237,20 @@ Answer
 </summary>
 <ul>
 <li><ol type="a">
-<li><code>rm_yields &lt;- read_csv("module_2/data/rm_yields_1990plus_long.csv")</code>.</li>
+<li><code>rm_canola &lt;- read_csv("module_2/data/rm_canola_1990plus.csv")</code>.</li>
 </ol></li>
 <li><ol start="2" type="a">
-<li>The starting point changed: relative paths begin at the folder you opened. With <code>module_2/</code> open, the path is <code>data/rm_yields_1990plus_long.csv</code>.</li>
+<li>The starting point changed: relative paths begin at the folder you opened. With <code>module_2/</code> open, the path is <code>data/rm_canola_1990plus.csv</code>.</li>
 </ol></li>
 <li><ol start="3" type="a">
-<li>From <code>AREC_261</code>, R goes into <code>module_2</code>, then into <code>data</code>, and finds <code>rm_yields_1990plus_long.csv</code> – each <code>/</code> steps into a subfolder.</li>
+<li>From <code>AREC_261</code>, R goes into <code>module_2</code>, then into <code>data</code>, and finds <code>rm_canola_1990plus.csv</code> – each <code>/</code> steps into a subfolder.</li>
 </ol></li>
 </ul>
 </details>
 </section>
 <section id="question-14" class="level3">
 <h3 class="anchored" data-anchor-id="question-14">Question 14</h3>
-<p><strong>(a)</strong> Run <code>glimpse()</code> on <code>rm_yields</code>. In a comment: which columns are text (<code>&lt;chr&gt;</code>) and which are numeric (<code>&lt;dbl&gt;</code>)?</p>
+<p><strong>(a)</strong> Run <code>glimpse()</code> on <code>rm_canola</code>. In a comment: which columns are text (<code>&lt;chr&gt;</code>) and which are numeric (<code>&lt;dbl&gt;</code>)?</p>
 <p><strong>(b)</strong> When <code>read_csv()</code> ran, it printed a note about the file. In a comment: what did that note report, and why does the module say to read it every time?</p>
 <p><strong>(c)</strong> <code>Year</code> came in as a number. In a comment: would <code>"2024"</code> (with quotes) in a filter comparison against <code>Year</code> behave the same as <code>2024</code>? What is the difference between the two?</p>
 <details>
@@ -1255,57 +1272,57 @@ Answer
 </section>
 <section id="question-15" class="level3">
 <h3 class="anchored" data-anchor-id="question-15">Question 15</h3>
-<p><strong>(a)</strong> Run <code>summary(rm_yields)</code>. From its output, report the minimum, median, and maximum of <code>Yield</code>.</p>
-<p><strong>(b)</strong> The maximum is <strong>3,411</strong> – almost a hundred times the median. In a comment: is this an error in the data? Use another column in the dataset to explain what is going on.</p>
-<p><strong>(c)</strong> In a comment: which of the module’s inspect-your-data questions did part (b) just answer (“are the values in plausible ranges?”), and why would a mean of the whole <code>Yield</code> column be a misleading number to report?</p>
+<p><strong>(a)</strong> Run <code>summary(rm_canola)</code>. From its output, report the minimum, median, and maximum of <code>Yield</code>, and the first and last <code>Year</code>.</p>
+<p><strong>(b)</strong> In a comment: work through the module’s inspection questions for this file. Are the yields in a plausible range for canola in bu/ac? Are the years what the file name promises? Are there missing values?</p>
+<p><strong>(c)</strong> The minimum is below 2 bu/ac. In a comment: is a canola yield that low necessarily a data error? What kind of year could produce it?</p>
 <details>
 <summary>
 Answer
 </summary>
 <ul>
 <li><ol type="a">
-<li>Min <strong>0</strong>, median <strong>36.24</strong>, max <strong>3411</strong>.</li>
+<li>Yield: min <strong>1.9</strong>, median <strong>26.9</strong>, max <strong>61</strong>. Years <strong>1990</strong> to <strong>2025</strong>.</li>
 </ol></li>
 <li><ol start="2" type="a">
-<li>Not an error: the <code>Unit</code> column shows lentils are recorded in <strong>pounds</strong> per acre while every other crop is in bushels. A lentil yield of ~3,400 lb/ac is a real value on a different scale.</li>
+<li>Yes – everything sits between about 2 and 61 bu/ac, sensible for canola; the years run 1990–2025 as advertised; and <code>summary()</code> reports no NA counts, so no missing values.</li>
 </ol></li>
 <li><ol start="3" type="a">
-<li>The plausible-ranges check. The column mixes two units, so its overall mean (<strong>142.8</strong>) averages pounds with bushels – a number with no meaningful interpretation.</li>
+<li>Not necessarily – an RM average that low is what a severe drought or a widespread crop failure looks like. Extreme is not the same as wrong; it is a value to investigate, not delete.</li>
 </ol></li>
 </ul>
 </details>
 </section>
 <section id="question-16" class="level3">
 <h3 class="anchored" data-anchor-id="question-16">Question 16</h3>
-<p><strong>(a)</strong> Compute the mean, median, and standard deviation of <code>rm_yields$Yield</code>.</p>
+<p><strong>(a)</strong> Compute the mean, median, and standard deviation of <code>rm_canola$Yield</code>.</p>
 <p><strong>(b)</strong> Compute the 90th percentile of <code>Yield</code>.</p>
-<p><strong>(c)</strong> The mean (<strong>142.8</strong>) is nearly four times the median (<strong>36.2</strong>). In a comment: using Module 1’s language about means and medians, what does a gap like that tell you, and what feature of this dataset produces it?</p>
+<p><strong>(c)</strong> The mean sits a little above the median. In a comment: using Module 1’s language about means and medians, what does that direction of gap suggest about the shape of canola yields?</p>
 <details>
 <summary>
 Answer
 </summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(rm_yields<span class="sc">$</span>Yield)</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">median</span>(rm_yields<span class="sc">$</span>Yield)</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sd</span>(rm_yields<span class="sc">$</span>Yield)</span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(rm_yields<span class="sc">$</span>Yield, <span class="fl">0.9</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(rm_canola<span class="sc">$</span>Yield)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">median</span>(rm_canola<span class="sc">$</span>Yield)</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sd</span>(rm_canola<span class="sc">$</span>Yield)</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(rm_canola<span class="sc">$</span>Yield, <span class="fl">0.9</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <ul>
 <li><ol type="a">
-<li>Mean <strong>142.82</strong>, median <strong>36.24</strong>, sd <strong>358.99</strong>.</li>
+<li>Mean <strong>28.29</strong>, median <strong>26.9</strong>, sd <strong>10.06</strong>.</li>
 </ol></li>
 <li><ol start="2" type="a">
-<li>90th percentile <strong>102.2</strong>.</li>
+<li>90th percentile <strong>42.5</strong>.</li>
 </ol></li>
 <li><ol start="3" type="a">
-<li>A mean far above the median flags unusually large values pulling it up – here the lentil yields recorded in pounds, which sit far above every bushel figure. The gap is a units artifact, not a story about good crops.</li>
+<li>A mean above the median suggests mild right skew: the very best RM-years pull the mean up more than the worst years pull it down.</li>
 </ol></li>
 </ul>
 </details>
 </section>
 <section id="question-17" class="level3">
 <h3 class="anchored" data-anchor-id="question-17">Question 17</h3>
-<p>Open <code>rm_yields_1990plus_long.csv</code> in Positron’s data viewer (click the file in the Explorer pane).</p>
+<p>Open <code>rm_canola_1990plus.csv</code> in Positron’s data viewer (click the file in the Explorer pane).</p>
 <p><strong>(a)</strong> In a comment: what percentage of values are missing in each column, according to the viewer?</p>
-<p><strong>(b)</strong> In a comment: expand the <code>Yield</code> column’s summary. Describe the shape of its histogram in one phrase, and connect it to what you found in Question 15.</p>
+<p><strong>(b)</strong> In a comment: expand the <code>Yield</code> column’s summary. Describe the shape of its histogram in one phrase, and say whether it matches your mean-versus-median reading from Question 16.</p>
 <p><strong>(c)</strong> A classmate says “the file is open in the viewer, so it’s loaded into R.” In a comment: correct them, and say what actually loads it.</p>
 <details>
 <summary>
@@ -1316,7 +1333,7 @@ Answer
 <li>0% missing in every column.</li>
 </ol></li>
 <li><ol start="2" type="a">
-<li>A tall spike at low values with a long right tail – the lentil pound-scale yields stretch the axis far past everything else.</li>
+<li>A single hump around the mid-20s with a longer tail to the right – consistent with the mean sitting a little above the median.</li>
 </ol></li>
 <li><ol start="3" type="a">
 <li>The viewer is Positron showing you the file; nothing exists in R until <code>read_csv()</code> runs and the result is assigned to an object.</li>
@@ -1328,22 +1345,22 @@ Answer
 <h3 class="anchored" data-anchor-id="question-18">Question 18</h3>
 <p><strong>(a)</strong> Compute the 25th and 75th percentiles of <code>Yield</code> in a single <code>quantile()</code> call.</p>
 <p><strong>(b)</strong> Compute the interquartile range twice: once with <code>IQR()</code>, once by subtracting your two percentiles.</p>
-<p><strong>(c)</strong> In a comment: the IQR (<strong>29.6</strong>) is small next to the standard deviation (<strong>359</strong>). Which is giving the more honest picture of a <em>typical</em> crop’s spread here, and why?</p>
+<p><strong>(c)</strong> In a comment: say what the interquartile range from (b) means in words, for a reader who farms.</p>
 <details>
 <summary>
 Answer
 </summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(rm_yields<span class="sc">$</span>Yield, <span class="fu">c</span>(<span class="fl">0.25</span>, <span class="fl">0.75</span>))</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">IQR</span>(rm_yields<span class="sc">$</span>Yield)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(rm_canola<span class="sc">$</span>Yield, <span class="fu">c</span>(<span class="fl">0.25</span>, <span class="fl">0.75</span>))</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">IQR</span>(rm_canola<span class="sc">$</span>Yield)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <ul>
 <li><ol type="a">
-<li>25th <strong>25.3</strong>, 75th <strong>54.9</strong>.</li>
+<li>25th <strong>21</strong>, 75th <strong>35.4</strong>.</li>
 </ol></li>
 <li><ol start="2" type="a">
-<li>Both give <strong>29.6</strong>.</li>
+<li>Both give <strong>14.4</strong>.</li>
 </ol></li>
 <li><ol start="3" type="a">
-<li>The IQR: it describes the middle half of the data and ignores the extremes, while the standard deviation is blown up by the lentil pound-scale values.</li>
+<li>The middle half of all RM-year canola yields falls between 21 and 35.4 bu/ac – a typical RM in a typical year lands somewhere in that 14-bushel window.</li>
 </ol></li>
 </ul>
 </details>
@@ -1399,7 +1416,7 @@ Answer
 </section>
 <section id="section-3-data-manipulation-functions" class="level1">
 <h1>Section 3 — Data Manipulation Functions</h1>
-<p><em>Same dataset. Answer in the Section 3 block of your script. These questions use one function at a time; save intermediate results to objects where a later part needs them.</em></p>
+<p><em>From here on, use the full eight-crop file: read <a href="data/rm_yields_1990plus_long.csv"><code>rm_yields_1990plus_long.csv</code></a> into an object called <code>rm_yields</code> at the start of your Section 3 block. These questions use one function at a time; save intermediate results to objects where a later part needs them.</em></p>
 <section id="question-21" class="level3">
 <h3 class="anchored" data-anchor-id="question-21">Question 21</h3>
 <p><strong>(a)</strong> Filter <code>rm_yields</code> to Canola in 2024, saving the result as <code>canola_2024</code>. How many rows?</p>
@@ -1632,7 +1649,7 @@ Answer
 </section>
 <section id="section-4-pipelines-and-grouped-summaries" class="level1">
 <h1>Section 4 — Pipelines and Grouped Summaries</h1>
-<p><em>Same dataset. Answer in the Section 4 block of your script. Write multi-step work as pipelines with <code>|&gt;</code>, one step per line.</em></p>
+<p><em>Still the full eight-crop file (<code>rm_yields</code>). Answer in the Section 4 block of your script. Write multi-step work as pipelines with <code>|&gt;</code>, one step per line.</em></p>
 <section id="question-31" class="level3">
 <h3 class="anchored" data-anchor-id="question-31">Question 31</h3>
 <p>Here is a working but hard-to-read line:</p>
