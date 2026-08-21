@@ -645,7 +645,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><em>Filter to the lentil rows, saving as <code>lentils</code> (how many rows?); add a <code>yield_kg_ha</code> column (multiply by 1.12), saving back to <code>lentils</code>; compute the mean of the new column and of the original, and check their ratio.</em></li>
 <li><em>In one pipeline, compute each RM’s mean Spring Wheat yield across all years, sorted best-first. Report the top three RMs. In a comment: what did each row of the input represent, and what does each row of the result represent?</em></li>
 </ol>
-<p>And here is a script that would earn full marks, including all of the presentation component:</p>
+<p>And here is a script that would earn full marks, including all of the presentation component – with the console session it produces shown beneath it:</p>
+<div class="cell">
+<div class="cell-output-display">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ---</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Title: Module 2 test</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Author: Jordan Field</span></span>
@@ -732,6 +734,141 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-84"><a href="#cb1-84" aria-hidden="true" tabindex="-1"></a><span class="co"># Top three: RM 369 (47.6), RM 333 (47.2), RM 368 (47.2) bu/ac.</span></span>
 <span id="cb1-85"><a href="#cb1-85" aria-hidden="true" tabindex="-1"></a><span class="co"># Each input row was one RM-year observation of spring wheat; each</span></span>
 <span id="cb1-86"><a href="#cb1-86" aria-hidden="true" tabindex="-1"></a><span class="co"># result row is one RM, its years collapsed into a single mean.</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; # ---
+&gt; # Title: Module 2 test
+&gt; # Author: Jordan Field
+&gt; # Date: 2026-10-15
+&gt; # Description:
+&gt; #   Answers to the four test questions, one section per block.
+&gt; #   Sentence answers are written as comments below each result.
+&gt; # ---
+&gt; 
+&gt; # Load packages
+&gt; library(tidyverse)
+── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.2.1     ✔ readr     2.2.0
+✔ forcats   1.0.1     ✔ stringr   1.6.0
+✔ ggplot2   4.0.3     ✔ tibble    3.3.1
+✔ lubridate 1.9.5     ✔ tidyr     1.3.2
+✔ purrr     1.2.2     
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors
+&gt; 
+&gt; # ============================================================
+&gt; # Section 1 (Question 1): five canola fields
+&gt; # ============================================================
+&gt; 
+&gt; # Yields (bu/ac) and field sizes (acres)
+&gt; yields &lt;- c(52.3, 47.8, 55.1, 44.6, 50.9)
+&gt; acres  &lt;- c(160, 320, 240, 130, 200)
+&gt; 
+&gt; # (a/b) Convert every yield to tonnes per hectare in one step
+&gt; yields_t_ha &lt;- yields * 0.0560
+&gt; yields_t_ha
+[1] 2.9288 2.6768 3.0856 2.4976 2.8504
+&gt; 
+&gt; # (c) Centre and spread of the yields
+&gt; mean(yields)   # 50.14 bu/ac
+[1] 50.14
+&gt; sd(yields)     # 4.06 bu/ac
+[1] 4.062388
+&gt; 
+&gt; # (d) Total production, then the average weighted by acres
+&gt; total_bu &lt;- sum(yields * acres)
+&gt; total_bu                 # 52,866 bu
+[1] 52866
+&gt; total_bu / sum(acres)    # 50.35 bu/ac
+[1] 50.34857
+&gt; # The weighted average differs from the plain mean because the
+&gt; # fields differ in size, so each yield should count by its acres.
+&gt; 
+&gt; # ============================================================
+&gt; # Section 2 (Question 16): summary statistics for Yield
+&gt; # ============================================================
+&gt; 
+&gt; # Read the data using a relative path from the project folder
+&gt; rm_yields &lt;- read_csv("data/rm_yields_1990plus_long.csv")
+Rows: 71104 Columns: 5
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: ","
+chr (2): Crop, Unit
+dbl (3): Year, RM, Yield
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+&gt; 
+&gt; # Centre and spread of the whole Yield column
+&gt; mean(rm_yields$Yield)      # 142.82
+[1] 142.8213
+&gt; median(rm_yields$Yield)    # 36.24
+[1] 36.24
+&gt; sd(rm_yields$Yield)        # 358.99
+[1] 358.9881
+&gt; 
+&gt; # 90th percentile
+&gt; quantile(rm_yields$Yield, 0.9)   # 102.2
+  90% 
+102.2 
+&gt; 
+&gt; # The mean sits far above the median, which flags unusually large
+&gt; # values pulling it up. Here they are the lentil yields, recorded
+&gt; # in pounds per acre while every other crop is in bushels (see the
+&gt; # Unit column) -- a units artifact, not a story about good crops.
+&gt; 
+&gt; # ============================================================
+&gt; # Section 3 (Question 25): converting the lentil yields
+&gt; # ============================================================
+&gt; 
+&gt; # Keep only the lentil rows
+&gt; lentils &lt;- filter(rm_yields, Crop == "Lentils")
+&gt; nrow(lentils)    # 6,338 rows
+[1] 6338
+&gt; 
+&gt; # Add the converted column (1 lb/ac is about 1.12 kg/ha) and
+&gt; # overwrite lentils with the version that has the extra column
+&gt; lentils &lt;- mutate(lentils, yield_kg_ha = Yield * 1.12)
+&gt; 
+&gt; # Means of the new and original columns
+&gt; mean(lentils$yield_kg_ha)   # 1,353.4 kg/ha
+[1] 1353.402
+&gt; mean(lentils$Yield)         # 1,208.39 lb/ac
+[1] 1208.395
+&gt; # Their ratio is 1.12, the conversion factor -- multiplying every
+&gt; # value by a constant multiplies the mean by the same constant.
+&gt; 
+&gt; # ============================================================
+&gt; # Section 4 (Question 36): best wheat-growing RMs
+&gt; # ============================================================
+&gt; 
+&gt; rm_yields |&gt;                              # take the data, THEN
++   filter(Crop == "Spring Wheat") |&gt;       # keep spring wheat, THEN
++   group_by(RM) |&gt;                         # split the rows by RM, THEN
++   summarise(mean_yield = mean(Yield)) |&gt;  # one row per RM: its mean, THEN
++   arrange(desc(mean_yield))               # best RMs on top
+# A tibble: 298 × 2
+      RM mean_yield
+   &lt;dbl&gt;      &lt;dbl&gt;
+ 1   369       47.6
+ 2   333       47.2
+ 3   368       47.2
+ 4   271       46.1
+ 5   303       45.0
+ 6   427       45.0
+ 7   404       44.9
+ 8   496       44.8
+ 9   493       44.6
+10   338       44.5
+# ℹ 288 more rows
+&gt; 
+&gt; # Top three: RM 369 (47.6), RM 333 (47.2), RM 368 (47.2) bu/ac.
+&gt; # Each input row was one RM-year observation of spring wheat; each
+&gt; # result row is one RM, its years collapsed into a single mean.</code></pre>
+</div>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -750,13 +887,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <summary>
 Answer
 </summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>yields <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">52.3</span>, <span class="fl">47.8</span>, <span class="fl">55.1</span>, <span class="fl">44.6</span>, <span class="fl">50.9</span>)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>acres  <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">160</span>, <span class="dv">320</span>, <span class="dv">240</span>, <span class="dv">130</span>, <span class="dv">200</span>)</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>yields_t_ha <span class="ot">&lt;-</span> yields <span class="sc">*</span> <span class="fl">0.0560</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(yields)</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">sd</span>(yields)</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>total_bu <span class="ot">&lt;-</span> <span class="fu">sum</span>(yields <span class="sc">*</span> acres)</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>total_bu <span class="sc">/</span> <span class="fu">sum</span>(acres)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>yields <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">52.3</span>, <span class="fl">47.8</span>, <span class="fl">55.1</span>, <span class="fl">44.6</span>, <span class="fl">50.9</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>acres  <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">160</span>, <span class="dv">320</span>, <span class="dv">240</span>, <span class="dv">130</span>, <span class="dv">200</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>yields_t_ha <span class="ot">&lt;-</span> yields <span class="sc">*</span> <span class="fl">0.0560</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(yields)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">sd</span>(yields)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>total_bu <span class="ot">&lt;-</span> <span class="fu">sum</span>(yields <span class="sc">*</span> acres)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>total_bu <span class="sc">/</span> <span class="fu">sum</span>(acres)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <ul>
 <li><ol start="2" type="a">
 <li>2.93, 2.68, 3.09, 2.50, 2.85 t/ha.</li>
@@ -780,13 +917,13 @@ Answer
 <summary>
 Answer
 </summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>fields <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">field_id =</span> <span class="fu">c</span>(<span class="st">"F1"</span>, <span class="st">"F2"</span>, <span class="st">"F3"</span>, <span class="st">"F4"</span>, <span class="st">"F5"</span>),</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">crop =</span> <span class="fu">c</span>(<span class="st">"Canola"</span>, <span class="st">"Wheat"</span>, <span class="st">"Canola"</span>, <span class="st">"Peas"</span>, <span class="st">"Wheat"</span>),</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">yield =</span> <span class="fu">c</span>(<span class="fl">44.1</span>, <span class="fl">52.7</span>, <span class="fl">39.8</span>, <span class="fl">41.5</span>, <span class="fl">49.3</span>)</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(fields); <span class="fu">ncol</span>(fields); <span class="fu">names</span>(fields)</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(fields<span class="sc">$</span>yield); <span class="fu">median</span>(fields<span class="sc">$</span>yield)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>fields <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">field_id =</span> <span class="fu">c</span>(<span class="st">"F1"</span>, <span class="st">"F2"</span>, <span class="st">"F3"</span>, <span class="st">"F4"</span>, <span class="st">"F5"</span>),</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">crop =</span> <span class="fu">c</span>(<span class="st">"Canola"</span>, <span class="st">"Wheat"</span>, <span class="st">"Canola"</span>, <span class="st">"Peas"</span>, <span class="st">"Wheat"</span>),</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">yield =</span> <span class="fu">c</span>(<span class="fl">44.1</span>, <span class="fl">52.7</span>, <span class="fl">39.8</span>, <span class="fl">41.5</span>, <span class="fl">49.3</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(fields); <span class="fu">ncol</span>(fields); <span class="fu">names</span>(fields)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(fields<span class="sc">$</span>yield); <span class="fu">median</span>(fields<span class="sc">$</span>yield)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <ul>
 <li><ol start="2" type="a">
 <li>5 rows, 3 columns; <code>field_id</code>, <code>crop</code>, <code>yield</code>.</li>
@@ -811,10 +948,10 @@ Answer
 <summary>
 Answer
 </summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>peas <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">31</span>, <span class="dv">44</span>, <span class="dv">27</span>, <span class="dv">50</span>, <span class="dv">38</span>, <span class="dv">42</span>, <span class="dv">35</span>, <span class="dv">47</span>, <span class="dv">29</span>, <span class="dv">40</span>)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(peas)</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(peas, <span class="fu">c</span>(<span class="fl">0.25</span>, <span class="fl">0.75</span>))</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(<span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.25</span>, <span class="fl">0.75</span>), <span class="at">x =</span> peas)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>peas <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">31</span>, <span class="dv">44</span>, <span class="dv">27</span>, <span class="dv">50</span>, <span class="dv">38</span>, <span class="dv">42</span>, <span class="dv">35</span>, <span class="dv">47</span>, <span class="dv">29</span>, <span class="dv">40</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(peas)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(peas, <span class="fu">c</span>(<span class="fl">0.25</span>, <span class="fl">0.75</span>))</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(<span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.25</span>, <span class="fl">0.75</span>), <span class="at">x =</span> peas)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <ul>
 <li><ol type="a">
 <li>Mean <strong>38.3</strong>.</li>
@@ -829,10 +966,10 @@ Answer
 <section id="question-4" class="level3">
 <h3 class="anchored" data-anchor-id="question-4">Question 4</h3>
 <p>A student types the following four lines into the console, in order:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="dv">8</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>x <span class="sc">*</span> <span class="dv">3</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> x <span class="sc">-</span> <span class="dv">3</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>x <span class="sc">*</span> y</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="dv">8</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>x <span class="sc">*</span> <span class="dv">3</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> x <span class="sc">-</span> <span class="dv">3</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>x <span class="sc">*</span> y</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><strong>(a)</strong> In a comment: which lines print something to the console, and what exactly do they print (including the <code>[1]</code>)?</p>
 <p><strong>(b)</strong> In a comment: after all four lines, what objects does the Variables pane show, with what values? Is the result of <code>x * 3</code> among them?</p>
 <p><strong>(c)</strong> A fifth line, <code>y &lt;- y * 2</code>, is now run. In a comment: what does the Variables pane show afterwards, and did the line print anything?</p>
@@ -879,9 +1016,9 @@ Answer
 <section id="question-6" class="level3">
 <h3 class="anchored" data-anchor-id="question-6">Question 6</h3>
 <p>Consider these three lines:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">12</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>n <span class="sc">==</span> <span class="dv">10</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>n <span class="ot">=</span> <span class="dv">15</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">12</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>n <span class="sc">==</span> <span class="dv">10</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>n <span class="ot">=</span> <span class="dv">15</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><strong>(a)</strong> In a comment: say what each line does. Which ones assign, which one asks a question, and what does the question print?</p>
 <p><strong>(b)</strong> In a comment: all three symbols (<code>&lt;-</code>, <code>==</code>, <code>=</code>) are legal R. Which one does this book use for assignment, and why does keeping the three visually distinct matter?</p>
 <p><strong>(c)</strong> <code>mean(x = c(4, 9, 11))</code> also contains an <code>=</code>. In a comment: what is <code>=</code> doing there?</p>
@@ -905,10 +1042,10 @@ Answer
 <section id="question-7" class="level3">
 <h3 class="anchored" data-anchor-id="question-7">Question 7</h3>
 <p>Here is a working script:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">38.2</span>, <span class="fl">45.6</span>, <span class="fl">41.9</span>, <span class="fl">36.8</span>)</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>b <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">210</span>, <span class="dv">180</span>, <span class="dv">260</span>, <span class="dv">240</span>)</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> <span class="fu">sum</span>(a <span class="sc">*</span> b)</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>d <span class="sc">/</span> <span class="fu">sum</span>(b)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">38.2</span>, <span class="fl">45.6</span>, <span class="fl">41.9</span>, <span class="fl">36.8</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>b <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">210</span>, <span class="dv">180</span>, <span class="dv">260</span>, <span class="dv">240</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> <span class="fu">sum</span>(a <span class="sc">*</span> b)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>d <span class="sc">/</span> <span class="fu">sum</span>(b)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><strong>(a)</strong> Rewrite it with a proper header block (Title, Author, Date, Description) and a comment before each step, following the module’s conventions.</p>
 <p><strong>(b)</strong> Replace the object names with descriptive ones.</p>
 <p><strong>(c)</strong> In a comment: state the module’s test for whether a script is reproducible.</p>
@@ -916,24 +1053,24 @@ Answer
 <summary>
 Answer
 </summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ---</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Title: Farm average yield</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Author: Your Name</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Date: 2026-10-08</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Description:</span></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="co">#   Computes total production and the acreage-weighted</span></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co">#   average yield for four fields.</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="co"># ---</span></span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Field yields (bu/ac) and sizes (acres)</span></span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>yields <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">38.2</span>, <span class="fl">45.6</span>, <span class="fl">41.9</span>, <span class="fl">36.8</span>)</span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>acres  <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">210</span>, <span class="dv">180</span>, <span class="dv">260</span>, <span class="dv">240</span>)</span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Total production in bushels</span></span>
-<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>total_bu <span class="ot">&lt;-</span> <span class="fu">sum</span>(yields <span class="sc">*</span> acres)</span>
-<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Average yield weighted by acres</span></span>
-<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>total_bu <span class="sc">/</span> <span class="fu">sum</span>(acres)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ---</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Title: Farm average yield</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Author: Your Name</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Date: 2026-10-08</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Description:</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="co">#   Computes total production and the acreage-weighted</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co">#   average yield for four fields.</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="co"># ---</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Field yields (bu/ac) and sizes (acres)</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>yields <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">38.2</span>, <span class="fl">45.6</span>, <span class="fl">41.9</span>, <span class="fl">36.8</span>)</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>acres  <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">210</span>, <span class="dv">180</span>, <span class="dv">260</span>, <span class="dv">240</span>)</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Total production in bushels</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>total_bu <span class="ot">&lt;-</span> <span class="fu">sum</span>(yields <span class="sc">*</span> acres)</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Average yield weighted by acres</span></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>total_bu <span class="sc">/</span> <span class="fu">sum</span>(acres)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <ul>
 <li><ol start="3" type="a">
 <li>Restart R and run the script from top to bottom: it should reproduce the analysis without any commands typed into the console. (The weighted average, for reference, is <strong>40.35 bu/ac</strong>.)</li>
@@ -951,10 +1088,10 @@ Answer
 <summary>
 Answer
 </summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>barley  <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">68.2</span>, <span class="fl">71.5</span>, <span class="fl">64.9</span>, <span class="fl">74.1</span>, <span class="fl">66.3</span>)</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>lentils <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">1450</span>, <span class="dv">1720</span>, <span class="dv">1280</span>, <span class="dv">1610</span>, <span class="dv">1390</span>)</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sd</span>(barley) <span class="sc">/</span> <span class="fu">mean</span>(barley)</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="fu">sd</span>(lentils) <span class="sc">/</span> <span class="fu">mean</span>(lentils)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>barley  <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">68.2</span>, <span class="fl">71.5</span>, <span class="fl">64.9</span>, <span class="fl">74.1</span>, <span class="fl">66.3</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>lentils <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">1450</span>, <span class="dv">1720</span>, <span class="dv">1280</span>, <span class="dv">1610</span>, <span class="dv">1390</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sd</span>(barley) <span class="sc">/</span> <span class="fu">mean</span>(barley)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="fu">sd</span>(lentils) <span class="sc">/</span> <span class="fu">mean</span>(lentils)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <ul>
 <li><ol type="a">
 <li>Barley mean <strong>69.0</strong>, sd <strong>3.77</strong>; lentils mean <strong>1490</strong>, sd <strong>175.36</strong>.</li>
@@ -1000,11 +1137,11 @@ Answer
 <summary>
 Answer
 </summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>crop      <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Canola"</span>, <span class="st">"Wheat"</span>, <span class="st">"Peas"</span>, <span class="st">"Canola"</span>)</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>acres     <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">160</span>, <span class="dv">320</span>, <span class="dv">240</span>, <span class="dv">130</span>)</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>irrigated <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="cn">TRUE</span>, <span class="cn">FALSE</span>, <span class="cn">FALSE</span>, <span class="cn">TRUE</span>)</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>trial <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(crop, acres, irrigated)</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>trial</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>crop      <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Canola"</span>, <span class="st">"Wheat"</span>, <span class="st">"Peas"</span>, <span class="st">"Canola"</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>acres     <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">160</span>, <span class="dv">320</span>, <span class="dv">240</span>, <span class="dv">130</span>)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>irrigated <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="cn">TRUE</span>, <span class="cn">FALSE</span>, <span class="cn">FALSE</span>, <span class="cn">TRUE</span>)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>trial <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(crop, acres, irrigated)</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>trial</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <ul>
 <li><ol start="2" type="a">
 <li>The character values (crop names) need quotes. Numbers must not have them (quoted numbers become text), and <code>TRUE</code>/<code>FALSE</code> must not have them – quoted, they would be text rather than logical values.</li>
@@ -1027,9 +1164,9 @@ Answer
 <summary>
 Answer
 </summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>rm_yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/rm_yields_1990plus_long.csv"</span>)</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(rm_yields); <span class="fu">ncol</span>(rm_yields); <span class="fu">names</span>(rm_yields)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>rm_yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/rm_yields_1990plus_long.csv"</span>)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(rm_yields); <span class="fu">ncol</span>(rm_yields); <span class="fu">names</span>(rm_yields)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <ul>
 <li><ol start="3" type="a">
 <li><strong>71,104 rows</strong>, <strong>5 columns</strong>: <code>Year</code>, <code>RM</code>, <code>Crop</code>, <code>Yield</code>, <code>Unit</code>.</li>
@@ -1043,8 +1180,8 @@ Answer
 <section id="question-12" class="level3">
 <h3 class="anchored" data-anchor-id="question-12">Question 12</h3>
 <p>A classmate’s script begins:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">setwd</span>(<span class="st">"C:</span><span class="sc">\\</span><span class="st">Users</span><span class="sc">\\</span><span class="st">jordan</span><span class="sc">\\</span><span class="st">Desktop</span><span class="sc">\\</span><span class="st">stats stuff"</span>)</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>rm_yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"C:</span><span class="sc">\\</span><span class="st">Users</span><span class="sc">\\</span><span class="st">jordan</span><span class="sc">\\</span><span class="st">Desktop</span><span class="sc">\\</span><span class="st">stats stuff</span><span class="sc">\\</span><span class="st">rm_yields_1990plus_long.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">setwd</span>(<span class="st">"C:</span><span class="sc">\\</span><span class="st">Users</span><span class="sc">\\</span><span class="st">jordan</span><span class="sc">\\</span><span class="st">Desktop</span><span class="sc">\\</span><span class="st">stats stuff"</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>rm_yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"C:</span><span class="sc">\\</span><span class="st">Users</span><span class="sc">\\</span><span class="st">jordan</span><span class="sc">\\</span><span class="st">Desktop</span><span class="sc">\\</span><span class="st">stats stuff</span><span class="sc">\\</span><span class="st">rm_yields_1990plus_long.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>It runs on their laptop and fails on everyone else’s.</p>
 <p><strong>(a)</strong> In a comment: give two separate problems with these lines (one about where the paths point, one about the backslashes).</p>
 <p><strong>(b)</strong> Rewrite the script the way the module recommends, assuming the csv is in the project’s <code>data/</code> folder.</p>
@@ -1148,10 +1285,10 @@ Answer
 <summary>
 Answer
 </summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(rm_yields<span class="sc">$</span>Yield)</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">median</span>(rm_yields<span class="sc">$</span>Yield)</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sd</span>(rm_yields<span class="sc">$</span>Yield)</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(rm_yields<span class="sc">$</span>Yield, <span class="fl">0.9</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(rm_yields<span class="sc">$</span>Yield)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">median</span>(rm_yields<span class="sc">$</span>Yield)</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sd</span>(rm_yields<span class="sc">$</span>Yield)</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(rm_yields<span class="sc">$</span>Yield, <span class="fl">0.9</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <ul>
 <li><ol type="a">
 <li>Mean <strong>142.82</strong>, median <strong>36.24</strong>, sd <strong>358.99</strong>.</li>
@@ -1197,8 +1334,8 @@ Answer
 <summary>
 Answer
 </summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(rm_yields<span class="sc">$</span>Yield, <span class="fu">c</span>(<span class="fl">0.25</span>, <span class="fl">0.75</span>))</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">IQR</span>(rm_yields<span class="sc">$</span>Yield)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(rm_yields<span class="sc">$</span>Yield, <span class="fu">c</span>(<span class="fl">0.25</span>, <span class="fl">0.75</span>))</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">IQR</span>(rm_yields<span class="sc">$</span>Yield)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <ul>
 <li><ol type="a">
 <li>25th <strong>25.3</strong>, 75th <strong>54.9</strong>.</li>
@@ -1273,10 +1410,10 @@ Answer
 <summary>
 Answer
 </summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>canola_2024 <span class="ot">&lt;-</span> <span class="fu">filter</span>(rm_yields, Crop <span class="sc">==</span> <span class="st">"Canola"</span> <span class="sc">&amp;</span> Year <span class="sc">==</span> <span class="dv">2024</span>)</span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(canola_2024)</span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>canola_rm18 <span class="ot">&lt;-</span> <span class="fu">filter</span>(rm_yields, Crop <span class="sc">==</span> <span class="st">"Canola"</span> <span class="sc">&amp;</span> RM <span class="sc">==</span> <span class="dv">18</span>)</span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(canola_rm18)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>canola_2024 <span class="ot">&lt;-</span> <span class="fu">filter</span>(rm_yields, Crop <span class="sc">==</span> <span class="st">"Canola"</span> <span class="sc">&amp;</span> Year <span class="sc">==</span> <span class="dv">2024</span>)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(canola_2024)</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>canola_rm18 <span class="ot">&lt;-</span> <span class="fu">filter</span>(rm_yields, Crop <span class="sc">==</span> <span class="st">"Canola"</span> <span class="sc">&amp;</span> RM <span class="sc">==</span> <span class="dv">18</span>)</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(canola_rm18)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <ul>
 <li><ol type="a">
 <li><strong>293 rows</strong>. (b) <strong>15 rows</strong>.</li>
@@ -1296,8 +1433,8 @@ Answer
 <summary>
 Answer
 </summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(<span class="fu">filter</span>(rm_yields, Crop <span class="sc">==</span> <span class="st">"Oats"</span> <span class="sc">|</span> Crop <span class="sc">==</span> <span class="st">"Barley"</span>))</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(<span class="fu">filter</span>(rm_yields, Crop <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Oats"</span>, <span class="st">"Barley"</span>)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(<span class="fu">filter</span>(rm_yields, Crop <span class="sc">==</span> <span class="st">"Oats"</span> <span class="sc">|</span> Crop <span class="sc">==</span> <span class="st">"Barley"</span>))</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(<span class="fu">filter</span>(rm_yields, Crop <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Oats"</span>, <span class="st">"Barley"</span>)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <ul>
 <li>(a, b) <strong>19,709 rows</strong> both ways.</li>
 <li><ol start="3" type="a">
@@ -1315,8 +1452,8 @@ Answer
 <summary>
 Answer
 </summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(<span class="fu">filter</span>(rm_yields, Crop <span class="sc">==</span> <span class="st">"Spring Wheat"</span> <span class="sc">&amp;</span> Yield <span class="sc">&gt;</span> <span class="dv">60</span>))</span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(<span class="fu">filter</span>(rm_yields, Crop <span class="sc">==</span> <span class="st">"Spring Wheat"</span> <span class="sc">&amp;</span> Yield <span class="sc">&gt;</span> <span class="dv">60</span> <span class="sc">&amp;</span> Year <span class="sc">==</span> <span class="dv">2023</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(<span class="fu">filter</span>(rm_yields, Crop <span class="sc">==</span> <span class="st">"Spring Wheat"</span> <span class="sc">&amp;</span> Yield <span class="sc">&gt;</span> <span class="dv">60</span>))</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(<span class="fu">filter</span>(rm_yields, Crop <span class="sc">==</span> <span class="st">"Spring Wheat"</span> <span class="sc">&amp;</span> Yield <span class="sc">&gt;</span> <span class="dv">60</span> <span class="sc">&amp;</span> Year <span class="sc">==</span> <span class="dv">2023</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <ul>
 <li><ol type="a">
 <li><strong>430 rows</strong>. (b) <strong>52 rows</strong>.</li>
@@ -1337,11 +1474,11 @@ Answer
 <summary>
 Answer
 </summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">select</span>(rm_yields, Year, RM, Crop, Yield)</span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">select</span>(rm_yields, <span class="sc">-</span>Unit)</span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="fu">select</span>(rm_yields, Year<span class="sc">:</span>Crop)</span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>renamed <span class="ot">&lt;-</span> <span class="fu">rename</span>(rm_yields, <span class="at">yield_per_acre =</span> Yield)</span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(renamed)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">select</span>(rm_yields, Year, RM, Crop, Yield)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">select</span>(rm_yields, <span class="sc">-</span>Unit)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="fu">select</span>(rm_yields, Year<span class="sc">:</span>Crop)</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>renamed <span class="ot">&lt;-</span> <span class="fu">rename</span>(rm_yields, <span class="at">yield_per_acre =</span> Yield)</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(renamed)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <ul>
 <li>(a, b) Identical results: the same rows, four columns.</li>
 <li><ol start="3" type="a">
@@ -1363,11 +1500,11 @@ Answer
 <summary>
 Answer
 </summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>lentils <span class="ot">&lt;-</span> <span class="fu">filter</span>(rm_yields, Crop <span class="sc">==</span> <span class="st">"Lentils"</span>)</span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(lentils)</span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>lentils <span class="ot">&lt;-</span> <span class="fu">mutate</span>(lentils, <span class="at">yield_kg_ha =</span> Yield <span class="sc">*</span> <span class="fl">1.12</span>)</span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(lentils<span class="sc">$</span>yield_kg_ha)</span>
-<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(lentils<span class="sc">$</span>Yield)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>lentils <span class="ot">&lt;-</span> <span class="fu">filter</span>(rm_yields, Crop <span class="sc">==</span> <span class="st">"Lentils"</span>)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(lentils)</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>lentils <span class="ot">&lt;-</span> <span class="fu">mutate</span>(lentils, <span class="at">yield_kg_ha =</span> Yield <span class="sc">*</span> <span class="fl">1.12</span>)</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(lentils<span class="sc">$</span>yield_kg_ha)</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(lentils<span class="sc">$</span>Yield)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <ul>
 <li><ol type="a">
 <li><strong>6,338 rows</strong>.</li>
@@ -1388,11 +1525,11 @@ Answer
 <summary>
 Answer
 </summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>canola_2024 <span class="ot">&lt;-</span> <span class="fu">mutate</span>(canola_2024,</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>                      <span class="at">yield_t_ha  =</span> Yield <span class="sc">*</span> <span class="fl">0.0560</span>,</span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>                      <span class="at">yield_kg_ha =</span> Yield <span class="sc">*</span> <span class="fl">56.0</span>)</span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(canola_2024<span class="sc">$</span>yield_t_ha)</span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(canola_2024<span class="sc">$</span>yield_kg_ha)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>canola_2024 <span class="ot">&lt;-</span> <span class="fu">mutate</span>(canola_2024,</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>                      <span class="at">yield_t_ha  =</span> Yield <span class="sc">*</span> <span class="fl">0.0560</span>,</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>                      <span class="at">yield_kg_ha =</span> Yield <span class="sc">*</span> <span class="fl">56.0</span>)</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(canola_2024<span class="sc">$</span>yield_t_ha)</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(canola_2024<span class="sc">$</span>yield_kg_ha)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <ul>
 <li><ol start="2" type="a">
 <li><strong>1.76 t/ha</strong> and <strong>1,764.11 kg/ha</strong>.</li>
@@ -1413,8 +1550,8 @@ Answer
 <summary>
 Answer
 </summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">arrange</span>(canola_2024, <span class="fu">desc</span>(Yield))</span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="fu">arrange</span>(canola_2024, Yield)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">arrange</span>(canola_2024, <span class="fu">desc</span>(Yield))</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="fu">arrange</span>(canola_2024, Yield)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <ul>
 <li><ol type="a">
 <li>RM <strong>493</strong> at <strong>45.9 bu/ac</strong>.</li>
@@ -1431,8 +1568,8 @@ Answer
 <section id="question-28" class="level3">
 <h3 class="anchored" data-anchor-id="question-28">Question 28</h3>
 <p>A script contains, in order:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(rm_yields, Crop <span class="sc">==</span> <span class="st">"Peas"</span>)</span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>peas <span class="ot">&lt;-</span> <span class="fu">filter</span>(rm_yields, Crop <span class="sc">==</span> <span class="st">"Peas"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(rm_yields, Crop <span class="sc">==</span> <span class="st">"Peas"</span>)</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>peas <span class="ot">&lt;-</span> <span class="fu">filter</span>(rm_yields, Crop <span class="sc">==</span> <span class="st">"Peas"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><strong>(a)</strong> In a comment: what does each line do, and what appears in the console after each?</p>
 <p><strong>(b)</strong> Report <code>nrow(peas)</code> and <code>nrow(rm_yields)</code>.</p>
 <p><strong>(c)</strong> In a comment: connect this to the same distinction you met with <code>x * 3</code> in the console back in Section 1.</p>
@@ -1462,10 +1599,10 @@ Answer
 <summary>
 Answer
 </summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>canola_232 <span class="ot">&lt;-</span> <span class="fu">filter</span>(rm_yields, Crop <span class="sc">==</span> <span class="st">"Canola"</span> <span class="sc">&amp;</span> RM <span class="sc">==</span> <span class="dv">232</span>)</span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(canola_232)</span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>canola_232 <span class="ot">&lt;-</span> <span class="fu">select</span>(canola_232, Year, Yield)</span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="fu">arrange</span>(canola_232, <span class="fu">desc</span>(Yield))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>canola_232 <span class="ot">&lt;-</span> <span class="fu">filter</span>(rm_yields, Crop <span class="sc">==</span> <span class="st">"Canola"</span> <span class="sc">&amp;</span> RM <span class="sc">==</span> <span class="dv">232</span>)</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(canola_232)</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>canola_232 <span class="ot">&lt;-</span> <span class="fu">select</span>(canola_232, Year, Yield)</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="fu">arrange</span>(canola_232, <span class="fu">desc</span>(Yield))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <ul>
 <li><ol type="a">
 <li><strong>31 rows</strong> (some years are missing – the crop was not grown or reported in that RM every year).</li>
@@ -1485,8 +1622,8 @@ Answer
 <summary>
 Answer
 </summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(rm_yields)</span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">arrange</span>(rm_yields, <span class="fu">desc</span>(Yield)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(rm_yields)</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">arrange</span>(rm_yields, <span class="fu">desc</span>(Yield)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <ul>
 <li>(b, c) All lentils – their yields are recorded in pounds per acre, so they dominate the top of any sort on <code>Yield</code>. Before comparing across crops you would check the <code>Unit</code> column and convert to a common unit.</li>
 </ul>
@@ -1500,7 +1637,7 @@ Answer
 <section id="question-31" class="level3">
 <h3 class="anchored" data-anchor-id="question-31">Question 31</h3>
 <p>Here is a working but hard-to-read line:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">arrange</span>(<span class="fu">select</span>(<span class="fu">filter</span>(rm_yields, Crop <span class="sc">==</span> <span class="st">"Durum"</span> <span class="sc">&amp;</span> Year <span class="sc">==</span> <span class="dv">2025</span>), RM, Yield), <span class="fu">desc</span>(Yield))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">arrange</span>(<span class="fu">select</span>(<span class="fu">filter</span>(rm_yields, Crop <span class="sc">==</span> <span class="st">"Durum"</span> <span class="sc">&amp;</span> Year <span class="sc">==</span> <span class="dv">2025</span>), RM, Yield), <span class="fu">desc</span>(Yield))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><strong>(a)</strong> Rewrite it as a pipeline, one step per line, with a short comment on each step.</p>
 <p><strong>(b)</strong> Run it. How many rows, and which RM had the best durum yield in 2025, at what value?</p>
 <p><strong>(c)</strong> In a comment: read your pipeline aloud as a “take the data, then …, then …, then …” sentence.</p>
@@ -1508,10 +1645,10 @@ Answer
 <summary>
 Answer
 </summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>rm_yields <span class="sc">|&gt;</span>                              <span class="co"># take the data, THEN</span></span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Crop <span class="sc">==</span> <span class="st">"Durum"</span> <span class="sc">&amp;</span> Year <span class="sc">==</span> <span class="dv">2025</span>) <span class="sc">|&gt;</span>  <span class="co"># keep durum in 2025, THEN</span></span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(RM, Yield) <span class="sc">|&gt;</span>                    <span class="co"># keep two columns, THEN</span></span>
-<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(Yield))                    <span class="co"># sort best-first</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>rm_yields <span class="sc">|&gt;</span>                              <span class="co"># take the data, THEN</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Crop <span class="sc">==</span> <span class="st">"Durum"</span> <span class="sc">&amp;</span> Year <span class="sc">==</span> <span class="dv">2025</span>) <span class="sc">|&gt;</span>  <span class="co"># keep durum in 2025, THEN</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(RM, Yield) <span class="sc">|&gt;</span>                    <span class="co"># keep two columns, THEN</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(Yield))                    <span class="co"># sort best-first</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <ul>
 <li><ol start="2" type="a">
 <li><strong>189 rows</strong>; RM <strong>369</strong> at <strong>105.6 bu/ac</strong>.</li>
@@ -1531,10 +1668,10 @@ Answer
 <summary>
 Answer
 </summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>rm_yields <span class="sc">|&gt;</span></span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Crop <span class="sc">==</span> <span class="st">"Flax"</span> <span class="sc">&amp;</span> Year <span class="sc">&gt;=</span> <span class="dv">2020</span>) <span class="sc">|&gt;</span></span>
-<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield =</span> <span class="fu">mean</span>(Yield),</span>
-<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">n =</span> <span class="fu">n</span>())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>rm_yields <span class="sc">|&gt;</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Crop <span class="sc">==</span> <span class="st">"Flax"</span> <span class="sc">&amp;</span> Year <span class="sc">&gt;=</span> <span class="dv">2020</span>) <span class="sc">|&gt;</span></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield =</span> <span class="fu">mean</span>(Yield),</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">n =</span> <span class="fu">n</span>())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <ul>
 <li>(a, b) Mean <strong>22.39 bu/ac</strong> from <strong>1,143</strong> observations.</li>
 <li><ol start="3" type="a">
@@ -1552,11 +1689,11 @@ Answer
 <summary>
 Answer
 </summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>rm_yields <span class="sc">|&gt;</span></span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Crop <span class="sc">==</span> <span class="st">"Canola"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield =</span> <span class="fu">mean</span>(Yield),</span>
-<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">sd_yield =</span> <span class="fu">sd</span>(Yield),</span>
-<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">n =</span> <span class="fu">n</span>())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>rm_yields <span class="sc">|&gt;</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Crop <span class="sc">==</span> <span class="st">"Canola"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield =</span> <span class="fu">mean</span>(Yield),</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">sd_yield =</span> <span class="fu">sd</span>(Yield),</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">n =</span> <span class="fu">n</span>())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <ul>
 <li><ol start="2" type="a">
 <li>Mean <strong>28.29</strong>, sd <strong>10.06</strong>, n <strong>10,039</strong>.</li>
@@ -1576,10 +1713,10 @@ Answer
 <summary>
 Answer
 </summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>rm_yields <span class="sc">|&gt;</span></span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Crop) <span class="sc">|&gt;</span></span>
-<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield =</span> <span class="fu">mean</span>(Yield),</span>
-<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">n =</span> <span class="fu">n</span>())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>rm_yields <span class="sc">|&gt;</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Crop) <span class="sc">|&gt;</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield =</span> <span class="fu">mean</span>(Yield),</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">n =</span> <span class="fu">n</span>())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <ul>
 <li><ol type="a">
 <li>Eight rows, one per crop: Barley <strong>51.8</strong>, Canola <strong>28.3</strong>, Durum <strong>33.6</strong>, Flax <strong>20.5</strong>, Lentils <strong>1,208.4</strong>, Oats <strong>64.7</strong>, Peas <strong>31.8</strong>, Spring Wheat <strong>35.3</strong>.</li>
@@ -1602,10 +1739,10 @@ Answer
 <summary>
 Answer
 </summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>rm_yields <span class="sc">|&gt;</span></span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Crop <span class="sc">==</span> <span class="st">"Canola"</span> <span class="sc">&amp;</span> Year <span class="sc">&gt;=</span> <span class="dv">2021</span>) <span class="sc">|&gt;</span></span>
-<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Year) <span class="sc">|&gt;</span></span>
-<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield =</span> <span class="fu">mean</span>(Yield))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>rm_yields <span class="sc">|&gt;</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Crop <span class="sc">==</span> <span class="st">"Canola"</span> <span class="sc">&amp;</span> Year <span class="sc">&gt;=</span> <span class="dv">2021</span>) <span class="sc">|&gt;</span></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Year) <span class="sc">|&gt;</span></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield =</span> <span class="fu">mean</span>(Yield))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <ul>
 <li>(a, b) 2021 <strong>21.9</strong>, 2022 <strong>35.4</strong>, 2023 <strong>33.9</strong>, 2024 <strong>31.5</strong>, 2025 <strong>43.9</strong>. Worst 2021, best 2025.</li>
 <li><ol start="3" type="a">
@@ -1623,11 +1760,11 @@ Answer
 <summary>
 Answer
 </summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>rm_yields <span class="sc">|&gt;</span></span>
-<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Crop <span class="sc">==</span> <span class="st">"Spring Wheat"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(RM) <span class="sc">|&gt;</span></span>
-<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield =</span> <span class="fu">mean</span>(Yield)) <span class="sc">|&gt;</span></span>
-<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(mean_yield))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>rm_yields <span class="sc">|&gt;</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Crop <span class="sc">==</span> <span class="st">"Spring Wheat"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(RM) <span class="sc">|&gt;</span></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield =</span> <span class="fu">mean</span>(Yield)) <span class="sc">|&gt;</span></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(mean_yield))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <ul>
 <li><ol start="2" type="a">
 <li>RM <strong>369</strong> (47.6), RM <strong>333</strong> (47.2), RM <strong>368</strong> (47.2).</li>
@@ -1647,10 +1784,10 @@ Answer
 <summary>
 Answer
 </summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>rm_yields <span class="sc">|&gt;</span></span>
-<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Crop <span class="sc">==</span> <span class="st">"Lentils"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">yield_kg_ha =</span> Yield <span class="sc">*</span> <span class="fl">1.12</span>) <span class="sc">|&gt;</span></span>
-<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_kg_ha =</span> <span class="fu">mean</span>(yield_kg_ha))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>rm_yields <span class="sc">|&gt;</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Crop <span class="sc">==</span> <span class="st">"Lentils"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">yield_kg_ha =</span> Yield <span class="sc">*</span> <span class="fl">1.12</span>) <span class="sc">|&gt;</span></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_kg_ha =</span> <span class="fu">mean</span>(yield_kg_ha))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <ul>
 <li><ol start="2" type="a">
 <li><strong>1,353.4 kg/ha</strong>.</li>
@@ -1664,11 +1801,11 @@ Answer
 <section id="question-38" class="level3">
 <h3 class="anchored" data-anchor-id="question-38">Question 38</h3>
 <p>A classmate hands you this pipeline and asks what it does:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>rm_yields <span class="sc">|&gt;</span></span>
-<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Crop <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Oats"</span>, <span class="st">"Barley"</span>) <span class="sc">&amp;</span> Year <span class="sc">&gt;=</span> <span class="dv">2015</span>) <span class="sc">|&gt;</span></span>
-<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Crop) <span class="sc">|&gt;</span></span>
-<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield =</span> <span class="fu">mean</span>(Yield),</span>
-<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">n =</span> <span class="fu">n</span>())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>rm_yields <span class="sc">|&gt;</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Crop <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Oats"</span>, <span class="st">"Barley"</span>) <span class="sc">&amp;</span> Year <span class="sc">&gt;=</span> <span class="dv">2015</span>) <span class="sc">|&gt;</span></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Crop) <span class="sc">|&gt;</span></span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield =</span> <span class="fu">mean</span>(Yield),</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">n =</span> <span class="fu">n</span>())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><strong>(a)</strong> In a comment: explain the pipeline step by step, one sentence per step.</p>
 <p><strong>(b)</strong> Run it and report the output.</p>
 <p><strong>(c)</strong> In a comment: answer the classmate’s real question in plain language – what does the output say about oats and barley since 2015?</p>
@@ -1692,10 +1829,10 @@ Answer
 <section id="question-39" class="level3">
 <h3 class="anchored" data-anchor-id="question-39">Question 39</h3>
 <p>This pipeline was meant to find low- and high-yielding canola observations – below 15 <strong>or</strong> above 55 bu/ac – but it returns zero rows:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>rm_yields <span class="sc">|&gt;</span></span>
-<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Crop <span class="sc">==</span> <span class="st">"Canola"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Yield <span class="sc">&lt;</span> <span class="dv">15</span> <span class="sc">&amp;</span> Yield <span class="sc">&gt;</span> <span class="dv">55</span>) <span class="sc">|&gt;</span></span>
-<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(Yield))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>rm_yields <span class="sc">|&gt;</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Crop <span class="sc">==</span> <span class="st">"Canola"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Yield <span class="sc">&lt;</span> <span class="dv">15</span> <span class="sc">&amp;</span> Yield <span class="sc">&gt;</span> <span class="dv">55</span>) <span class="sc">|&gt;</span></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(Yield))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><strong>(a)</strong> In a comment: apply the module’s debugging habit – which step do you run first, and what do you check at each step?</p>
 <p><strong>(b)</strong> In a comment: identify the broken step and explain <em>why</em> it returns nothing.</p>
 <p><strong>(c)</strong> Write the corrected pipeline.</p>
@@ -1725,14 +1862,14 @@ Answer
 <summary>
 Answer
 </summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>crop_summary_2025 <span class="ot">&lt;-</span> rm_yields <span class="sc">|&gt;</span></span>
-<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Year <span class="sc">==</span> <span class="dv">2025</span>) <span class="sc">|&gt;</span></span>
-<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Crop) <span class="sc">|&gt;</span></span>
-<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield =</span> <span class="fu">mean</span>(Yield),</span>
-<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">n =</span> <span class="fu">n</span>()) <span class="sc">|&gt;</span></span>
-<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(mean_yield))</span>
-<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a><span class="fu">write_csv</span>(crop_summary_2025, <span class="st">"output/crop_summary_2025.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>crop_summary_2025 <span class="ot">&lt;-</span> rm_yields <span class="sc">|&gt;</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Year <span class="sc">==</span> <span class="dv">2025</span>) <span class="sc">|&gt;</span></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Crop) <span class="sc">|&gt;</span></span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield =</span> <span class="fu">mean</span>(Yield),</span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">n =</span> <span class="fu">n</span>()) <span class="sc">|&gt;</span></span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(mean_yield))</span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a><span class="fu">write_csv</span>(crop_summary_2025, <span class="st">"output/crop_summary_2025.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <ul>
 <li>(a, c) Lentils top the table at <strong>1,897</strong> – but that is pounds per acre, not bushels. Among the bushel crops, Oats lead at <strong>97.5 bu/ac</strong> (Barley next at 72.8). 2025 was a strong year across the board.</li>
 </ul>
