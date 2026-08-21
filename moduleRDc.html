@@ -544,6 +544,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#the-row-count-trap" id="toc-the-row-count-trap" class="nav-link" data-scroll-target="#the-row-count-trap">The row-count trap</a></li>
   </ul></li>
   <li><a href="#sec-canada-us-merge" id="toc-sec-canada-us-merge" class="nav-link" data-scroll-target="#sec-canada-us-merge"><span class="header-section-number">8.2</span> A Worked Example: Canadian and US Canola Yields</a></li>
+  <li><a href="#sec-three-table-merge" id="toc-sec-three-table-merge" class="nav-link" data-scroll-target="#sec-three-table-merge"><span class="header-section-number">8.3</span> A Worked Example: Three Tables</a>
+  <ul>
+  <li><a href="#first-join-yields-to-the-lookup" id="toc-first-join-yields-to-the-lookup" class="nav-link" data-scroll-target="#first-join-yields-to-the-lookup">First join: yields to the lookup</a></li>
+  <li><a href="#second-join-add-the-rain" id="toc-second-join-add-the-rain" class="nav-link" data-scroll-target="#second-join-add-the-rain">Second join: add the rain</a></li>
+  <li><a href="#what-you-can-now-do" id="toc-what-you-can-now-do" class="nav-link" data-scroll-target="#what-you-can-now-do">What you can now do</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -579,6 +585,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>Say what happens to rows that do not match, and check for them.</li>
 <li>Explain why a join can return more rows than it started with.</li>
 <li>Harmonize units and category names so that two real datasets can be merged.</li>
+<li>Combine three tables with different keys and different units of observation.</li>
 </ol>
 </div>
 </section>
@@ -652,8 +659,226 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  3  2017       2.28    1.87
  ...</code></pre>
 <p>One table, one row per year, both countries’ yields in the same unit. Run the checks anyway: <code>nrow(both)</code> should equal <code>nrow(canada)</code>, and <code>anti_join(canada, us, by = "year")</code> shows any years one source has and the other does not – a data release usually lags a year on one side or the other, and it is better to find that now than in a chart.</p>
+</section>
+<section id="sec-three-table-merge" class="level2" data-number="8.3">
+<h2 data-number="8.3" class="anchored" data-anchor-id="sec-three-table-merge"><span class="header-section-number">8.3</span> A Worked Example: Three Tables</h2>
+<p>Most questions need more than two tables, and the tables are usually different kinds of thing. Here are three, all real, and all available to download:</p>
+<ul>
+<li><a href="practice/data/rm_yields_2015_2024.csv"><code>rm_yields_2015_2024.csv</code></a>: the Saskatchewan RM yields from <a href="moduleRDb.html#sec-direct-download" class="quarto-xref"><span>Section 7.3</span></a>, cut down to 2015 to 2024 and seven crops. One row per RM per year, yields in bushels per acre.</li>
+<li><a href="practice/data/rm_lookup.csv"><code>rm_lookup.csv</code></a>: one row per RM, with its name, census division and 2021 population from Statistics Canada, and the nearest of sixteen Environment Canada weather stations, with the distance to it in kilometres.</li>
+<li><a href="practice/data/station_precip.csv"><code>station_precip.csv</code></a>: one row per weather station per year, with total May to August precipitation in millimetres, computed from Environment Canada’s daily records, and a count of days with no reading.</li>
+</ul>
+<p>The question is whether canola yields track growing-season rain. Answering it needs a yield, a rain total, and a way to connect the two, and each of those is in a different file. The lookup table is the bridge: it is the only file that knows which station goes with which RM.</p>
+<p>Read all three and look at them:</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 2,950
+Columns: 8
+$ year         &lt;dbl&gt; 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 202…
+$ rm           &lt;dbl&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, …
+$ spring_wheat &lt;dbl&gt; 34.32, 40.50, 45.97, 50.00, 50.90, 56.00, 46.20, 52.40, 5…
+$ durum        &lt;dbl&gt; 29.18, 38.40, NA, NA, NA, NA, NA, NA, NA, NA, 32.67, 54.4…
+$ canola       &lt;dbl&gt; 28.65, 32.10, 39.19, 39.20, 32.40, 39.90, 33.20, 37.40, 3…
+$ barley       &lt;dbl&gt; 50.96, 68.10, NA, 76.00, 83.50, 94.00, 63.70, 90.30, 53.0…
+$ oats         &lt;dbl&gt; 56.36, 75.70, 85.82, 96.00, 102.10, 120.20, 84.00, 105.60…
+$ peas         &lt;dbl&gt; 37.7, 26.2, 43.4, 42.0, 43.8, 48.4, 37.7, 47.4, 44.9, 40.…
+Rows: 296
+Columns: 6
+$ rm_number       &lt;dbl&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 17, 18, 19, 31,…
+$ rm_name         &lt;chr&gt; "Argyle", "Mount Pleasant", "Enniskillen", "Coalfields…
+$ census_division &lt;chr&gt; "Division No.  1", "Division No.  1", "Division No.  1…
+$ population_2021 &lt;dbl&gt; 331, 419, 422, 330, 1279, 277, 220, 269, 211, 125, 263…
+$ weather_station &lt;chr&gt; "Kipling", "Kipling", "Kipling", "Weyburn", "Weyburn",…
+$ station_km      &lt;dbl&gt; 145, 133, 123, 104, 83, 69, 62, 69, 84, 115, 136, 157,…
+Rows: 160
+Columns: 4
+$ station           &lt;chr&gt; "Indian Head CDA", "Indian Head CDA", "Indian Head C…
+$ year              &lt;dbl&gt; 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023…
+$ precip_may_aug_mm &lt;dbl&gt; 207.3, 254.7, 116.6, 148.0, 212.8, 113.4, 295.1, 285…
+$ days_missing      &lt;dbl&gt; 1, 2, 1, 2, 2, 2, 1, 5, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0…</code></pre>
+</div>
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/rm_yields_2015_2024.csv"</span>) <span class="sc">|&gt;</span> <span class="fu">clean_names</span>()</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>rms    <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/rm_lookup.csv"</span>) <span class="sc">|&gt;</span> <span class="fu">clean_names</span>()</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>rain   <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/station_precip.csv"</span>) <span class="sc">|&gt;</span> <span class="fu">clean_names</span>()</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(yields)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(rms)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(rain)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; yields &lt;- read_csv("data/rm_yields_2015_2024.csv") |&gt; clean_names()
+Rows: 2950 Columns: 8
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: ","
+dbl (8): Year, RM, Spring Wheat, Durum, Canola, Barley, Oats, Peas
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+&gt; rms    &lt;- read_csv("data/rm_lookup.csv") |&gt; clean_names()
+Rows: 296 Columns: 6
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: ","
+chr (3): RM_Name, Census_Division, Weather_Station
+dbl (3): RM_Number, Population_2021, Station_km
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+&gt; rain   &lt;- read_csv("data/station_precip.csv") |&gt; clean_names()
+Rows: 160 Columns: 4
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: ","
+chr (1): Station
+dbl (3): Year, Precip_May_Aug_mm, Days_Missing
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+&gt; 
+&gt; glimpse(yields)
+&gt; glimpse(rms)
+&gt; glimpse(rain)</code></pre>
+</div>
+</div>
+</div>
+<p>Before joining anything, write down what identifies a row in each table. In <code>yields</code> it is <code>rm</code> and <code>year</code> together. In <code>rms</code> it is <code>rm_number</code> alone. In <code>rain</code> it is <code>station</code> and <code>year</code> together. Those are the keys, and the key column does not have the same name on both sides, which <code>by</code> handles with <code>c("left_name" = "right_name")</code>.</p>
+<section id="first-join-yields-to-the-lookup" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="first-join-yields-to-the-lookup">First join: yields to the lookup</h3>
+<p>Check what will not match, then join, then check the row count:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(rms, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"rm"</span> <span class="ot">=</span> <span class="st">"rm_number"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(rm)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>with_station <span class="ot">&lt;-</span> yields <span class="sc">|&gt;</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(rms, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"rm"</span> <span class="ot">=</span> <span class="st">"rm_number"</span>))</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(yields)</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(with_station)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; yields |&gt;
++   anti_join(rms, by = c("rm" = "rm_number")) |&gt;
++   distinct(rm)
+# A tibble: 0 × 1
+# ℹ 1 variable: rm &lt;dbl&gt;
+&gt; 
+&gt; with_station &lt;- yields |&gt;
++   left_join(rms, by = c("rm" = "rm_number"))
+&gt; 
+&gt; nrow(yields)
+[1] 2950
+&gt; nrow(with_station)
+[1] 2950</code></pre>
+</div>
+</div>
+</div>
+<p>Every RM in the yield data has a row in the lookup, and the row count is unchanged. That is what a many-to-one join should look like: many yield rows for each RM, one lookup row per RM, so each yield row picks up exactly one name and one station.</p>
+</section>
+<section id="second-join-add-the-rain" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="second-join-add-the-rain">Second join: add the rain</h3>
+<p>The key now has two parts. The station name in <code>with_station</code> is called <code>weather_station</code>, the year is called <code>year</code> on both sides, and both are needed to identify one rain total:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>with_station <span class="sc">|&gt;</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(rain, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"weather_station"</span> <span class="ot">=</span> <span class="st">"station"</span>, <span class="st">"year"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(weather_station, year)</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>merged <span class="ot">&lt;-</span> with_station <span class="sc">|&gt;</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(rain, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"weather_station"</span> <span class="ot">=</span> <span class="st">"station"</span>, <span class="st">"year"</span>))</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(merged)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; with_station |&gt;
++   anti_join(rain, by = c("weather_station" = "station", "year")) |&gt;
++   distinct(weather_station, year)
+# A tibble: 0 × 2
+# ℹ 2 variables: weather_station &lt;chr&gt;, year &lt;dbl&gt;
+&gt; 
+&gt; merged &lt;- with_station |&gt;
++   left_join(rain, by = c("weather_station" = "station", "year"))
+&gt; 
+&gt; nrow(merged)
+[1] 2950</code></pre>
+</div>
+</div>
+</div>
+<p>Here is what the row-count trap looks like when you leave <code>year</code> out of the key:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>with_station <span class="sc">|&gt;</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(rain, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"weather_station"</span> <span class="ot">=</span> <span class="st">"station"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nrow</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; with_station |&gt;
++   left_join(rain, by = c("weather_station" = "station")) |&gt;
++   nrow()
+Warning: Detected an unexpected many-to-many relationship between `x` and `y`.
+ℹ Row 1 of `x` matches multiple rows in `y`.
+ℹ Row 21 of `y` matches multiple rows in `x`.
+ℹ If a many-to-many relationship is expected, set `relationship =
+  "many-to-many"` to silence this warning.
+[1] 29500</code></pre>
+</div>
+</div>
+</div>
+<p>Each RM-year matched all ten years of its station’s rain, so 2,950 rows became 29,500. Recent versions of dplyr print a warning about an unexpected many-to-many relationship when this happens. Read it when it appears; it is telling you the key is incomplete.</p>
+</section>
+<section id="what-you-can-now-do" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="what-you-can-now-do">What you can now do</h3>
+<p>One table, one row per RM-year, with the yield and the season’s rain side by side:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>merged <span class="sc">|&gt;</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(year, rm, rm_name, canola, weather_station, precip_may_aug_mm)</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>merged <span class="sc">|&gt;</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(canola)) <span class="sc">|&gt;</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(year) <span class="sc">|&gt;</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">canola_bu_ac =</span> <span class="fu">mean</span>(canola),</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">rain_mm =</span> <span class="fu">mean</span>(precip_may_aug_mm))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; merged |&gt;
++   select(year, rm, rm_name, canola, weather_station, precip_may_aug_mm)
+# A tibble: 2,950 × 6
+    year    rm rm_name canola weather_station precip_may_aug_mm
+   &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;    &lt;dbl&gt; &lt;chr&gt;                       &lt;dbl&gt;
+ 1  2015     1 Argyle    28.6 Kipling                      183.
+ 2  2016     1 Argyle    32.1 Kipling                      313 
+ 3  2017     1 Argyle    39.2 Kipling                      157.
+ 4  2018     1 Argyle    39.2 Kipling                      274.
+ 5  2019     1 Argyle    32.4 Kipling                      252.
+ 6  2020     1 Argyle    39.9 Kipling                      178.
+ 7  2021     1 Argyle    33.2 Kipling                      204.
+ 8  2022     1 Argyle    37.4 Kipling                      371.
+ 9  2023     1 Argyle    36.8 Kipling                      184 
+10  2024     1 Argyle    36.4 Kipling                      295.
+# ℹ 2,940 more rows
+&gt; 
+&gt; merged |&gt;
++   filter(!is.na(canola)) |&gt;
++   group_by(year) |&gt;
++   summarise(canola_bu_ac = mean(canola),
++             rain_mm = mean(precip_may_aug_mm))
+# A tibble: 10 × 3
+    year canola_bu_ac rain_mm
+   &lt;dbl&gt;        &lt;dbl&gt;   &lt;dbl&gt;
+ 1  2015         36.1    191.
+ 2  2016         42.2    300.
+ 3  2017         33.8    125.
+ 4  2018         36.8    170.
+ 5  2019         40.8    228.
+ 6  2020         38.2    193.
+ 7  2021         21.9    173.
+ 8  2022         35.4    244.
+ 9  2023         33.9    160.
+10  2024         31.5    229.</code></pre>
+</div>
+</div>
+</div>
+<p>The wet 2016 season has the highest canola yield in the table and the dry 2017 one of the lowest, which is the pattern you would expect. 2021 is the exception: rainfall was ordinary and yields collapsed, because that summer’s problem was heat more than drought. Rain explains some of the variation in yields and not all of it.</p>
+<p>Two limits of this particular merge belong in the README. The nearest station is sometimes far away: RM 1, Argyle, is matched to Kipling, 145 km off, because that is the closest of sixteen stations. And a few station-years are missing three weeks of daily readings, which is what the <code>days_missing</code> column is for.</p>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->

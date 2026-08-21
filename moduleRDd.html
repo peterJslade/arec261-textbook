@@ -691,35 +691,51 @@ div.csl-indent {
 </section>
 <section id="sec-missing-values" class="level2" data-number="9.6">
 <h2 data-number="9.6" class="anchored" data-anchor-id="sec-missing-values"><span class="header-section-number">9.6</span> Missing Values</h2>
-<p>In R, a missing value is <code>NA</code>, and most operations <em>propagate</em> it – any calculation involving <code>NA</code> returns <code>NA</code>, which is why <code>mean()</code> needs <code>na.rm = TRUE</code> (<a href="module02b.html#sec-r-summary-stats" class="quarto-xref"><span>Section 5.6</span></a>). Real files complicate this in two ways: missing values arrive in disguise, and deciding what to do with them takes some thought.</p>
+<p>In R, a missing value is <code>NA</code>, and most operations <em>propagate</em> it: any calculation involving <code>NA</code> returns <code>NA</code>. The canola trial data has three fields with no rainfall reading – a rain gauge fails, or a value never gets recorded – so:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(trial_data<span class="sc">$</span>rainfall_mm)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(trial_data<span class="sc">$</span>rainfall_mm, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; mean(trial_data$rainfall_mm)
+[1] NA
+&gt; 
+&gt; mean(trial_data$rainfall_mm, na.rm = TRUE)
+[1] 229.1017</code></pre>
+</div>
+</div>
+</div>
+<p>The first call says: calculate the mean of these observations. Three of them are unknown, so R cannot calculate the mean, and it returns <code>NA</code> rather than silently discarding information. The second call, with <code>na.rm = TRUE</code> (“remove NAs”), says: calculate the mean using the observations that are not missing. That may be exactly what we want – but now the decision is visible in the code.</p>
+<p>This is an important difference from Excel, where many functions skip blank cells automatically. Real files complicate it further in two ways: missing values arrive in disguise, and deciding what to do with them takes some thought.</p>
 <section id="missing-values-in-disguise" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="missing-values-in-disguise">Missing values in disguise</h3>
 <p>Missing data shows up in real files in several forms: an empty cell, the text <code>"NA"</code>, <code>"N/A"</code>, <code>"-"</code>, <code>"."</code>, or <code>-999</code>. R recognises the blank and <code>NA</code>. The rest come in as ordinary text and turn their column into <code>&lt;chr&gt;</code>.</p>
 <p>Tell <code>read_csv</code> what counts as missing:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/grain_deliveries_messy.csv"</span>,</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>                       <span class="at">na =</span> <span class="fu">c</span>(<span class="st">""</span>, <span class="st">"NA"</span>, <span class="st">"N/A"</span>, <span class="st">"-"</span>, <span class="st">"."</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/grain_deliveries_messy.csv"</span>,</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>                       <span class="at">na =</span> <span class="fu">c</span>(<span class="st">""</span>, <span class="st">"NA"</span>, <span class="st">"N/A"</span>, <span class="st">"-"</span>, <span class="st">"."</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Then count what you have before deciding anything:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span> <span class="fu">summarise</span>(<span class="fu">across</span>(<span class="fu">everything</span>(), <span class="sc">~</span> <span class="fu">sum</span>(<span class="fu">is.na</span>(.))))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span> <span class="fu">summarise</span>(<span class="fu">across</span>(<span class="fu">everything</span>(), <span class="sc">~</span> <span class="fu">sum</span>(<span class="fu">is.na</span>(.))))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>A numeric code like <code>-999</code> is the dangerous one. It will not turn the column to text; it will just be included in the mean as a number, which is another reason to run <code>summary()</code> on arrival and look at the minimum.</p>
 </section>
 <section id="working-with-missing-values" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="working-with-missing-values">Working with missing values</h3>
 <p>A few patterns:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check for missing values</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">is.na</span>(deliveries<span class="sc">$</span>weight_tonnes)              <span class="co"># logical vector</span></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(<span class="fu">is.na</span>(deliveries<span class="sc">$</span>weight_tonnes))          <span class="co"># count of NAs</span></span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove rows with any missing values</span></span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>deliveries_clean <span class="ot">&lt;-</span> deliveries <span class="sc">|&gt;</span> <span class="fu">drop_na</span>()</span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove rows with missing values in specific columns</span></span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>deliveries_clean <span class="ot">&lt;-</span> deliveries <span class="sc">|&gt;</span> <span class="fu">drop_na</span>(weight_tonnes)</span>
-<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute a statistic ignoring NAs</span></span>
-<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(deliveries<span class="sc">$</span>weight_tonnes, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Replace NAs with a value</span></span>
-<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">weight_tonnes =</span> <span class="fu">replace_na</span>(weight_tonnes, <span class="dv">0</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check for missing values</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">is.na</span>(deliveries<span class="sc">$</span>weight_tonnes)              <span class="co"># logical vector</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(<span class="fu">is.na</span>(deliveries<span class="sc">$</span>weight_tonnes))          <span class="co"># count of NAs</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove rows with any missing values</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>deliveries_clean <span class="ot">&lt;-</span> deliveries <span class="sc">|&gt;</span> <span class="fu">drop_na</span>()</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove rows with missing values in specific columns</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>deliveries_clean <span class="ot">&lt;-</span> deliveries <span class="sc">|&gt;</span> <span class="fu">drop_na</span>(weight_tonnes)</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute a statistic ignoring NAs</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(deliveries<span class="sc">$</span>weight_tonnes, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Replace NAs with a value</span></span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">weight_tonnes =</span> <span class="fu">replace_na</span>(weight_tonnes, <span class="dv">0</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="when-is-dropping-safe" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="when-is-dropping-safe">When is dropping safe?</h3>
@@ -731,9 +747,9 @@ div.csl-indent {
 <h2 data-number="9.7" class="anchored" data-anchor-id="sec-dates-text"><span class="header-section-number">9.7</span> Dates Stored as Text</h2>
 <p>A date column that imported as <code>&lt;chr&gt;</code> cannot be sorted chronologically or used in arithmetic. It happens when the file mixes formats (<code>2025-09-15</code> in some rows, <code>Sept 15, 2025</code> in others), and it is worth catching early because <code>arrange()</code> on a text date sorts alphabetically without complaint.</p>
 <p><code>glimpse()</code> shows the problem (<code>&lt;chr&gt;</code> where you expected <code>&lt;date&gt;</code>). If the format is consistent, tell the reader what it is with <code>col_types</code> (<a href="moduleRDb.html#sec-col-types" class="quarto-xref"><span>Section 7.1.2</span></a>); if it is mixed, the rows that failed to parse are found the same way as any other type problem:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">is.na</span>(<span class="fu">as.Date</span>(delivery_date))) <span class="sc">|&gt;</span></span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(ticket_id, delivery_date)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">is.na</span>(<span class="fu">as.Date</span>(delivery_date))) <span class="sc">|&gt;</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(ticket_id, delivery_date)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Fixing messy dates properly uses tools we have not covered (the <code>lubridate</code> package is the standard one); for this course, it is enough to notice the problem and state the format explicitly when you read the file.</p>
 </section>
 <section id="sec-tidy-data" class="level2" data-number="9.8">
@@ -792,16 +808,16 @@ div.csl-indent {
 <h2 data-number="9.9" class="anchored" data-anchor-id="sec-reshaping"><span class="header-section-number">9.9</span> Reshaping: <code>pivot_longer</code> and <code>pivot_wider</code></h2>
 <p>Fixing the shape is the job of a pair of <code>tidyr</code> functions. Files often arrive with values in the column headers – one column per crop, or per year – and StatCan downloads have the opposite problem: long where you want wide.</p>
 <p><code>pivot_longer</code> turns column headers into values. You tell it which columns to gather, what to call the column that will hold their <em>names</em>, and what to call the column that will hold their <em>values</em>:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>yields_wide</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>yields_wide</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <pre><code>  region  Canola Wheat Barley
   South       41    52     64
   Central     44    55     68
   North       38    49     60</code></pre>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>yields_long <span class="ot">&lt;-</span> yields_wide <span class="sc">|&gt;</span></span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">c</span>(Canola, Wheat, Barley),</span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">"crop"</span>,</span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>               <span class="at">values_to =</span> <span class="st">"yield"</span>)</span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>yields_long</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>yields_long <span class="ot">&lt;-</span> yields_wide <span class="sc">|&gt;</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">c</span>(Canola, Wheat, Barley),</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">"crop"</span>,</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>               <span class="at">values_to =</span> <span class="st">"yield"</span>)</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>yields_long</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <pre><code>  region  crop   yield
   South   Canola    41
   South   Wheat     52
@@ -810,8 +826,8 @@ div.csl-indent {
   ...</code></pre>
 <p>Nine rows now: one per region-crop combination, with <code>crop</code> and <code>yield</code> as ordinary columns that <code>filter</code> and <code>group_by</code> can use.</p>
 <p><code>pivot_wider</code> goes the other way. Tell it which column holds the names and which holds the values:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>yields_long <span class="sc">|&gt;</span></span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> crop, <span class="at">values_from =</span> yield)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>yields_long <span class="sc">|&gt;</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> crop, <span class="at">values_from =</span> yield)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Long is usually what analysis wants; wide is often what people want to read. Expect to pivot in both directions.</p>
 </section>
 <section id="sec-cleaning-checklist" class="level2" data-number="9.10">
