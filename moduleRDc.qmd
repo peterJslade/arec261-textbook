@@ -17,10 +17,11 @@ covers joins: how they work, how they fail, and how to check them.
 By the end of this chapter you should be able to:
 
 1. Join two tables on a shared key with `left_join()` and friends.
-2. Say what happens to rows that do not match, and check for them.
-3. Explain why a join can return more rows than it started with.
-4. Harmonize units and category names so that two real datasets can be merged.
-5. Combine three tables with different keys and different units of observation.
+2. Say whether a join is one-to-one, many-to-one or many-to-many, and what that does to the row count.
+3. Say what happens to rows that do not match, and check for them.
+4. Explain why a join can return more rows than it started with.
+5. Harmonize units and category names so that two real datasets can be merged.
+6. Combine three tables with different keys and different units of observation, in R and in Excel.
 :::
 
 ## Joining Two Tables {#sec-joins}
@@ -53,6 +54,32 @@ They differ in which rows survive.
 - **`anti_join(a, b)`** keeps rows of `a` with no match in `b`. It returns no columns from `b`
   at all, which sounds useless until you need to find out what failed to match.
 
+### One-to-one, one-to-many, many-to-many {.unnumbered}
+
+Joins also differ in how many rows on each side share a key value, and that decides what
+comes back.
+
+- **One-to-one (1:1).** Each key appears once in both tables.  Two tables of national
+  yields by year, joined on year.  The result has the same rows as either input.
+- **One-to-many (1:n) or many-to-one (n:1).** The key is unique on one side and repeats on
+  the other.  A table of RM yields (many rows per RM, one per year) joined to a table of RM
+  names (one row per RM) is many-to-one.  The result has as many rows as the "many" side,
+  and every row picks up exactly one name.  This is what most joins are, and what `XLOOKUP`
+  does in Excel.
+- **Many-to-many (n:n).** The key repeats on both sides.  Each row on the left matches every
+  row with the same key on the right, and the result multiplies.  Occasionally you want this.
+  Usually it means the key is incomplete, and it is the subject of the row-count trap below.
+
+Know which one you expect before you join.  dplyr lets you say so, and stops if the data
+disagrees:
+
+```r
+yields |> left_join(rms, by = "rm", relationship = "many-to-one")
+```
+
+If `rms` turned out to have two rows for some RM, that line errors instead of handing back
+extra rows.
+
 ### Check what did not match {.unnumbered}
 
 `left_join` does not complain when nothing matches.  It hands you a column of `NA` and lets you
@@ -79,7 +106,8 @@ before you assume the join worked is the habit worth building.
 
 A join can return more rows than it started with.
 
-This happens when the key is not unique in the second table.  If `prices` has one row per crop,
+This is the many-to-many case arriving uninvited.  The key is not unique in the second
+table.  If `prices` has one row per crop,
 each yield row matches one price and the row count does not change.  If `prices` has one row
 per crop *per year* and you join on crop alone, every yield row matches several price rows and
 R returns all the combinations.  Sixty fields become two hundred and forty, and every summary
@@ -248,6 +276,42 @@ with_station |>
 Each RM-year matched all ten years of its station's rain, so 2,950 rows became 29,500.
 Recent versions of dplyr print a warning about an unexpected many-to-many relationship when
 this happens.  Read it when it appears; it is telling you the key is incomplete.
+
+### The same merge in Excel {.unnumbered}
+
+Both joins are `XLOOKUP`s.  The workbook below has the three tables on three sheets and does
+the merge in formula columns beside thirty of the yield rows.
+
+The first join is many-to-one, and it is the ordinary `XLOOKUP`: look up the RM number in
+the lookup sheet and return the station.  The second needs two keys, so both sides are glued
+together with `& "|" &`, the composite-key form from @sec-lookup:
+
+```
+=XLOOKUP(I5 & "|" & A5,
+         Precip!A:A & "|" & Precip!B:B,
+         Precip!C:C)
+```
+
+The row-count trap looks different in Excel.  Leave the year out and `XLOOKUP` does not
+multiply the rows; it returns the *first* match for the station, so every year gets 2015's
+rain, and nothing flags it.  Column K of the workbook shows this.  R warns about the
+many-to-many match; Excel does not, so the check is to look at a few rows where you already
+know the answer.
+
+Where R has `anti_join`, Excel has `#N/A`: an `XLOOKUP` that finds nothing returns it, and
+`COUNTIF(range, "#N/A")` at the foot of the column counts the failures.
+
+::: {.workbook-callout}
+<!-- iframe embed goes here once the workbook is uploaded to SharePoint; follow the
+mod01_sum.xlsx block in module01a.qmd -->
+
+[Download this workbook](textbook_examples/mod03_merge_excel.xlsx)
+:::
+
+Formulas are fine at thirty rows and fine at three thousand.  Past that, or when the same
+merge has to be redone every month, **Power Query** (Data > Get Data, then **Merge Queries**)
+does the join the way R does, with a dialog that asks for the key columns and the join type,
+and records the step so it can be re-run.
 
 ### What you can now do {.unnumbered}
 
