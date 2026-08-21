@@ -111,35 +111,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
-  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
-  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
-
-<script type="text/javascript">
-const typesetMath = (el) => {
-  if (window.MathJax) {
-    // MathJax Typeset
-    window.MathJax.typeset([el]);
-  } else if (window.katex) {
-    // KaTeX Render
-    var mathElements = el.getElementsByClassName("math");
-    var macros = [];
-    for (var i = 0; i < mathElements.length; i++) {
-      var texText = mathElements[i].firstChild;
-      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
-        window.katex.render(texText.data, mathElements[i], {
-          displayMode: mathElements[i].classList.contains('display'),
-          throwOnError: false,
-          macros: macros,
-          fleqn: false
-        });
-      }
-    }
-  }
-}
-window.Quarto = {
-  typesetMath
-};
-</script>
 
 </head>
 
@@ -577,12 +548,8 @@ window.Quarto = {
   <li><a href="#summarise-many-rows-become-one" id="toc-summarise-many-rows-become-one" class="nav-link" data-scroll-target="#summarise-many-rows-become-one"><span class="header-section-number">6.3.1</span> <code>summarise()</code>: Many Rows Become One</a></li>
   <li><a href="#group_by-calculate-separately-for-groups" id="toc-group_by-calculate-separately-for-groups" class="nav-link" data-scroll-target="#group_by-calculate-separately-for-groups"><span class="header-section-number">6.3.2</span> <code>group_by()</code>: Calculate Separately for Groups</a></li>
   </ul></li>
-  <li><a href="#sec-unit-conversion" id="toc-sec-unit-conversion" class="nav-link" data-scroll-target="#sec-unit-conversion"><span class="header-section-number">6.4</span> Unit Conversion: A Worked Example</a>
-  <ul>
-  <li><a href="#an-extension-different-rules-for-different-rows" id="toc-an-extension-different-rules-for-different-rows" class="nav-link" data-scroll-target="#an-extension-different-rules-for-different-rows">An extension: different rules for different rows</a></li>
-  </ul></li>
-  <li><a href="#sec-writing-output" id="toc-sec-writing-output" class="nav-link" data-scroll-target="#sec-writing-output"><span class="header-section-number">6.5</span> Writing Output</a></li>
-  <li><a href="#sec-dplyr-combining" id="toc-sec-dplyr-combining" class="nav-link" data-scroll-target="#sec-dplyr-combining"><span class="header-section-number">6.6</span> Combining It All</a>
+  <li><a href="#sec-writing-output" id="toc-sec-writing-output" class="nav-link" data-scroll-target="#sec-writing-output"><span class="header-section-number">6.4</span> Writing Output</a></li>
+  <li><a href="#sec-dplyr-combining" id="toc-sec-dplyr-combining" class="nav-link" data-scroll-target="#sec-dplyr-combining"><span class="header-section-number">6.5</span> Combining It All</a>
   <ul>
   <li><a href="#a-slightly-harder-example" id="toc-a-slightly-harder-example" class="nav-link" data-scroll-target="#a-slightly-harder-example">A slightly harder example</a></li>
   </ul></li>
@@ -1023,57 +990,52 @@ window.Quarto = {
 </section>
 <section id="mutate-create-or-change-columns" class="level3" data-number="6.1.4">
 <h3 data-number="6.1.4" class="anchored" data-anchor-id="mutate-create-or-change-columns"><span class="header-section-number">6.1.4</span> <code>mutate()</code>: Create or Change Columns</h3>
-<p><code>mutate()</code> creates a new variable or changes an existing one. Suppose we want yield in tonnes per hectare rather than bushels per acre:</p>
+<p><code>mutate()</code> creates a new variable or changes an existing one. Suppose we want yield in tonnes per hectare rather than bushels per acre. Note that we would almost always want to save the output of mutate to perform some function on the resulting data frame. We can save the data by the same name, which would overwrite the existing data frame with the new data frame with the new or created column.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mutate</span>(trial_data, <span class="at">yield_t_ha =</span> yield_bu_acre <span class="sc">*</span> <span class="fl">0.0560</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Create a new variable which is yield in tons per ha using the conversion factor of 0.056.  Save as trial data</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>trial_data <span class="ot">&lt;-</span> <span class="fu">mutate</span>(trial_data, <span class="at">yield_t_ha =</span> yield_bu_acre <span class="sc">*</span> <span class="fl">0.0560</span>)</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="do">## Print trial data to see our new column</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(trial_data)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
-<pre><code>&gt; mutate(trial_data, yield_t_ha = yield_bu_acre * 0.0560)
-# A tibble: 120 × 6
-   field_id fertilizer_kg_ha rainfall_mm variety    yield_bu_acre yield_t_ha
-   &lt;chr&gt;               &lt;dbl&gt;       &lt;dbl&gt; &lt;chr&gt;              &lt;dbl&gt;      &lt;dbl&gt;
- 1 C001                146.         199. InVigor             56.7       3.18
- 2 C002                136.         282. DEKALB              62         3.47
- 3 C003                113.         274. Clearfield          53.6       3.00
- 4 C004                112.         173  InVigor             51.2       2.87
- 5 C005                103.         216. InVigor             49.2       2.76
- 6 C006                140.         151. InVigor             51.2       2.87
- 7 C007                102          217  Clearfield          49         2.74
- 8 C008                137.         275. InVigor             56.8       3.18
- 9 C009                142.         258. InVigor             61         3.42
-10 C010                 97.9        210. Clearfield          48.2       2.70
-# ℹ 110 more rows</code></pre>
+<pre><code>&gt; ## Create a new variable which is yield in tons per ha using the conversion factor of 0.056.  Save as trial data
+&gt; trial_data &lt;- mutate(trial_data, yield_t_ha = yield_bu_acre * 0.0560)
+&gt; 
+&gt; ## Print trial data to see our new column
+&gt; head(trial_data)
+# A tibble: 6 × 6
+  field_id fertilizer_kg_ha rainfall_mm variety    yield_bu_acre yield_t_ha
+  &lt;chr&gt;               &lt;dbl&gt;       &lt;dbl&gt; &lt;chr&gt;              &lt;dbl&gt;      &lt;dbl&gt;
+1 C001                 146.        199. InVigor             56.7       3.18
+2 C002                 136.        282. DEKALB              62         3.47
+3 C003                 113.        274. Clearfield          53.6       3.00
+4 C004                 112.        173  InVigor             51.2       2.87
+5 C005                 103.        216. InVigor             49.2       2.76
+6 C006                 140.        151. InVigor             51.2       2.87</code></pre>
 </div>
 </div>
 </div>
 <p>The result contains all the original columns plus a new <code>yield_t_ha</code>. Read the expression as: create <code>yield_t_ha</code> and set it equal to <code>yield_bu_acre</code> × 0.0560. This is the R version of adding a formula column in Excel.</p>
-<p>As always, the display above is not saved anywhere. To keep the new column, assign the result – and here it is common to overwrite the original object with the version that has the extra column:</p>
+<p>You can create several variables in one call:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>trial_data <span class="ot">&lt;-</span> <span class="fu">mutate</span>(trial_data, <span class="at">yield_t_ha =</span> yield_bu_acre <span class="sc">*</span> <span class="fl">0.0560</span>)</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(trial_data)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Create new rainfall and fertilizer variables</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>trial_data <span class="ot">&lt;-</span> <span class="fu">mutate</span>(trial_data,</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>       <span class="at">rainfall_cm =</span> rainfall_mm <span class="sc">/</span> <span class="dv">10</span>,</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>       <span class="at">kg_n_per_bu =</span> fertilizer_kg_ha <span class="sc">/</span> yield_bu_acre)</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a><span class="do">## Print trial data to see our new columns</span></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(trial_data)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
-<pre><code>&gt; trial_data &lt;- mutate(trial_data, yield_t_ha = yield_bu_acre * 0.0560)
-&gt; 
-&gt; names(trial_data)
-[1] "field_id"         "fertilizer_kg_ha" "rainfall_mm"      "variety"         
-[5] "yield_bu_acre"    "yield_t_ha"      </code></pre>
-</div>
-</div>
-</div>
-<p><code>trial_data</code> now carries <code>yield_t_ha</code> for the rest of the session.</p>
-<p>You can create several variables in one call, and later expressions can use variables created earlier in the same <code>mutate()</code>:</p>
-<div class="cell">
-<div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mutate</span>(trial_data,</span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>       <span class="at">yield_t_ha =</span> yield_bu_acre <span class="sc">*</span> <span class="fl">0.0560</span>,</span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>       <span class="at">kg_n_per_bu =</span> fertilizer_kg_ha <span class="sc">/</span> yield_bu_acre)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="console-transcript">
-<pre><code>&gt; mutate(trial_data,
-+        yield_t_ha = yield_bu_acre * 0.0560,
+<pre><code>&gt; ## Create new rainfall and fertilizer variables
+&gt; trial_data &lt;- mutate(trial_data,
++        rainfall_cm = rainfall_mm / 10,
 +        kg_n_per_bu = fertilizer_kg_ha / yield_bu_acre)
-# A tibble: 120 × 7
+&gt; 
+&gt; ## Print trial data to see our new columns
+&gt; print(trial_data)
+# A tibble: 120 × 8
    field_id fertilizer_kg_ha rainfall_mm variety    yield_bu_acre yield_t_ha
    &lt;chr&gt;               &lt;dbl&gt;       &lt;dbl&gt; &lt;chr&gt;              &lt;dbl&gt;      &lt;dbl&gt;
  1 C001                146.         199. InVigor             56.7       3.18
@@ -1087,7 +1049,7 @@ window.Quarto = {
  9 C009                142.         258. InVigor             61         3.42
 10 C010                 97.9        210. Clearfield          48.2       2.70
 # ℹ 110 more rows
-# ℹ 1 more variable: kg_n_per_bu &lt;dbl&gt;</code></pre>
+# ℹ 2 more variables: rainfall_cm &lt;dbl&gt;, kg_n_per_bu &lt;dbl&gt;</code></pre>
 </div>
 </div>
 </div>
@@ -1095,14 +1057,24 @@ window.Quarto = {
 </section>
 <section id="sec-pipe" class="level2" data-number="6.2">
 <h2 data-number="6.2" class="anchored" data-anchor-id="sec-pipe"><span class="header-section-number">6.2</span> The Pipe <code>|&gt;</code></h2>
-<p>Real questions usually take more than one function. Suppose we want to know: among the InVigor fields, what are the field IDs and yields, ordered from highest to lowest? We know every operation we need – filter to InVigor, select the two columns, arrange by descending yield. Without a pipe, each step’s output becomes the next step’s first argument, and the calls nest:</p>
+<p>Real questions usually take more than one function. Suppose we want to know: among the InVigor fields, what are the field IDs and yields, ordered from highest to lowest? We know every operation we need – filter to InVigor, select the two columns, arrange by descending yield. We can do this using the <strong>pipe</strong>, which is written as <code>|&gt;</code>. The pipe takes whatever is on its <em>left</em> and feeds it as the first argument to the function on its <em>right</em>. Essentially, think of the pipe as a command that says “then”. For example, suppose we want to</p>
+<ul>
+<li>filter the data to InVigor, THEN</li>
+<li>select the columns field_id and yield_bu_acre, THEN</li>
+<li>arrange by yield (highest to lowest).</li>
+</ul>
+<p>We can write this in R code as:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">arrange</span>(<span class="fu">select</span>(<span class="fu">filter</span>(trial_data, variety <span class="sc">==</span> <span class="st">"InVigor"</span>), field_id, yield_bu_acre),</span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>        <span class="fu">desc</span>(yield_bu_acre))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>trial_data <span class="sc">|&gt;</span>                         <span class="do">##Take our trial data THEN  </span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(variety <span class="sc">==</span> <span class="st">"InVigor"</span>) <span class="sc">|&gt;</span>     <span class="do">##Filter it to InVigor THEN</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(field_id, yield_bu_acre) <span class="sc">|&gt;</span>  <span class="do">##Select field_id and yield_bu_acre columns THEN</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(yield_bu_acre))        <span class="do">##Sort by yield (highest to lowest)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
-<pre><code>&gt; arrange(select(filter(trial_data, variety == "InVigor"), field_id, yield_bu_acre),
-+         desc(yield_bu_acre))
+<pre><code>&gt; trial_data |&gt;                         ##Take our trial data THEN  
++   filter(variety == "InVigor") |&gt;     ##Filter it to InVigor THEN
++   select(field_id, yield_bu_acre) |&gt;  ##Select field_id and yield_bu_acre columns THEN
++   arrange(desc(yield_bu_acre))        ##Sort by yield (highest to lowest)
 # A tibble: 42 × 2
    field_id yield_bu_acre
    &lt;chr&gt;            &lt;dbl&gt;
@@ -1120,54 +1092,86 @@ window.Quarto = {
 </div>
 </div>
 </div>
-<p>That works, but you have to start reading in the middle and work outward. The <strong>pipe</strong>, <code>|&gt;</code>, lets us write the analysis in the order we think about it. The pipe takes whatever is on its <em>left</em> and feeds it as the first argument to the function on its <em>right</em>, so <code>trial_data |&gt; filter(variety == "InVigor")</code> is exactly <code>filter(trial_data, variety == "InVigor")</code>. Read <code>|&gt;</code> as the word “then”:</p>
+<p>One thing to note is that we have split this code across multiple lines. R knows that when a line ends with the pipe <code>|&gt;</code>, the command is not finished, so it continues reading the next line. This lets us write a long sequence of operations across several lines rather than cramming everything onto one line.</p>
+<p>This is not something special about the pipe. More generally, R will keep reading whenever it can tell that a command is incomplete. For example, we can also split a function across multiple lines:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>trial_data <span class="sc">|&gt;</span></span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(variety <span class="sc">==</span> <span class="st">"InVigor"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(field_id, yield_bu_acre) <span class="sc">|&gt;</span></span>
-<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(yield_bu_acre))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="do">##These two commands are identical</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(trial_data,</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>        yield_bu_acre <span class="sc">&gt;</span> <span class="dv">50</span>)</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(trial_data, yield_bu_acre <span class="sc">&gt;</span> <span class="dv">50</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
-<pre><code>&gt; trial_data |&gt;
-+   filter(variety == "InVigor") |&gt;
-+   select(field_id, yield_bu_acre) |&gt;
-+   arrange(desc(yield_bu_acre))
-# A tibble: 42 × 2
-   field_id yield_bu_acre
-   &lt;chr&gt;            &lt;dbl&gt;
- 1 C112              70.4
- 2 C045              62.8
- 3 C033              62.5
- 4 C009              61  
- 5 C120              60.1
- 6 C119              60  
- 7 C011              59.5
- 8 C052              59.5
- 9 C076              59.2
-10 C059              58.4
-# ℹ 32 more rows</code></pre>
+<pre><code>&gt; ##These two commands are identical
+&gt; filter(trial_data,
++         yield_bu_acre &gt; 50)
+# A tibble: 88 × 8
+   field_id fertilizer_kg_ha rainfall_mm variety    yield_bu_acre yield_t_ha
+   &lt;chr&gt;               &lt;dbl&gt;       &lt;dbl&gt; &lt;chr&gt;              &lt;dbl&gt;      &lt;dbl&gt;
+ 1 C001                 146.        199. InVigor             56.7       3.18
+ 2 C002                 136.        282. DEKALB              62         3.47
+ 3 C003                 113.        274. Clearfield          53.6       3.00
+ 4 C004                 112.        173  InVigor             51.2       2.87
+ 5 C006                 140.        151. InVigor             51.2       2.87
+ 6 C008                 137.        275. InVigor             56.8       3.18
+ 7 C009                 142.        258. InVigor             61         3.42
+ 8 C011                 155.        288. InVigor             59.5       3.33
+ 9 C012                 140.         NA  DEKALB              55.9       3.13
+10 C013                 112.        265. InVigor             55.2       3.09
+# ℹ 78 more rows
+# ℹ 2 more variables: rainfall_cm &lt;dbl&gt;, kg_n_per_bu &lt;dbl&gt;
+&gt; 
+&gt; filter(trial_data, yield_bu_acre &gt; 50)
+# A tibble: 88 × 8
+   field_id fertilizer_kg_ha rainfall_mm variety    yield_bu_acre yield_t_ha
+   &lt;chr&gt;               &lt;dbl&gt;       &lt;dbl&gt; &lt;chr&gt;              &lt;dbl&gt;      &lt;dbl&gt;
+ 1 C001                 146.        199. InVigor             56.7       3.18
+ 2 C002                 136.        282. DEKALB              62         3.47
+ 3 C003                 113.        274. Clearfield          53.6       3.00
+ 4 C004                 112.        173  InVigor             51.2       2.87
+ 5 C006                 140.        151. InVigor             51.2       2.87
+ 6 C008                 137.        275. InVigor             56.8       3.18
+ 7 C009                 142.        258. InVigor             61         3.42
+ 8 C011                 155.        288. InVigor             59.5       3.33
+ 9 C012                 140.         NA  DEKALB              55.9       3.13
+10 C013                 112.        265. InVigor             55.2       3.09
+# ℹ 78 more rows
+# ℹ 2 more variables: rainfall_cm &lt;dbl&gt;, kg_n_per_bu &lt;dbl&gt;</code></pre>
 </div>
 </div>
 </div>
-<p>Take <code>trial_data</code>, <em>then</em> keep the InVigor fields, <em>then</em> keep two columns, <em>then</em> sort. Once we use the pipe, we no longer repeat the data-frame name in every function, and a multi-step analysis reads top to bottom. From here on the examples use the pipe. (Older code uses <code>%&gt;%</code> for the same idea; <code>|&gt;</code> is the modern built-in version.)</p>
+<p>In the first command, the opening parenthesis <code>(</code> tells R that the command is not yet complete. R therefore keeps reading until it reaches the closing parenthesis <code>)</code>. This means that we can split R code across multiple lines when doing so makes it easier to read. For example, the piping example above would be difficult to read if we put everything on one line. In contrast, our simple filter() command is easier to read on a single line. Use line breaks when they make your code clearer. The same is true of indentation. Common practice is to always have a line break and indentation after a pipe.</p>
 <p>To keep a result, assign the whole pipeline to an object:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>invigor_yields <span class="ot">&lt;-</span> trial_data <span class="sc">|&gt;</span></span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(variety <span class="sc">==</span> <span class="st">"InVigor"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(field_id, yield_bu_acre) <span class="sc">|&gt;</span></span>
-<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(yield_bu_acre))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>invigor_yields <span class="ot">&lt;-</span> trial_data <span class="sc">|&gt;</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(variety <span class="sc">==</span> <span class="st">"InVigor"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(field_id, yield_bu_acre) <span class="sc">|&gt;</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(yield_bu_acre))</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(invigor_yields)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; invigor_yields &lt;- trial_data |&gt;
 +   filter(variety == "InVigor") |&gt;
 +   select(field_id, yield_bu_acre) |&gt;
-+   arrange(desc(yield_bu_acre))</code></pre>
++   arrange(desc(yield_bu_acre))
+&gt; 
+&gt; head(invigor_yields)
+# A tibble: 6 × 2
+  field_id yield_bu_acre
+  &lt;chr&gt;            &lt;dbl&gt;
+1 C112              70.4
+2 C045              62.8
+3 C033              62.5
+4 C009              61  
+5 C120              60.1
+6 C119              60  </code></pre>
 </div>
 </div>
 </div>
 <section id="debugging-a-pipeline" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="debugging-a-pipeline">Debugging a pipeline</h3>
-<p>Pipelines also give you a way to debug. When a pipeline produces a result that looks wrong, do not stare at the whole thing and guess. Run it one step at a time: run the first step alone, check the result, add the second step, check again, and keep going. The first point where the data stops looking the way you expect is where the problem is. This works because every step does one thing – and the same habit is how you check a pipeline an AI assistant wrote for you.</p>
+<p>Pipelines also give you a way to debug. When a pipeline produces a result that looks wrong, do not stare at the whole thing and guess. Run it one step at a time: run the first step alone, check the result, add the second step, check again, and keep going.</p>
 </section>
 </section>
 <section id="sec-summarise-group" class="level2" data-number="6.3">
@@ -1175,6 +1179,22 @@ window.Quarto = {
 <p>The four functions so far rearrange or add information while keeping observations as rows. Sometimes we want to <em>collapse</em> the observations into summary statistics. That is the job of <code>summarise()</code>.</p>
 <section id="summarise-many-rows-become-one" class="level3" data-number="6.3.1">
 <h3 data-number="6.3.1" class="anchored" data-anchor-id="summarise-many-rows-become-one"><span class="header-section-number">6.3.1</span> <code>summarise()</code>: Many Rows Become One</h3>
+<p>Suppose we want to get the mean of yields in the data. We can use the summarise function and inside define a column that is the mean of yields. The result is a new data frame with a single row and a single column, <code>mean_yield</code>:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>trial_data <span class="sc">|&gt;</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield =</span> <span class="fu">mean</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; trial_data |&gt;
++   summarise(mean_yield = mean(yield_bu_acre, na.rm = TRUE))
+# A tibble: 1 × 1
+  mean_yield
+       &lt;dbl&gt;
+1       53.4</code></pre>
+</div>
+</div>
+</div>
+<p>We can extend this to get several summary statistics at the same time:</p>
 <div class="cell">
 <div class="cell-output-display">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>trial_data <span class="sc">|&gt;</span></span>
@@ -1197,21 +1217,74 @@ window.Quarto = {
 </div>
 </div>
 </div>
-<p>The names on the left (<code>mean_yield</code>, <code>sd_yield</code>, <code>n_fields</code>) become column names in the result; the expressions on the right calculate the values. <code>n()</code> counts the rows.</p>
-<p>The contrast with <code>mutate()</code> matters. <code>mutate()</code> keeps the observations and adds information; <code>summarise()</code> collapses the observations into summaries. So <code>trial_data |&gt; mutate(mean_yield = mean(yield_bu_acre))</code> still has 120 rows, with the overall mean repeated on every row, while the <code>summarise()</code> version returns one row.</p>
-</section>
-<section id="group_by-calculate-separately-for-groups" class="level3" data-number="6.3.2">
-<h3 data-number="6.3.2" class="anchored" data-anchor-id="group_by-calculate-separately-for-groups"><span class="header-section-number">6.3.2</span> <code>group_by()</code>: Calculate Separately for Groups</h3>
-<p>The overall mean may not be what we want. Suppose we want the mean yield for each variety. <code>group_by()</code> doesn’t change the data – it tells subsequent operations to apply <em>per group</em>:</p>
+<p>The names on the left (<code>mean_yield</code>, <code>sd_yield</code>, <code>n_fields</code>) become column names in the result; the expressions on the right calculate the values. <code>n()</code> counts the rows. Note again that we have split the arguments of summarise across multiple lines. We could also write:</p>
 <div class="cell">
 <div class="cell-output-display">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>trial_data <span class="sc">|&gt;</span></span>
-<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(variety) <span class="sc">|&gt;</span></span>
-<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
-<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_yield =</span> <span class="fu">mean</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">sd_yield =</span> <span class="fu">sd</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">n_fields =</span> <span class="fu">n</span>()</span>
-<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield =</span> <span class="fu">mean</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">sd_yield =</span> <span class="fu">sd</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">n_fields =</span> <span class="fu">n</span>())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; trial_data |&gt;
++   summarise(mean_yield = mean(yield_bu_acre, na.rm = TRUE), sd_yield = sd(yield_bu_acre, na.rm = TRUE), n_fields = n())
+# A tibble: 1 × 3
+  mean_yield sd_yield n_fields
+       &lt;dbl&gt;    &lt;dbl&gt;    &lt;int&gt;
+1       53.4     5.77      120</code></pre>
+</div>
+</div>
+</div>
+<p>The contrast with <code>mutate()</code> matters. <code>mutate()</code> keeps the observations and adds information; <code>summarise()</code> collapses the observations into summaries. So <code>trial_data |&gt; mutate(mean_yield = mean(yield_bu_acre))</code> still has 120 rows, with the overall mean repeated on every row, while the <code>summarise()</code> version returns one row.</p>
+<p>Note that we could have used potentially simpler commands from “base R” to get the mean and standard deviation above:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="do">##Get mean and st dev of yields using base R</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(trial_data<span class="sc">$</span>yield_bu_acre)</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a><span class="fu">sd</span>(trial_data<span class="sc">$</span>yield_bu_acre)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; ##Get mean and st dev of yields using base R
+&gt; 
+&gt; mean(trial_data$yield_bu_acre)
+[1] 53.39917
+&gt; sd(trial_data$yield_bu_acre)
+[1] 5.767724</code></pre>
+</div>
+</div>
+</div>
+<p>The power of summarise comes from being able to combine it with other commands via the pipe. For example, we can combine it with <code>filter()</code> to get the mean of only the InVigor fields:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>trial_data <span class="sc">|&gt;</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(variety <span class="sc">==</span> <span class="st">"InVigor"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_yield =</span> <span class="fu">mean</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; trial_data |&gt;
++   filter(variety == "InVigor") |&gt;
++   summarise(
++     mean_yield = mean(yield_bu_acre, na.rm = TRUE)
++     )
+# A tibble: 1 × 1
+  mean_yield
+       &lt;dbl&gt;
+1       54.5</code></pre>
+</div>
+</div>
+</div>
+<p>Or we may want to get the means for each variety – not just InVigor. In this case we can use <code>group_by()</code></p>
+</section>
+<section id="group_by-calculate-separately-for-groups" class="level3" data-number="6.3.2">
+<h3 data-number="6.3.2" class="anchored" data-anchor-id="group_by-calculate-separately-for-groups"><span class="header-section-number">6.3.2</span> <code>group_by()</code>: Calculate Separately for Groups</h3>
+<p><code>group_by()</code> doesn’t change the data – it tells subsequent operations to apply <em>per group</em>:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>trial_data <span class="sc">|&gt;</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(variety) <span class="sc">|&gt;</span></span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_yield =</span> <span class="fu">mean</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">sd_yield =</span> <span class="fu">sd</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">n_fields =</span> <span class="fu">n</span>()</span>
+<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; trial_data |&gt;
 +   group_by(variety) |&gt;
@@ -1230,166 +1303,74 @@ window.Quarto = {
 </div>
 </div>
 <p>Take <code>trial_data</code>, <em>then</em> divide the observations by variety, <em>then</em> calculate the statistics separately for each variety. The result has one row per variety. This is the R equivalent of a PivotTable.</p>
-<p>Grouping is state that can affect later operations. After a grouped <code>summarise()</code>, ask for an ordinary, ungrouped data frame back with <code>.groups = "drop"</code> when you plan to keep manipulating the result – the capstone example below does this. (There is also an <code>ungroup()</code> function, which appears later in this chapter in a situation where it genuinely matters.)</p>
+<p>Grouping is state that can affect later operations. After a grouped <code>summarise()</code> you sometimes want the ordinary, ungrouped data frame back: <code>.groups = "drop"</code> inside <code>summarise()</code> does that, and the <code>ungroup()</code> function – which appears in the last example of this chapter – is the general tool.</p>
 <p>The central pattern – <code>data |&gt; group_by(group_variable) |&gt; summarise(...)</code> – appears throughout the rest of the book.</p>
 </section>
 </section>
-<section id="sec-unit-conversion" class="level2" data-number="6.4">
-<h2 data-number="6.4" class="anchored" data-anchor-id="sec-unit-conversion"><span class="header-section-number">6.4</span> Unit Conversion: A Worked Example</h2>
-<p>Canadian ag data often comes in mixed units. Canola yields are traditionally reported in bushels per acre (bu/ac) in Canada, but metric tonnes per hectare (t/ha) in global datasets. The conversion for canola is approximately:</p>
-<p><span class="math display">\[
-\text{yield (t/ha)} = \text{yield (bu/ac)} \times 0.0560
-\]</span></p>
-<p>This factor comes from two facts: a bushel of canola weighs about 22.68 kg (canola’s standard 50-lb bushel), and an acre is about 0.4047 ha. So one bu/ac is <span class="math inline">\(22.68 \div 0.4047 \div 1000 \approx 0.0560\)</span> t/ha. (The exact factor depends on the crop’s bushel weight – a wheat or corn bushel is 60 or 56 lb and gives a different number – so in a real analysis you would look up the right bushel weight for your crop and cite your source.)</p>
-<p>The transformation is exactly what <code>mutate()</code> is for:</p>
-<div class="cell">
-<div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>trial_converted <span class="ot">&lt;-</span> trial_data <span class="sc">|&gt;</span></span>
-<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">yield_t_ha =</span> yield_bu_acre <span class="sc">*</span> <span class="fl">0.0560</span>)</span>
-<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>trial_converted <span class="sc">|&gt;</span></span>
-<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(field_id, yield_bu_acre, yield_t_ha)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="console-transcript">
-<pre><code>&gt; trial_converted &lt;- trial_data |&gt;
-+   mutate(yield_t_ha = yield_bu_acre * 0.0560)
-&gt; 
-&gt; trial_converted |&gt;
-+   select(field_id, yield_bu_acre, yield_t_ha)
-# A tibble: 120 × 3
-   field_id yield_bu_acre yield_t_ha
-   &lt;chr&gt;            &lt;dbl&gt;      &lt;dbl&gt;
- 1 C001              56.7       3.18
- 2 C002              62         3.47
- 3 C003              53.6       3.00
- 4 C004              51.2       2.87
- 5 C005              49.2       2.76
- 6 C006              51.2       2.87
- 7 C007              49         2.74
- 8 C008              56.8       3.18
- 9 C009              61         3.42
-10 C010              48.2       2.70
-# ℹ 110 more rows</code></pre>
-</div>
-</div>
-</div>
-<p>The original <code>yield_bu_acre</code> stays in the data alongside the new <code>yield_t_ha</code>, which makes the transformation easy to check.</p>
-<section id="an-extension-different-rules-for-different-rows" class="level3 unnumbered">
-<h3 class="unnumbered anchored" data-anchor-id="an-extension-different-rules-for-different-rows">An extension: different rules for different rows</h3>
-<p>Sometimes a new variable depends on a condition. Suppose we want to class each field’s nitrogen rate as low, medium, or high. <code>case_when</code> handles it – read this one to understand it rather than to memorize it:</p>
-<div class="cell">
-<div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>trial_data <span class="sc">|&gt;</span></span>
-<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">n_rate =</span> <span class="fu">case_when</span>(</span>
-<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>    fertilizer_kg_ha <span class="sc">&lt;</span> <span class="dv">100</span> <span class="sc">~</span> <span class="st">"low"</span>,</span>
-<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>    fertilizer_kg_ha <span class="sc">&lt;</span> <span class="dv">150</span> <span class="sc">~</span> <span class="st">"medium"</span>,</span>
-<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>    <span class="cn">TRUE</span>                   <span class="sc">~</span> <span class="st">"high"</span></span>
-<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>  )) <span class="sc">|&gt;</span></span>
-<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(field_id, fertilizer_kg_ha, n_rate)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="console-transcript">
-<pre><code>&gt; trial_data |&gt;
-+   mutate(n_rate = case_when(
-+     fertilizer_kg_ha &lt; 100 ~ "low",
-+     fertilizer_kg_ha &lt; 150 ~ "medium",
-+     TRUE                   ~ "high"
-+   )) |&gt;
-+   select(field_id, fertilizer_kg_ha, n_rate)
-# A tibble: 120 × 3
-   field_id fertilizer_kg_ha n_rate
-   &lt;chr&gt;               &lt;dbl&gt; &lt;chr&gt; 
- 1 C001                146.  medium
- 2 C002                136.  medium
- 3 C003                113.  medium
- 4 C004                112.  medium
- 5 C005                103.  medium
- 6 C006                140.  medium
- 7 C007                102   medium
- 8 C008                137.  medium
- 9 C009                142.  medium
-10 C010                 97.9 low   
-# ℹ 110 more rows</code></pre>
-</div>
-</div>
-</div>
-<p>Each line reads “if this condition is true, use this value”, and the first matching condition wins: a field at 120 kg/ha fails the first test and passes the second, so it is “medium”. The <code>TRUE ~ ...</code> line is the catch-all – anything that matched neither condition is “high”. <code>case_when</code> is the R analogue of nested <code>IF</code>s in Excel, and it comes back when we clean data in <a href="moduleRDd.html" class="quarto-xref"><span>Chapter 9</span></a>. The point for now is that <code>mutate()</code> can create variables using rules, not just arithmetic.</p>
-</section>
-</section>
-<section id="sec-writing-output" class="level2" data-number="6.5">
-<h2 data-number="6.5" class="anchored" data-anchor-id="sec-writing-output"><span class="header-section-number">6.5</span> Writing Output</h2>
+<section id="sec-writing-output" class="level2" data-number="6.4">
+<h2 data-number="6.4" class="anchored" data-anchor-id="sec-writing-output"><span class="header-section-number">6.4</span> Writing Output</h2>
 <p>Results so far have existed only inside R. To save one as a file that can be opened in Excel or sent to someone else, pass the object and a filename to <code>write_csv</code>. With our project layout, results go in <code>output/</code>:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>variety_summary <span class="ot">&lt;-</span> trial_data <span class="sc">|&gt;</span></span>
-<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(variety) <span class="sc">|&gt;</span></span>
-<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield =</span> <span class="fu">mean</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">n_fields =</span> <span class="fu">n</span>())</span>
-<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a><span class="fu">write_csv</span>(variety_summary, <span class="st">"output/variety_summary.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>variety_summary <span class="ot">&lt;-</span> trial_data <span class="sc">|&gt;</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(variety) <span class="sc">|&gt;</span></span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield =</span> <span class="fu">mean</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">n_fields =</span> <span class="fu">n</span>())</span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a><span class="fu">write_csv</span>(variety_summary, <span class="st">"output/variety_summary.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><code>read_csv</code> brings data into R; <code>write_csv</code> sends a data frame out to a file. Because the output is created by the script, you can always recreate it by running the script again.</p>
 </section>
-<section id="sec-dplyr-combining" class="level2" data-number="6.6">
-<h2 data-number="6.6" class="anchored" data-anchor-id="sec-dplyr-combining"><span class="header-section-number">6.6</span> Combining It All</h2>
-<p>We now have enough tools to answer a realistic question: for each variety and nitrogen-rate class, what was the mean yield in t/ha, and how many fields were observed? Show the highest-yielding class first within each variety.</p>
+<section id="sec-dplyr-combining" class="level2" data-number="6.5">
+<h2 data-number="6.5" class="anchored" data-anchor-id="sec-dplyr-combining"><span class="header-section-number">6.5</span> Combining It All</h2>
+<p>We now have enough tools to answer a realistic question: for each variety, among fields that received at least 100 kg/ha of nitrogen, what was the mean yield in tonnes per hectare, and how many fields were observed? Show the highest-yielding variety first.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>variety_n_summary <span class="ot">&lt;-</span> trial_data <span class="sc">|&gt;</span></span>
-<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">yield_t_ha =</span> yield_bu_acre <span class="sc">*</span> <span class="fl">0.0560</span>,</span>
-<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">n_rate =</span> <span class="fu">case_when</span>(</span>
-<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>           fertilizer_kg_ha <span class="sc">&lt;</span> <span class="dv">100</span> <span class="sc">~</span> <span class="st">"low"</span>,</span>
-<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>           fertilizer_kg_ha <span class="sc">&lt;</span> <span class="dv">150</span> <span class="sc">~</span> <span class="st">"medium"</span>,</span>
-<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a>           <span class="cn">TRUE</span>                   <span class="sc">~</span> <span class="st">"high"</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(variety, n_rate) <span class="sc">|&gt;</span></span>
-<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield_t_ha =</span> <span class="fu">mean</span>(yield_t_ha, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a>            <span class="at">n_fields =</span> <span class="fu">n</span>(),</span>
-<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a>            <span class="at">.groups =</span> <span class="st">"drop"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb41-11"><a href="#cb41-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(variety, <span class="fu">desc</span>(mean_yield_t_ha))</span>
-<span id="cb41-12"><a href="#cb41-12" aria-hidden="true" tabindex="-1"></a>variety_n_summary</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>variety_summary_100 <span class="ot">&lt;-</span> trial_data <span class="sc">|&gt;</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(fertilizer_kg_ha <span class="sc">&gt;=</span> <span class="dv">100</span>) <span class="sc">|&gt;</span></span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">yield_t_ha =</span> yield_bu_acre <span class="sc">*</span> <span class="fl">0.0560</span>) <span class="sc">|&gt;</span></span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(variety) <span class="sc">|&gt;</span></span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_yield_t_ha =</span> <span class="fu">mean</span>(yield_t_ha, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>            <span class="at">n_fields =</span> <span class="fu">n</span>()) <span class="sc">|&gt;</span></span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(mean_yield_t_ha))</span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a>variety_summary_100</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
-<pre><code>&gt; variety_n_summary &lt;- trial_data |&gt;
-+   mutate(yield_t_ha = yield_bu_acre * 0.0560,
-+          n_rate = case_when(
-+            fertilizer_kg_ha &lt; 100 ~ "low",
-+            fertilizer_kg_ha &lt; 150 ~ "medium",
-+            TRUE                   ~ "high")) |&gt;
-+   group_by(variety, n_rate) |&gt;
+<pre><code>&gt; variety_summary_100 &lt;- trial_data |&gt;
++   filter(fertilizer_kg_ha &gt;= 100) |&gt;
++   mutate(yield_t_ha = yield_bu_acre * 0.0560) |&gt;
++   group_by(variety) |&gt;
 +   summarise(mean_yield_t_ha = mean(yield_t_ha, na.rm = TRUE),
-+             n_fields = n(),
-+             .groups = "drop") |&gt;
-+   arrange(variety, desc(mean_yield_t_ha))
-&gt; variety_n_summary
-# A tibble: 9 × 4
-  variety    n_rate mean_yield_t_ha n_fields
-  &lt;chr&gt;      &lt;chr&gt;            &lt;dbl&gt;    &lt;int&gt;
-1 Clearfield high              3.33        8
-2 Clearfield medium            2.97       26
-3 Clearfield low               2.57        5
-4 DEKALB     high              3.24        2
-5 DEKALB     medium            2.96       32
-6 DEKALB     low               2.55        5
-7 InVigor    high              3.49        5
-8 InVigor    medium            3.04       33
-9 InVigor    low               2.62        4</code></pre>
++             n_fields = n()) |&gt;
++   arrange(desc(mean_yield_t_ha))
+&gt; variety_summary_100
+# A tibble: 3 × 3
+  variety    mean_yield_t_ha n_fields
+  &lt;chr&gt;                &lt;dbl&gt;    &lt;int&gt;
+1 InVigor               3.10       38
+2 Clearfield            3.06       34
+3 DEKALB                2.98       34</code></pre>
 </div>
 </div>
 </div>
 <p>Do not read it as one giant command; read it one step at a time:</p>
 <ol type="1">
-<li><strong>Create</strong> the variables the question needs: metric yield, and the nitrogen-rate class.</li>
-<li><strong>Group</strong> the observations into variety and nitrogen-rate combinations.</li>
-<li><strong>Summarise</strong> each group down to one row: its mean yield and its number of fields. With two grouping variables, <code>.groups = "drop"</code> tells <code>summarise</code> to hand back an ordinary, ungrouped data frame.</li>
-<li><strong>Sort</strong> by variety and, within each variety, from highest mean yield to lowest.</li>
+<li><strong>Filter</strong> to the fields that received at least 100 kg/ha.</li>
+<li><strong>Create</strong> the variable the question needs: metric yield.</li>
+<li><strong>Group</strong> the observations by variety.</li>
+<li><strong>Summarise</strong> each group down to one row: its mean yield and its number of fields.</li>
+<li><strong>Sort</strong> from highest mean yield to lowest.</li>
 </ol>
-<p>Each line does one simple thing, and that is the reason for pipes: a good pipeline makes the logic of an analysis visible. Saving the table is one more line: <code>write_csv(variety_n_summary, "output/variety_n_summary.csv")</code>.</p>
+<p>Each line does one simple thing, and that is the reason for pipes: a good pipeline makes the logic of an analysis visible. Saving the table is one more line: <code>write_csv(variety_summary_100, "output/variety_summary_100.csv")</code>.</p>
 <section id="a-slightly-harder-example" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="a-slightly-harder-example">A slightly harder example</h3>
 <p>Which fields yielded above the average for their own variety? This needs one new idea: <code>mutate()</code> can operate within groups.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>above_variety_average <span class="ot">&lt;-</span> trial_data <span class="sc">|&gt;</span></span>
-<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(variety) <span class="sc">|&gt;</span></span>
-<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">variety_mean =</span> <span class="fu">mean</span>(yield_bu_acre)) <span class="sc">|&gt;</span></span>
-<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">|&gt;</span></span>
-<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(yield_bu_acre <span class="sc">&gt;</span> variety_mean) <span class="sc">|&gt;</span></span>
-<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(field_id, variety, yield_bu_acre, variety_mean) <span class="sc">|&gt;</span></span>
-<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(variety, <span class="fu">desc</span>(yield_bu_acre))</span>
-<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a>above_variety_average</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>above_variety_average <span class="ot">&lt;-</span> trial_data <span class="sc">|&gt;</span></span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(variety) <span class="sc">|&gt;</span></span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">variety_mean =</span> <span class="fu">mean</span>(yield_bu_acre)) <span class="sc">|&gt;</span></span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">|&gt;</span></span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(yield_bu_acre <span class="sc">&gt;</span> variety_mean) <span class="sc">|&gt;</span></span>
+<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(field_id, variety, yield_bu_acre, variety_mean) <span class="sc">|&gt;</span></span>
+<span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(variety, <span class="fu">desc</span>(yield_bu_acre))</span>
+<span id="cb45-8"><a href="#cb45-8" aria-hidden="true" tabindex="-1"></a>above_variety_average</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; above_variety_average &lt;- trial_data |&gt;
 +   group_by(variety) |&gt;
