@@ -1,10 +1,6 @@
 # Getting Data {#sec-getting-data}
 
-Every dataset in the book so far has arrived as a tidy CSV with sensible column names.  Data
-does not normally show up that way.  It shows up as an Excel workbook somebody emailed you,
-with the numbers starting on row 8, as a file sitting behind a link on a government dashboard,
-or as something you have to ask a server for.  This chapter is about where data comes from,
-and how to get it into Excel and into R.
+Every dataset in the book so far has arrived as a tidy CSV with sensible column names.  Data does not normally show up that way.  It shows up as an Excel workbook somebody emailed you, with the numbers starting on row 8, as a file sitting behind a link on a government dashboard, or as something you have to ask a server for.  This chapter is about where data comes from, and how to get it into Excel and into R.
 
 ## Learning Objectives {.unnumbered}
 
@@ -22,181 +18,98 @@ By the end of this chapter you should be able to:
 
 ## Where Data Comes From {#sec-data-sources}
 
-Some data you make yourself: a field trial, a survey, the records from your own farm or
-business.  Some is sent to you, usually as a spreadsheet.  The rest has to be found, and for
-agriculture there is a lot of it sitting in public.  A short list of the places I go back to:
+Some data you make yourself: a field trial, a survey, the records from your own farm or business.  Some is sent to you, usually as a spreadsheet.  The rest has to be found, and for agriculture there is a lot of it sitting in public.  A short list of the places I go back to:
 
-- **[Statistics Canada](https://www.statcan.gc.ca/en/subjects-start/agriculture_and_food).**
-  Crop production and yields, livestock, farm prices, farm income, the Census of Agriculture.
-  The starting point for almost any Canadian question.
-- **Saskatchewan Agriculture.**  The weekly
-  [crop report](https://www.saskatchewan.ca/business/agriculture-natural-resources-and-industry/agribusiness-farmers-and-ranchers/market-and-trade-statistics/crops-statistics/crop-report),
-  the [crop planning guide](https://www.saskatchewan.ca/business/agriculture-natural-resources-and-industry/agribusiness-farmers-and-ranchers/farm-business-management/crop-planning-guide-and-crop-planner), and the
-  [provincial dashboard](https://dashboard.saskatchewan.ca/agriculture), which is where the
-  RM yields used in this module come from.  The
-  [Saskatchewan Crop Insurance Corporation](https://www.scic.ca/) publishes yields and
-  premiums by risk zone.
-- **Weather.**  [Environment and Climate Change Canada](https://climate.weather.gc.ca/historical_data/search_historic_data_e.html)
-  has daily records for every station it has ever run, some going back to the 1880s.
-  [Open-Meteo](https://open-meteo.com/) serves modelled weather for any latitude and
-  longitude, which is useful where there is no station.
-- **Soils.**  The [Saskatchewan Soil Information System](https://sksis.usask.ca/) and the
-  [Canadian Soil Information Service](https://sis.agr.gc.ca/cansis/).
-- **Prices and markets.**  AAFC's
-  [market information system](https://agriculture.canada.ca/en/market-information-system),
-  [ICE](https://www.ice.com/products/251/Canola-Futures) for canola futures,
-  [Farm Credit Canada](https://www.fcc-fac.ca/en/knowledge/economics/farmland-values-report)
-  for land values.
-- **Drought.**  The [Canadian Drought Monitor](https://agriculture.canada.ca/en/agricultural-production/weather/canadian-drought-monitor),
-  monthly maps and data.
-- **Outside Canada.**  USDA's [QuickStats](https://quickstats.nass.usda.gov/) for the US,
-  [FAOSTAT](https://www.fao.org/faostat/en/) for the world, the
-  [World Bank](https://data.worldbank.org/) for anything macroeconomic.
+- **[Statistics Canada](https://www.statcan.gc.ca/en/subjects-start/agriculture_and_food).** Crop production and yields, livestock, farm prices, farm income, the Census of Agriculture. The starting point for almost any Canadian question.
+- **Saskatchewan Agriculture.**  The weekly [crop report](https://www.saskatchewan.ca/business/agriculture-natural-resources-and-industry/agribusiness-farmers-and-ranchers/market-and-trade-statistics/crops-statistics/crop-report), the [crop planning guide](https://www.saskatchewan.ca/business/agriculture-natural-resources-and-industry/agribusiness-farmers-and-ranchers/farm-business-management/crop-planning-guide-and-crop-planner), and the [provincial dashboard](https://dashboard.saskatchewan.ca/agriculture), which is where the RM yields used in this module come from.  The [Saskatchewan Crop Insurance Corporation](https://www.scic.ca/) publishes yields and premiums by risk zone.
+- **Weather.**  [Environment and Climate Change Canada](https://climate.weather.gc.ca/historical_data/search_historic_data_e.html) has daily records for every station it has ever run, some going back to the 1880s. [Open-Meteo](https://open-meteo.com/) serves modelled weather for any latitude and longitude, which is useful where there is no station.
+- **Soils.**  The [Saskatchewan Soil Information System](https://sksis.usask.ca/) and the [Canadian Soil Information Service](https://sis.agr.gc.ca/cansis/).
+- **Prices and markets.**  AAFC's [market information system](https://agriculture.canada.ca/en/market-information-system), [ICE](https://www.ice.com/products/251/Canola-Futures) for canola futures, [Farm Credit Canada](https://www.fcc-fac.ca/en/knowledge/economics/farmland-values-report) for land values.
+- **Drought.**  The [Canadian Drought Monitor](https://agriculture.canada.ca/en/agricultural-production/weather/canadian-drought-monitor), monthly maps and data.
+- **Outside Canada.**  USDA's [QuickStats](https://quickstats.nass.usda.gov/) for the US, [FAOSTAT](https://www.fao.org/faostat/en/) for the world, the [World Bank](https://data.worldbank.org/) for anything macroeconomic.
 
 These providers hand over data in one of three ways.
 
 ### Direct downloads {.unnumbered}
 
-Most of the time the data is a file behind a link.  You click it, or you give the address to
-a program that fetches it.  The Saskatchewan RM yields are a single CSV at
+Most of the time the data is a file behind a link.  You click it, or you give the address to a program that fetches it.  The Saskatchewan RM yields are a single CSV at
 
 <https://dashboard.saskatchewan.ca/export/rm-yields-data/4950.csv>
 
-and Statistics Canada, SCIC and AAFC all work the same way: find the table, choose what you
-want, press download.  The rest of this chapter reads files like these.
+and Statistics Canada, SCIC and AAFC all work the same way: find the table, choose what you want, press download.  The rest of this chapter reads files like these.
 
 ### APIs {#sec-apis}
 
-An **API** (application programming interface) is a way for a program to request data from
-a server directly, instead of a person clicking a download button.  You send a request that
-says what you want -- which commodity, which years, which location -- and the server sends
-back just that.  The request is a line of text, so it is recorded, repeatable, and easy to
-change.
+An **API** (application programming interface) is a way for a program to request data from a server directly, instead of a person clicking a download button.  You send a request that says what you want -- which commodity, which years, which location -- and the server sends back just that.  The request is a line of text, so it is recorded, repeatable, and easy to change.
 
-An API request is usually just a URL with the choices written into it.  This one asks
-Open-Meteo for daily precipitation at Saskatoon for the first five days of May 2024:
+An API request is usually just a URL with the choices written into it.  This one asks Open-Meteo for daily precipitation at Saskatoon for the first five days of May 2024:
 
 ```
 https://archive-api.open-meteo.com/v1/archive?latitude=52.13&longitude=-106.67
     &start_date=2024-05-01&end_date=2024-05-05&daily=precipitation_sum
 ```
 
-Paste it into a browser and the server answers with text, in a format called **JSON**: the
-values are there, but wrapped in braces and labels rather than laid out in rows and columns.
-Both Excel and R can turn it into a table, which the sections below do.  Change the dates or
-the coordinates in the URL and you have a different request.
+Paste it into a browser and the server answers with text, in a format called **JSON**: the values are there, but wrapped in braces and labels rather than laid out in rows and columns. Both Excel and R can turn it into a table, which the sections below do.  Change the dates or the coordinates in the URL and you have a different request.
 
-Many APIs ask for a **key**: a free password that identifies who is asking, which you
-request once from the provider and include with every request.  USDA's QuickStats needs one;
-Open-Meteo does not.  A key identifies *you*, so keep it out of any script you share or post
-publicly.  The usual habit is to keep it in a separate file that you do not share and have
-the script read it from there.
+Many APIs ask for a **key**: a free password that identifies who is asking, which you request once from the provider and include with every request.  USDA's QuickStats needs one; Open-Meteo does not.  A key identifies *you*, so keep it out of any script you share or post publicly.  The usual habit is to keep it in a separate file that you do not share and have the script read it from there.
 
 ### Packages that wrap APIs {.unnumbered}
 
-For popular providers somebody has usually written an R package that builds the request for
-you, so you give it a table number or a station name and get a data frame back.
-**cansim** does this for Statistics Canada, **rnassqs** for USDA QuickStats, **weathercan**
-for Environment Canada's stations.  They are the easiest way in when they exist, and
-@sec-data-packages uses one.
+For popular providers somebody has usually written an R package that builds the request for you, so you give it a table number or a station name and get a data frame back. **cansim** does this for Statistics Canada, **rnassqs** for USDA QuickStats, **weathercan** for Environment Canada's stations.  They are the easiest way in when they exist, and @sec-data-packages uses one.
 
 ## Getting Data into Excel {#sec-excel-getting}
 
-Excel is mostly limited to one route: save the data as a file, then open the file.  The
-file can be several things.
+Excel is mostly limited to one route: save the data as a file, then open the file.  The file can be several things.
 
 ### Excel's own files {.unnumbered}
 
-`.xlsx` is Excel's format, and `.xls` is the older one from before 2007.  Both open by
-double-clicking and keep everything: formatting, formulas, several sheets.  Files other
-people send you are usually one of these, and the things to look for on opening are which
-sheet holds the data, and whether the table starts on row 1 or under a title and some notes.
+`.xlsx` is Excel's format, and `.xls` is the older one from before 2007.  Both open by double-clicking and keep everything: formatting, formulas, several sheets.  Files other people send you are usually one of these, and the things to look for on opening are which sheet holds the data, and whether the table starts on row 1 or under a title and some notes.
 
 ### CSV and other text files {#sec-csv-excel}
 
-A **CSV** (comma-separated values) file is plain text.  Each line is a row, and commas
-separate the columns.  There is no formatting, no formulas, and no second sheet, which is
-why it is the usual format for passing data between programs, and why most downloads come
-this way.  A **TSV** is the same with tabs instead of commas, and a `.txt` file is usually
-one or the other with a different extension.  Semicolons are common in files from Europe,
-where the comma is the decimal mark.
+A **CSV** (comma-separated values) file is plain text.  Each line is a row, and commas separate the columns.  There is no formatting, no formulas, and no second sheet, which is why it is the usual format for passing data between programs, and why most downloads come this way.  A **TSV** is the same with tabs instead of commas, and a `.txt` file is usually one or the other with a different extension.  Semicolons are common in files from Europe, where the comma is the decimal mark.
 
-Double-clicking a CSV opens it in Excel, and Excel makes its own guesses about every column
-on the way in.  To see them, download
-[`elevator_tickets.csv`](practice/data/elevator_tickets.csv), twenty grain delivery tickets,
-and open it both ways: once by double-clicking, and once in a text editor.  The ones that go
-wrong:
+Double-clicking a CSV opens it in Excel, and Excel makes its own guesses about every column on the way in.  To see them, download [`elevator_tickets.csv`](practice/data/elevator_tickets.csv), twenty grain delivery tickets, and open it both ways: once by double-clicking, and once in a text editor.  The ones that go wrong:
 
-- Leading zeros disappear.  An ID like `00451` becomes `451`, and a Saskatchewan RM number
-  or a postal code loses its shape.
-- Long numbers turn into scientific notation.  A 16-digit account number displays as
-  `1.23E+15`, and the last digits are rounded away for good.
-- Anything that looks like a date becomes one.  `3-4` becomes March 4th, and the gene name
-  `MARCH1` became a date often enough that geneticists renamed the gene.
-- On a computer set to a European locale, a semicolon-separated file lands entirely in
-  column A, and `1.5` is read as text because the decimal mark is expected to be a comma.
+- Leading zeros disappear.  An ID like `00451` becomes `451`, and a Saskatchewan RM number or a postal code loses its shape.
+- Long numbers turn into scientific notation.  A 16-digit account number displays as `1.23E+15`, and the last digits are rounded away for good.
+- Anything that looks like a date becomes one.  `3-4` becomes March 4th, and the gene name `MARCH1` became a date often enough that geneticists renamed the gene.
+- On a computer set to a European locale, a semicolon-separated file lands entirely in column A, and `1.5` is read as text because the decimal mark is expected to be a comma.
 
-In the tickets file, `ticket_id` loses its zeros, `permit_book` becomes `4.52E+15`, and a
-`lot_code` of `3-2` turns into 2-Mar.
+In the tickets file, `ticket_id` loses its zeros, `permit_book` becomes `4.52E+15`, and a `lot_code` of `3-2` turns into 2-Mar.
 
 <!-- Screenshot: elevator_tickets.csv opened by double-clicking. Show columns A-C.
 ![The tickets file opened by double-clicking. Ticket `00001` has become `1`, the permit book
 number is in scientific notation, and lot `3-2` is now a date.](images/csv_doubleclick.png){#fig-csv-doubleclick}
 -->
 
-None of this matters if you only look.  It matters when you save, because Excel writes its
-guesses back over the original file.  Two tools avoid it.
+None of this matters if you only look.  It matters when you save, because Excel writes its guesses back over the original file.  Two tools avoid it.
 
-**Text to Columns** fixes a file after it has opened.
-[`elevator_tickets_semicolon.csv`](practice/data/elevator_tickets_semicolon.csv) is the
-same twenty tickets as a European-style file: semicolons between columns and commas for
-decimals.  Double-clicked, the whole thing lands in column A.  Select the column, choose
-**Data > Text to Columns**, pick **Delimited**, tick the separator the file uses, and the last
-step of the wizard lets you set each column to Text, Date or General, which is the fix for
-leading zeros and for dates as well.  **Advanced** on that step is where you tell it the
-decimal mark is a comma, so `27,4` becomes 27.4 rather than 274.  The same tool splits a
-column that holds two values, like `"Swift Current, SK"`, into a town and a province.
+**Text to Columns** fixes a file after it has opened. [`elevator_tickets_semicolon.csv`](practice/data/elevator_tickets_semicolon.csv) is the same twenty tickets as a European-style file: semicolons between columns and commas for decimals.  Double-clicked, the whole thing lands in column A.  Select the column, choose **Data > Text to Columns**, pick **Delimited**, tick the separator the file uses, and the last step of the wizard lets you set each column to Text, Date or General, which is the fix for leading zeros and for dates as well.  **Advanced** on that step is where you tell it the decimal mark is a comma, so `27,4` becomes 27.4 rather than 274.  The same tool splits a column that holds two values, like `"Swift Current, SK"`, into a town and a province.
 
 <!-- Screenshot: Text to Columns step 3 with ticket_id selected and Text chosen; or the
 Advanced dialog showing decimal separator set to comma.
 ![Step 3 of Text to Columns: each column gets a type, and **Advanced** sets the decimal mark.](images/csv_text_to_columns.png){#fig-csv-text-to-columns}
 -->
 
-**Power Query** gets the file right on the way in, and does a good deal more, so it gets its
-own section.
+**Power Query** gets the file right on the way in, and does a good deal more, so it gets its own section.
 
 ### Power Query {#sec-power-query}
 
-Power Query is the import tool built into Excel, under **Data > Get Data**.  It reads a
-source, shows a preview, lets you fix the columns, and then loads the result onto a sheet.
-It is the closest thing Excel has to the reading functions in R, for two reasons.  It lets
-you set each column's type before anything is loaded.  And it records every step you take,
-so when the source changes you press **Refresh** and the same steps run again on the new
-data.
+Power Query is the import tool built into Excel, under **Data > Get Data**.  It reads a source, shows a preview, lets you fix the columns, and then loads the result onto a sheet. It is the closest thing Excel has to the reading functions in R, for two reasons.  It lets you set each column's type before anything is loaded.  And it records every step you take, so when the source changes you press **Refresh** and the same steps run again on the new data.
 
-For a file, choose **Get Data > From Text/CSV** (on a Mac, **Get Data (Power Query)**) and
-pick the file.  The preview shows the delimiter it detected and the first rows.  Press
-**Transform Data** to open the editor, where the type of each column is shown in its header:
-click it to change `ticket_id` and `permit_book` to Text, so the zeros and the long number
-survive.  **Close & Load** puts the table on a sheet.
+For a file, choose **Get Data > From Text/CSV** (on a Mac, **Get Data (Power Query)**) and pick the file.  The preview shows the delimiter it detected and the first rows.  Press **Transform Data** to open the editor, where the type of each column is shown in its header: click it to change `ticket_id` and `permit_book` to Text, so the zeros and the long number survive.  **Close & Load** puts the table on a sheet.
 
 <!-- Screenshot: the Power Query preview for elevator_tickets.csv, ideally with the
 ticket_id column type dropdown open showing Text.
 ![The import preview.  Set `ticket_id`, `permit_book` and `lot_code` to Text before loading.](images/csv_getdata.png){#fig-csv-getdata}
 -->
 
-For a file behind a link, choose **Get Data > From Web** and paste the address.  The RM yields
-URL above works as it is: Power Query fetches the CSV and shows the same preview.  The
-address is stored with the query, so Refresh fetches the current file.
+For a file behind a link, choose **Get Data > From Web** and paste the address.  The RM yields URL above works as it is: Power Query fetches the CSV and shows the same preview.  The address is stored with the query, so Refresh fetches the current file.
 
-For an API, the same **From Web** with the Open-Meteo URL.  The server answers with JSON, and
-Power Query opens it as a tree of records rather than a table.  Click into `daily`, then
-**Convert > Into Table**, then the expand button in the column header to split the lists
-into rows, and the five days of precipitation are a two-column table.  It takes some
-clicking the first time; the steps are recorded, so the second time is Refresh.
+For an API, the same **From Web** with the Open-Meteo URL.  The server answers with JSON, and Power Query opens it as a tree of records rather than a table.  Click into `daily`, then **Convert > Into Table**, then the expand button in the column header to split the lists into rows, and the five days of precipitation are a two-column table.  It takes some clicking the first time; the steps are recorded, so the second time is Refresh.
 
-Save the workbook as `.xlsx` if you want to keep the types, the formatting and the query.
-Saving as CSV throws them all away again.
+Save the workbook as `.xlsx` if you want to keep the types, the formatting and the query. Saving as CSV throws them all away again.
 
 ## Getting Data into R {#sec-r-getting}
 
@@ -210,8 +123,7 @@ library(tidyverse)
 deliveries <- read_csv("data/deliveries.csv")
 ```
 
-`read_tsv()` reads a tab-separated file, and anything else goes through `read_delim()`
-with the separator spelled out:
+`read_tsv()` reads a tab-separated file, and anything else goes through `read_delim()` with the separator spelled out:
 
 ```r
 prices <- read_tsv("data/prices.tsv")
@@ -220,8 +132,7 @@ prices <- read_delim("data/prices.txt", delim = ";")
 
 ### Check what R guessed {#sec-col-types}
 
-`read_csv()` guesses each column's type from the first thousand values and reports what it
-decided:
+`read_csv()` guesses each column's type from the first thousand values and reports what it decided:
 
 ```
 Rows: 62 Columns: 6
@@ -232,10 +143,7 @@ dbl  (3): weight_tonnes, moisture, price
 date (1): delivery_date
 ```
 
-The guess is usually right, and wrong in one particular way that matters: a numeric column
-that contains a single text value comes in as text.  A weight typed as `"38.2 t"` with the
-unit in the cell will do it, as will `"N/A"` or a footnote marker.  Once the column is text,
-`mean()` fails, and `arrange()` sorts alphabetically, which puts 100 between 10 and 11.
+The guess is usually right, and wrong in one particular way that matters: a numeric column that contains a single text value comes in as text.  A weight typed as `"38.2 t"` with the unit in the cell will do it, as will `"N/A"` or a footnote marker.  Once the column is text, `mean()` fails, and `arrange()` sorts alphabetically, which puts 100 between 10 and 11.
 
 `glimpse()` shows the same information with a few values of each column alongside:
 
@@ -251,11 +159,9 @@ deliveries |>
   select(ticket_id, weight_tonnes)
 ```
 
-That returns the rows R could not read as a number.  Fixing them is @sec-cleaning; the point
-here is to notice on arrival rather than three steps later, when a summary comes back wrong.
+That returns the rows R could not read as a number.  Fixing them is @sec-cleaning; the point here is to notice on arrival rather than three steps later, when a summary comes back wrong.
 
-You can also state the types instead of letting R guess, which is what the column types in
-Power Query do:
+You can also state the types instead of letting R guess, which is what the column types in Power Query do:
 
 ```r
 deliveries <- read_csv("data/deliveries.csv",
@@ -265,13 +171,11 @@ deliveries <- read_csv("data/deliveries.csv",
                        ))
 ```
 
-For a file you read repeatedly this is worth doing.  It documents what you expect, and it
-fails loudly when the file changes rather than doing something else without telling you.
+For a file you read repeatedly this is worth doing.  It documents what you expect, and it fails loudly when the file changes rather than doing something else without telling you.
 
 ### Excel files {#sec-readxl}
 
-The tidyverse package for reading `.xlsx` files is **readxl**.  It installs with the
-tidyverse but is not loaded by `library(tidyverse)`, so load it separately:
+The tidyverse package for reading `.xlsx` files is **readxl**.  It installs with the tidyverse but is not loaded by `library(tidyverse)`, so load it separately:
 
 ```r
 library(readxl)
@@ -279,8 +183,7 @@ library(readxl)
 deliveries <- read_excel("data/deliveries.xlsx")
 ```
 
-A workbook can hold several sheets, and `read_excel()` takes the first one unless you say
-otherwise.  Check what is in the file before assuming:
+A workbook can hold several sheets, and `read_excel()` takes the first one unless you say otherwise.  Check what is in the file before assuming:
 
 ```r
 excel_sheets("data/deliveries.xlsx")
@@ -290,21 +193,17 @@ excel_sheets("data/deliveries.xlsx")
 [1] "Notes"  "2024"  "2025"  "Summary"
 ```
 
-The first sheet here is a page of notes, so reading the file without checking would hand you
-that instead of the data.  Ask for the sheet you want, by name or number:
+The first sheet here is a page of notes, so reading the file without checking would hand you that instead of the data.  Ask for the sheet you want, by name or number:
 
 ```r
 deliveries <- read_excel("data/deliveries.xlsx", sheet = "2025")
 ```
 
-`read_excel()` guesses column types the same way `read_csv()` does, and the same check
-applies.
+`read_excel()` guesses column types the same way `read_csv()` does, and the same check applies.
 
 ### When the header is not on row 1 {#sec-skip-rows}
 
-Spreadsheets built by people usually have something above the table: a title, a note about
-units, a blank row or two.  R takes the first row as column names regardless, which produces
-something like this:
+Spreadsheets built by people usually have something above the table: a title, a note about units, a blank row or two.  R takes the first row as column names regardless, which produces something like this:
 
 ```
 # A tibble: 62 x 6
@@ -314,20 +213,17 @@ something like this:
 2 Ticket                          Date   Crop   Weight
 ```
 
-Column names like `...2` and a first row of `NA` mean the real header is further down.  Count
-the rows above it and skip them:
+Column names like `...2` and a first row of `NA` mean the real header is further down.  Count the rows above it and skip them:
 
 ```r
 deliveries <- read_excel("data/deliveries.xlsx", sheet = "2025", skip = 3)
 ```
 
-`read_csv()` takes the same argument.  Print the object after reading it either way; the
-shape of what comes back is the quickest check that you read the right thing.
+`read_csv()` takes the same argument.  Print the object after reading it either way; the shape of what comes back is the quickest check that you read the right thing.
 
 ### Direct downloads {#sec-direct-download}
 
-`read_csv()` accepts a URL in place of a file path, so the RM yields can be read straight
-from the dashboard:
+`read_csv()` accepts a URL in place of a file path, so the RM yields can be read straight from the dashboard:
 
 ```r
 rm_yields <- read_csv("https://dashboard.saskatchewan.ca/export/rm-yields-data/4950.csv")
@@ -345,15 +241,9 @@ $ `Spring Wheat` <dbl> 4, 9, 12, 18, 20, 21, 20, 16, 13, 15, 16, 18, 18, …
 ...
 ```
 
-One row per RM per year, and one column per crop.  The column names have spaces in them,
-which is why `Winter Wheat` is printed in backticks; `clean_names()` (@sec-clean-names) deals
-with that.  And the table is wide, one column per crop, where most of what we do later wants
-it long, one row per RM-year-crop.  That is @sec-reshaping.  The units are not in the file at
-all; they are on the dashboard page the link came from, so note them before you leave the page.
+One row per RM per year, and one column per crop.  The column names have spaces in them, which is why `Winter Wheat` is printed in backticks; `clean_names()` (@sec-clean-names) deals with that.  And the table is wide, one column per crop, where most of what we do later wants it long, one row per RM-year-crop.  That is @sec-reshaping.  The units are not in the file at all; they are on the dashboard page the link came from, so note them before you leave the page.
 
-Reading straight from the URL is convenient and has a problem: the file can change or
-disappear, and then your script stops working or gives different answers.  The habit to build
-is to download once, keep the copy, and read from the copy:
+Reading straight from the URL is convenient and has a problem: the file can change or disappear, and then your script stops working or gives different answers.  The habit to build is to download once, keep the copy, and read from the copy:
 
 ```r
 download.file("https://dashboard.saskatchewan.ca/export/rm-yields-data/4950.csv",
@@ -366,8 +256,7 @@ The download date goes in the README (@sec-readme).
 
 ### Calling an API {#sec-api-r}
 
-The Open-Meteo request from @sec-apis is a URL, and the answer is JSON.  The **jsonlite**
-package turns JSON into R objects:
+The Open-Meteo request from @sec-apis is a URL, and the answer is JSON.  The **jsonlite** package turns JSON into R objects:
 
 ```r
 library(jsonlite)
@@ -383,38 +272,22 @@ saskatoon_rain <- tibble(date   = as.Date(answer$daily$time),
                          precip = answer$daily$precipitation_sum)
 ```
 
-Building the URL with `paste0()` keeps each choice on its own line, so changing the dates
-or the location is an edit to one line.  What comes back is a nested list; `answer$daily`
-holds the two vectors we want, and `tibble()` puts them side by side.  Every API's JSON is
-shaped differently, so the first time you use one, run `str(answer)` and look.
+Building the URL with `paste0()` keeps each choice on its own line, so changing the dates or the location is an edit to one line.  What comes back is a nested list; `answer$daily` holds the two vectors we want, and `tibble()` puts them side by side.  Every API's JSON is shaped differently, so the first time you use one, run `str(answer)` and look.
 
 ### R packages for data {#sec-data-packages}
 
-Where a package exists for the provider, it does the URL-building and the JSON-unpacking
-for you.  Most Canadian agricultural data starts at Statistics Canada, and the package for it
-is **cansim**, which pulls a table by its table number:
+Where a package exists for the provider, it does the URL-building and the JSON-unpacking for you.  Most Canadian agricultural data starts at Statistics Canada, and the package for it is **cansim**, which pulls a table by its table number:
 
 ```r
 library(cansim)
 wheat <- get_cansim("32-10-0359-01")
 ```
 
-You can instead get the same table from the StatCan website: find the table, use
-**Add/Remove data** to choose years, geographies and commodities, then **Download** as CSV.
-The package is better for two reasons.  The table number is recorded in the script, so the
-analysis is re-runnable when the data is revised.  And there are no clicks to forget: anyone
-running the script gets the same table, where a selection made on the website lives in a
-series of choices you will not remember next month.  If you do download from the website,
-download the whole table and filter in R.
+You can instead get the same table from the StatCan website: find the table, use **Add/Remove data** to choose years, geographies and commodities, then **Download** as CSV. The package is better for two reasons.  The table number is recorded in the script, so the analysis is re-runnable when the data is revised.  And there are no clicks to forget: anyone running the script gets the same table, where a selection made on the website lives in a series of choices you will not remember next month.  If you do download from the website, download the whole table and filter in R.
 
-Either way, record the date.  StatCan revises past figures as better information arrives, so
-the same table downloaded twice can differ.  When your numbers disagree with somebody else's,
-this is usually why.
+Either way, record the date.  StatCan revises past figures as better information arrives, so the same table downloaded twice can differ.  When your numbers disagree with somebody else's, this is usually why.
 
-What comes back still needs the usual work.  StatCan's column names have spaces and
-capitals, so `clean_names()` again.  The data is long, one row per year-geography-commodity
-combination, and a website download also has metadata rows above and below the table and
-footnote markers stuck to numbers.  Filter to what you want in R:
+What comes back still needs the usual work.  StatCan's column names have spaces and capitals, so `clean_names()` again.  The data is long, one row per year-geography-commodity combination, and a website download also has metadata rows above and below the table and footnote markers stuck to numbers.  Filter to what you want in R:
 
 ```r
 library(janitor)
@@ -425,8 +298,7 @@ sask_wheat <- wheat |>
          harvest_disposition == "Average yield (kilograms per hectare)")
 ```
 
-(The column and category names differ by table; run `glimpse()` and `count()` on the columns
-to see what a new table contains.)
+(The column and category names differ by table; run `glimpse()` and `count()` on the columns to see what a new table contains.)
 
 The USDA's **rnassqs** works the same way for QuickStats, with one extra step for the key:
 
@@ -440,16 +312,11 @@ us_canola <- nassqs(commodity_desc = "CANOLA",
                     year = 2015:2025)
 ```
 
-The parameter names take some finding.  The practical approach is to build the query you want
-on the [QuickStats website](https://quickstats.nass.usda.gov/) first -- its dropdown menus use
-the same field names -- and then mirror the choices in code.  If the API defeats you, the
-website also has a plain **Spreadsheet** download button, and reading that file is the same
-skill as @sec-skip-rows.
+The parameter names take some finding.  The practical approach is to build the query you want on the [QuickStats website](https://quickstats.nass.usda.gov/) first -- its dropdown menus use the same field names -- and then mirror the choices in code.  If the API defeats you, the website also has a plain **Spreadsheet** download button, and reading that file is the same skill as @sec-skip-rows.
 
 ## Say Where It Came From {#sec-readme}
 
-Every project gets a `README.md` at the top of the folder, saying what the project is and where
-the data came from.  It does not need to be long.
+Every project gets a `README.md` at the top of the folder, saying what the project is and where the data came from.  It does not need to be long.
 
 ```
 # Canola yields and growing-season rain
@@ -471,8 +338,4 @@ Scripts
   R/02_merge.R      joins the three tables
 ```
 
-The source and the download date are the parts that matter.  A file called
-`yields_final.csv` with no provenance is close to useless a year later: you cannot tell whether
-it is the 2024 or the 2025 release, whether you already cleaned it, or whether the numbers were
-revised after you downloaded them.  Statistics Canada revises past figures, so "downloaded
-2026-08-18" is doing real work.
+The source and the download date are the parts that matter.  A file called `yields_final.csv` with no provenance is close to useless a year later: you cannot tell whether it is the 2024 or the 2025 release, whether you already cleaned it, or whether the numbers were revised after you downloaded them.  Statistics Canada revises past figures, so "downloaded 2026-08-18" is doing real work.
