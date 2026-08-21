@@ -539,10 +539,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#select-keep-certain-columns" id="toc-select-keep-certain-columns" class="nav-link" data-scroll-target="#select-keep-certain-columns"><span class="header-section-number">6.1.3</span> <code>select()</code>: Keep Certain Columns</a></li>
   <li><a href="#mutate-create-or-change-columns" id="toc-mutate-create-or-change-columns" class="nav-link" data-scroll-target="#mutate-create-or-change-columns"><span class="header-section-number">6.1.4</span> <code>mutate()</code>: Create or Change Columns</a></li>
   </ul></li>
-  <li><a href="#sec-pipe" id="toc-sec-pipe" class="nav-link" data-scroll-target="#sec-pipe"><span class="header-section-number">6.2</span> The Pipe <code>|&gt;</code></a>
-  <ul>
-  <li><a href="#debugging-a-pipeline" id="toc-debugging-a-pipeline" class="nav-link" data-scroll-target="#debugging-a-pipeline">Debugging a pipeline</a></li>
-  </ul></li>
+  <li><a href="#sec-pipe" id="toc-sec-pipe" class="nav-link" data-scroll-target="#sec-pipe"><span class="header-section-number">6.2</span> The Pipe <code>|&gt;</code></a></li>
   <li><a href="#sec-summarise-group" id="toc-sec-summarise-group" class="nav-link" data-scroll-target="#sec-summarise-group"><span class="header-section-number">6.3</span> <code>summarise()</code> and <code>group_by()</code></a>
   <ul>
   <li><a href="#summarise-many-rows-become-one" id="toc-summarise-many-rows-become-one" class="nav-link" data-scroll-target="#summarise-many-rows-become-one"><span class="header-section-number">6.3.1</span> <code>summarise()</code>: Many Rows Become One</a></li>
@@ -550,6 +547,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </ul></li>
   <li><a href="#sec-writing-output" id="toc-sec-writing-output" class="nav-link" data-scroll-target="#sec-writing-output"><span class="header-section-number">6.4</span> Writing Output</a></li>
   <li><a href="#sec-dplyr-combining" id="toc-sec-dplyr-combining" class="nav-link" data-scroll-target="#sec-dplyr-combining"><span class="header-section-number">6.5</span> Combining It All</a></li>
+  <li><a href="#sec-debugging" id="toc-sec-debugging" class="nav-link" data-scroll-target="#sec-debugging"><span class="header-section-number">6.6</span> Debugging</a>
+  <ul>
+  <li><a href="#reading-error-messages" id="toc-reading-error-messages" class="nav-link" data-scroll-target="#reading-error-messages">Reading error messages</a></li>
+  <li><a href="#the-wrong-answer-with-no-error" id="toc-the-wrong-answer-with-no-error" class="nav-link" data-scroll-target="#the-wrong-answer-with-no-error">The wrong answer with no error</a></li>
+  <li><a href="#when-you-are-still-stuck" id="toc-when-you-are-still-stuck" class="nav-link" data-scroll-target="#when-you-are-still-stuck">When you are still stuck</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -635,6 +638,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>Use <code>group_by()</code> with <code>summarise()</code> to calculate statistics separately for groups.</li>
 <li>Read a longer pipeline from top to bottom and explain what each step does.</li>
 <li>Save a result to a CSV file.</li>
+<li>Read an R error message and track down what caused it.</li>
 </ol>
 </div>
 </section>
@@ -1204,10 +1208,6 @@ dbl (3): fertilizer_kg_ha, rainfall_mm, yield_bu_acre
 </div>
 </div>
 </div>
-<section id="debugging-a-pipeline" class="level3 unnumbered">
-<h3 class="unnumbered anchored" data-anchor-id="debugging-a-pipeline">Debugging a pipeline</h3>
-<p>Pipelines also give you a way to debug. When a pipeline produces a result that looks wrong, do not stare at the whole thing and guess. Run it one step at a time: run the first step alone, check the result, add the second step, check again, and keep going.</p>
-</section>
 </section>
 <section id="sec-summarise-group" class="level2" data-number="6.3">
 <h2 data-number="6.3" class="anchored" data-anchor-id="sec-summarise-group"><span class="header-section-number">6.3</span> <code>summarise()</code> and <code>group_by()</code></h2>
@@ -1408,6 +1408,70 @@ dbl (3): fertilizer_kg_ha, rainfall_mm, yield_bu_acre
 <li><strong>Sort</strong> from highest mean yield to lowest.</li>
 </ol>
 <p>Each line does one simple thing, and that is the reason for pipes: a good pipeline makes the logic of an analysis visible. Saving the table is one more line: <code>write_csv(variety_summary_100, "output/variety_summary_100.csv")</code>.</p>
+</section>
+<section id="sec-debugging" class="level2" data-number="6.6">
+<h2 data-number="6.6" class="anchored" data-anchor-id="sec-debugging"><span class="header-section-number">6.6</span> Debugging</h2>
+<p>Your code will break. That is normal – everyone’s does – and finding the problem is a skill of its own. It has two parts: reading what R tells you, and narrowing down where things went wrong.</p>
+<section id="reading-error-messages" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="reading-error-messages">Reading error messages</h3>
+<p>R’s error messages name the problem more precisely than they first appear to. Here are the three you will meet most often, each with its usual cause.</p>
+<p>A misspelled function name (or a package you forgot to load):</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="fu">quantle</span>(trial_data<span class="sc">$</span>yield_bu_acre, <span class="fl">0.5</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; quantle(trial_data$yield_bu_acre, 0.5)
+Error: could not find function "quantle"</code></pre>
+</div>
+</div>
+</div>
+<p>R is exact about names – <code>quantle</code> is not <code>quantile</code>, and no amount of context will make R guess. The same message appears when the function is spelled correctly but its package is not loaded; then the fix is <code>library(tidyverse)</code>.</p>
+<p>A misspelled object name, or an object that was never created:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(trial_dta<span class="sc">$</span>yield_bu_acre)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; mean(trial_dta$yield_bu_acre)
+Error: object 'trial_dta' not found</code></pre>
+</div>
+</div>
+</div>
+<p>Check the Variables pane: is the object there, spelled exactly that way? If it is missing entirely, the line that creates it has not been run – which often means the script was not run from the top.</p>
+<p>Using <code>=</code> where <code>==</code> belongs:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(trial_data, <span class="at">variety =</span> <span class="st">"InVigor"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; filter(trial_data, variety = "InVigor")
+Error: We detected a named input.
+ℹ This usually means that you've used `=` instead of `==`.
+ℹ Did you mean `variety == "InVigor"`?</code></pre>
+</div>
+</div>
+</div>
+<p>This one diagnoses itself – the message even suggests the fix.</p>
+</section>
+<section id="the-wrong-answer-with-no-error" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="the-wrong-answer-with-no-error">The wrong answer with no error</h3>
+<p>The harder case is code that runs and returns something wrong. R is exact about the <em>values</em> in the data too:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(trial_data, variety <span class="sc">==</span> <span class="st">"invigor"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; filter(trial_data, variety == "invigor")
+# A tibble: 0 × 8
+# ℹ 8 variables: field_id &lt;chr&gt;, fertilizer_kg_ha &lt;dbl&gt;, rainfall_mm &lt;dbl&gt;,
+#   variety &lt;chr&gt;, yield_bu_acre &lt;dbl&gt;, yield_t_ha &lt;dbl&gt;, rainfall_cm &lt;dbl&gt;,
+#   kg_n_per_bu &lt;dbl&gt;</code></pre>
+</div>
+</div>
+</div>
+<p>No error – just zero rows, because no variety is spelled <code>"invigor"</code> with a small i. A comparison matches text exactly, capitals included.</p>
+<p>For a pipeline that produces a wrong-looking result, do not stare at the whole thing and guess. Run it one step at a time: run the first step alone, check the result, add the second step, check again, and keep going. The first point where the data stops looking the way you expect is where the problem is.</p>
+</section>
+<section id="when-you-are-still-stuck" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="when-you-are-still-stuck">When you are still stuck</h3>
+<p>Restart R and run the script from the top in a fresh session. A surprising number of problems are order problems: the script depends on an object that was created in the console, or on an earlier version of a data frame that has since been overwritten. A script that works from a clean start (<a href="module02a.html#sec-good-scripts" class="quarto-xref"><span>Section 4.6</span></a>) has none of these.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
@@ -1430,6 +1494,7 @@ dbl (3): fertilizer_kg_ha, rainfall_mm, yield_bu_acre
 </div>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->
