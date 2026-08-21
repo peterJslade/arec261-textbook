@@ -32,7 +32,7 @@ def rm_wide():
 
 
 def rm_long():
-    return list(csv.DictReader(open(f"{DATA}/rm_yields_1990plus_long.csv")))
+    return list(csv.DictReader(open(f"{DATA}/rm_yields_1990_2025.csv")))
 
 
 def mb_wheat():

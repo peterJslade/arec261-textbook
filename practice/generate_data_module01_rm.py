@@ -17,7 +17,7 @@ This writes TWO files, the same data in two shapes (see Module 1's
                                    column. Used for descriptive stats/lookups.
       [A] Year [B] RM [C] Spring Wheat [D] Durum [E] Canola
       [F] Barley [G] Oats [H] Peas [I] Lentils [J] Flax
-  * rm_yields_1990plus_long.csv  — LONG: one row per RM-year-crop, with a
+  * rm_yields_1990_2025.csv  — LONG: one row per RM-year-crop, with a
                                    Crop column and a Unit column. Used for
                                    PivotTables (grouping by crop). Blank
                                    (non-observed) cells become absent rows.
@@ -48,7 +48,7 @@ os.makedirs(DATA_DIR, exist_ok=True)
 
 SOURCE_URL = "https://dashboard.saskatchewan.ca/export/rm-yields-data/4950.csv"
 OUT_PATH = os.path.join(DATA_DIR, "rm_yields_1990plus.csv")
-OUT_PATH_LONG = os.path.join(DATA_DIR, "rm_yields_1990plus_long.csv")
+OUT_PATH_LONG = os.path.join(DATA_DIR, "rm_yields_1990_2025.csv")
 
 MIN_YEAR = 1990
 CROPS = [

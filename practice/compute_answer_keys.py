@@ -14,7 +14,7 @@ refresh; values are stated in the bank as "as of the current snapshot".
 
 Datasets:
   data/rm_yields_1990plus.csv       (wide)  — SK RM crop yields
-  data/rm_yields_1990plus_long.csv  (long)  — same, stacked by crop
+  data/rm_yields_1990_2025.csv  (long)  — same, stacked by crop
   data/mb_wheat_varieties.csv               — MB wheat by variety
   data/statcan_field_crops.csv              — Canada field crops by province
 """
@@ -116,7 +116,7 @@ def hr(title):
 # ============================ SK RM YIELDS ============================
 hr("DATASET 1 — SK RM crop yields (wide + long)")
 wide = load("rm_yields_1990plus.csv")
-lng = load("rm_yields_1990plus_long.csv")
+lng = load("rm_yields_1990_2025.csv")
 
 print("\n[Sec 1 Descriptive] Canola 2023 (wide col E):")
 describe("Canola 2023", nums(wide, "Canola", lambda r: r["Year"] == "2023"))

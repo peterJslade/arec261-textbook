@@ -17,8 +17,8 @@ Expand each **Answer** block to check your work. Every value has been computed f
 
 **The data.** Two files, both in your project's `data/` folder:
 
-- [`rm_canola_1990plus.csv`](data/rm_canola_1990plus.csv) -- average **canola** yield in every Saskatchewan Rural Municipality, 1990--2025, one row per RM-year. **Section 2** uses this file: one crop, one unit, so its summary statistics mean something.
-- [`rm_yields_1990plus_long.csv`](data/rm_yields_1990plus_long.csv) -- the same data for all **eight crops**, one row per RM-year-crop. **Sections 3 and 4** use this file. You worked with the wide version in Module 1; this is the long form, with `Crop` as a variable. **Lentils are recorded in pounds per acre; every other crop is in bushels per acre** -- the `Unit` column says which, and several questions turn on it.
+- [`rm_canola_yields_1990_2025.csv`](data/rm_canola_yields_1990_2025.csv) -- average **canola** yield in every Saskatchewan Rural Municipality, 1990--2025, one row per RM-year. **Section 2** uses this file: one crop, one unit, so its summary statistics mean something.
+- [`rm_yields_1990_2025.csv`](data/rm_yields_1990_2025.csv) -- the same data for all **eight crops**, one row per RM-year-crop. **Sections 3 and 4** use this file. You worked with the wide version in Module 1; this is the long form, with `Crop` as a variable. **Lentils are recorded in pounds per acre; every other crop is in bushels per acre** -- the `Unit` column says which, and several questions turn on it.
 
 Both files have the same five columns: `Year`, `RM`, `Crop`, `Yield`, `Unit`.
 
@@ -82,7 +82,7 @@ total_bu / sum(acres)    # 50.35 bu/ac
 # ============================================================
 
 # Read the canola file using a relative path from the project folder
-rm_canola <- read_csv("data/rm_canola_1990plus.csv")
+rm_canola <- read_csv("data/rm_canola_yields_1990_2025.csv")
 
 # Centre and spread of the canola yields
 mean(rm_canola$Yield)      # 28.29 bu/ac
@@ -101,7 +101,7 @@ quantile(rm_canola$Yield, 0.9)   # 42.5 bu/ac
 # ============================================================
 
 # Read the full eight-crop file
-rm_yields <- read_csv("data/rm_yields_1990plus_long.csv")
+rm_yields <- read_csv("data/rm_yields_1990_2025.csv")
 
 # Keep only the lentil rows
 lentils <- filter(rm_yields, Crop == "Lentils")
@@ -395,7 +395,7 @@ trial
 
 # Section 2 — Reading and Inspecting Data
 
-*These questions use the canola-only file, [`rm_canola_1990plus.csv`](data/rm_canola_1990plus.csv), in your project's `data/` folder. Answer in the Section 2 block of your script.*
+*These questions use the canola-only file, [`rm_canola_yields_1990_2025.csv`](data/rm_canola_yields_1990_2025.csv), in your project's `data/` folder. Answer in the Section 2 block of your script.*
 
 ### Question 11
 
@@ -411,7 +411,7 @@ trial
 
 ```r
 library(tidyverse)
-rm_canola <- read_csv("data/rm_canola_1990plus.csv")
+rm_canola <- read_csv("data/rm_canola_yields_1990_2025.csv")
 nrow(rm_canola); ncol(rm_canola); names(rm_canola)
 ```
 
@@ -424,7 +424,7 @@ nrow(rm_canola); ncol(rm_canola); names(rm_canola)
 A classmate's script reads the data like this:
 
 ```r
-rm_canola <- read_csv("C:\\Users\\jordan\\Desktop\\stats stuff\\rm_canola_1990plus.csv")
+rm_canola <- read_csv("C:\\Users\\jordan\\Desktop\\stats stuff\\rm_canola_yields_1990_2025.csv")
 ```
 
 It runs on their laptop and fails on everyone else's.
@@ -438,7 +438,7 @@ It runs on their laptop and fails on everyone else's.
 <details><summary>Answer</summary>
 
 - (a) The absolute path names one specific machine (user `jordan`, a Desktop folder), so it exists nowhere else; and backslashes mean something special inside an R string -- paths in R use forward slashes even on Windows.
-- (b) `rm_canola <- read_csv("data/rm_canola_1990plus.csv")`.
+- (b) `rm_canola <- read_csv("data/rm_canola_yields_1990_2025.csv")`.
 - (c) Opening the project folder in Positron (**File → Open Folder…**) makes that folder R's starting point, so relative paths begin from it.
 </details>
 
@@ -450,7 +450,7 @@ You organized the course as one big folder and opened `AREC_261/` in Positron:
 AREC_261/
   module_2/
     data/
-      rm_canola_1990plus.csv
+      rm_canola_yields_1990_2025.csv
     code/
   README.md
 ```
@@ -463,9 +463,9 @@ AREC_261/
 
 <details><summary>Answer</summary>
 
-- (a) `rm_canola <- read_csv("module_2/data/rm_canola_1990plus.csv")`.
-- (b) The starting point changed: relative paths begin at the folder you opened. With `module_2/` open, the path is `data/rm_canola_1990plus.csv`.
-- (c) From `AREC_261`, R goes into `module_2`, then into `data`, and finds `rm_canola_1990plus.csv` -- each `/` steps into a subfolder.
+- (a) `rm_canola <- read_csv("module_2/data/rm_canola_yields_1990_2025.csv")`.
+- (b) The starting point changed: relative paths begin at the folder you opened. With `module_2/` open, the path is `data/rm_canola_yields_1990_2025.csv`.
+- (c) From `AREC_261`, R goes into `module_2`, then into `data`, and finds `rm_canola_yields_1990_2025.csv` -- each `/` steps into a subfolder.
 </details>
 
 ### Question 14
@@ -522,7 +522,7 @@ quantile(rm_canola$Yield, 0.9)
 
 ### Question 17
 
-Open `rm_canola_1990plus.csv` in Positron's data viewer (click the file in the Explorer pane).
+Open `rm_canola_yields_1990_2025.csv` in Positron's data viewer (click the file in the Explorer pane).
 
 **(a)** In a comment: what percentage of values are missing in each column, according to the viewer?
 
@@ -559,7 +559,7 @@ IQR(rm_canola$Yield)
 
 ### Question 19
 
-A classmate's fresh R session runs `rm_yields <- read_csv("data/rm_yields_1990plus_long.csv")` and gets:
+A classmate's fresh R session runs `rm_yields <- read_csv("data/rm_yields_1990_2025.csv")` and gets:
 
 ```
 Error in read_csv(...) : could not find function "read_csv"
@@ -599,7 +599,7 @@ You spot an obviously wrong yield value in the csv. A classmate suggests opening
 
 # Section 3 — Data Manipulation Functions
 
-*From here on, use the full eight-crop file: read [`rm_yields_1990plus_long.csv`](data/rm_yields_1990plus_long.csv) into an object called `rm_yields` at the start of your Section 3 block. These questions use one function at a time; save intermediate results to objects where a later part needs them.*
+*From here on, use the full eight-crop file: read [`rm_yields_1990_2025.csv`](data/rm_yields_1990_2025.csv) into an object called `rm_yields` at the start of your Section 3 block. These questions use one function at a time; save intermediate results to objects where a later part needs them.*
 
 ### Question 21
 

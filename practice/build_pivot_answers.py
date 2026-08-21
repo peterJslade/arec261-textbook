@@ -20,7 +20,7 @@ from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font, PatternFill, Alignment
 
 DATA, OUT = "practice/data", "practice/answers"
-FILES = {"rm_long": "rm_yields_1990plus_long.csv",
+FILES = {"rm_long": "rm_yields_1990_2025.csv",
          "mb":      "mb_wheat_varieties.csv",
          "sc":      "statcan_field_crops.csv"}
 NUMCOL = {"rm_long": {"Yield"},
