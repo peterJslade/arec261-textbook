@@ -3,22 +3,124 @@
 ::: {.callout-note}
 ## How this test bank works
 
-This bank holds **40 questions**, ten in each section. Section 1 gives you the data inside the question; Sections 2--4 use the **Saskatchewan RM Crop Yields (long)** dataset. On the real test you receive **four questions -- one from each section** -- and you submit a **zipped project folder** containing `data/` (the csv, exactly as downloaded) and `code/` with **one R script per section** (`1_basics.R`, `2_reading.R`, `3_manipulation.R`, `4_pipelines.R`). Each question is designed to take about **8--10 minutes**.
+This bank holds **40 questions**, ten in each section. Section 1 gives you the data inside the question; Sections 2--4 use the **Saskatchewan RM Crop Yields (long)** dataset. On the real test you receive **four questions -- one from each section** -- and you submit **a single, well-commented R script**: a header block at the top, a clearly labelled section for each question, and your sentence answers written as comments. The script should run from top to bottom in a project folder that has the csv in `data/`. Each question is designed to take about **8--10 minutes**.
 
 Expand each **Answer** block to check your work. Every value has been computed from the real data; if the source file is refreshed the exact numbers may shift slightly, but the method stays the same.
 :::
 
 **The dataset.** [`rm_yields_1990plus_long.csv`](data/rm_yields_1990plus_long.csv) -- average yield for eight crops in every Saskatchewan Rural Municipality, 1990--2025, one row per RM-year-crop. Columns: `Year`, `RM`, `Crop`, `Yield`, `Unit`. You worked with the wide version of this data in Module 1; this is the long form, with `Crop` as a variable. **Lentils are recorded in pounds per acre; every other crop is in bushels per acre** -- the `Unit` column says which. Save it into your project's `data/` folder.
 
-**Grading model.** **10%** for script presentation -- a header block, comments in the style of the module, and a script that runs from top to bottom in a fresh session. The remaining **90%** is split evenly across the four questions, and evenly across the parts within each question. Parts are marked on **follow-through**: if an early part is wrong but the later parts are correctly worked *from your own earlier answer*, the later parts still earn full marks. Where a part asks for a sentence, write it as a comment in your script.
+**Grading model.** **20%** for script presentation -- a header block, comments in the style of the module, clearly labelled question sections, and a script that runs from top to bottom in a fresh session. The remaining **80%** is split evenly across the four questions, and evenly across the parts within each question. Parts are marked on **follow-through**: if an early part is wrong but the later parts are correctly worked *from your own earlier answer*, the later parts still earn full marks. Where a part asks for a sentence, write it as a comment in your script.
 
 > **Vocabulary note.** Everything here uses only Module 2 tools: `<-`, arithmetic on vectors, `c()`, `data.frame()`, `$`, `mean`, `median`, `sd`, `var`, `min`, `max`, `range`, `sum`, `quantile` (with `probs`), `IQR`, `nrow`, `ncol`, `names`, `head`, `print`, `glimpse`, `summary`, `library()`, `install.packages()`, `read_csv` with relative paths, `filter` (with `==`, `>`, `<`, `&`, `|`, `!`, `%in%`), `select` (including `-` and `:`), `rename`, `mutate`, `arrange` and `desc`, the pipe `|>`, `summarise`, `n()`, `group_by`, and `write_csv`. Nothing beyond that is needed.
+
+::: {.callout-note collapse="true"}
+## A sample test, with a full-marks answer script
+
+A real test looks like this -- one question from each section (here Questions 1, 16, 25, and 36):
+
+1. *Five canola fields yielded 52.3, 47.8, 55.1, 44.6, and 50.9 bu/ac, on 160, 320, 240, 130, and 200 acres. Create the two vectors; convert the yields to t/ha; compute the mean and sd of the yields; compute total production and the acreage-weighted average yield.*
+2. *Compute the mean, median, and standard deviation of `Yield`, and its 90th percentile. The mean is nearly four times the median -- in a comment, say what a gap like that tells you and what feature of this dataset produces it.*
+3. *Filter to the lentil rows, saving as `lentils` (how many rows?); add a `yield_kg_ha` column (multiply by 1.12), saving back to `lentils`; compute the mean of the new column and of the original, and check their ratio.*
+4. *In one pipeline, compute each RM's mean Spring Wheat yield across all years, sorted best-first. Report the top three RMs. In a comment: what did each row of the input represent, and what does each row of the result represent?*
+
+And here is a script that would earn full marks, including all of the presentation component:
+
+```r
+# ---
+# Title: Module 2 test
+# Author: Jordan Field
+# Date: 2026-10-15
+# Description:
+#   Answers to the four test questions, one section per block.
+#   Sentence answers are written as comments below each result.
+# ---
+
+# Load packages
+library(tidyverse)
+
+# ============================================================
+# Section 1 (Question 1): five canola fields
+# ============================================================
+
+# Yields (bu/ac) and field sizes (acres)
+yields <- c(52.3, 47.8, 55.1, 44.6, 50.9)
+acres  <- c(160, 320, 240, 130, 200)
+
+# (a/b) Convert every yield to tonnes per hectare in one step
+yields_t_ha <- yields * 0.0560
+yields_t_ha
+
+# (c) Centre and spread of the yields
+mean(yields)   # 50.14 bu/ac
+sd(yields)     # 4.06 bu/ac
+
+# (d) Total production, then the average weighted by acres
+total_bu <- sum(yields * acres)
+total_bu                 # 52,866 bu
+total_bu / sum(acres)    # 50.35 bu/ac
+# The weighted average differs from the plain mean because the
+# fields differ in size, so each yield should count by its acres.
+
+# ============================================================
+# Section 2 (Question 16): summary statistics for Yield
+# ============================================================
+
+# Read the data using a relative path from the project folder
+rm_yields <- read_csv("data/rm_yields_1990plus_long.csv")
+
+# Centre and spread of the whole Yield column
+mean(rm_yields$Yield)      # 142.82
+median(rm_yields$Yield)    # 36.24
+sd(rm_yields$Yield)        # 358.99
+
+# 90th percentile
+quantile(rm_yields$Yield, 0.9)   # 102.2
+
+# The mean sits far above the median, which flags unusually large
+# values pulling it up. Here they are the lentil yields, recorded
+# in pounds per acre while every other crop is in bushels (see the
+# Unit column) -- a units artifact, not a story about good crops.
+
+# ============================================================
+# Section 3 (Question 25): converting the lentil yields
+# ============================================================
+
+# Keep only the lentil rows
+lentils <- filter(rm_yields, Crop == "Lentils")
+nrow(lentils)    # 6,338 rows
+
+# Add the converted column (1 lb/ac is about 1.12 kg/ha) and
+# overwrite lentils with the version that has the extra column
+lentils <- mutate(lentils, yield_kg_ha = Yield * 1.12)
+
+# Means of the new and original columns
+mean(lentils$yield_kg_ha)   # 1,353.4 kg/ha
+mean(lentils$Yield)         # 1,208.39 lb/ac
+# Their ratio is 1.12, the conversion factor -- multiplying every
+# value by a constant multiplies the mean by the same constant.
+
+# ============================================================
+# Section 4 (Question 36): best wheat-growing RMs
+# ============================================================
+
+rm_yields |>                              # take the data, THEN
+  filter(Crop == "Spring Wheat") |>       # keep spring wheat, THEN
+  group_by(RM) |>                         # split the rows by RM, THEN
+  summarise(mean_yield = mean(Yield)) |>  # one row per RM: its mean, THEN
+  arrange(desc(mean_yield))               # best RMs on top
+
+# Top three: RM 369 (47.6), RM 333 (47.2), RM 368 (47.2) bu/ac.
+# Each input row was one RM-year observation of spring wheat; each
+# result row is one RM, its years collapsed into a single mean.
+```
+:::
 
 ---
 
 # Section 1 — R Basics
 
-*These questions are about the building blocks: objects, vectors, data frames, and functions. No data file is needed -- the numbers are in the question. Answer in `code/1_basics.R`, with sentence answers written as comments.*
+*These questions are about the building blocks: objects, vectors, data frames, and functions. No data file is needed -- the numbers are in the question. Answer in the Section 1 block of your script, with sentence answers written as comments.*
 
 ### Question 1
 
@@ -117,13 +219,13 @@ x * y
 
 **(b)** In a comment: after all four lines, what objects does the Variables pane show, with what values? Is the result of `x * 3` among them?
 
-**(c)** In a comment: what does the `[1]` at the start of a printed result mean?
+**(c)** A fifth line, `y <- y * 2`, is now run. In a comment: what does the Variables pane show afterwards, and did the line print anything?
 
 <details><summary>Answer</summary>
 
 - (a) Only the second and fourth lines print: `[1] 24` and `[1] 40`. Assignments print nothing.
 - (b) `x = 8` and `y = 5`. The result of `x * 3` was displayed but never assigned, so it is not saved anywhere -- displaying a result and saving one are different things.
-- (c) The value shown is the first element of the result; it matters only when a result is long enough to wrap across lines.
+- (c) `y` is now 10 (the old value was used to compute the new one, then overwritten); `x` is still 8. Nothing printed -- it is an assignment.
 </details>
 
 ### Question 5
@@ -275,7 +377,7 @@ trial
 
 # Section 2 — Reading and Inspecting Data
 
-*These questions use [`rm_yields_1990plus_long.csv`](data/rm_yields_1990plus_long.csv) in your project's `data/` folder. Answer in `code/2_reading.R`.*
+*These questions use [`rm_yields_1990plus_long.csv`](data/rm_yields_1990plus_long.csv) in your project's `data/` folder. Answer in the Section 2 block of your script.*
 
 ### Question 11
 
@@ -480,7 +582,7 @@ You spot an obviously wrong yield value in the csv. A classmate suggests opening
 
 # Section 3 — Data Manipulation Functions
 
-*Same dataset. Answer in `code/3_manipulation.R`. These questions use one function at a time; save intermediate results to objects where a later part needs them.*
+*Same dataset. Answer in the Section 3 block of your script. These questions use one function at a time; save intermediate results to objects where a later part needs them.*
 
 ### Question 21
 
@@ -701,7 +803,7 @@ head(arrange(rm_yields, desc(Yield)))
 
 # Section 4 — Pipelines and Grouped Summaries
 
-*Same dataset. Answer in `code/4_pipelines.R`. Write multi-step work as pipelines with `|>`, one step per line.*
+*Same dataset. Answer in the Section 4 block of your script. Write multi-step work as pipelines with `|>`, one step per line.*
 
 ### Question 31
 
