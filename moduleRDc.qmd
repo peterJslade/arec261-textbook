@@ -67,16 +67,27 @@ ten of them.
 ### One-to-one, many-to-one, many-to-many {.unnumbered}
 
 How many rows on each side share a key value decides what comes back from a merge.
+@fig-join-types shows the three cases with a table of students' grades on the left, joined
+to three different tables.
 
-- **One-to-one (1:1).** Each key value appears once in both tables.  Two tables of
-  provincial yields by year, joined on year.  The result has the same rows as either input.
+![Three kinds of merge.  Each line connects a grades row to the row it matches.  Attendance
+is one-to-one: each student-class appears once on both sides.  Professors is many-to-one:
+several grades rows point to the same professor.  Teaching assistants is many-to-many: each
+class has two TAs, so each grades row matches twice and the result has eight rows instead of
+four.](images/join_types.svg){#fig-join-types}
+
+- **One-to-one (1:1).** Each key value appears once in both tables.  Grades and
+  attendance, both with one row per student per class.  The result has the same rows as
+  either input.
 - **Many-to-one (n:1), or one-to-many.** The key repeats on one side and is unique on the
-  other.  Yields to the lookup is many-to-one: ten yield rows per RM, one lookup row per RM.
+  other.  Grades to professors is many-to-one: many grades per class, one professor per
+  class.  So is yields to the lookup: ten yield rows per RM, one lookup row per RM.
   The result has as many rows as the "many" side, and every row picks up exactly one name and
   one station.  Most merges are this kind.
 - **Many-to-many (n:n).** The key repeats on both sides.  Each row on the left matches every
-  row with the same key on the right, and the row count multiplies.  Joining yields to rain
-  on station alone would be many-to-many: each RM-year would match all ten years of its
+  row with the same key on the right, and the row count multiplies.  Grades to teaching
+  assistants, with two TAs per class, doubles the grades table.  Joining yields to rain
+  on station alone would be many-to-many too: each RM-year would match all ten years of its
   station's rain.  Occasionally that is what you want.  Usually it means the key is
   incomplete.
 
