@@ -514,7 +514,7 @@
     "href": "module02b.html#sec-r-summary-stats",
     "title": "5  Working with Data in R",
     "section": "5.6 Summary Statistics in R",
-    "text": "5.6 Summary Statistics in R\nOnce the data are in R, we can calculate the same summary statistics we used in Excel. yield_bu_acre is a column of the data frame trial_data, so we refer to it as trial_data$yield_bu_acre:\n\n\nmean(trial_data$yield_bu_acre)\n\nmedian(trial_data$yield_bu_acre)\n\nsd(trial_data$yield_bu_acre)\n\nrange(trial_data$yield_bu_acre)                        # returns c(min, max)\n\nquantile(trial_data$yield_bu_acre, c(0.25, 0.5, 0.75)) # percentiles\n\nIQR(trial_data$yield_bu_acre)\n\n&gt; mean(trial_data$yield_bu_acre)\n[1] 53.39917\n&gt; \n&gt; median(trial_data$yield_bu_acre)\n[1] 52.55\n&gt; \n&gt; sd(trial_data$yield_bu_acre)\n[1] 5.767724\n&gt; \n&gt; range(trial_data$yield_bu_acre)                        # returns c(min, max)\n[1] 39.3 70.4\n&gt; \n&gt; quantile(trial_data$yield_bu_acre, c(0.25, 0.5, 0.75)) # percentiles\n   25%    50%    75% \n49.525 52.550 57.725 \n&gt; \n&gt; IQR(trial_data$yield_bu_acre)\n[1] 8.2\n\n\n\nvar(), min(), and max() work the same way. The statistical ideas have not changed since Module 1; only the way we ask the computer to calculate them has.\nOne thing you may have spotted: summary(trial_data) above reports NA's :3 under rainfall_mm – three fields have no rainfall reading. NA is R’s code for a missing value, and calculations involving the rainfall column will behave differently because of them. Missing values, and what to do about them, are covered in Section 9.6.\n\n\n\n\n\n\nTipOther resources — summary statistics in R\n\n\n\n\n\n\nVideo – Rob Spencer, Descriptive statistics using the summary function – a short walkthrough of summary().\nVideo – Dr E Research Videos, Basic summary statistics in R – mean, median, standard deviation, and the number summary.",
+    "text": "5.6 Summary Statistics in R\nOnce the data are in R, we can calculate the same summary statistics we used in Excel. yield_bu_acre is a column of the data frame trial_data, so we refer to it as trial_data$yield_bu_acre:\n\n\nmean(trial_data$yield_bu_acre)\n\nmedian(trial_data$yield_bu_acre)\n\nsd(trial_data$yield_bu_acre)\n\nrange(trial_data$yield_bu_acre)                        # returns c(min, max)\n\nquantile(trial_data$yield_bu_acre, c(0.25, 0.5, 0.75)) # percentiles\n\nIQR(trial_data$yield_bu_acre)\n\n&gt; mean(trial_data$yield_bu_acre)\n[1] 53.39917\n&gt; \n&gt; median(trial_data$yield_bu_acre)\n[1] 52.55\n&gt; \n&gt; sd(trial_data$yield_bu_acre)\n[1] 5.767724\n&gt; \n&gt; range(trial_data$yield_bu_acre)                        # returns c(min, max)\n[1] 39.3 70.4\n&gt; \n&gt; quantile(trial_data$yield_bu_acre, c(0.25, 0.5, 0.75)) # percentiles\n   25%    50%    75% \n49.525 52.550 57.725 \n&gt; \n&gt; IQR(trial_data$yield_bu_acre)\n[1] 8.2\n\n\n\nvar(), min(), and max() work the same way. The statistical ideas have not changed since Module 1; only the way we ask the computer to calculate them has.\nOne thing you may have spotted: summary(trial_data) above reports NA's :3 under rainfall_mm – three fields have no rainfall reading. NA is R’s code for a missing value, and calculations involving the rainfall column will behave differently because of them. Missing values, and what to do about them, are covered in Section 9.8.\n\n\n\n\n\n\nTipOther resources — summary statistics in R\n\n\n\n\n\n\nVideo – Rob Spencer, Descriptive statistics using the summary function – a short walkthrough of summary().\nVideo – Dr E Research Videos, Basic summary statistics in R – mean, median, standard deviation, and the number summary.",
     "crumbs": [
       "Feedback",
       "Module 2: Introduction to R",
@@ -694,7 +694,7 @@
     "href": "moduleRDb.html#sec-direct-download",
     "title": "7  Getting Data",
     "section": "7.3 Direct Downloads",
-    "text": "7.3 Direct Downloads\nA lot of public data is just a file behind a link. The Saskatchewan government’s dashboard publishes crop yields by rural municipality going back to 1938 as a single CSV:\nhttps://dashboard.saskatchewan.ca/export/rm-yields-data/4950.csv\nYou can click the link, save the file into data/, and read it as above. Or you can hand the URL to read_csv() and let it fetch the file for you:\nrm_yields &lt;- read_csv(\"https://dashboard.saskatchewan.ca/export/rm-yields-data/4950.csv\")\nglimpse(rm_yields)\nRows: 26,197\nColumns: 18\n$ Year           &lt;dbl&gt; 1938, 1939, 1940, 1941, 1942, 1943, 1944, 1945, …\n$ RM             &lt;dbl&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, …\n$ `Winter Wheat` &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …\n$ Canola         &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …\n$ `Spring Wheat` &lt;dbl&gt; 4, 9, 12, 18, 20, 21, 20, 16, 13, 15, 16, 18, 18, …\n...\nOne row per RM per year, and one column per crop. The column names have spaces in them, which is why Winter Wheat is printed in backticks; clean_names() (Section 9.1) deals with that. And the table is wide, one column per crop, where most of what we do later wants it long, one row per RM-year-crop. That is Section 9.9. The units are not in the file at all; they are on the dashboard page the link came from, so note them before you leave the page.\nReading straight from the URL is convenient and has a problem: the file can change or disappear, and then your script stops working or gives different answers. The habit to build is to download once, keep the copy, and read from the copy:\ndownload.file(\"https://dashboard.saskatchewan.ca/export/rm-yields-data/4950.csv\",\n              destfile = \"data/rm_yields.csv\")\n\nrm_yields &lt;- read_csv(\"data/rm_yields.csv\")\nThe download date goes in the README (Section 7.6).",
+    "text": "7.3 Direct Downloads\nA lot of public data is just a file behind a link. The Saskatchewan government’s dashboard publishes crop yields by rural municipality going back to 1938 as a single CSV:\nhttps://dashboard.saskatchewan.ca/export/rm-yields-data/4950.csv\nYou can click the link, save the file into data/, and read it as above. Or you can hand the URL to read_csv() and let it fetch the file for you:\nrm_yields &lt;- read_csv(\"https://dashboard.saskatchewan.ca/export/rm-yields-data/4950.csv\")\nglimpse(rm_yields)\nRows: 26,197\nColumns: 18\n$ Year           &lt;dbl&gt; 1938, 1939, 1940, 1941, 1942, 1943, 1944, 1945, …\n$ RM             &lt;dbl&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, …\n$ `Winter Wheat` &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …\n$ Canola         &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …\n$ `Spring Wheat` &lt;dbl&gt; 4, 9, 12, 18, 20, 21, 20, 16, 13, 15, 16, 18, 18, …\n...\nOne row per RM per year, and one column per crop. The column names have spaces in them, which is why Winter Wheat is printed in backticks; clean_names() (Section 9.3) deals with that. And the table is wide, one column per crop, where most of what we do later wants it long, one row per RM-year-crop. That is Section 9.2. The units are not in the file at all; they are on the dashboard page the link came from, so note them before you leave the page.\nReading straight from the URL is convenient and has a problem: the file can change or disappear, and then your script stops working or gives different answers. The habit to build is to download once, keep the copy, and read from the copy:\ndownload.file(\"https://dashboard.saskatchewan.ca/export/rm-yields-data/4950.csv\",\n              destfile = \"data/rm_yields.csv\")\n\nrm_yields &lt;- read_csv(\"data/rm_yields.csv\")\nThe download date goes in the README (Section 7.6).",
     "crumbs": [
       "Feedback",
       "Module 3: Getting and Combining Data",
@@ -802,7 +802,7 @@
     "href": "moduleRDd.html",
     "title": "9  Cleaning Data",
     "section": "",
-    "text": "Learning Objectives\nAssume a new file is broken until you have checked. It was typed by someone in a hurry and exported by software that had its own ideas about formatting. This chapter is a tour of the defects that show up most often, how to find them, and what to do about them.\nThe examples below use grain_deliveries_messy.csv, a small file of grain deliveries carrying every defect in this chapter.",
+    "text": "Learning Objectives\nAssume a new file is broken until you have checked. It was typed by someone in a hurry and exported by software that had its own ideas about formatting. This chapter starts with the shape a table should have, then tours the defects that show up most often in the values, how to find them, and what to do about them, in R and in Excel.\nThe examples below use grain_deliveries_messy.csv, a small file of grain deliveries carrying every defect in this chapter.",
     "crumbs": [
       "Feedback",
       "Module 3: Getting and Combining Data",
@@ -814,91 +814,7 @@
     "href": "moduleRDd.html#learning-objectives",
     "title": "9  Cleaning Data",
     "section": "",
-    "text": "By the end of this chapter you should be able to:\n\nClean up awkward column names with rename() and janitor::clean_names().\nFind duplicates, impossible values, inconsistent categories and mixed units in a new file.\nRecognize the disguises missing values wear, and count them properly.\nDecide – and justify – when dropping missing values is safe.\nSpot dates that imported as text, and say why it matters.\nExplain what tidy data means, and reshape a dataset between wide and long with pivot_longer and pivot_wider.",
-    "crumbs": [
-      "Feedback",
-      "Module 3: Getting and Combining Data",
-      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Cleaning Data</span>"
-    ]
-  },
-  {
-    "objectID": "moduleRDd.html#sec-clean-names",
-    "href": "moduleRDd.html#sec-clean-names",
-    "title": "9  Cleaning Data",
-    "section": "9.1 Awkward Column Names",
-    "text": "9.1 Awkward Column Names\nThe first thing to fix is often the names. Real files arrive with columns like Yield (bu/ac), REGION_NAME, or Field ID Number – readable to a person, but annoying to type and easy to mistype in code. This book prefers snake_case: lowercase, words separated by underscores, short but descriptive – yield_bu_ac, region, field_id.\nFor individual columns, rename() does it:\ndeliveries &lt;- deliveries |&gt;\n  rename(weight_tonnes = \"Weight (t)\",\n         crop = CROP_NAME)\nFor wholesale renaming, janitor::clean_names() converts every column to snake_case in one call – lowercase, underscores, special characters stripped. (It comes from the janitor package, not the tidyverse. Install it once with install.packages(\"janitor\").)\nlibrary(janitor)\ndeliveries &lt;- read_csv(\"data/grain_deliveries_messy.csv\") |&gt; clean_names()\nRun it on almost anything you read in.",
-    "crumbs": [
-      "Feedback",
-      "Module 3: Getting and Combining Data",
-      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Cleaning Data</span>"
-    ]
-  },
-  {
-    "objectID": "moduleRDd.html#sec-duplicates",
-    "href": "moduleRDd.html#sec-duplicates",
-    "title": "9  Cleaning Data",
-    "section": "9.2 Duplicates",
-    "text": "9.2 Duplicates\nThere are two kinds, and the second is the harder one.\nAn exact duplicate is the same row entered twice:\ndeliveries |&gt; filter(duplicated(deliveries))     # show them\ndeliveries |&gt; distinct()                          # drop them\nA conflicting duplicate is the same identifier with different values: ticket T0030 appearing twice with two different weights. distinct() leaves these alone, because the rows are not identical. Count to find them:\ndeliveries |&gt;\n  count(ticket_id) |&gt;\n  filter(n &gt; 1)\nNo code fixes this one. Somebody entered the delivery twice, or corrected it and left both rows, and you have to find out which is right. If you cannot, say so in the write-up and explain what you did.",
-    "crumbs": [
-      "Feedback",
-      "Module 3: Getting and Combining Data",
-      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Cleaning Data</span>"
-    ]
-  },
-  {
-    "objectID": "moduleRDd.html#sec-impossible-values",
-    "href": "moduleRDd.html#sec-impossible-values",
-    "title": "9  Cleaning Data",
-    "section": "9.3 Impossible Values",
-    "text": "9.3 Impossible Values\nEvery variable has values it cannot take. A weight cannot be negative, a moisture percentage cannot be 250, and a delivery of exactly zero tonnes is possible but odd.\nsummary() catches most of this in one line, because impossible values turn up in the minimum and maximum:\nsummary(deliveries)\nThen look at the offending rows:\ndeliveries |&gt; filter(weight_tonnes &lt;= 0 | moisture_pct &gt; 100)\nA negative weight is probably a sign error or a reversed transaction. A moisture of 250 is probably 25.0 with a lost decimal point. Both of those are guesses, so record them as guesses. Dropping the rows without saying anything is the thing to avoid.\nAn impossible value is easy to rule on. A merely implausible one – a canola yield of 95 bu/ac, twice the provincial average – is a judgement call: it might be an error, or the best field in the province. Do not delete a value just because it is extreme. Check it against the source if you can, and if you cannot, analyze the data with and without it and report whether it changes the answer.",
-    "crumbs": [
-      "Feedback",
-      "Module 3: Getting and Combining Data",
-      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Cleaning Data</span>"
-    ]
-  },
-  {
-    "objectID": "moduleRDd.html#sec-categories",
-    "href": "moduleRDd.html#sec-categories",
-    "title": "9  Cleaning Data",
-    "section": "9.4 Inconsistent Categories",
-    "text": "9.4 Inconsistent Categories\nThe same thing spelled several ways is the most common defect I run into, and it is easy to miss because every individual value looks fine. Count the categories:\ndeliveries |&gt; count(crop)\n  crop            n\n  \"CANOLA\"        2\n  \"Canola\"        6\n  \"canola\"        4\n  \"Spring Wheat\"  2\n  \"Spring wheat\"  8\n  \"spring wheat\"  5\n  ...\nThree spellings of canola and three of spring wheat, which group_by(crop) reads as six different crops.\nFix the mechanical cases first:\ndeliveries &lt;- deliveries |&gt;\n  mutate(crop = str_trim(crop),        # strip stray spaces\n         crop = str_to_title(crop))    # \"CANOLA\" and \"canola\" -&gt; \"Canola\"\nstr_to_title handles capitalisation. read_csv already strips surrounding spaces, so str_trim is belt-and-braces here, but other readers do not, and a space you cannot see is a match you cannot explain.\nGenuine synonyms like \"Canola\" and \"Canola/Rapeseed\" are a judgement call, so put them in an explicit recode where a reader can see the decision:\ndeliveries &lt;- deliveries |&gt;\n  mutate(crop = case_when(\n    crop == \"Canola/Rapeseed\" ~ \"Canola\",\n    crop == \"Soybean\"         ~ \"Soybeans\",\n    TRUE                      ~ crop\n  ))",
-    "crumbs": [
-      "Feedback",
-      "Module 3: Getting and Combining Data",
-      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Cleaning Data</span>"
-    ]
-  },
-  {
-    "objectID": "moduleRDd.html#sec-mixed-units",
-    "href": "moduleRDd.html#sec-mixed-units",
-    "title": "9  Cleaning Data",
-    "section": "9.5 Mixed Units",
-    "text": "9.5 Mixed Units\nA right value in the wrong unit is harder to catch than a wrong value, because nothing looks broken. In the deliveries file most moisture readings are percentages around 9.5, but a few were entered as decimals: 0.094 rather than 9.4. No error, no warning, and the mean comes out too low.\nKnowing what range the variable should occupy is what catches it:\ndeliveries |&gt; filter(moisture_pct &lt; 1)\nGrain moisture is normally 8 to 16 percent, so anything under 1 is in the wrong unit. Convert rather than drop:\ndeliveries &lt;- deliveries |&gt;\n  mutate(moisture_pct = if_else(moisture_pct &lt; 1, moisture_pct * 100, moisture_pct))\nA file that records its own units in a column lets you convert with a case_when (Section 6.4) instead of inferring from magnitude.",
-    "crumbs": [
-      "Feedback",
-      "Module 3: Getting and Combining Data",
-      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Cleaning Data</span>"
-    ]
-  },
-  {
-    "objectID": "moduleRDd.html#sec-missing-values",
-    "href": "moduleRDd.html#sec-missing-values",
-    "title": "9  Cleaning Data",
-    "section": "9.6 Missing Values",
-    "text": "9.6 Missing Values\nIn R, a missing value is NA, and most operations propagate it: any calculation involving NA returns NA. The canola trial data has three fields with no rainfall reading – a rain gauge fails, or a value never gets recorded – so:\n\n\nmean(trial_data$rainfall_mm)\n\nmean(trial_data$rainfall_mm, na.rm = TRUE)\n\n&gt; mean(trial_data$rainfall_mm)\n[1] NA\n&gt; \n&gt; mean(trial_data$rainfall_mm, na.rm = TRUE)\n[1] 229.1017\n\n\n\nThe first call says: calculate the mean of these observations. Three of them are unknown, so R cannot calculate the mean, and it returns NA rather than silently discarding information. The second call, with na.rm = TRUE (“remove NAs”), says: calculate the mean using the observations that are not missing. That may be exactly what we want – but now the decision is visible in the code.\nThis is an important difference from Excel, where many functions skip blank cells automatically. Real files complicate it further in two ways: missing values arrive in disguise, and deciding what to do with them takes some thought.\n\nMissing values in disguise\nMissing data shows up in real files in several forms: an empty cell, the text \"NA\", \"N/A\", \"-\", \".\", or -999. R recognises the blank and NA. The rest come in as ordinary text and turn their column into &lt;chr&gt;.\nTell read_csv what counts as missing:\ndeliveries &lt;- read_csv(\"data/grain_deliveries_messy.csv\",\n                       na = c(\"\", \"NA\", \"N/A\", \"-\", \".\"))\nThen count what you have before deciding anything:\ndeliveries |&gt; summarise(across(everything(), ~ sum(is.na(.))))\nA numeric code like -999 is the dangerous one. It will not turn the column to text; it will just be included in the mean as a number, which is another reason to run summary() on arrival and look at the minimum.\n\n\nWorking with missing values\nA few patterns:\n# Check for missing values\nis.na(deliveries$weight_tonnes)              # logical vector\nsum(is.na(deliveries$weight_tonnes))          # count of NAs\n\n# Remove rows with any missing values\ndeliveries_clean &lt;- deliveries |&gt; drop_na()\n\n# Remove rows with missing values in specific columns\ndeliveries_clean &lt;- deliveries |&gt; drop_na(weight_tonnes)\n\n# Compute a statistic ignoring NAs\nmean(deliveries$weight_tonnes, na.rm = TRUE)\n\n# Replace NAs with a value\ndeliveries |&gt; mutate(weight_tonnes = replace_na(weight_tonnes, 0))\n\n\nWhen is dropping safe?\nIt depends on why the values are missing. If data is missing completely at random (a sensor failed arbitrarily), dropping missing values gives you unbiased estimates, just with less data. If data is missing for a reason related to the value itself (only high-yielding fields were reported), dropping them can bias your results – you will systematically overestimate yields.\nThe honest answer to “what should I do with missing values” is almost always: think about why they are missing, and document what you decided to do. There is no universal fix.",
-    "crumbs": [
-      "Feedback",
-      "Module 3: Getting and Combining Data",
-      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Cleaning Data</span>"
-    ]
-  },
-  {
-    "objectID": "moduleRDd.html#sec-dates-text",
-    "href": "moduleRDd.html#sec-dates-text",
-    "title": "9  Cleaning Data",
-    "section": "9.7 Dates Stored as Text",
-    "text": "9.7 Dates Stored as Text\nA date column that imported as &lt;chr&gt; cannot be sorted chronologically or used in arithmetic. It happens when the file mixes formats (2025-09-15 in some rows, Sept 15, 2025 in others), and it is worth catching early because arrange() on a text date sorts alphabetically without complaint.\nglimpse() shows the problem (&lt;chr&gt; where you expected &lt;date&gt;). If the format is consistent, tell the reader what it is with col_types (Section 7.1.2); if it is mixed, the rows that failed to parse are found the same way as any other type problem:\ndeliveries |&gt;\n  filter(is.na(as.Date(delivery_date))) |&gt;\n  select(ticket_id, delivery_date)\nFixing messy dates properly uses tools we have not covered (the lubridate package is the standard one); for this course, it is enough to notice the problem and state the format explicitly when you read the file.",
+    "text": "By the end of this chapter you should be able to:\n\nExplain what tidy data means, and reshape a dataset between wide and long with pivot_longer and pivot_wider.\nClean up awkward column names with rename() and janitor::clean_names().\nFind duplicates, impossible values, inconsistent categories and mixed units in a new file.\nRecognize the disguises missing values wear, and count them properly.\nDecide – and justify – when dropping missing values is safe.\nSpot dates that imported as text, and say why it matters.\nDo the same checks in Excel, and say what Excel cleaning does not give you.",
     "crumbs": [
       "Feedback",
       "Module 3: Getting and Combining Data",
@@ -909,8 +825,8 @@
     "objectID": "moduleRDd.html#sec-tidy-data",
     "href": "moduleRDd.html#sec-tidy-data",
     "title": "9  Cleaning Data",
-    "section": "9.8 Tidy Data",
-    "text": "9.8 Tidy Data\nThe last defect is not a wrong value but a wrong shape. The tidyverse is built around an idea called tidy data (Wickham et al. 2023). A dataset is tidy when:\n\nEvery variable has its own column.\nEvery observation has its own row.\nEvery value has its own cell.\n\nFor example, this dataset is tidy:\n  region  crop   yield\n  South   Canola    41\n  South   Wheat     52\n  South   Barley    64\n  Central Canola    44\n  Central Wheat     55\n  Central Barley    68\nAn observation here is a region-crop combination; the variables are region, crop, and yield. Each variable has a column and each observation has a row.\nNow compare this version of the same data:\n  region  Canola Wheat Barley\n  South       41    52     64\n  Central     44    55     68\nThis table is easier for a person to read, but it is not tidy. Canola, Wheat, and Barley are not three different variables; they are three values of the variable crop. This is the wide-versus-long distinction from Section 2.4, where a PivotTable needed the long form. For analysis in R, the long form is usually the more convenient one, because crop is an ordinary variable that R can filter by, group by, and compare.\n\nRecognizing untidy data\nSome common warning signs:\n\nValues stored in column names. A table with columns region, 2024, 2025, 2026, where the year columns hold yields. The years are values of a variable called year; the tidy version has columns region, year, yield.\nMore than one variable in a column. A region_variety column containing \"South_InVigor\". That is two variables, region and variety, in one column.\nOne observation spread over several rows. Price in one row and quantity in another row for the same market and year.\n\nWhat counts as an observation depends on the dataset and the question, but the basic test is always the same: what does one row represent? You should be able to answer that. When you first open a dataset, ask what one row represents, what each column represents, whether any values are hiding in column names, and whether any column holds several variables at once.\n\n\n\n\n\n\nTipOther resources — tidy data\n\n\n\n\n\n\nR for Data Science (2nd ed.) – Chapter 5, “Data tidying” develops the tidy-data idea and shows how datasets are reshaped between long and wide forms.\nVideo – Riffomonas Project, Reshaping data to be long or wide with pivot_longer and pivot_wider.",
+    "section": "9.1 Tidy Data",
+    "text": "9.1 Tidy Data\nBefore the defects in individual values, the shape of the whole table. The tidyverse is built around an idea called tidy data (Wickham et al. 2023). A dataset is tidy when:\n\nEvery variable has its own column.\nEvery observation has its own row.\nEvery value has its own cell.\n\nFor example, this dataset is tidy:\n  region  crop   yield\n  South   Canola    41\n  South   Wheat     52\n  South   Barley    64\n  Central Canola    44\n  Central Wheat     55\n  Central Barley    68\nAn observation here is a region-crop combination; the variables are region, crop, and yield. Each variable has a column and each observation has a row.\nNow compare this version of the same data:\n  region  Canola Wheat Barley\n  South       41    52     64\n  Central     44    55     68\nThis table is easier for a person to read, but it is not tidy. Canola, Wheat, and Barley are not three different variables; they are three values of the variable crop. This is the wide-versus-long distinction from Section 2.4, where a PivotTable needed the long form. For analysis in R, the long form is usually the more convenient one, because crop is an ordinary variable that R can filter by, group by, and compare.\n\nRecognizing untidy data\nSome common warning signs:\n\nValues stored in column names. A table with columns region, 2024, 2025, 2026, where the year columns hold yields. The years are values of a variable called year; the tidy version has columns region, year, yield.\nMore than one variable in a column. A region_variety column containing \"South_InVigor\". That is two variables, region and variety, in one column.\nOne observation spread over several rows. Price in one row and quantity in another row for the same market and year.\n\nWhat counts as an observation depends on the dataset and the question, but the basic test is always the same: what does one row represent? You should be able to answer that. When you first open a dataset, ask what one row represents, what each column represents, whether any values are hiding in column names, and whether any column holds several variables at once.\n\n\n\n\n\n\nTipOther resources — tidy data\n\n\n\n\n\n\nR for Data Science (2nd ed.) – Chapter 5, “Data tidying” develops the tidy-data idea and shows how datasets are reshaped between long and wide forms.\nVideo – Riffomonas Project, Reshaping data to be long or wide with pivot_longer and pivot_wider.",
     "crumbs": [
       "Feedback",
       "Module 3: Getting and Combining Data",
@@ -921,8 +837,104 @@
     "objectID": "moduleRDd.html#sec-reshaping",
     "href": "moduleRDd.html#sec-reshaping",
     "title": "9  Cleaning Data",
-    "section": "9.9 Reshaping: pivot_longer and pivot_wider",
-    "text": "9.9 Reshaping: pivot_longer and pivot_wider\nFixing the shape is the job of a pair of tidyr functions. Files often arrive with values in the column headers – one column per crop, or per year – and StatCan downloads have the opposite problem: long where you want wide.\npivot_longer turns column headers into values. You tell it which columns to gather, what to call the column that will hold their names, and what to call the column that will hold their values:\nyields_wide\n  region  Canola Wheat Barley\n  South       41    52     64\n  Central     44    55     68\n  North       38    49     60\nyields_long &lt;- yields_wide |&gt;\n  pivot_longer(cols = c(Canola, Wheat, Barley),\n               names_to = \"crop\",\n               values_to = \"yield\")\nyields_long\n  region  crop   yield\n  South   Canola    41\n  South   Wheat     52\n  South   Barley    64\n  Central Canola    44\n  ...\nNine rows now: one per region-crop combination, with crop and yield as ordinary columns that filter and group_by can use.\npivot_wider goes the other way. Tell it which column holds the names and which holds the values:\nyields_long |&gt;\n  pivot_wider(names_from = crop, values_from = yield)\nLong is usually what analysis wants; wide is often what people want to read. Expect to pivot in both directions.",
+    "section": "9.2 Reshaping: pivot_longer and pivot_wider",
+    "text": "9.2 Reshaping: pivot_longer and pivot_wider\nFixing the shape is the job of a pair of tidyr functions. Files often arrive with values in the column headers – one column per crop, or per year – and StatCan downloads have the opposite problem: long where you want wide.\npivot_longer turns column headers into values. You tell it which columns to gather, what to call the column that will hold their names, and what to call the column that will hold their values. The Saskatchewan RM yields (Section 7.3) are the wide case: one column per crop.\n\n\nyields_wide &lt;- read_csv(\"data/rm_yields_2015_2024.csv\") |&gt; clean_names()\nyields_wide\n\nyields_long &lt;- yields_wide |&gt;\n  pivot_longer(cols = spring_wheat:peas,\n               names_to = \"crop\",\n               values_to = \"yield_bu_ac\")\nyields_long\n\n&gt; yields_wide &lt;- read_csv(\"data/rm_yields_2015_2024.csv\") |&gt; clean_names()\nRows: 2950 Columns: 8\n── Column specification ────────────────────────────────────────────────────────\nDelimiter: \",\"\ndbl (8): Year, RM, Spring Wheat, Durum, Canola, Barley, Oats, Peas\n\nℹ Use `spec()` to retrieve the full column specification for this data.\nℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.\n&gt; yields_wide\n# A tibble: 2,950 × 8\n    year    rm spring_wheat durum canola barley  oats  peas\n   &lt;dbl&gt; &lt;dbl&gt;        &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;\n 1  2015     1         34.3  29.2   28.6   51.0  56.4  37.7\n 2  2016     1         40.5  38.4   32.1   68.1  75.7  26.2\n 3  2017     1         46.0  NA     39.2   NA    85.8  43.4\n 4  2018     1         50    NA     39.2   76    96    42  \n 5  2019     1         50.9  NA     32.4   83.5 102.   43.8\n 6  2020     1         56    NA     39.9   94   120.   48.4\n 7  2021     1         46.2  NA     33.2   63.7  84    37.7\n 8  2022     1         52.4  NA     37.4   90.3 106.   47.4\n 9  2023     1         50.8  NA     36.8   53    55.1  44.9\n10  2024     1         46.7  NA     36.4   77.1  99.4  40.1\n# ℹ 2,940 more rows\n&gt; \n&gt; yields_long &lt;- yields_wide |&gt;\n+   pivot_longer(cols = spring_wheat:peas,\n+                names_to = \"crop\",\n+                values_to = \"yield_bu_ac\")\n&gt; yields_long\n# A tibble: 17,700 × 4\n    year    rm crop         yield_bu_ac\n   &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;              &lt;dbl&gt;\n 1  2015     1 spring_wheat        34.3\n 2  2015     1 durum               29.2\n 3  2015     1 canola              28.6\n 4  2015     1 barley              51.0\n 5  2015     1 oats                56.4\n 6  2015     1 peas                37.7\n 7  2016     1 spring_wheat        40.5\n 8  2016     1 durum               38.4\n 9  2016     1 canola              32.1\n10  2016     1 barley              68.1\n# ℹ 17,690 more rows\n\n\n\nSeven times as many rows: one per RM-year-crop, with crop and yield_bu_ac as ordinary columns that filter() and group_by() can use. spring_wheat:peas means every column from spring_wheat through peas; listing them with c() works too.\npivot_wider goes the other way. Tell it which column holds the names and which holds the values:\n\n\nyields_long |&gt;\n  pivot_wider(names_from = crop, values_from = yield_bu_ac)\n\n&gt; yields_long |&gt;\n+   pivot_wider(names_from = crop, values_from = yield_bu_ac)\n# A tibble: 2,950 × 8\n    year    rm spring_wheat durum canola barley  oats  peas\n   &lt;dbl&gt; &lt;dbl&gt;        &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;\n 1  2015     1         34.3  29.2   28.6   51.0  56.4  37.7\n 2  2016     1         40.5  38.4   32.1   68.1  75.7  26.2\n 3  2017     1         46.0  NA     39.2   NA    85.8  43.4\n 4  2018     1         50    NA     39.2   76    96    42  \n 5  2019     1         50.9  NA     32.4   83.5 102.   43.8\n 6  2020     1         56    NA     39.9   94   120.   48.4\n 7  2021     1         46.2  NA     33.2   63.7  84    37.7\n 8  2022     1         52.4  NA     37.4   90.3 106.   47.4\n 9  2023     1         50.8  NA     36.8   53    55.1  44.9\n10  2024     1         46.7  NA     36.4   77.1  99.4  40.1\n# ℹ 2,940 more rows\n\n\n\nLong is usually what analysis wants; wide is often what people want to read. Expect to pivot in both directions.",
+    "crumbs": [
+      "Feedback",
+      "Module 3: Getting and Combining Data",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Cleaning Data</span>"
+    ]
+  },
+  {
+    "objectID": "moduleRDd.html#sec-clean-names",
+    "href": "moduleRDd.html#sec-clean-names",
+    "title": "9  Cleaning Data",
+    "section": "9.3 Awkward Column Names",
+    "text": "9.3 Awkward Column Names\nThe first thing to fix is often the names. Real files arrive with columns like Yield (bu/ac), REGION_NAME, or Field ID Number – readable to a person, but annoying to type and easy to mistype in code. This book prefers snake_case: lowercase, words separated by underscores, short but descriptive – yield_bu_ac, region, field_id.\nFor individual columns, rename() does it:\ndeliveries &lt;- deliveries |&gt;\n  rename(weight_tonnes = \"Weight (t)\",\n         crop = CROP_NAME)\nFor wholesale renaming, janitor::clean_names() converts every column to snake_case in one call – lowercase, underscores, special characters stripped. (It comes from the janitor package, not the tidyverse. Install it once with install.packages(\"janitor\").)\nlibrary(janitor)\ndeliveries &lt;- read_csv(\"data/grain_deliveries_messy.csv\") |&gt; clean_names()\nRun it on almost anything you read in.",
+    "crumbs": [
+      "Feedback",
+      "Module 3: Getting and Combining Data",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Cleaning Data</span>"
+    ]
+  },
+  {
+    "objectID": "moduleRDd.html#sec-duplicates",
+    "href": "moduleRDd.html#sec-duplicates",
+    "title": "9  Cleaning Data",
+    "section": "9.4 Duplicates",
+    "text": "9.4 Duplicates\nThere are two kinds, and the second is the harder one.\nAn exact duplicate is the same row entered twice:\ndeliveries |&gt; filter(duplicated(deliveries))     # show them\ndeliveries |&gt; distinct()                          # drop them\nA conflicting duplicate is the same identifier with different values: ticket T0030 appearing twice with two different weights. distinct() leaves these alone, because the rows are not identical. Count to find them:\ndeliveries |&gt;\n  count(ticket_id) |&gt;\n  filter(n &gt; 1)\nNo code fixes this one. Somebody entered the delivery twice, or corrected it and left both rows, and you have to find out which is right. If you cannot, say so in the write-up and explain what you did.",
+    "crumbs": [
+      "Feedback",
+      "Module 3: Getting and Combining Data",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Cleaning Data</span>"
+    ]
+  },
+  {
+    "objectID": "moduleRDd.html#sec-impossible-values",
+    "href": "moduleRDd.html#sec-impossible-values",
+    "title": "9  Cleaning Data",
+    "section": "9.5 Impossible Values",
+    "text": "9.5 Impossible Values\nEvery variable has values it cannot take. A weight cannot be negative, a moisture percentage cannot be 250, and a delivery of exactly zero tonnes is possible but odd.\nsummary() catches most of this in one line, because impossible values turn up in the minimum and maximum:\nsummary(deliveries)\nThen look at the offending rows:\ndeliveries |&gt; filter(weight_tonnes &lt;= 0 | moisture_pct &gt; 100)\nA negative weight is probably a sign error or a reversed transaction. A moisture of 250 is probably 25.0 with a lost decimal point. Both of those are guesses, so record them as guesses. Dropping the rows without saying anything is the thing to avoid.\nAn impossible value is easy to rule on. A merely implausible one – a canola yield of 95 bu/ac, twice the provincial average – is a judgement call: it might be an error, or the best field in the province. Do not delete a value just because it is extreme. Check it against the source if you can, and if you cannot, analyze the data with and without it and report whether it changes the answer.",
+    "crumbs": [
+      "Feedback",
+      "Module 3: Getting and Combining Data",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Cleaning Data</span>"
+    ]
+  },
+  {
+    "objectID": "moduleRDd.html#sec-categories",
+    "href": "moduleRDd.html#sec-categories",
+    "title": "9  Cleaning Data",
+    "section": "9.6 Inconsistent Categories",
+    "text": "9.6 Inconsistent Categories\nThe same thing spelled several ways is the most common defect I run into, and it is easy to miss because every individual value looks fine. Count the categories:\ndeliveries |&gt; count(crop)\n  crop            n\n  \"CANOLA\"        2\n  \"Canola\"        6\n  \"canola\"        4\n  \"Spring Wheat\"  2\n  \"Spring wheat\"  8\n  \"spring wheat\"  5\n  ...\nThree spellings of canola and three of spring wheat, which group_by(crop) reads as six different crops.\nFix the mechanical cases first:\ndeliveries &lt;- deliveries |&gt;\n  mutate(crop = str_trim(crop),        # strip stray spaces\n         crop = str_to_title(crop))    # \"CANOLA\" and \"canola\" -&gt; \"Canola\"\nstr_to_title handles capitalisation. read_csv already strips surrounding spaces, so str_trim is belt-and-braces here, but other readers do not, and a space you cannot see is a match you cannot explain.\nGenuine synonyms like \"Canola\" and \"Canola/Rapeseed\" are a judgement call, so put them in an explicit recode where a reader can see the decision:\ndeliveries &lt;- deliveries |&gt;\n  mutate(crop = case_when(\n    crop == \"Canola/Rapeseed\" ~ \"Canola\",\n    crop == \"Soybean\"         ~ \"Soybeans\",\n    TRUE                      ~ crop\n  ))",
+    "crumbs": [
+      "Feedback",
+      "Module 3: Getting and Combining Data",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Cleaning Data</span>"
+    ]
+  },
+  {
+    "objectID": "moduleRDd.html#sec-mixed-units",
+    "href": "moduleRDd.html#sec-mixed-units",
+    "title": "9  Cleaning Data",
+    "section": "9.7 Mixed Units",
+    "text": "9.7 Mixed Units\nA right value in the wrong unit is harder to catch than a wrong value, because nothing looks broken. In the deliveries file most moisture readings are percentages around 9.5, but a few were entered as decimals: 0.094 rather than 9.4. No error, no warning, and the mean comes out too low.\nKnowing what range the variable should occupy is what catches it:\ndeliveries |&gt; filter(moisture_pct &lt; 1)\nGrain moisture is normally 8 to 16 percent, so anything under 1 is in the wrong unit. Convert rather than drop:\ndeliveries &lt;- deliveries |&gt;\n  mutate(moisture_pct = if_else(moisture_pct &lt; 1, moisture_pct * 100, moisture_pct))\nA file that records its own units in a column lets you convert with a case_when (Section 6.4) instead of inferring from magnitude.",
+    "crumbs": [
+      "Feedback",
+      "Module 3: Getting and Combining Data",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Cleaning Data</span>"
+    ]
+  },
+  {
+    "objectID": "moduleRDd.html#sec-missing-values",
+    "href": "moduleRDd.html#sec-missing-values",
+    "title": "9  Cleaning Data",
+    "section": "9.8 Missing Values",
+    "text": "9.8 Missing Values\nIn R, a missing value is NA, and most operations propagate it: any calculation involving NA returns NA. The canola trial data has three fields with no rainfall reading – a rain gauge fails, or a value never gets recorded – so:\n\n\nmean(trial_data$rainfall_mm)\n\nmean(trial_data$rainfall_mm, na.rm = TRUE)\n\n&gt; mean(trial_data$rainfall_mm)\n[1] NA\n&gt; \n&gt; mean(trial_data$rainfall_mm, na.rm = TRUE)\n[1] 229.1017\n\n\n\nThe first call says: calculate the mean of these observations. Three of them are unknown, so R cannot calculate the mean, and it returns NA rather than silently discarding information. The second call, with na.rm = TRUE (“remove NAs”), says: calculate the mean using the observations that are not missing. That may be exactly what we want – but now the decision is visible in the code.\nThis is an important difference from Excel, where many functions skip blank cells automatically. Real files complicate it further in two ways: missing values arrive in disguise, and deciding what to do with them takes some thought.\n\nMissing values in disguise\nMissing data shows up in real files in several forms: an empty cell, the text \"NA\", \"N/A\", \"-\", \".\", or -999. R recognises the blank and NA. The rest come in as ordinary text and turn their column into &lt;chr&gt;.\nTell read_csv what counts as missing:\ndeliveries &lt;- read_csv(\"data/grain_deliveries_messy.csv\",\n                       na = c(\"\", \"NA\", \"N/A\", \"-\", \".\"))\nThen count what you have before deciding anything:\ndeliveries |&gt; summarise(across(everything(), ~ sum(is.na(.))))\nA numeric code like -999 is the dangerous one. It will not turn the column to text; it will just be included in the mean as a number, which is another reason to run summary() on arrival and look at the minimum.\n\n\nWorking with missing values\nA few patterns:\n# Check for missing values\nis.na(deliveries$weight_tonnes)              # logical vector\nsum(is.na(deliveries$weight_tonnes))          # count of NAs\n\n# Remove rows with any missing values\ndeliveries_clean &lt;- deliveries |&gt; drop_na()\n\n# Remove rows with missing values in specific columns\ndeliveries_clean &lt;- deliveries |&gt; drop_na(weight_tonnes)\n\n# Compute a statistic ignoring NAs\nmean(deliveries$weight_tonnes, na.rm = TRUE)\n\n# Replace NAs with a value\ndeliveries |&gt; mutate(weight_tonnes = replace_na(weight_tonnes, 0))\n\n\nWhen is dropping safe?\nIt depends on why the values are missing. If data is missing completely at random (a sensor failed arbitrarily), dropping missing values gives you unbiased estimates, just with less data. If data is missing for a reason related to the value itself (only high-yielding fields were reported), dropping them can bias your results – you will systematically overestimate yields.\nThe honest answer to “what should I do with missing values” is almost always: think about why they are missing, and document what you decided to do. There is no universal fix.",
+    "crumbs": [
+      "Feedback",
+      "Module 3: Getting and Combining Data",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Cleaning Data</span>"
+    ]
+  },
+  {
+    "objectID": "moduleRDd.html#sec-dates-text",
+    "href": "moduleRDd.html#sec-dates-text",
+    "title": "9  Cleaning Data",
+    "section": "9.9 Dates Stored as Text",
+    "text": "9.9 Dates Stored as Text\nA date column that imported as &lt;chr&gt; cannot be sorted chronologically or used in arithmetic. It happens when the file mixes formats (2025-09-15 in some rows, Sept 15, 2025 in others), and it is worth catching early because arrange() on a text date sorts alphabetically without complaint.\nglimpse() shows the problem (&lt;chr&gt; where you expected &lt;date&gt;). If the format is consistent, tell the reader what it is with col_types (Section 7.1.2); if it is mixed, the rows that failed to parse are found the same way as any other type problem:\ndeliveries |&gt;\n  filter(is.na(as.Date(delivery_date))) |&gt;\n  select(ticket_id, delivery_date)\nFixing messy dates properly uses tools we have not covered (the lubridate package is the standard one); for this course, it is enough to notice the problem and state the format explicitly when you read the file.",
+    "crumbs": [
+      "Feedback",
+      "Module 3: Getting and Combining Data",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Cleaning Data</span>"
+    ]
+  },
+  {
+    "objectID": "moduleRDd.html#sec-cleaning-excel",
+    "href": "moduleRDd.html#sec-cleaning-excel",
+    "title": "9  Cleaning Data",
+    "section": "9.10 Cleaning in Excel",
+    "text": "9.10 Cleaning in Excel\nEverything above has an Excel counterpart, and for a file you will clean once, Excel is often quicker. The workbook below holds the same grain delivery tickets with the cleaning done in formula columns beside the raw data, so the original is still there to check against.\n\nCategories. The filter dropdown on a column lists every distinct value in it, which is Excel’s count(). Open it on crop and the three spellings of canola are all visible at once. =PROPER(TRIM(C5)) fixes case and stray spaces; Find & Replace handles synonyms like Canola/Rapeseed.\nImpossible values and mixed units. MIN and MAX at the foot of a column do what summary() does. An IF that rescales moisture readings under 1 is the if_else() from\n\n\n\nDuplicates. Data &gt; Remove Duplicates drops exact duplicates, and says how many it removed. It does nothing about the same ticket number with two different weights; =COUNTIF($A$5:$A$23, A5) beside each row finds those.\nText that should be numbers. A number stored as text shows a green triangle in the corner of the cell and sorts in the wrong place. VALUE() converts it, and Text to Columns (Section 7.1.1) converts a whole column at once if you click through with the type set to General.\nMissing values. COUNTBLANK counts empty cells. Excel’s AVERAGE skips blanks without telling you, which is the difference from R’s NA described above, so count them before you trust an average.\n\n\n\nDownload this workbook\n\nWhat Excel does not give you is a record. Remove Duplicates, Find & Replace and a retyped cell leave no trace, so a month later there is no way to tell what was changed, and no way to redo it when a new version of the file arrives. The formula-column approach in the workbook is the compromise: the raw data stays put and the cleaning is visible. For anything you will do more than once, Power Query (Data &gt; Get Data) records every step and replays them on a new file, which is the closest Excel comes to a script.",
     "crumbs": [
       "Feedback",
       "Module 3: Getting and Combining Data",
@@ -933,8 +945,8 @@
     "objectID": "moduleRDd.html#sec-cleaning-checklist",
     "href": "moduleRDd.html#sec-cleaning-checklist",
     "title": "9  Cleaning Data",
-    "section": "9.10 A Checklist",
-    "text": "9.10 A Checklist\nRun through this on every new file:\n\nglimpse() – are the column types what you expect?\nsummary() – are the minimums and maximums possible?\ncount() each categorical column – are the categories consistent?\nCount rows, and check for duplicated identifiers.\nCount NAs per column, and ask whether the missingness is random.\nCheck the range of each numeric column against what the unit should be.\n\n\n\n\n\nWickham, Hadley, Mine Çetinkaya-Rundel, and Garrett Grolemund. 2023. R for Data Science. Second. O’Reilly Media. https://r4ds.hadley.nz/.",
+    "section": "9.11 A Checklist",
+    "text": "9.11 A Checklist\nRun through this on every new file:\n\nglimpse() – are the column types what you expect?\nsummary() – are the minimums and maximums possible?\ncount() each categorical column – are the categories consistent?\nCount rows, and check for duplicated identifiers.\nCount NAs per column, and ask whether the missingness is random.\nCheck the range of each numeric column against what the unit should be.\n\n\n\n\n\nWickham, Hadley, Mine Çetinkaya-Rundel, and Garrett Grolemund. 2023. R for Data Science. Second. O’Reilly Media. https://r4ds.hadley.nz/.",
     "crumbs": [
       "Feedback",
       "Module 3: Getting and Combining Data",
