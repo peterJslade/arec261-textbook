@@ -34,7 +34,7 @@ Expand each **Answer** block to check your work. Every value has been computed f
 
 **Grading model.** **20%** for script presentation -- a header block, comments in the style of the module, clearly labelled question sections, and a script that runs from top to bottom in a fresh session. The remaining **80%** is split evenly across the four questions, and evenly across the parts within each question. Parts are marked on **follow-through**: if an early part is wrong but the later parts are correctly worked *from your own earlier answer*, the later parts still earn full marks. Where a part asks for a sentence, write it as a comment in your script.
 
-> **Vocabulary note.** Everything here uses only Module 2 tools: `<-`, arithmetic on vectors, `c()`, `data.frame()`, `$`, `mean`, `median`, `sd`, `var`, `min`, `max`, `range`, `sum`, `quantile` (with `probs`), `IQR`, `nrow`, `ncol`, `names`, `head`, `print`, `glimpse`, `summary`, `library()`, `install.packages()`, `read_csv` with relative paths, `filter` (with `==`, `>`, `<`, `>=`, `&`, `|`, `!`, `%in%`), `select` (including `-` and `:`), `rename`, `mutate`, `arrange` and `desc`, the pipe `|>`, `summarise`, `n()`, `group_by`, and `write_csv`. Nothing beyond that is needed.
+> **Vocabulary note.** Everything here uses only Module 2 tools: `<-`, arithmetic on vectors, `c()`, `data.frame()`, `$`, `mean`, `median`, `sd`, `var`, `min`, `max`, `range`, `sum`, `quantile` (with `probs`), `IQR`, `nrow`, `ncol`, `names`, `head`, `print`, `glimpse`, `summary`, `library()`, `install.packages()`, `read_csv` with relative paths, `filter` (with `==`, `>`, `<`, `>=`, `&`, `|`, `!`, `%in%`), `select` (including `-` and `:`), `rename`, `mutate`, `arrange` and `desc`, the pipe `|>`, `summarise`, `n()`, `group_by`, and `write_csv`. Nothing beyond that is needed. The chapter's `summarise()` examples write `na.rm = TRUE` inside `mean()` and `sd()`; none of the data these questions filter to has missing yields, so answers with or without it get the same numbers and the same marks.
 
 ::: {.callout-note collapse="true"}
 ## A sample test, with a full-marks answer script
@@ -349,7 +349,7 @@ total_bu / sum(acres)
 
 Five barley fields yielded 68.2, 71.5, 64.9, 74.1, and 66.3 bu/ac. Five lentil fields yielded 1450, 1720, 1280, 1610, and 1390 lb/ac.
 
-**(a)** Compute the mean, the standard deviation, and the range (maximum minus minimum) of each crop's yields.
+**(a)** Compute the mean, the standard deviation, the variance, and the range (maximum minus minimum) of each crop's yields.
 
 **(b)** The lentil standard deviation is far larger. In a comment: why can the two standard deviations not be compared directly?
 
@@ -360,13 +360,15 @@ Five barley fields yielded 68.2, 71.5, 64.9, 74.1, and 66.3 bu/ac. Five lentil f
 ```r
 barley  <- c(68.2, 71.5, 64.9, 74.1, 66.3)
 lentils <- c(1450, 1720, 1280, 1610, 1390)
+var(barley)
+var(lentils)
 max(barley) - min(barley)
 max(lentils) - min(lentils)
 sd(barley) / mean(barley)
 sd(lentils) / mean(lentils)
 ```
 
-- (a) Barley mean **69.0**, sd **3.77**, range **9.2**; lentils mean **1490**, sd **175.36**, range **440**.
+- (a) Barley mean **69.0**, sd **3.77**, variance **14.25**, range **9.2**; lentils mean **1490**, sd **175.36**, variance **30,750**, range **440**.
 - (b) They are in different units (bushels vs pounds per acre) and on very different scales, so the raw spreads are not comparable.
 - (c) CV barley **0.055**, lentils **0.118** -- lentil yields are more variable relative to their own average.
 </details>
@@ -423,7 +425,7 @@ trial
 
 ### Question 11
 
-Four barley fields yielded 66.4, 72.1, 58.9, and 69.5 bu/ac, on 280, 150, 320, and 210 acres. A bushel of barley is 48 lb, so one bu/ac is about 54.4 kg/ha.
+Four barley fields yielded 66.4, 72.1, 58.9, and 69.5 bu/ac, on 280, 150, 320, and 210 acres. A bushel of barley is 48 lb, so one bu/ac is about 53.8 kg/ha.
 
 **(a)** Create a vector `yields` and a vector `acres` holding these values.
 
@@ -438,14 +440,14 @@ Four barley fields yielded 66.4, 72.1, 58.9, and 69.5 bu/ac, on 280, 150, 320, a
 ```r
 yields <- c(66.4, 72.1, 58.9, 69.5)
 acres  <- c(280, 150, 320, 210)
-yields_kg_ha <- yields * 54.4
+yields_kg_ha <- yields * 53.8
 mean(yields)
 sd(yields)
 total_bu <- sum(yields * acres)
 total_bu / sum(acres)
 ```
 
-- (b) 3612.16, 3922.24, 3204.16, 3780.8 kg/ha.
+- (b) 3572.32, 3878.98, 3168.82, 3739.10 kg/ha.
 - (c) Mean **66.72**, sd **5.71**.
 - (d) Total **62,850 bu**; weighted average **65.47 bu/ac**.
 </details>
@@ -638,16 +640,20 @@ sd(peas) / mean(peas)
 
 **(c)** A classmate writes `Mean(c(12, 18, 30))` and R replies `could not find function "Mean"`. In a comment: what went wrong?
 
+**(d)** Compute the standard deviation of the same three values, with the argument named.
+
 <details><summary>Answer</summary>
 
 ```r
 mean(c(12, 18, 30))
 mean(x = c(12, 18, 30))
+sd(x = c(12, 18, 30))
 ```
 
 - (a) Both print `[1] 20`.
 - (b) `?sd`.
 - (c) R is exact about names: `Mean` with a capital M is not the same function as `mean`.
+- (d) `[1] 9.165151`.
 </details>
 
 ### Question 20
@@ -697,7 +703,7 @@ revenue
 mean(revenue)
 ```
 
-- (b) 349.85, 380.56, 320.38, 367.28 $/ac.
+- (b) 349.85, 380.56, 320.38, 367.28 $/ac, rounded to the cent (the console shows 349.845 and so on).
 - (c) Mean **$354.51** per acre.
 - (d) Change `price <- 4.60`, then rerun the lines below it. The price lives in one object, so one edit updates everything -- the same reason a spreadsheet keeps a price in one cell.
 </details>
@@ -760,7 +766,7 @@ bins * 2
 total <- sum(bins)
 ```
 
-**(a)** In a comment: what exactly does the second line print, `[1]` included, and is that tripled -- no, doubled -- vector saved anywhere?
+**(a)** In a comment: what exactly does the second line print, `[1]` included, and is that doubled vector saved anywhere?
 
 **(b)** In a comment: what does the third line print, and what does the Variables pane show afterwards?
 
@@ -783,7 +789,18 @@ A classmate's script begins with the analysis and creates its objects in a scatt
 
 **(c)** In a comment: why does "it works on my machine, right now" not count as a working script for this course?
 
+**(d)** Write the header block you would put at the top of your own fixed version of their script.
+
 <details><summary>Answer</summary>
+
+```r
+# ---
+# Title: Canola field analysis
+# Author: Your Name
+# Date: 2026-10-08
+# Description: Reads the field data and computes summary statistics.
+# ---
+```
 
 - (a) Restart R and run the script from top to bottom in a fresh session; it should reproduce the analysis with nothing typed in the console.
 - (b) A header block (title, author, date, description) and the `library()` calls for any packages the script uses.
@@ -804,10 +821,13 @@ n_fields == 8
 
 **(b)** In a comment: the second line worked -- so why does this book still tell you to write `<-` for assignment?
 
+**(c)** In a comment: in `mean(x = c(12, 18, 30))`, is the `=` assigning anything? What job is it doing?
+
 <details><summary>Answer</summary>
 
 - (a) After line 1 it is 12, after line 2 it is 8 (both assignments, printing nothing); line 3 leaves it at 8 and prints `[1] TRUE`.
 - (b) Because `=` already has another job -- naming arguments inside function calls -- and `==` a third. Keeping `<-` for assignment keeps the three jobs visually distinct, which prevents exactly the confusion this question is exploiting.
+- (c) No object is created -- inside a function call, `=` names an argument. It hands the vector to `mean()`'s `x` and leaves the workspace untouched.
 </details>
 
 ### Question 27
@@ -917,16 +937,20 @@ quantile(wheat, c(0.25, 0.75))
 
 **(b)** Write all five correctly as a `c()` call each would belong in (one numeric vector, one character vector, one logical vector).
 
+**(c)** In a comment: a classmate writes `c(12, "Canola", TRUE)`. A vector holds one type -- so what does R do with this, and what happens if they then try `mean()` on it?
+
 <details><summary>Answer</summary>
 
 - (a) `"12"` is text but twelve was meant as a number (drop the quotes); `Canola` without quotes would be read as an object name (add quotes); `2026` is a number but the text 2026 was intended (add quotes). `TRUE` and `8.5` are correct as written.
 - (b)
 
 ```r
-numbers <- c(12, 8.5)
+values  <- c(12, 8.5)
 text    <- c("Canola", "2026")
-logical <- c(TRUE)
+seeded  <- c(TRUE)
 ```
+
+- (c) R converts everything to text -- `"12"`, `"Canola"`, `"TRUE"` -- because that is the only type all three values can share. `mean()` on it stops with an error, since text has no mean.
 </details>
 
 # Section 2 — Reading and Inspecting Data
@@ -1146,7 +1170,7 @@ You spot an obviously wrong yield value in the csv. A classmate suggests opening
 
 ## Questions 41--50 · Manitoba Wheat Variety {.unnumbered}
 
-*These questions use [`mb_wheat_reported_2020_2025.csv`](data/mb_wheat_reported_2020_2025.csv) -- red spring wheat yields by variety and municipality, reported observations only.*
+*These questions use [`mb_wheat_reported_2020_2025.csv`](data/mb_wheat_reported_2020_2025.csv) -- spring wheat yields by variety and municipality, reported observations only.*
 
 ### Question 41
 
@@ -1238,7 +1262,7 @@ AREC_261/
 
 **(a)** Run `summary(mb_wheat)`. From its output, report the minimum, median, and maximum of `Yield_bu_ac`, and the first and last `Year`.
 
-**(b)** In a comment: work through the module's inspection questions. Are the yields in a plausible range for red spring wheat? Are there missing values?
+**(b)** In a comment: work through the module's inspection questions. Are the yields in a plausible range for spring wheat? Are there missing values?
 
 **(c)** The minimum is **4.5 bu/ac**. In a comment: is a reported yield that low necessarily an error?
 
@@ -1253,7 +1277,9 @@ AREC_261/
 
 **(a)** Compute the mean, median, standard deviation, and variance of `mb_wheat$Yield_bu_ac`.
 
-**(b)** In a comment: the mean sits a little *below* the median here. In Module 1's language, what does that direction of gap suggest, and what kind of year in the data would produce it?
+**(b)** In a comment: the mean sits a little *below* the median here. In Module 1's language, what does that direction of gap suggest, and what kind of observations would produce it?
+
+**(c)** Compute the smallest and largest yields in one `range()` call.
 
 <details><summary>Answer</summary>
 
@@ -1262,10 +1288,12 @@ mean(mb_wheat$Yield_bu_ac)
 median(mb_wheat$Yield_bu_ac)
 sd(mb_wheat$Yield_bu_ac)
 var(mb_wheat$Yield_bu_ac)
+range(mb_wheat$Yield_bu_ac)
 ```
 
 - (a) Mean **61.16**, median **62.2**, sd **12.38**, variance **153.34**.
-- (b) Mild left skew: unusually *low* values pull the mean down more than the high values pull it up -- the fingerprint of a bad year (2021's drought) mixed in with normal ones.
+- (b) Mild left skew: unusually *low* values pull the mean down more than the high values pull it up -- a tail of very poor variety-municipality observations mixed in with normal ones.
+- (c) `[1]  4.5 97.8` -- `range()` returns both ends as one vector.
 </details>
 
 ### Question 47
@@ -1335,7 +1363,7 @@ You spot what looks like a data-entry slip in the csv, and your download folder 
 <details><summary>Answer</summary>
 
 - (a) It overwrites the only copy of the raw data with an invented value and leaves no record. Raw data stays exactly as it arrived; corrections happen in the R script, where they are visible and reversible.
-- (b) Spaces plus a `FINAL final(3)` tag that only breeds a `final(4)`. Something like `mb_wheat_varieties.csv`.
+- (b) Spaces plus a `FINAL final(3)` tag that only breeds a `final(4)`. Something like `mb_wheat_yields_2020_2025.csv`.
 - (c) As YYYY-MM-DD (e.g. `2026-10-08_mb_wheat.csv`) so alphabetical order is also chronological order.
 </details>
 
@@ -1392,10 +1420,13 @@ sw <- read_csv("C:\\Users\\alex\\Desktop\\statcan spring wheat.csv")
 
 **(b)** In a comment: a classmate with the *same* folders gets `does not exist` from your exact line. What is different about their session?
 
+**(c)** In a comment: trace how R follows your path from (a) to the file, one folder at a time.
+
 <details><summary>Answer</summary>
 
 - (a) `sw <- read_csv("module_2/data/statcan_spring_wheat_2015_2025.csv")`.
 - (b) They opened a different folder (for example `module_2/` itself, or no folder at all) -- the relative path starts from the opened folder, so the same line works or fails depending on the starting point, not the code.
+- (c) From `AREC_261`, R steps into `module_2`, then into `data`, and finds the csv; each `/` is one step down.
 </details>
 
 ### Question 54
@@ -1404,13 +1435,13 @@ sw <- read_csv("C:\\Users\\alex\\Desktop\\statcan spring wheat.csv")
 
 **(b)** In a comment: when `read_csv()` ran, what did its note report for this file?
 
-**(c)** In a comment: `Seeded_acres` for Saskatchewan runs to seven digits. If those values had been typed with thousands separators, like `9,141,200`, what type would the column arrive as, and what would break?
+**(c)** In a comment: Statistics Canada sometimes publishes a suppressed value as the letter `x`. If even one `Seeded_acres` value in the csv were an `x`, what type would the whole column arrive as, and what would break?
 
 <details><summary>Answer</summary>
 
 - (a) `Province` and `Crop` are `<chr>`; `Year`, `Seeded_acres`, and `Yield_bu_ac` are `<dbl>`.
 - (b) 94 rows, 5 columns, and its type guesses: `chr (2)`, `dbl (3)`.
-- (c) Text -- the commas stop the values being read as numbers -- and every calculation on the column (`mean()`, comparisons, sorting by size) would fail or misbehave.
+- (c) Text -- a column takes one type, and one value that cannot be read as a number turns the whole column `<chr>`. Every calculation on it (`mean()`, comparisons, sorting by size) would then fail, which is why the types line in `glimpse()` is worth a glance after every read.
 </details>
 
 ### Question 55
@@ -1419,10 +1450,13 @@ sw <- read_csv("C:\\Users\\alex\\Desktop\\statcan spring wheat.csv")
 
 **(b)** In a comment: run the module's inspection questions. Plausible ranges? Missing values? The variables you expected?
 
+**(c)** Open the csv in Positron's data viewer and expand `Seeded_acres`. In a comment: describe its histogram's shape in one phrase.
+
 <details><summary>Answer</summary>
 
 - (a) Yield: min **33.7**, median **50.9**, max **73.9**. Years **2015** to **2025**.
 - (b) Yields of 34--74 bu/ac are sensible for provincial spring wheat averages; no `NA's` lines appear, so nothing is missing; the five expected columns are present.
+- (c) Almost everything piled near zero with a long tail stretching right -- a few prairie-sized values dwarf the rest.
 </details>
 
 ### Question 56
@@ -1494,10 +1528,13 @@ and gets `Error: object 'tidyverse' not found`.
 
 **(b)** In a comment: after installing correctly, what line still has to appear at the top of the script, and why?
 
+**(c)** The tidyverse is a collection of packages. In comments, name the four core ones from the module and the job each does.
+
 <details><summary>Answer</summary>
 
 - (a) The quotes rule -- the package name is quoted when installing. Without quotes, R looks for an *object* called tidyverse and finds none. Corrected: `install.packages("tidyverse")`.
 - (b) `library(tidyverse)` -- installing puts the package on the computer, but each script or session has to load it before its functions exist.
+- (c) `readr` reads data, `dplyr` manipulates it, `tidyr` reshapes it, `ggplot2` makes graphs.
 </details>
 
 ### Question 60
@@ -1508,10 +1545,13 @@ Your download folder contains `sk wheat data (new) FINAL.csv`.
 
 **(b)** In a comment: why does the module say to save the file into `data/` untouched, even before you have looked at it?
 
+**(c)** In a comment: if you wanted the download date in the name, how would you write it and why?
+
 <details><summary>Answer</summary>
 
 - (a) Spaces, parentheses, and a `FINAL` tag standing in for version control. Something like `statcan_spring_wheat_2015_2025.csv`.
 - (b) `data/` holds raw files exactly as they arrived, so there is always an untouched original to go back to; every change happens in the script, where it leaves a record.
+- (c) As YYYY-MM-DD (e.g. `2026-10-08_statcan_spring_wheat.csv`) so alphabetical order is also chronological order.
 </details>
 
 # Section 3 — Data Manipulation Functions
@@ -1572,18 +1612,18 @@ arrange(oats_barley, desc(Yield))
 
 ### Question 63
 
-**(a)** Filter to the Spring Wheat observations above 60 bu/ac (all years), saving the result. How many rows are in the filtered data frame?
+**(a)** Filter to the Spring Wheat observations of at least 60 bu/ac (all years), using `>=` and saving the result. How many rows are in the filtered data frame?
 
 **(b)** Filter again to keep only the 2023 rows of that result. How many rows are in this second data frame?
 
 **(c)** From your 2023 data frame, select `RM` and `Yield` and sort best-first. Which RM tops the list, at what yield?
 
-**(d)** In a comment: rewrite the condition "yield above 60 and the crop is *not* Spring Wheat" using `!`.
+**(d)** In a comment: rewrite the condition "yield at least 60 and the crop is *not* Spring Wheat" using `!`.
 
 <details><summary>Answer</summary>
 
 ```r
-sw_60 <- filter(rm_yields, Crop == "Spring Wheat" & Yield > 60)
+sw_60 <- filter(rm_yields, Crop == "Spring Wheat" & Yield >= 60)
 nrow(sw_60)
 sw_60_2023 <- filter(sw_60, Year == 2023)
 nrow(sw_60_2023)
@@ -1591,9 +1631,9 @@ sw_best <- select(sw_60_2023, RM, Yield)
 arrange(sw_best, desc(Yield))
 ```
 
-- (a) **430 rows**. (b) **52 rows**.
+- (a) **434 rows**. (b) **53 rows**.
 - (c) RM **187**, at **74.7 bu/ac**.
-- (d) `filter(rm_yields, Yield > 60 & !Crop == "Spring Wheat")`.
+- (d) `filter(rm_yields, Yield >= 60 & !Crop == "Spring Wheat")`.
 </details>
 
 ### Question 64
@@ -1749,9 +1789,9 @@ arrange(canola_232, desc(Yield))
 
 **(b)** Sort the data by `Yield` in descending order into a new object, select its `Crop`, `Yield`, and `Unit` columns into another, and display the first six rows of that (leaving `rm_yields` unchanged throughout).
 
-**(c)** Now sort by `Crop` first and by descending `Yield` within each crop, into a new object, and display its first six rows. Which crop fills them, and why that crop?
+**(c)** In a comment: every row in (b) is the same crop. Which one, why those rows, and what would you check before comparing their values with the other crops?
 
-**(d)** In a comment: every row in (b) is the same crop. Which one, why those rows, and what would you check before comparing their values with the other crops?
+**(d)** Now sort by `Crop` first and by descending `Yield` within each crop, into a new object, and display its first six rows. Which crop fills them, and why that crop?
 
 <details><summary>Answer</summary>
 
@@ -1764,9 +1804,8 @@ by_crop <- arrange(rm_yields, Crop, desc(Yield))
 head(by_crop)
 ```
 
-- (c) All Barley -- `Crop` sorts alphabetically first, so the display starts with Barley's own best yields (RM 380 in 2025 at 122 bu/ac on top).
-
-- (b, d) All lentils -- their yields are recorded in pounds per acre, so they dominate the top of any sort on `Yield`. Before comparing across crops you would check the `Unit` column and convert to a common unit.
+- (b, c) All lentils -- their yields are recorded in pounds per acre, so they dominate the top of any sort on `Yield`. Before comparing across crops you would check the `Unit` column and convert to a common unit.
+- (d) All Barley -- `Crop` sorts alphabetically first, so the display starts with Barley's own best yields (RM 380 in 2025 at 122 bu/ac on top).
 </details>
 
 ---
@@ -1781,7 +1820,7 @@ head(by_crop)
 
 **(b)** From `mb_rep`, select `Municipality`, `Variety`, and `Yield_bu_ac`, saving the result. Report its column names.
 
-**(c)** In a comment: how many rows does `mb` itself still have, and what happened to the 2,960 suppressed rows in `mb_rep`?
+**(c)** In a comment: how many rows does `mb` itself still have, and what happened to the suppressed rows in `mb_rep`?
 
 <details><summary>Answer</summary>
 
@@ -1794,7 +1833,7 @@ names(mb_slim)
 
 - (a) **2,398 rows**.
 - (b) `Municipality`, `Variety`, `Yield_bu_ac`.
-- (c) `mb` still has **5,358** rows -- filtering returns a new data frame. The suppressed rows are simply absent from `mb_rep`; they were not deleted from anything.
+- (c) `mb` still has **5,358** rows -- filtering returns a new data frame. The 2,960 suppressed rows are simply absent from `mb_rep`; they were not deleted from anything.
 </details>
 
 ### Question 72
@@ -2162,10 +2201,13 @@ manitoba <- filter(crops, Province == "Manitoba")
 
 **(b)** Report `nrow(manitoba)` and `nrow(crops)`.
 
+**(c)** In a comment: line 1's printed result has scrolled out of the console. Is it stored anywhere you can get it back from?
+
 <details><summary>Answer</summary>
 
 - (a) Line 1 computes Manitoba's rows and prints them, saving nothing; line 2 saves the same result as `manitoba` and prints nothing.
 - (b) `nrow(manitoba)` is **137**; `nrow(crops)` is still **1,067**.
+- (c) No -- a displayed result that was never assigned is gone once it scrolls past. Only line 2's `manitoba` can be brought back, which is the point of assigning.
 </details>
 
 ### Question 89
@@ -2187,7 +2229,7 @@ arrange(flax, desc(Yield_bu_ac))
 
 - (a) **39 rows**.
 - (b) Alberta in **2025**, at **40.8 bu/ac**.
-- (c) Only three or four provinces report it in any year -- flax is a prairie specialty crop, not grown countrywide.
+- (c) Only three to six provinces (usually three) report it in any year -- flax is a prairie specialty crop, not grown countrywide.
 </details>
 
 ### Question 90
@@ -2300,7 +2342,7 @@ rm_yields |>
 ```
 
 - (a) Eight rows, one per crop: Barley **51.8**, Canola **28.3**, Durum **33.6**, Flax **20.5**, Lentils **1,208.4**, Oats **64.7**, Peas **31.8**, Spring Wheat **35.3**.
-- (b) Lentils, at nearly twenty times any other crop.
+- (b) Lentils, at nearly twenty times the next-highest crop.
 - (c) Lentils are measured in pounds per acre and everything else in bushels -- the `Unit` column. The group means are each fine on their own terms; comparing them across the unit boundary is not.
 </details>
 
@@ -2690,15 +2732,17 @@ crops |>                                    # take the data, THEN
   arrange(desc(Yield_bu_ac))                # sort best-first
 ```
 
-- (b) **75 rows**; New Brunswick in **2024**, at **54.2 bu/ac**.
+- (b) **75 rows**; New Brunswick in **2024**, at **54.2 bu/ac**. (One row, Prince Edward Island 2021, has a missing yield; `arrange()` puts missing values last, so the sort is unaffected.)
 - (c) `Seeded_acres` -- a tiny acreage can post a great average that means little next to Saskatchewan's millions of acres. Best yield and biggest grower are different titles.
 </details>
 
 ### Question 112
 
-**(a)** In one pipeline, filter to Spring wheat and summarise the mean yield and the observation count.
+**(a)** In one pipeline, filter to Spring wheat and summarise the mean yield, the standard deviation, and the observation count.
 
-**(b)** Report both values.
+**(b)** Report the three values.
+
+**(c)** In a comment: say what the standard deviation means here, for a reader who farms.
 
 <details><summary>Answer</summary>
 
@@ -2706,10 +2750,12 @@ crops |>                                    # take the data, THEN
 crops |>
   filter(Crop == "Spring wheat") |>
   summarise(mean_yield = mean(Yield_bu_ac),
+            sd_yield = sd(Yield_bu_ac),
             n = n())
 ```
 
-- (b) Mean **51.32 bu/ac** from **94** province-years.
+- (b) Mean **51.32 bu/ac**, sd **7.52**, from **94** province-years.
+- (c) A typical province-year sits within about seven or eight bushels of the 51 bu/ac average -- the spread across provinces and years, not field-to-field variation.
 </details>
 
 ### Question 113
@@ -2718,7 +2764,7 @@ crops |>
 
 **(b)** Report both values.
 
-**(c)** In a comment: Saskatchewan's mean sits below the national figure from Question 112. How can the country's biggest wheat grower not have its best yields?
+**(c)** In a comment: Saskatchewan's mean sits about five bushels below the all-province average of 51.3 bu/ac. How can the country's biggest wheat grower not have its best yields?
 
 <details><summary>Answer</summary>
 
@@ -2753,7 +2799,7 @@ crops |>
 ```
 
 - (b) Manitoba (**59.0**), Ontario (**56.6**), Alberta (**52.3**).
-- (c) One row per province; each mean averages that province's eleven years (n = 11).
+- (c) One row per province, its years collapsed into a single mean. Most provinces contribute all eleven years (n = 11), but not all -- Nova Scotia has spring wheat estimates for only six, which is what the `n` column is there to show.
 </details>
 
 ### Question 115
@@ -2783,7 +2829,7 @@ crops |>
 
 **(b)** Report the top three.
 
-**(c)** In a comment: compare this league table with Question 114's. What changes, and what does that say about "best wheat province" as a phrase?
+**(c)** In a comment: on mean *yield*, Manitoba leads the provinces at 59.0 bu/ac and Saskatchewan trails the prairies. Compare that ordering with this table -- what changes, and what does that say about "best wheat province" as a phrase?
 
 <details><summary>Answer</summary>
 
@@ -2850,26 +2896,35 @@ crops |>
 
 ### Question 119
 
-This pipeline was meant to summarise Saskatchewan's crops, but returns zero rows:
+This pipeline was meant to compute each province's average spring wheat production, but it stops with `object 'Seeded_acres' not found`:
 
 ```r
 crops |>
-  filter(Province == "Saskatchwan") |>
-  group_by(Crop) |>
-  summarise(n = n())
+  filter(Crop == "Spring wheat") |>
+  group_by(Province) |>
+  summarise(mean_yield = mean(Yield_bu_ac)) |>
+  mutate(total_bu = Seeded_acres * Yield_bu_ac)
 ```
 
-**(a)** In a comment: apply the debugging habit -- what do you run first, and what does it show?
+**(a)** In a comment: apply the debugging habit -- run the pipeline one step at a time. After which step does `Seeded_acres` stop existing, and how can you tell?
 
-**(b)** In a comment: identify the bug and say why R reported no error.
+**(b)** In a comment: identify the bug and state the general rule it breaks.
 
-**(c)** Write the corrected pipeline.
+**(c)** Write the corrected pipeline (its last step should report each province's mean `total_bu`).
 
 <details><summary>Answer</summary>
 
-- (a) The filter step alone -- it returns zero rows, so the problem is in the condition, not the grouping.
-- (b) `"Saskatchwan"` is missing an `e`. Text matching is exact, and a condition that matches nothing is a legal question with an empty answer, not an error.
-- (c) `crops |> filter(Province == "Saskatchewan") |> group_by(Crop) |> summarise(n = n())`.
+- (a) After the `summarise()` step -- run the pipeline up to each `|>` and look at the columns. Once `summarise()` runs, the data has collapsed to `Province` and `mean_yield`; `Seeded_acres` and `Yield_bu_ac` are gone, so the `mutate()` has nothing to work with.
+- (b) `mutate()` builds per-row columns, so it must come *before* the collapse -- the order of pipeline steps matters because each step works on the previous step's output.
+- (c)
+
+```r
+crops |>
+  filter(Crop == "Spring wheat") |>
+  mutate(total_bu = Seeded_acres * Yield_bu_ac) |>
+  group_by(Province) |>
+  summarise(mean_total_bu = mean(total_bu))
+```
 </details>
 
 ### Question 120
@@ -2878,7 +2933,7 @@ crops |>
 
 **(b)** Write the table to `output/wheat_by_province.csv`.
 
-**(c)** Report the top row. In a comment: a reader sees Manitoba first and concludes "Manitoba grows Canada's wheat." Using Question 116, say precisely what is wrong with that sentence.
+**(c)** Report the top row. In a comment: a reader sees Manitoba first and concludes "Manitoba grows Canada's wheat." Saskatchewan seeds about 8 million acres of spring wheat a year to Manitoba's 3 million -- say precisely what is wrong with that sentence.
 
 <details><summary>Answer</summary>
 
