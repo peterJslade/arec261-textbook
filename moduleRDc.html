@@ -531,21 +531,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
    
   <ul>
   <li><a href="#learning-objectives" id="toc-learning-objectives" class="nav-link active" data-scroll-target="#learning-objectives">Learning Objectives</a></li>
-  <li><a href="#sec-joins" id="toc-sec-joins" class="nav-link" data-scroll-target="#sec-joins"><span class="header-section-number">8.1</span> Joining Two Tables</a>
+  <li><a href="#sec-three-tables" id="toc-sec-three-tables" class="nav-link" data-scroll-target="#sec-three-tables"><span class="header-section-number">8.1</span> The Three Tables</a>
   <ul>
-  <li><a href="#the-four-joins-you-need" id="toc-the-four-joins-you-need" class="nav-link" data-scroll-target="#the-four-joins-you-need">The four joins you need</a></li>
-  <li><a href="#one-to-one-one-to-many-many-to-many" id="toc-one-to-one-one-to-many-many-to-many" class="nav-link" data-scroll-target="#one-to-one-one-to-many-many-to-many">One-to-one, one-to-many, many-to-many</a></li>
-  <li><a href="#check-what-did-not-match" id="toc-check-what-did-not-match" class="nav-link" data-scroll-target="#check-what-did-not-match">Check what did not match</a></li>
-  <li><a href="#the-row-count-trap" id="toc-the-row-count-trap" class="nav-link" data-scroll-target="#the-row-count-trap">The row-count trap</a></li>
+  <li><a href="#keys" id="toc-keys" class="nav-link" data-scroll-target="#keys">Keys</a></li>
+  <li><a href="#one-to-one-many-to-one-many-to-many" id="toc-one-to-one-many-to-one-many-to-many" class="nav-link" data-scroll-target="#one-to-one-many-to-one-many-to-many">One-to-one, many-to-one, many-to-many</a></li>
   </ul></li>
-  <li><a href="#sec-canada-us-merge" id="toc-sec-canada-us-merge" class="nav-link" data-scroll-target="#sec-canada-us-merge"><span class="header-section-number">8.2</span> A Worked Example: Canadian and US Canola Yields</a></li>
-  <li><a href="#sec-three-table-merge" id="toc-sec-three-table-merge" class="nav-link" data-scroll-target="#sec-three-table-merge"><span class="header-section-number">8.3</span> A Worked Example: Three Tables</a>
+  <li><a href="#sec-merge-excel" id="toc-sec-merge-excel" class="nav-link" data-scroll-target="#sec-merge-excel"><span class="header-section-number">8.2</span> Merging in Excel</a></li>
+  <li><a href="#sec-merge-r" id="toc-sec-merge-r" class="nav-link" data-scroll-target="#sec-merge-r"><span class="header-section-number">8.3</span> Merging in R</a>
   <ul>
+  <li><a href="#the-four-joins" id="toc-the-four-joins" class="nav-link" data-scroll-target="#the-four-joins">The four joins</a></li>
   <li><a href="#first-join-yields-to-the-lookup" id="toc-first-join-yields-to-the-lookup" class="nav-link" data-scroll-target="#first-join-yields-to-the-lookup">First join: yields to the lookup</a></li>
   <li><a href="#second-join-add-the-rain" id="toc-second-join-add-the-rain" class="nav-link" data-scroll-target="#second-join-add-the-rain">Second join: add the rain</a></li>
-  <li><a href="#the-same-merge-in-excel" id="toc-the-same-merge-in-excel" class="nav-link" data-scroll-target="#the-same-merge-in-excel">The same merge in Excel</a></li>
-  <li><a href="#what-you-can-now-do" id="toc-what-you-can-now-do" class="nav-link" data-scroll-target="#what-you-can-now-do">What you can now do</a></li>
+  <li><a href="#the-row-count-trap" id="toc-the-row-count-trap" class="nav-link" data-scroll-target="#the-row-count-trap">The row-count trap</a></li>
   </ul></li>
+  <li><a href="#sec-merge-result" id="toc-sec-merge-result" class="nav-link" data-scroll-target="#sec-merge-result"><span class="header-section-number">8.4</span> What the Merge Gives You</a></li>
   </ul>
 </nav>
     </div>
@@ -571,123 +570,79 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>Data arrives in pieces: yields in one file, prices in another, weather in a third. Answering a real question usually means putting two or more of the pieces together. This chapter covers joins: how they work, how they fail, and how to check them.</p>
+<p>Data arrives in pieces. Suppose the question is whether canola yields in Saskatchewan track growing-season rain. The yields are in one file, from one agency. The rain is in another, from a different agency, measured at weather stations rather than in rural municipalities. Nothing in either file mentions the other. Answering the question means putting the pieces together, and that is what a <strong>merge</strong> (or <strong>join</strong>) does: it lines up rows from two tables that refer to the same thing and puts their columns side by side.</p>
+<p>This chapter works through one merge, first in Excel and then in R. Three tables are involved, because yields and rain have no column in common and a third table is needed to connect them.</p>
 <section id="learning-objectives" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="learning-objectives">Learning Objectives</h2>
 <div class="objectives">
 <p>By the end of this chapter you should be able to:</p>
 <ol type="1">
-<li>Join two tables on a shared key with <code>left_join()</code> and friends.</li>
-<li>Say whether a join is one-to-one, many-to-one or many-to-many, and what that does to the row count.</li>
-<li>Say what happens to rows that do not match, and check for them.</li>
-<li>Explain why a join can return more rows than it started with.</li>
-<li>Harmonize units and category names so that two real datasets can be merged.</li>
-<li>Combine three tables with different keys and different units of observation, in R and in Excel.</li>
+<li>Identify the key that connects two tables, and say whether the relationship is one-to-one, many-to-one or many-to-many.</li>
+<li>Merge tables in Excel with <code>XLOOKUP</code>, including on a two-part key.</li>
+<li>Merge tables in R with <code>left_join()</code> and friends.</li>
+<li>Check what failed to match, and why a merge can return more rows than it started with.</li>
 </ol>
 </div>
 </section>
-<section id="sec-joins" class="level2" data-number="8.1">
-<h2 data-number="8.1" class="anchored" data-anchor-id="sec-joins"><span class="header-section-number">8.1</span> Joining Two Tables</h2>
-<p><code>XLOOKUP</code> (<a href="module01b.html#sec-lookup" class="quarto-xref"><span>Section 2.2</span></a>) pulled a price across from a second table in Excel. The R equivalent is a <strong>join</strong>:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/field_yields.csv"</span>)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>prices <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/crop_prices.csv"</span>)</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(prices, <span class="at">by =</span> <span class="st">"crop"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>The <code>by</code> argument names the <strong>key</strong>, the column both tables share, which decides which row matches which. Everything about joins comes back to the key.</p>
-<section id="the-four-joins-you-need" class="level3 unnumbered">
-<h3 class="unnumbered anchored" data-anchor-id="the-four-joins-you-need">The four joins you need</h3>
-<p>They differ in which rows survive.</p>
+<section id="sec-three-tables" class="level2" data-number="8.1">
+<h2 data-number="8.1" class="anchored" data-anchor-id="sec-three-tables"><span class="header-section-number">8.1</span> The Three Tables</h2>
+<p>All three are real and can be downloaded:</p>
 <ul>
-<li><strong><code>left_join(a, b)</code></strong> keeps every row of <code>a</code> and fills in <code>NA</code> where <code>b</code> has no match. This is usually the one you want: your data stays intact and the extra columns come along.</li>
-<li><strong><code>inner_join(a, b)</code></strong> keeps only rows that matched in both, and drops the rest without saying so.</li>
-<li><strong><code>full_join(a, b)</code></strong> keeps everything from both, with <code>NA</code> wherever either side is missing.</li>
-<li><strong><code>anti_join(a, b)</code></strong> keeps rows of <code>a</code> with no match in <code>b</code>. It returns no columns from <code>b</code> at all, which sounds useless until you need to find out what failed to match.</li>
+<li><a href="practice/data/rm_yields_2015_2024.csv"><code>rm_yields_2015_2024.csv</code></a>: the Saskatchewan RM yields from <a href="moduleRDb.html#sec-direct-download" class="quarto-xref"><span>Section 7.3</span></a>, cut down to 2015 to 2024 and six crops. One row per RM per year, 2,950 rows, yields in bushels per acre.</li>
+<li><a href="practice/data/station_precip.csv"><code>station_precip.csv</code></a>: one row per weather station per year, 160 rows, with total May to August precipitation in millimetres computed from Environment Canada’s daily records for sixteen stations across the grain belt, and a count of days with no reading.</li>
+<li><a href="practice/data/rm_lookup.csv"><code>rm_lookup.csv</code></a>: one row per RM, 296 rows, with its name, census division and 2021 population from Statistics Canada, and the nearest of the sixteen weather stations, with the distance to it in kilometres.</li>
 </ul>
-</section>
-<section id="one-to-one-one-to-many-many-to-many" class="level3 unnumbered">
-<h3 class="unnumbered anchored" data-anchor-id="one-to-one-one-to-many-many-to-many">One-to-one, one-to-many, many-to-many</h3>
-<p>Joins also differ in how many rows on each side share a key value, and that decides what comes back.</p>
+<p>The yields table knows about RMs and years. The rain table knows about stations and years. Neither knows about the other, and the lookup table is the bridge: it is the only file that says which station goes with which RM. So the merge has two steps. Attach a station to every yield row using the lookup, then attach that station’s rain for that year.</p>
+<section id="keys" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="keys">Keys</h3>
+<p>A merge matches rows on a <strong>key</strong>, a column (or columns) that both tables share and that identifies what a row is about. Before merging anything, write down what identifies a row in each table:</p>
 <ul>
-<li><strong>One-to-one (1:1).</strong> Each key appears once in both tables. Two tables of national yields by year, joined on year. The result has the same rows as either input.</li>
-<li><strong>One-to-many (1:n) or many-to-one (n:1).</strong> The key is unique on one side and repeats on the other. A table of RM yields (many rows per RM, one per year) joined to a table of RM names (one row per RM) is many-to-one. The result has as many rows as the “many” side, and every row picks up exactly one name. This is what most joins are, and what <code>XLOOKUP</code> does in Excel.</li>
-<li><strong>Many-to-many (n:n).</strong> The key repeats on both sides. Each row on the left matches every row with the same key on the right, and the result multiplies. Occasionally you want this. Usually it means the key is incomplete, and it is the subject of the row-count trap below.</li>
+<li>In the yields table it is <code>RM</code> and <code>Year</code> together. RM 1 appears ten times, once per year.</li>
+<li>In the lookup table it is <code>RM_Number</code> alone. Each RM appears once.</li>
+<li>In the rain table it is <code>Station</code> and <code>Year</code> together.</li>
 </ul>
-<p>Know which one you expect before you join. dplyr lets you say so, and stops if the data disagrees:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">left_join</span>(rms, <span class="at">by =</span> <span class="st">"rm"</span>, <span class="at">relationship =</span> <span class="st">"many-to-one"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>If <code>rms</code> turned out to have two rows for some RM, that line errors instead of handing back extra rows.</p>
+<p>The first step joins yields to the lookup on RM. The second joins the result to the rain on station <em>and</em> year, because a station alone does not identify one rain total; it identifies ten of them.</p>
 </section>
-<section id="check-what-did-not-match" class="level3 unnumbered">
-<h3 class="unnumbered anchored" data-anchor-id="check-what-did-not-match">Check what did not match</h3>
-<p><code>left_join</code> does not complain when nothing matches. It hands you a column of <code>NA</code> and lets you carry on, so a join can fail completely without producing an error.</p>
-<p><code>anti_join</code> is how you look:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(prices, <span class="at">by =</span> <span class="st">"crop"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(crop)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Run that on real Saskatchewan data and the problem shows up straight away. The variety trial data calls it <code>"Canola/Rapeseed"</code> and the price list says <code>"Canola"</code>. The trial says <code>"Soybean"</code>, the prices say <code>"Soybeans"</code>. Neither file is wrong. They were written by different people, and a join matches on exact text, so every canola row comes back with a missing price.</p>
-<p>Reconciling the categories is part of cleaning (<a href="moduleRDd.html" class="quarto-xref"><span>Chapter 9</span></a>, the next chapter). Checking before you assume the join worked is the habit worth building.</p>
-</section>
-<section id="the-row-count-trap" class="level3 unnumbered">
-<h3 class="unnumbered anchored" data-anchor-id="the-row-count-trap">The row-count trap</h3>
-<p>A join can return more rows than it started with.</p>
-<p>This is the many-to-many case arriving uninvited. The key is not unique in the second table. If <code>prices</code> has one row per crop, each yield row matches one price and the row count does not change. If <code>prices</code> has one row per crop <em>per year</em> and you join on crop alone, every yield row matches several price rows and R returns all the combinations. Sixty fields become two hundred and forty, and every summary computed afterwards is wrong in a way that still looks plausible.</p>
-<p>Check the count:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(yields)                                    <span class="co"># before</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>joined <span class="ot">&lt;-</span> yields <span class="sc">|&gt;</span> <span class="fu">left_join</span>(prices, <span class="at">by =</span> <span class="st">"crop"</span>)</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(joined)                                    <span class="co"># after -- should be the same</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>If it grew, the key is incomplete. Join on everything that identifies a row:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">left_join</span>(prices, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"crop"</span>, <span class="st">"year"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>This is the composite key from <a href="module01b.html#sec-lookup" class="quarto-xref"><span>Section 2.2</span></a>, where RM and year had to be glued together with <code>&amp;</code> to identify a row. R lets you name several key columns instead of building one.</p>
-</section>
-</section>
-<section id="sec-canada-us-merge" class="level2" data-number="8.2">
-<h2 data-number="8.2" class="anchored" data-anchor-id="sec-canada-us-merge"><span class="header-section-number">8.2</span> A Worked Example: Canadian and US Canola Yields</h2>
-<p>The Canadian and US canola data from <a href="moduleRDb.html" class="quarto-xref"><span>Chapter 7</span></a> make a realistic merge, because the two tables agree on almost nothing: different column names, different units, different geography labels. The work before the join is most of the work.</p>
-<p>Suppose the Canadian table has national average yield in kilograms per hectare, and the US table reports pounds per acre. Neither can be compared until both are in the same unit. Prepare each table separately: keep the columns you need, convert to tonnes per hectare, and give the yield column a name that says whose it is:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>canada <span class="ot">&lt;-</span> canada_raw <span class="sc">|&gt;</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">clean_names</span>() <span class="sc">|&gt;</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(geo <span class="sc">==</span> <span class="st">"Canada"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">canada_t_ha =</span> value <span class="sc">/</span> <span class="dv">1000</span>) <span class="sc">|&gt;</span>          <span class="co"># kg/ha -&gt; t/ha</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="at">year =</span> ref_date, canada_t_ha)</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>us <span class="ot">&lt;-</span> us_raw <span class="sc">|&gt;</span></span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">clean_names</span>() <span class="sc">|&gt;</span></span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">us_t_ha =</span> value <span class="sc">*</span> <span class="fl">0.00112</span>) <span class="sc">|&gt;</span>           <span class="co"># lb/ac -&gt; t/ha</span></span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(year, us_t_ha)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Now the join is the easy part. The key is <code>year</code>:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>both <span class="ot">&lt;-</span> canada <span class="sc">|&gt;</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(us, <span class="at">by =</span> <span class="st">"year"</span>)</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>both</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<pre><code>   year canada_t_ha us_t_ha
-   &lt;dbl&gt;      &lt;dbl&gt;   &lt;dbl&gt;
- 1  2015       1.85    1.66
- 2  2016       2.06    1.71
- 3  2017       2.28    1.87
- ...</code></pre>
-<p>One table, one row per year, both countries’ yields in the same unit. Run the checks anyway: <code>nrow(both)</code> should equal <code>nrow(canada)</code>, and <code>anti_join(canada, us, by = "year")</code> shows any years one source has and the other does not – a data release usually lags a year on one side or the other, and it is better to find that now than in a chart.</p>
-</section>
-<section id="sec-three-table-merge" class="level2" data-number="8.3">
-<h2 data-number="8.3" class="anchored" data-anchor-id="sec-three-table-merge"><span class="header-section-number">8.3</span> A Worked Example: Three Tables</h2>
-<p>Most questions need more than two tables, and the tables are usually different kinds of thing. Here are three, all real, and all available to download:</p>
+<section id="one-to-one-many-to-one-many-to-many" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="one-to-one-many-to-one-many-to-many">One-to-one, many-to-one, many-to-many</h3>
+<p>How many rows on each side share a key value decides what comes back from a merge.</p>
 <ul>
-<li><a href="practice/data/rm_yields_2015_2024.csv"><code>rm_yields_2015_2024.csv</code></a>: the Saskatchewan RM yields from <a href="moduleRDb.html#sec-direct-download" class="quarto-xref"><span>Section 7.3</span></a>, cut down to 2015 to 2024 and six crops. One row per RM per year, yields in bushels per acre.</li>
-<li><a href="practice/data/rm_lookup.csv"><code>rm_lookup.csv</code></a>: one row per RM, with its name, census division and 2021 population from Statistics Canada, and the nearest of sixteen Environment Canada weather stations, with the distance to it in kilometres.</li>
-<li><a href="practice/data/station_precip.csv"><code>station_precip.csv</code></a>: one row per weather station per year, with total May to August precipitation in millimetres, computed from Environment Canada’s daily records, and a count of days with no reading.</li>
+<li><strong>One-to-one (1:1).</strong> Each key value appears once in both tables. Two tables of provincial yields by year, joined on year. The result has the same rows as either input.</li>
+<li><strong>Many-to-one (n:1), or one-to-many.</strong> The key repeats on one side and is unique on the other. Yields to the lookup is many-to-one: ten yield rows per RM, one lookup row per RM. The result has as many rows as the “many” side, and every row picks up exactly one name and one station. Most merges are this kind.</li>
+<li><strong>Many-to-many (n:n).</strong> The key repeats on both sides. Each row on the left matches every row with the same key on the right, and the row count multiplies. Joining yields to rain on station alone would be many-to-many: each RM-year would match all ten years of its station’s rain. Occasionally that is what you want. Usually it means the key is incomplete.</li>
 </ul>
-<p>The question is whether canola yields track growing-season rain. Answering it needs a yield, a rain total, and a way to connect the two, and each of those is in a different file. The lookup table is the bridge: it is the only file that knows which station goes with which RM.</p>
-<p>Read all three and look at them:</p>
+<p>Know which one you expect before you merge, and check the row count after. A many-to-one merge should return exactly as many rows as it started with.</p>
+</section>
+</section>
+<section id="sec-merge-excel" class="level2" data-number="8.2">
+<h2 data-number="8.2" class="anchored" data-anchor-id="sec-merge-excel"><span class="header-section-number">8.2</span> Merging in Excel</h2>
+<p>In Excel a merge is an <code>XLOOKUP</code> (<a href="module01b.html#sec-lookup" class="quarto-xref"><span>Section 2.2</span></a>): for each row, find the matching row in the other table and bring a value across. The workbook below has the three tables on three sheets and does the merge in formula columns beside thirty of the yield rows.</p>
+<p>The first step is the ordinary <code>XLOOKUP</code>. Look up the RM number in the lookup sheet and return its station:</p>
+<pre><code>=XLOOKUP(B5, 'RM lookup'!A:A, 'RM lookup'!E:E)</code></pre>
+<p>The second step needs two keys. <code>XLOOKUP</code> takes one, so both sides are glued together with <code>&amp; "|" &amp;</code>, the composite-key form from <a href="module01b.html#sec-lookup" class="quarto-xref"><span>Section 2.2</span></a>: the station and year from the yield row on one side, the station and year columns of the rain sheet on the other:</p>
+<pre><code>=XLOOKUP(I5 &amp; "|" &amp; A5,
+         Precip!A:A &amp; "|" &amp; Precip!B:B,
+         Precip!C:C)</code></pre>
+<p>Two things to check. An <code>XLOOKUP</code> that finds nothing returns <code>#N/A</code>, so <code>COUNTIF(range, "#N/A")</code> at the foot of each new column counts the rows that failed to match. And a lookup on an incomplete key does not fail. Leave the year out of the second step and <code>XLOOKUP</code> returns the <em>first</em> match for the station, so every year gets 2015’s rain, and nothing flags it. Column K of the workbook does exactly this. The check is to look at a few rows where you already know the answer.</p>
+<div class="workbook-callout">
+<!-- iframe embed goes here once the workbook is uploaded to SharePoint; follow the
+mod01_sum.xlsx block in module01a.qmd -->
+<p><a href="textbook_examples/mod03_merge_excel.xlsx">Download this workbook</a></p>
+</div>
+<p>Formulas are fine at thirty rows and fine at three thousand. Past that, or when the same merge has to be redone every month, <strong>Power Query</strong> (Data &gt; Get Data, then <strong>Merge Queries</strong>) does the join with a dialog that asks for the key columns and the join type, and records the step so it can be re-run on a new file.</p>
+</section>
+<section id="sec-merge-r" class="level2" data-number="8.3">
+<h2 data-number="8.3" class="anchored" data-anchor-id="sec-merge-r"><span class="header-section-number">8.3</span> Merging in R</h2>
+<p>Read the three files and look at them:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/rm_yields_2015_2024.csv"</span>) <span class="sc">|&gt;</span> <span class="fu">clean_names</span>()</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>rms    <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/rm_lookup.csv"</span>) <span class="sc">|&gt;</span> <span class="fu">clean_names</span>()</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>rain   <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/station_precip.csv"</span>) <span class="sc">|&gt;</span> <span class="fu">clean_names</span>()</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(yields)</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(rms)</span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(rain)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/rm_yields_2015_2024.csv"</span>) <span class="sc">|&gt;</span> <span class="fu">clean_names</span>()</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>rms    <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/rm_lookup.csv"</span>) <span class="sc">|&gt;</span> <span class="fu">clean_names</span>()</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>rain   <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/station_precip.csv"</span>) <span class="sc">|&gt;</span> <span class="fu">clean_names</span>()</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(yields)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(rms)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(rain)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; yields &lt;- read_csv("data/rm_yields_2015_2024.csv") |&gt; clean_names()
 Rows: 2950 Columns: 8
@@ -746,21 +701,31 @@ $ days_missing      &lt;dbl&gt; 1, 2, 1, 2, 2, 2, 1, 5, 0, 1, 0, 0, 0, 0, 0, 0, 
 </div>
 </div>
 </div>
-<p>Before joining anything, write down what identifies a row in each table. In <code>yields</code> it is <code>rm</code> and <code>year</code> together. In <code>rms</code> it is <code>rm_number</code> alone. In <code>rain</code> it is <code>station</code> and <code>year</code> together. Those are the keys, and the key column does not have the same name on both sides, which <code>by</code> handles with <code>c("left_name" = "right_name")</code>.</p>
+<p>The R function is <code>left_join()</code>. Its <code>by</code> argument names the key, and when the key column is called something different on each side, <code>by = c("left_name" = "right_name")</code> says so.</p>
+<section id="the-four-joins" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="the-four-joins">The four joins</h3>
+<p><code>left_join</code> is one of a family. They differ in which rows survive.</p>
+<ul>
+<li><strong><code>left_join(a, b)</code></strong> keeps every row of <code>a</code> and fills in <code>NA</code> where <code>b</code> has no match. This is usually the one you want: your data stays intact and the extra columns come along.</li>
+<li><strong><code>inner_join(a, b)</code></strong> keeps only rows that matched in both, and drops the rest without saying so.</li>
+<li><strong><code>full_join(a, b)</code></strong> keeps everything from both, with <code>NA</code> wherever either side is missing.</li>
+<li><strong><code>anti_join(a, b)</code></strong> keeps rows of <code>a</code> with no match in <code>b</code>. It returns no columns from <code>b</code> at all, which sounds useless until you need to find out what failed to match.</li>
+</ul>
+</section>
 <section id="first-join-yields-to-the-lookup" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="first-join-yields-to-the-lookup">First join: yields to the lookup</h3>
-<p>Check what will not match, then join, then check the row count:</p>
+<p><code>left_join</code> does not complain when nothing matches. It hands you a column of <code>NA</code> and lets you carry on, so a join can fail completely without producing an error. <code>anti_join</code> is how you look, so run it first, then join, then check the row count:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(rms, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"rm"</span> <span class="ot">=</span> <span class="st">"rm_number"</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(rm)</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>with_station <span class="ot">&lt;-</span> yields <span class="sc">|&gt;</span></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(rms, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"rm"</span> <span class="ot">=</span> <span class="st">"rm_number"</span>))</span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(yields)</span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(with_station)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(rms, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"rm"</span> <span class="ot">=</span> <span class="st">"rm_number"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(rm)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>with_station <span class="ot">&lt;-</span> yields <span class="sc">|&gt;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(rms, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"rm"</span> <span class="ot">=</span> <span class="st">"rm_number"</span>))</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(yields)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(with_station)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; yields |&gt;
 +   anti_join(rms, by = c("rm" = "rm_number")) |&gt;
@@ -778,21 +743,24 @@ $ days_missing      &lt;dbl&gt; 1, 2, 1, 2, 2, 2, 1, 5, 0, 1, 0, 0, 0, 0, 0, 0, 
 </div>
 </div>
 </div>
-<p>Every RM in the yield data has a row in the lookup, and the row count is unchanged. That is what a many-to-one join should look like: many yield rows for each RM, one lookup row per RM, so each yield row picks up exactly one name and one station.</p>
+<p>Every RM in the yield data has a row in the lookup, and the row count is unchanged, which is what a many-to-one join should look like. You can tell dplyr what you expect and have it stop if the data disagrees:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span> <span class="fu">left_join</span>(rms, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"rm"</span> <span class="ot">=</span> <span class="st">"rm_number"</span>), <span class="at">relationship =</span> <span class="st">"many-to-one"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>If the lookup turned out to have two rows for some RM, that line errors instead of handing back extra rows.</p>
+<p>When an <code>anti_join</code> does return rows, the usual reason is text. One file says <code>"Canola/Rapeseed"</code> and the other says <code>"Canola"</code>; one says <code>"Soybean"</code> and the other <code>"Soybeans"</code>. Neither is wrong, but a join matches on exact text, so every such row comes back with <code>NA</code>. Reconciling categories is part of cleaning (<a href="moduleRDd.html#sec-categories" class="quarto-xref"><span>Section 9.6</span></a>).</p>
 </section>
 <section id="second-join-add-the-rain" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="second-join-add-the-rain">Second join: add the rain</h3>
-<p>The key now has two parts. The station name in <code>with_station</code> is called <code>weather_station</code>, the year is called <code>year</code> on both sides, and both are needed to identify one rain total:</p>
+<p>The key now has two parts. The station in <code>with_station</code> is called <code>weather_station</code>, the year is <code>year</code> on both sides, and both are needed:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>with_station <span class="sc">|&gt;</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(rain, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"weather_station"</span> <span class="ot">=</span> <span class="st">"station"</span>, <span class="st">"year"</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(weather_station, year)</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>merged <span class="ot">&lt;-</span> with_station <span class="sc">|&gt;</span></span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(rain, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"weather_station"</span> <span class="ot">=</span> <span class="st">"station"</span>, <span class="st">"year"</span>))</span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(merged)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>with_station <span class="sc">|&gt;</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(rain, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"weather_station"</span> <span class="ot">=</span> <span class="st">"station"</span>, <span class="st">"year"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(weather_station, year)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>merged <span class="ot">&lt;-</span> with_station <span class="sc">|&gt;</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(rain, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"weather_station"</span> <span class="ot">=</span> <span class="st">"station"</span>, <span class="st">"year"</span>))</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(merged)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; with_station |&gt;
 +   anti_join(rain, by = c("weather_station" = "station", "year")) |&gt;
@@ -808,12 +776,15 @@ $ days_missing      &lt;dbl&gt; 1, 2, 1, 2, 2, 2, 1, 5, 0, 1, 0, 0, 0, 0, 0, 0, 
 </div>
 </div>
 </div>
-<p>Here is what the row-count trap looks like when you leave <code>year</code> out of the key:</p>
+</section>
+<section id="the-row-count-trap" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="the-row-count-trap">The row-count trap</h3>
+<p>Here is the many-to-many case, arriving because <code>year</code> was left out of the key:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>with_station <span class="sc">|&gt;</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(rain, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"weather_station"</span> <span class="ot">=</span> <span class="st">"station"</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nrow</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>with_station <span class="sc">|&gt;</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(rain, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"weather_station"</span> <span class="ot">=</span> <span class="st">"station"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nrow</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; with_station |&gt;
 +   left_join(rain, by = c("weather_station" = "station")) |&gt;
@@ -827,37 +798,22 @@ Warning: Detected an unexpected many-to-many relationship between `x` and `y`.
 </div>
 </div>
 </div>
-<p>Each RM-year matched all ten years of its station’s rain, so 2,950 rows became 29,500. Recent versions of dplyr print a warning about an unexpected many-to-many relationship when this happens. Read it when it appears; it is telling you the key is incomplete.</p>
+<p>Each RM-year matched all ten years of its station’s rain, so 2,950 rows became 29,500, and every summary computed afterwards would be wrong in a way that still looks plausible. Recent versions of dplyr print a warning about an unexpected many-to-many relationship when this happens. Read it when it appears; it is telling you the key is incomplete. This is the same mistake as the station-only <code>XLOOKUP</code> in the Excel workbook, with the difference that Excel returns one match per row and says nothing, while R returns all of them and warns.</p>
 </section>
-<section id="the-same-merge-in-excel" class="level3 unnumbered">
-<h3 class="unnumbered anchored" data-anchor-id="the-same-merge-in-excel">The same merge in Excel</h3>
-<p>Both joins are <code>XLOOKUP</code>s. The workbook below has the three tables on three sheets and does the merge in formula columns beside thirty of the yield rows.</p>
-<p>The first join is many-to-one, and it is the ordinary <code>XLOOKUP</code>: look up the RM number in the lookup sheet and return the station. The second needs two keys, so both sides are glued together with <code>&amp; "|" &amp;</code>, the composite-key form from <a href="module01b.html#sec-lookup" class="quarto-xref"><span>Section 2.2</span></a>:</p>
-<pre><code>=XLOOKUP(I5 &amp; "|" &amp; A5,
-         Precip!A:A &amp; "|" &amp; Precip!B:B,
-         Precip!C:C)</code></pre>
-<p>The row-count trap looks different in Excel. Leave the year out and <code>XLOOKUP</code> does not multiply the rows; it returns the <em>first</em> match for the station, so every year gets 2015’s rain, and nothing flags it. Column K of the workbook shows this. R warns about the many-to-many match; Excel does not, so the check is to look at a few rows where you already know the answer.</p>
-<p>Where R has <code>anti_join</code>, Excel has <code>#N/A</code>: an <code>XLOOKUP</code> that finds nothing returns it, and <code>COUNTIF(range, "#N/A")</code> at the foot of the column counts the failures.</p>
-<div class="workbook-callout">
-<!-- iframe embed goes here once the workbook is uploaded to SharePoint; follow the
-mod01_sum.xlsx block in module01a.qmd -->
-<p><a href="textbook_examples/mod03_merge_excel.xlsx">Download this workbook</a></p>
-</div>
-<p>Formulas are fine at thirty rows and fine at three thousand. Past that, or when the same merge has to be redone every month, <strong>Power Query</strong> (Data &gt; Get Data, then <strong>Merge Queries</strong>) does the join the way R does, with a dialog that asks for the key columns and the join type, and records the step so it can be re-run.</p>
 </section>
-<section id="what-you-can-now-do" class="level3 unnumbered">
-<h3 class="unnumbered anchored" data-anchor-id="what-you-can-now-do">What you can now do</h3>
+<section id="sec-merge-result" class="level2" data-number="8.4">
+<h2 data-number="8.4" class="anchored" data-anchor-id="sec-merge-result"><span class="header-section-number">8.4</span> What the Merge Gives You</h2>
 <p>One table, one row per RM-year, with the yield and the season’s rain side by side:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>merged <span class="sc">|&gt;</span></span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(year, rm, rm_name, canola, weather_station, precip_may_aug_mm)</span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>merged <span class="sc">|&gt;</span></span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(canola)) <span class="sc">|&gt;</span></span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(year) <span class="sc">|&gt;</span></span>
-<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">canola_bu_ac =</span> <span class="fu">mean</span>(canola),</span>
-<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">rain_mm =</span> <span class="fu">mean</span>(precip_may_aug_mm))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>merged <span class="sc">|&gt;</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(year, rm, rm_name, canola, weather_station, precip_may_aug_mm)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>merged <span class="sc">|&gt;</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(canola)) <span class="sc">|&gt;</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(year) <span class="sc">|&gt;</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">canola_bu_ac =</span> <span class="fu">mean</span>(canola),</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">rain_mm =</span> <span class="fu">mean</span>(precip_may_aug_mm))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; merged |&gt;
 +   select(year, rm, rm_name, canola, weather_station, precip_may_aug_mm)
@@ -901,7 +857,6 @@ mod01_sum.xlsx block in module01a.qmd -->
 <p>Two limits of this particular merge belong in the README. The nearest station is sometimes far away: RM 1, Argyle, is matched to Kipling, 145 km off, because that is the closest of sixteen stations. And a few station-years are missing three weeks of daily readings, which is what the <code>days_missing</code> column is for.</p>
 
 
-</section>
 </section>
 
 </main> <!-- /main -->
