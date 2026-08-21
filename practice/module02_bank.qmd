@@ -1,0 +1,933 @@
+# Module 2 — Test Bank {.unnumbered}
+
+::: {.callout-note}
+## How this test bank works
+
+This bank holds **40 questions**, ten in each section. Section 1 gives you the data inside the question; Sections 2--4 use the **Saskatchewan RM Crop Yields (long)** dataset. On the real test you receive **four questions -- one from each section** -- and you submit a **zipped project folder** containing `data/` (the csv, exactly as downloaded) and `code/` with **one R script per section** (`1_basics.R`, `2_reading.R`, `3_manipulation.R`, `4_pipelines.R`). Each question is designed to take about **8--10 minutes**.
+
+Expand each **Answer** block to check your work. Every value has been computed from the real data; if the source file is refreshed the exact numbers may shift slightly, but the method stays the same.
+:::
+
+**The dataset.** [`rm_yields_1990plus_long.csv`](data/rm_yields_1990plus_long.csv) -- average yield for eight crops in every Saskatchewan Rural Municipality, 1990--2025, one row per RM-year-crop. Columns: `Year`, `RM`, `Crop`, `Yield`, `Unit`. You worked with the wide version of this data in Module 1; this is the long form, with `Crop` as a variable. **Lentils are recorded in pounds per acre; every other crop is in bushels per acre** -- the `Unit` column says which. Save it into your project's `data/` folder.
+
+**Grading model.** **10%** for script presentation -- a header block, comments in the style of the module, and a script that runs from top to bottom in a fresh session. The remaining **90%** is split evenly across the four questions, and evenly across the parts within each question. Parts are marked on **follow-through**: if an early part is wrong but the later parts are correctly worked *from your own earlier answer*, the later parts still earn full marks. Where a part asks for a sentence, write it as a comment in your script.
+
+> **Vocabulary note.** Everything here uses only Module 2 tools: `<-`, arithmetic on vectors, `c()`, `data.frame()`, `$`, `mean`, `median`, `sd`, `var`, `min`, `max`, `range`, `sum`, `quantile` (with `probs`), `IQR`, `nrow`, `ncol`, `names`, `head`, `print`, `glimpse`, `summary`, `library()`, `install.packages()`, `read_csv` with relative paths, `filter` (with `==`, `>`, `<`, `&`, `|`, `!`, `%in%`), `select` (including `-` and `:`), `rename`, `mutate`, `arrange` and `desc`, the pipe `|>`, `summarise`, `n()`, `group_by`, and `write_csv`. Nothing beyond that is needed.
+
+---
+
+# Section 1 — R Basics
+
+*These questions are about the building blocks: objects, vectors, data frames, and functions. No data file is needed -- the numbers are in the question. Answer in `code/1_basics.R`, with sentence answers written as comments.*
+
+### Question 1
+
+Five canola fields yielded 52.3, 47.8, 55.1, 44.6, and 50.9 bu/ac, on 160, 320, 240, 130, and 200 acres.
+
+**(a)** Create a vector `yields` and a vector `acres` holding these values.
+
+**(b)** Create a vector `yields_t_ha` converting the yields to tonnes per hectare (multiply by 0.0560). No loop, no repetition -- one line.
+
+**(c)** Compute the mean and standard deviation of `yields`.
+
+**(d)** Compute total production in bushels (each field's yield times its acres, summed), and the farm's average yield weighted by acres (total bushels divided by total acres).
+
+<details><summary>Answer</summary>
+
+```r
+yields <- c(52.3, 47.8, 55.1, 44.6, 50.9)
+acres  <- c(160, 320, 240, 130, 200)
+yields_t_ha <- yields * 0.0560
+mean(yields)
+sd(yields)
+total_bu <- sum(yields * acres)
+total_bu / sum(acres)
+```
+
+- (b) 2.93, 2.68, 3.09, 2.50, 2.85 t/ha.
+- (c) Mean **50.14**, sd **4.06**.
+- (d) Total **52,866 bu**; weighted average **50.35 bu/ac** (slightly higher than the plain mean because the larger fields yielded a little less than the small high-yield field pulls up).
+</details>
+
+### Question 2
+
+**(a)** Build a data frame called `fields` with three columns: `field_id` containing `"F1"` to `"F5"`, `crop` containing Canola, Wheat, Canola, Peas, Wheat, and `yield` containing 44.1, 52.7, 39.8, 41.5, 49.3.
+
+**(b)** Report the number of rows, the number of columns, and the column names using functions (not by counting).
+
+**(c)** Pull out the `yield` column with `$` and compute its mean and median.
+
+**(d)** In a comment: each column of a data frame is itself a familiar R object -- which one?
+
+<details><summary>Answer</summary>
+
+```r
+fields <- data.frame(
+  field_id = c("F1", "F2", "F3", "F4", "F5"),
+  crop = c("Canola", "Wheat", "Canola", "Peas", "Wheat"),
+  yield = c(44.1, 52.7, 39.8, 41.5, 49.3)
+)
+nrow(fields); ncol(fields); names(fields)
+mean(fields$yield); median(fields$yield)
+```
+
+- (b) 5 rows, 3 columns; `field_id`, `crop`, `yield`.
+- (c) Mean **45.48**, median **44.1**.
+- (d) A vector.
+</details>
+
+### Question 3
+
+Ten pea fields yielded 31, 44, 27, 50, 38, 42, 35, 47, 29, and 40 bu/ac.
+
+**(a)** Save the values as a vector and compute the mean.
+
+**(b)** Compute the 25th and 75th percentiles using `quantile()` with the arguments **in order, unnamed**.
+
+**(c)** Compute the same two percentiles again with **named arguments in the reverse order**, and confirm you get the same answers.
+
+**(d)** In a comment: what happens if you write `quantile(0.25, peas)` -- unnamed arguments in the wrong order -- and why?
+
+<details><summary>Answer</summary>
+
+```r
+peas <- c(31, 44, 27, 50, 38, 42, 35, 47, 29, 40)
+mean(peas)
+quantile(peas, c(0.25, 0.75))
+quantile(probs = c(0.25, 0.75), x = peas)
+```
+
+- (a) Mean **38.3**.
+- (b, c) 25th percentile **32**, 75th percentile **43.5** -- identical both ways, because naming the arguments frees them from their positions.
+- (d) R reads 0.25 as the data `x` and the yields as `probs`; since `probs` must lie between 0 and 1, it stops with `Error: 'probs' outside [0,1]`. Unnamed arguments only work in the order the function expects.
+</details>
+
+### Question 4
+
+A student types the following four lines into the console, in order:
+
+```r
+x <- 8
+x * 3
+y <- x - 3
+x * y
+```
+
+**(a)** In a comment: which lines print something to the console, and what exactly do they print (including the `[1]`)?
+
+**(b)** In a comment: after all four lines, what objects does the Variables pane show, with what values? Is the result of `x * 3` among them?
+
+**(c)** In a comment: what does the `[1]` at the start of a printed result mean?
+
+<details><summary>Answer</summary>
+
+- (a) Only the second and fourth lines print: `[1] 24` and `[1] 40`. Assignments print nothing.
+- (b) `x = 8` and `y = 5`. The result of `x * 3` was displayed but never assigned, so it is not saved anywhere -- displaying a result and saving one are different things.
+- (c) The value shown is the first element of the result; it matters only when a result is long enough to wrap across lines.
+</details>
+
+### Question 5
+
+A student opens a new file in Positron, types a script that creates three objects, and saves the file -- but the Variables pane still says "No variables have been created."
+
+**(a)** In a comment: why does nothing exist yet, in one sentence?
+
+**(b)** In a comment: give the two ways to run the script from Module 2 (one uses a button, one a keyboard shortcut).
+
+**(c)** In a comment: after running it, where do results appear, and where do the created objects appear?
+
+<details><summary>Answer</summary>
+
+- (a) Writing code in a script does not run it -- typing puts text in a file, and nothing happens until the code is executed.
+- (b) The **Run** button (source the whole file, or Execute code for selected lines), or **Cmd+Enter** (Mac) / **Ctrl+Enter** (Windows) to run the selected lines or the line under the cursor.
+- (c) Results print in the **console**; created objects appear in the **Variables** pane.
+</details>
+
+### Question 6
+
+Consider these three lines:
+
+```r
+n <- 12
+n == 10
+n = 15
+```
+
+**(a)** In a comment: say what each line does. Which ones assign, which one asks a question, and what does the question print?
+
+**(b)** In a comment: all three symbols (`<-`, `==`, `=`) are legal R. Which one does this book use for assignment, and why does keeping the three visually distinct matter?
+
+**(c)** `mean(x = c(4, 9, 11))` also contains an `=`. In a comment: what is `=` doing there?
+
+<details><summary>Answer</summary>
+
+- (a) Line 1 assigns 12 to `n`. Line 2 asks whether `n` equals 10 and prints `[1] FALSE`. Line 3 also assigns -- `n` is now 15.
+- (b) `<-` for assignment. It keeps assignment visually distinct from `=` naming arguments inside function calls and from `==` testing equality -- three different jobs that are easy to confuse when they all look alike.
+- (c) Naming an argument: it tells `mean()` that the vector is its `x` argument. It does not create an object called `x` in the Variables pane.
+</details>
+
+### Question 7
+
+Here is a working script:
+
+```r
+a <- c(38.2, 45.6, 41.9, 36.8)
+b <- c(210, 180, 260, 240)
+d <- sum(a * b)
+d / sum(b)
+```
+
+**(a)** Rewrite it with a proper header block (Title, Author, Date, Description) and a comment before each step, following the module's conventions.
+
+**(b)** Replace the object names with descriptive ones.
+
+**(c)** In a comment: state the module's test for whether a script is reproducible.
+
+<details><summary>Answer</summary>
+
+```r
+# ---
+# Title: Farm average yield
+# Author: Your Name
+# Date: 2026-10-08
+# Description:
+#   Computes total production and the acreage-weighted
+#   average yield for four fields.
+# ---
+
+# Field yields (bu/ac) and sizes (acres)
+yields <- c(38.2, 45.6, 41.9, 36.8)
+acres  <- c(210, 180, 260, 240)
+
+# Total production in bushels
+total_bu <- sum(yields * acres)
+
+# Average yield weighted by acres
+total_bu / sum(acres)
+```
+
+- (c) Restart R and run the script from top to bottom: it should reproduce the analysis without any commands typed into the console. (The weighted average, for reference, is **40.35 bu/ac**.)
+</details>
+
+### Question 8
+
+Five barley fields yielded 68.2, 71.5, 64.9, 74.1, and 66.3 bu/ac. Five lentil fields yielded 1450, 1720, 1280, 1610, and 1390 lb/ac.
+
+**(a)** Compute the mean and standard deviation of each crop's yields.
+
+**(b)** The lentil standard deviation is far larger. In a comment: why can the two standard deviations not be compared directly?
+
+**(c)** Compute the coefficient of variation (sd divided by mean) for each crop. Which crop's yields are more variable *relative to their own average*?
+
+<details><summary>Answer</summary>
+
+```r
+barley  <- c(68.2, 71.5, 64.9, 74.1, 66.3)
+lentils <- c(1450, 1720, 1280, 1610, 1390)
+sd(barley) / mean(barley)
+sd(lentils) / mean(lentils)
+```
+
+- (a) Barley mean **69.0**, sd **3.77**; lentils mean **1490**, sd **175.36**.
+- (b) They are in different units (bushels vs pounds per acre) and on very different scales, so the raw spreads are not comparable.
+- (c) CV barley **0.055**, lentils **0.118** -- lentil yields are more variable relative to their own average.
+</details>
+
+### Question 9
+
+**(a)** In a comment: `quantile()` has two main arguments. Name them and say what each is.
+
+**(b)** In a comment: you cannot remember what the `probs` argument of `quantile()` expects. What do you type to get the official documentation?
+
+**(c)** A classmate writes `Quantile(peas, 0.5)` and gets `could not find function "Quantile"`. In a comment: what went wrong?
+
+<details><summary>Answer</summary>
+
+- (a) `x`, the data, and `probs`, the percentile you want expressed in decimal form.
+- (b) `?quantile`.
+- (c) R is exact about names: `Quantile` with a capital Q is not the same as `quantile`, and no function by that name exists.
+</details>
+
+### Question 10
+
+A trial records, for each field: the crop grown, the seeded acres, and whether the field was irrigated.
+
+**(a)** Create three vectors of length four holding made-up values for these three variables, choosing the appropriate type for each (character, numeric, logical).
+
+**(b)** In a comment: which values needed quotation marks and which must not have them?
+
+**(c)** Combine your three vectors into a data frame called `trial` and print it.
+
+<details><summary>Answer</summary>
+
+```r
+crop      <- c("Canola", "Wheat", "Peas", "Canola")
+acres     <- c(160, 320, 240, 130)
+irrigated <- c(TRUE, FALSE, FALSE, TRUE)
+trial <- data.frame(crop, acres, irrigated)
+trial
+```
+
+- (b) The character values (crop names) need quotes. Numbers must not have them (quoted numbers become text), and `TRUE`/`FALSE` must not have them -- quoted, they would be text rather than logical values.
+</details>
+
+---
+
+# Section 2 — Reading and Inspecting Data
+
+*These questions use [`rm_yields_1990plus_long.csv`](data/rm_yields_1990plus_long.csv) in your project's `data/` folder. Answer in `code/2_reading.R`.*
+
+### Question 11
+
+**(a)** In a comment at the top of your script, sketch your project's folder layout (the subfolders and where the csv sits).
+
+**(b)** Load the tidyverse and read the file into an object called `rm_yields`, using a relative path.
+
+**(c)** Report the number of rows, the number of columns, and the column names using functions.
+
+**(d)** In a comment: why will your `read_csv()` line work on the grader's computer, when a full path starting `C:/Users/...` would not?
+
+<details><summary>Answer</summary>
+
+```r
+library(tidyverse)
+rm_yields <- read_csv("data/rm_yields_1990plus_long.csv")
+nrow(rm_yields); ncol(rm_yields); names(rm_yields)
+```
+
+- (c) **71,104 rows**, **5 columns**: `Year`, `RM`, `Crop`, `Yield`, `Unit`.
+- (d) The path is relative to the project folder, and the grader opens the same self-contained folder -- so `data/...` exists on their machine too. An absolute path names one particular computer's user and folder layout.
+</details>
+
+### Question 12
+
+A classmate's script begins:
+
+```r
+setwd("C:\\Users\\jordan\\Desktop\\stats stuff")
+rm_yields <- read_csv("C:\\Users\\jordan\\Desktop\\stats stuff\\rm_yields_1990plus_long.csv")
+```
+
+It runs on their laptop and fails on everyone else's.
+
+**(a)** In a comment: give two separate problems with these lines (one about where the paths point, one about the backslashes).
+
+**(b)** Rewrite the script the way the module recommends, assuming the csv is in the project's `data/` folder.
+
+**(c)** In a comment: the classmate asks "but how does R know where to start looking without `setwd()`?" Answer in one sentence.
+
+<details><summary>Answer</summary>
+
+- (a) The absolute paths name one specific machine (user `jordan`, a Desktop folder), so they exist nowhere else; and backslashes mean something special inside an R string -- paths in R use forward slashes even on Windows.
+- (b) `rm_yields <- read_csv("data/rm_yields_1990plus_long.csv")` -- no `setwd()` at all.
+- (c) Opening the project folder in Positron (**File → Open Folder…**) makes that folder R's starting point, so relative paths begin from it.
+</details>
+
+### Question 13
+
+You organized the course as one big folder and opened `AREC_261/` in Positron:
+
+```
+AREC_261/
+  module_2/
+    data/
+      rm_yields_1990plus_long.csv
+    code/
+  README.md
+```
+
+**(a)** Write the `read_csv()` line that works with this setup.
+
+**(b)** In a comment: your line from (a) stops working after you re-organize and open `module_2/` itself in Positron. Why, and what does the path become?
+
+**(c)** In a comment: `getwd()` prints `/Users/you/Documents/AREC_261`. Starting from that folder, trace how R finds the file in (a).
+
+<details><summary>Answer</summary>
+
+- (a) `rm_yields <- read_csv("module_2/data/rm_yields_1990plus_long.csv")`.
+- (b) The starting point changed: relative paths begin at the folder you opened. With `module_2/` open, the path is `data/rm_yields_1990plus_long.csv`.
+- (c) From `AREC_261`, R goes into `module_2`, then into `data`, and finds `rm_yields_1990plus_long.csv` -- each `/` steps into a subfolder.
+</details>
+
+### Question 14
+
+**(a)** Run `glimpse()` on `rm_yields`. In a comment: which columns are text (`<chr>`) and which are numeric (`<dbl>`)?
+
+**(b)** When `read_csv()` ran, it printed a note about the file. In a comment: what did that note report, and why does the module say to read it every time?
+
+**(c)** `Year` came in as a number. In a comment: would `"2024"` (with quotes) in a filter comparison against `Year` behave the same as `2024`? What is the difference between the two?
+
+<details><summary>Answer</summary>
+
+- (a) `Crop` and `Unit` are `<chr>`; `Year`, `RM`, and `Yield` are `<dbl>`.
+- (b) The row and column counts and its guess at each column's type (here `chr (2)` and `dbl (3)`). R guesses well but not perfectly, so the note is the first check that the file read the way you expect.
+- (c) No -- `"2024"` is text and `2024` is a number; they are different types of value. The comparison wants the number.
+</details>
+
+### Question 15
+
+**(a)** Run `summary(rm_yields)`. From its output, report the minimum, median, and maximum of `Yield`.
+
+**(b)** The maximum is **3,411** -- almost a hundred times the median. In a comment: is this an error in the data? Use another column in the dataset to explain what is going on.
+
+**(c)** In a comment: which of the module's inspect-your-data questions did part (b) just answer ("are the values in plausible ranges?"), and why would a mean of the whole `Yield` column be a misleading number to report?
+
+<details><summary>Answer</summary>
+
+- (a) Min **0**, median **36.24**, max **3411**.
+- (b) Not an error: the `Unit` column shows lentils are recorded in **pounds** per acre while every other crop is in bushels. A lentil yield of ~3,400 lb/ac is a real value on a different scale.
+- (c) The plausible-ranges check. The column mixes two units, so its overall mean (**142.8**) averages pounds with bushels -- a number with no meaningful interpretation.
+</details>
+
+### Question 16
+
+**(a)** Compute the mean, median, and standard deviation of `rm_yields$Yield`.
+
+**(b)** Compute the 90th percentile of `Yield`.
+
+**(c)** The mean (**142.8**) is nearly four times the median (**36.2**). In a comment: using Module 1's language about means and medians, what does a gap like that tell you, and what feature of this dataset produces it?
+
+<details><summary>Answer</summary>
+
+```r
+mean(rm_yields$Yield)
+median(rm_yields$Yield)
+sd(rm_yields$Yield)
+quantile(rm_yields$Yield, 0.9)
+```
+
+- (a) Mean **142.82**, median **36.24**, sd **358.99**.
+- (b) 90th percentile **102.2**.
+- (c) A mean far above the median flags unusually large values pulling it up -- here the lentil yields recorded in pounds, which sit far above every bushel figure. The gap is a units artifact, not a story about good crops.
+</details>
+
+### Question 17
+
+Open `rm_yields_1990plus_long.csv` in Positron's data viewer (click the file in the Explorer pane).
+
+**(a)** In a comment: what percentage of values are missing in each column, according to the viewer?
+
+**(b)** In a comment: expand the `Yield` column's summary. Describe the shape of its histogram in one phrase, and connect it to what you found in Question 15.
+
+**(c)** A classmate says "the file is open in the viewer, so it's loaded into R." In a comment: correct them, and say what actually loads it.
+
+<details><summary>Answer</summary>
+
+- (a) 0% missing in every column.
+- (b) A tall spike at low values with a long right tail -- the lentil pound-scale yields stretch the axis far past everything else.
+- (c) The viewer is Positron showing you the file; nothing exists in R until `read_csv()` runs and the result is assigned to an object.
+</details>
+
+### Question 18
+
+**(a)** Compute the 25th and 75th percentiles of `Yield` in a single `quantile()` call.
+
+**(b)** Compute the interquartile range twice: once with `IQR()`, once by subtracting your two percentiles.
+
+**(c)** In a comment: the IQR (**29.6**) is small next to the standard deviation (**359**). Which is giving the more honest picture of a *typical* crop's spread here, and why?
+
+<details><summary>Answer</summary>
+
+```r
+quantile(rm_yields$Yield, c(0.25, 0.75))
+IQR(rm_yields$Yield)
+```
+
+- (a) 25th **25.3**, 75th **54.9**.
+- (b) Both give **29.6**.
+- (c) The IQR: it describes the middle half of the data and ignores the extremes, while the standard deviation is blown up by the lentil pound-scale values.
+</details>
+
+### Question 19
+
+A classmate's fresh R session runs `rm_yields <- read_csv("data/rm_yields_1990plus_long.csv")` and gets:
+
+```
+Error in read_csv(...) : could not find function "read_csv"
+```
+
+**(a)** In a comment: what is the most likely cause, and what one line fixes it?
+
+**(b)** In a comment: they object, "but I installed the tidyverse last week!" Explain the difference between installing and loading, and how often each is done.
+
+**(c)** In a comment: why does `install.packages("tidyverse")` need quotation marks while `library(tidyverse)` does not need them?
+
+<details><summary>Answer</summary>
+
+- (a) The package is not loaded in this session; run `library(tidyverse)` first.
+- (b) Installing downloads the package onto the computer -- once per computer. Loading switches it on -- once per script or session. Installation does not carry across sessions as loaded.
+- (c) It is a quirk to memorize at this stage: quotes when you install, none when you load.
+</details>
+
+### Question 20
+
+You spot an obviously wrong yield value in the csv. A classmate suggests opening the file in Excel, fixing the cell, and saving. Separately, your download folder contains `RM Yields FINAL (2).csv`.
+
+**(a)** In a comment: what is wrong with the classmate's suggestion, and where should the correction happen instead?
+
+**(b)** In a comment: give two problems with the file name, and rename it following the module's two rules.
+
+**(c)** In a comment: if a date belonged in the file name, how should it be written, and what is the advantage?
+
+<details><summary>Answer</summary>
+
+- (a) It overwrites the only copy of the raw data and leaves no record of what changed. Keep the file exactly as it arrived and make the correction in the R script, where it leaves a trail.
+- (b) Spaces and punctuation, and a `FINAL (2)` version tag doing a job version control should do. Something like `rm_yields_long.csv`.
+- (c) As YYYY-MM-DD, e.g. `2026-10-08_rm_yields.csv` -- alphabetical order is then also chronological order.
+</details>
+
+---
+
+# Section 3 — Data Manipulation Functions
+
+*Same dataset. Answer in `code/3_manipulation.R`. These questions use one function at a time; save intermediate results to objects where a later part needs them.*
+
+### Question 21
+
+**(a)** Filter `rm_yields` to Canola in 2024, saving the result as `canola_2024`. How many rows?
+
+**(b)** Filter `rm_yields` to Canola in RM 18 (all years). How many rows?
+
+**(c)** In a comment: after (a) and (b), how many rows does `rm_yields` itself have, and why?
+
+<details><summary>Answer</summary>
+
+```r
+canola_2024 <- filter(rm_yields, Crop == "Canola" & Year == 2024)
+nrow(canola_2024)
+canola_rm18 <- filter(rm_yields, Crop == "Canola" & RM == 18)
+nrow(canola_rm18)
+```
+
+- (a) **293 rows**. (b) **15 rows**.
+- (c) Still **71,104** -- `filter()` returns a new data frame and leaves the original untouched.
+</details>
+
+### Question 22
+
+**(a)** Filter to rows where the crop is Oats **or** Barley, using `|`. How many rows?
+
+**(b)** Write the same filter using `%in%` and confirm the row count matches.
+
+**(c)** In a comment: a classmate tried `filter(rm_yields, Crop == "Oats" & Crop == "Barley")` and got zero rows. Why?
+
+<details><summary>Answer</summary>
+
+```r
+nrow(filter(rm_yields, Crop == "Oats" | Crop == "Barley"))
+nrow(filter(rm_yields, Crop %in% c("Oats", "Barley")))
+```
+
+- (a, b) **19,709 rows** both ways.
+- (c) `&` requires both conditions true of the *same row*, and no single row's crop is both Oats and Barley. "Or" is the right connector.
+</details>
+
+### Question 23
+
+**(a)** How many Spring Wheat observations exceed 60 bu/ac (all years)?
+
+**(b)** How many of those are from 2023?
+
+**(c)** In a comment: rewrite the condition "yield above 60 and the crop is *not* Spring Wheat" using `!`, and say what each of `&`, `|`, `!` requires.
+
+<details><summary>Answer</summary>
+
+```r
+nrow(filter(rm_yields, Crop == "Spring Wheat" & Yield > 60))
+nrow(filter(rm_yields, Crop == "Spring Wheat" & Yield > 60 & Year == 2023))
+```
+
+- (a) **430 rows**. (b) **52 rows**.
+- (c) `filter(rm_yields, Yield > 60 & !Crop == "Spring Wheat")`. `&` needs both conditions true, `|` needs at least one true, `!` flips a condition.
+</details>
+
+### Question 24
+
+**(a)** Make a version of the data with only `Year`, `RM`, `Crop`, and `Yield`, by *naming what you keep*.
+
+**(b)** Make the same four-column version by *dropping* what you don't want.
+
+**(c)** Make a version keeping the range of adjacent columns from `Year` through `Crop`.
+
+**(d)** Rename `Yield` to `yield_per_acre` (keeping everything else) and show the new column names.
+
+<details><summary>Answer</summary>
+
+```r
+select(rm_yields, Year, RM, Crop, Yield)
+select(rm_yields, -Unit)
+select(rm_yields, Year:Crop)
+renamed <- rename(rm_yields, yield_per_acre = Yield)
+names(renamed)
+```
+
+- (a, b) Identical results: the same rows, four columns.
+- (c) Three columns: `Year`, `RM`, `Crop`.
+- (d) `Year`, `RM`, `Crop`, `yield_per_acre`, `Unit`.
+</details>
+
+### Question 25
+
+Lentil yields are in pounds per acre; one pound per acre is about **1.12 kg per hectare**.
+
+**(a)** Filter to the lentil rows, saving as `lentils`. How many rows?
+
+**(b)** Use `mutate()` to add a `yield_kg_ha` column to `lentils`, saving the result back to `lentils`.
+
+**(c)** Compute the mean of the new column, and the mean of the original `Yield` column, and check the ratio is the conversion factor.
+
+<details><summary>Answer</summary>
+
+```r
+lentils <- filter(rm_yields, Crop == "Lentils")
+nrow(lentils)
+lentils <- mutate(lentils, yield_kg_ha = Yield * 1.12)
+mean(lentils$yield_kg_ha)
+mean(lentils$Yield)
+```
+
+- (a) **6,338 rows**.
+- (c) Mean **1,353.4 kg/ha** vs **1,208.39 lb/ac** -- and 1353.4 / 1208.39 ≈ 1.12.
+</details>
+
+### Question 26
+
+Using `canola_2024` from Question 21 (or re-create it):
+
+**(a)** In one `mutate()` call, add two columns: `yield_t_ha` (multiply by 0.0560) and `yield_kg_ha` (multiply by 56.0). Save the result.
+
+**(b)** Compute the mean of each new column.
+
+**(c)** In a comment: without running anything, what is the mean of `yield_kg_ha` divided by the mean of `yield_t_ha`, and why?
+
+<details><summary>Answer</summary>
+
+```r
+canola_2024 <- mutate(canola_2024,
+                      yield_t_ha  = Yield * 0.0560,
+                      yield_kg_ha = Yield * 56.0)
+mean(canola_2024$yield_t_ha)
+mean(canola_2024$yield_kg_ha)
+```
+
+- (b) **1.76 t/ha** and **1,764.11 kg/ha**.
+- (c) 1,000 -- both columns are the same yields scaled by constants, and 56.0 / 0.0560 = 1000 (a tonne is 1,000 kg).
+</details>
+
+### Question 27
+
+Still with `canola_2024`:
+
+**(a)** Sort it from highest yield to lowest, and report the RM and yield in the top row.
+
+**(b)** Sort it from lowest to highest instead. What changes in the code?
+
+**(c)** In a comment: after (a) and (b), is `canola_2024` itself now sorted? Why or why not?
+
+<details><summary>Answer</summary>
+
+```r
+arrange(canola_2024, desc(Yield))
+arrange(canola_2024, Yield)
+```
+
+- (a) RM **493** at **45.9 bu/ac**.
+- (b) Drop the `desc()`.
+- (c) No -- neither result was assigned, so both were displayed and discarded; `canola_2024` is unchanged.
+</details>
+
+### Question 28
+
+A script contains, in order:
+
+```r
+filter(rm_yields, Crop == "Peas")
+peas <- filter(rm_yields, Crop == "Peas")
+```
+
+**(a)** In a comment: what does each line do, and what appears in the console after each?
+
+**(b)** Report `nrow(peas)` and `nrow(rm_yields)`.
+
+**(c)** In a comment: connect this to the same distinction you met with `x * 3` in the console back in Section 1.
+
+<details><summary>Answer</summary>
+
+- (a) Line 1 computes the pea rows and *prints* them -- nothing is saved. Line 2 computes the same thing and saves it as `peas`, printing nothing.
+- (b) `nrow(peas)` is **9,270**; `nrow(rm_yields)` is still **71,104**.
+- (c) It is displaying versus saving again: an expression's result appears in the console and vanishes unless assigned to an object.
+</details>
+
+### Question 29
+
+**(a)** Filter to Canola in RM 232 (all years), saving the result. How many rows?
+
+**(b)** From that object, select only `Year` and `Yield`, saving again.
+
+**(c)** Sort it so the best year is on top. Which year was it, and what was the yield?
+
+<details><summary>Answer</summary>
+
+```r
+canola_232 <- filter(rm_yields, Crop == "Canola" & RM == 232)
+nrow(canola_232)
+canola_232 <- select(canola_232, Year, Yield)
+arrange(canola_232, desc(Yield))
+```
+
+- (a) **31 rows** (some years are missing -- the crop was not grown or reported in that RM every year).
+- (c) **2016**, at **43.9 bu/ac**.
+</details>
+
+### Question 30
+
+**(a)** Using `head()`, display the first six rows of `rm_yields`.
+
+**(b)** Display the first six rows of the data sorted by `Yield` in descending order (without changing `rm_yields`).
+
+**(c)** In a comment: every row in (b) is the same crop. Which one, why those rows, and what would you check before comparing their values with the other crops?
+
+<details><summary>Answer</summary>
+
+```r
+head(rm_yields)
+head(arrange(rm_yields, desc(Yield)))
+```
+
+- (b, c) All lentils -- their yields are recorded in pounds per acre, so they dominate the top of any sort on `Yield`. Before comparing across crops you would check the `Unit` column and convert to a common unit.
+</details>
+
+---
+
+# Section 4 — Pipelines and Grouped Summaries
+
+*Same dataset. Answer in `code/4_pipelines.R`. Write multi-step work as pipelines with `|>`, one step per line.*
+
+### Question 31
+
+Here is a working but hard-to-read line:
+
+```r
+arrange(select(filter(rm_yields, Crop == "Durum" & Year == 2025), RM, Yield), desc(Yield))
+```
+
+**(a)** Rewrite it as a pipeline, one step per line, with a short comment on each step.
+
+**(b)** Run it. How many rows, and which RM had the best durum yield in 2025, at what value?
+
+**(c)** In a comment: read your pipeline aloud as a "take the data, then ..., then ..., then ..." sentence.
+
+<details><summary>Answer</summary>
+
+```r
+rm_yields |>                              # take the data, THEN
+  filter(Crop == "Durum" & Year == 2025) |>  # keep durum in 2025, THEN
+  select(RM, Yield) |>                    # keep two columns, THEN
+  arrange(desc(Yield))                    # sort best-first
+```
+
+- (b) **189 rows**; RM **369** at **105.6 bu/ac**.
+- (c) Take `rm_yields`, then keep the 2025 durum rows, then keep the RM and Yield columns, then sort from highest yield to lowest.
+</details>
+
+### Question 32
+
+**(a)** In one pipeline, compute the mean flax yield across 2020--2025 (`Year >= 2020`), calling the result column `mean_yield`.
+
+**(b)** Add `n()` to the same `summarise()` to count how many observations that mean is based on.
+
+**(c)** In a comment: why is reporting the count alongside the mean good practice?
+
+<details><summary>Answer</summary>
+
+```r
+rm_yields |>
+  filter(Crop == "Flax" & Year >= 2020) |>
+  summarise(mean_yield = mean(Yield),
+            n = n())
+```
+
+- (a, b) Mean **22.39 bu/ac** from **1,143** observations.
+- (c) A mean based on a handful of rows deserves less trust than one based on a thousand; the count tells the reader which they are looking at.
+</details>
+
+### Question 33
+
+**(a)** In one pipeline, filter to Canola and summarise three things: the mean yield, the standard deviation, and the number of observations.
+
+**(b)** Report the three values.
+
+**(c)** In a comment: your result is a data frame. How many rows does it have, and what would `mutate()` have produced instead of `summarise()` here?
+
+<details><summary>Answer</summary>
+
+```r
+rm_yields |>
+  filter(Crop == "Canola") |>
+  summarise(mean_yield = mean(Yield),
+            sd_yield = sd(Yield),
+            n = n())
+```
+
+- (b) Mean **28.29**, sd **10.06**, n **10,039**.
+- (c) One row. `mutate()` would have kept all 10,039 rows and repeated the overall mean on every one -- `summarise()` collapses, `mutate()` adds.
+</details>
+
+### Question 34
+
+**(a)** In one pipeline, compute the mean yield and observation count for **each crop**, over the whole dataset.
+
+**(b)** Which crop shows the largest mean, and roughly how far above the others is it?
+
+**(c)** In a comment: why is that comparison meaningless as it stands, and which column proves it?
+
+<details><summary>Answer</summary>
+
+```r
+rm_yields |>
+  group_by(Crop) |>
+  summarise(mean_yield = mean(Yield),
+            n = n())
+```
+
+- (a) Eight rows, one per crop: Barley **51.8**, Canola **28.3**, Durum **33.6**, Flax **20.5**, Lentils **1,208.4**, Oats **64.7**, Peas **31.8**, Spring Wheat **35.3**.
+- (b) Lentils, at nearly twenty times any other crop.
+- (c) Lentils are measured in pounds per acre and everything else in bushels -- the `Unit` column. The group means are each fine on their own terms; comparing them across the unit boundary is not.
+</details>
+
+### Question 35
+
+**(a)** In one pipeline, compute the mean canola yield for **each year** from 2021 to 2025 (filter first, then group).
+
+**(b)** Report the five means. Which year was worst, and which best?
+
+**(c)** In a comment: 2021 was a severe drought year in Saskatchewan. Does the data agree?
+
+<details><summary>Answer</summary>
+
+```r
+rm_yields |>
+  filter(Crop == "Canola" & Year >= 2021) |>
+  group_by(Year) |>
+  summarise(mean_yield = mean(Yield))
+```
+
+- (a, b) 2021 **21.9**, 2022 **35.4**, 2023 **33.9**, 2024 **31.5**, 2025 **43.9**. Worst 2021, best 2025.
+- (c) Yes -- the 2021 mean sits roughly a third below the surrounding years.
+</details>
+
+### Question 36
+
+**(a)** In one pipeline, compute each RM's mean Spring Wheat yield across all years, and sort the result so the best wheat-growing RMs are on top.
+
+**(b)** Report the top three RMs and their means.
+
+**(c)** In a comment: your result has one row per RM. What did each row of the *input* represent, and what changed?
+
+<details><summary>Answer</summary>
+
+```r
+rm_yields |>
+  filter(Crop == "Spring Wheat") |>
+  group_by(RM) |>
+  summarise(mean_yield = mean(Yield)) |>
+  arrange(desc(mean_yield))
+```
+
+- (b) RM **369** (47.6), RM **333** (47.2), RM **368** (47.2).
+- (c) Each input row was one RM-year-crop observation; `group_by` + `summarise` collapsed the years, leaving one row per RM.
+</details>
+
+### Question 37
+
+**(a)** In one pipeline: filter to Lentils, convert to kg/ha with `mutate()` (multiply by 1.12), then summarise the mean of the converted column.
+
+**(b)** Report the mean in kg/ha.
+
+**(c)** In a comment: in what order do your steps run, and why would putting the `summarise()` before the `mutate()` fail?
+
+<details><summary>Answer</summary>
+
+```r
+rm_yields |>
+  filter(Crop == "Lentils") |>
+  mutate(yield_kg_ha = Yield * 1.12) |>
+  summarise(mean_kg_ha = mean(yield_kg_ha))
+```
+
+- (b) **1,353.4 kg/ha**.
+- (c) Top to bottom -- each step's output feeds the next. After `summarise()` the data has collapsed to one row and the `yield_kg_ha` column would not exist yet to summarise.
+</details>
+
+### Question 38
+
+A classmate hands you this pipeline and asks what it does:
+
+```r
+rm_yields |>
+  filter(Crop %in% c("Oats", "Barley") & Year >= 2015) |>
+  group_by(Crop) |>
+  summarise(mean_yield = mean(Yield),
+            n = n())
+```
+
+**(a)** In a comment: explain the pipeline step by step, one sentence per step.
+
+**(b)** Run it and report the output.
+
+**(c)** In a comment: answer the classmate's real question in plain language -- what does the output say about oats and barley since 2015?
+
+<details><summary>Answer</summary>
+
+- (a) Take the data; keep only oat and barley rows from 2015 on; split those rows into the two crops; collapse each crop to its mean yield and its number of observations.
+- (b) Barley **60.5 bu/ac** (n = 3,131); Oats **79.5 bu/ac** (n = 2,434).
+- (c) Since 2015, oat yields have averaged about 19 bu/ac higher than barley yields across Saskatchewan RMs, based on several thousand observations of each.
+</details>
+
+### Question 39
+
+This pipeline was meant to find low- and high-yielding canola observations -- below 15 **or** above 55 bu/ac -- but it returns zero rows:
+
+```r
+rm_yields |>
+  filter(Crop == "Canola") |>
+  filter(Yield < 15 & Yield > 55) |>
+  arrange(desc(Yield))
+```
+
+**(a)** In a comment: apply the module's debugging habit -- which step do you run first, and what do you check at each step?
+
+**(b)** In a comment: identify the broken step and explain *why* it returns nothing.
+
+**(c)** Write the corrected pipeline.
+
+<details><summary>Answer</summary>
+
+- (a) Run the first step alone and check the result looks right (the canola rows), then add the second step and check again -- the first step where the data stops looking right is the problem.
+- (b) The second filter: `&` demands both conditions true of the same row, and no yield is simultaneously below 15 and above 55. The question said "or".
+- (c) Replace `&` with `|`: `filter(Yield < 15 | Yield > 55)`.
+</details>
+
+### Question 40
+
+**(a)** In one pipeline: for **2025 only**, compute each crop's mean yield and observation count, sorted from highest mean to lowest, and save the result as `crop_summary_2025`.
+
+**(b)** Write the table to `output/crop_summary_2025.csv`.
+
+**(c)** Report the top two crops in the sorted table. In a comment: why does the crop in first place not mean what it appears to mean, and which crop is really the standout?
+
+<details><summary>Answer</summary>
+
+```r
+crop_summary_2025 <- rm_yields |>
+  filter(Year == 2025) |>
+  group_by(Crop) |>
+  summarise(mean_yield = mean(Yield),
+            n = n()) |>
+  arrange(desc(mean_yield))
+
+write_csv(crop_summary_2025, "output/crop_summary_2025.csv")
+```
+
+- (a, c) Lentils top the table at **1,897** -- but that is pounds per acre, not bushels. Among the bushel crops, Oats lead at **97.5 bu/ac** (Barley next at 72.8). 2025 was a strong year across the board.
+</details>
