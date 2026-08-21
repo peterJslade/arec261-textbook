@@ -4,13 +4,14 @@
 #| include: false
 #| eval: true
 source("_console.R")
-suppressMessages(library(readr))
+suppressMessages({library(tidyverse); library(janitor)})
 trial_data <- readr::read_csv("practice/data/canola_trial.csv", show_col_types = FALSE)
 ```
 
 Assume a new file is broken until you have checked.  It was typed by someone in a hurry and
-exported by software that had its own ideas about formatting.  This chapter is a tour of the
-defects that show up most often, how to find them, and what to do about them.
+exported by software that had its own ideas about formatting.  This chapter starts with the
+shape a table should have, then tours the defects that show up most often in the values, how
+to find them, and what to do about them, in R and in Excel.
 
 The examples below use `grain_deliveries_messy.csv`, a small file of grain deliveries carrying
 every defect in this chapter.
@@ -27,13 +28,121 @@ glimpse(deliveries)
 ::: {.objectives}
 By the end of this chapter you should be able to:
 
-1. Clean up awkward column names with `rename()` and `janitor::clean_names()`.
-2. Find duplicates, impossible values, inconsistent categories and mixed units in a new file.
-3. Recognize the disguises missing values wear, and count them properly.
-4. Decide -- and justify -- when dropping missing values is safe.
-5. Spot dates that imported as text, and say why it matters.
-6. Explain what tidy data means, and reshape a dataset between wide and long with `pivot_longer` and `pivot_wider`.
+1. Explain what tidy data means, and reshape a dataset between wide and long with `pivot_longer` and `pivot_wider`.
+2. Clean up awkward column names with `rename()` and `janitor::clean_names()`.
+3. Find duplicates, impossible values, inconsistent categories and mixed units in a new file.
+4. Recognize the disguises missing values wear, and count them properly.
+5. Decide -- and justify -- when dropping missing values is safe.
+6. Spot dates that imported as text, and say why it matters.
+7. Do the same checks in Excel, and say what Excel cleaning does not give you.
 :::
+
+## Tidy Data {#sec-tidy-data}
+
+Before the defects in individual values, the shape of the whole table.  The tidyverse is built
+around an idea called **tidy data** [@r4ds]. A dataset is tidy when:
+
+1. Every variable has its own **column**.
+2. Every observation has its own **row**.
+3. Every value has its own **cell**.
+
+For example, this dataset is tidy:
+
+```
+  region  crop   yield
+  South   Canola    41
+  South   Wheat     52
+  South   Barley    64
+  Central Canola    44
+  Central Wheat     55
+  Central Barley    68
+```
+
+An observation here is a region-crop combination; the variables are `region`, `crop`, and
+`yield`. Each variable has a column and each observation has a row.
+
+Now compare this version of the same data:
+
+```
+  region  Canola Wheat Barley
+  South       41    52     64
+  Central     44    55     68
+```
+
+This table is easier for a person to read, but it is not tidy. Canola, Wheat, and Barley are
+not three different variables; they are three values of the variable `crop`. This is the
+wide-versus-long distinction from @sec-wide-long, where a PivotTable needed the long form.
+For analysis in R, the long form is usually the more convenient one, because `crop` is an
+ordinary variable that R can filter by, group by, and compare.
+
+### Recognizing untidy data {.unnumbered}
+
+Some common warning signs:
+
+- **Values stored in column names.** A table with columns `region`, `2024`, `2025`, `2026`,
+  where the year columns hold yields. The years are values of a variable called `year`; the
+  tidy version has columns `region`, `year`, `yield`.
+- **More than one variable in a column.** A `region_variety` column containing
+  `"South_InVigor"`. That is two variables, `region` and `variety`, in one column.
+- **One observation spread over several rows.** Price in one row and quantity in another row
+  for the same market and year.
+
+What counts as an observation depends on the dataset and the question, but the basic test is
+always the same: what does one row represent? You should be able to answer that. When you
+first open a dataset, ask what one row represents, what each column represents, whether any
+values are hiding in column names, and whether any column holds several variables at once.
+
+::: {.callout-tip collapse="true"}
+## Other resources — tidy data
+
+- **R for Data Science (2nd ed.)** -- [Chapter 5, "Data tidying"](https://r4ds.hadley.nz/data-tidy) develops the tidy-data idea and shows how datasets are reshaped between long and wide forms.
+- **Video** -- Riffomonas Project, [*Reshaping data to be long or wide with pivot_longer and pivot_wider*](https://www.youtube.com/watch?v=ZVddiwrbrr4).
+:::
+
+## Reshaping: `pivot_longer` and `pivot_wider` {#sec-reshaping}
+
+Fixing the shape is the job of a pair of `tidyr` functions.  Files often arrive with values
+in the column headers -- one column per crop, or per year -- and StatCan downloads have the
+opposite problem: long where you want wide.
+
+`pivot_longer` turns column headers into values.  You tell it which columns to gather, what
+to call the column that will hold their *names*, and what to call the column that will hold
+their *values*.  The Saskatchewan RM yields (@sec-direct-download) are the wide case: one
+column per crop.
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+yields_wide <- read_csv("data/rm_yields_2015_2024.csv") |> clean_names()
+yields_wide
+
+yields_long <- yields_wide |>
+  pivot_longer(cols = spring_wheat:peas,
+               names_to = "crop",
+               values_to = "yield_bu_ac")
+yields_long
+')
+```
+
+Seven times as many rows: one per RM-year-crop, with `crop` and `yield_bu_ac` as ordinary
+columns that `filter()` and `group_by()` can use.  `spring_wheat:peas` means every column
+from `spring_wheat` through `peas`; listing them with `c()` works too.
+
+`pivot_wider` goes the other way.  Tell it which column holds the names and which holds the
+values:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+yields_long |>
+  pivot_wider(names_from = crop, values_from = yield_bu_ac)
+')
+```
+
+Long is usually what analysis wants; wide is often what people want to read.  Expect to
+pivot in both directions.
 
 ## Awkward Column Names {#sec-clean-names}
 
@@ -288,119 +397,43 @@ Fixing messy dates properly uses tools we have not covered (the `lubridate` pack
 standard one); for this course, it is enough to notice the problem and state the format
 explicitly when you read the file.
 
-## Tidy Data {#sec-tidy-data}
+## Cleaning in Excel {#sec-cleaning-excel}
 
-The last defect is not a wrong value but a wrong shape. The tidyverse is built around an
-idea called **tidy data** [@r4ds]. A dataset is tidy when:
+Everything above has an Excel counterpart, and for a file you will clean once, Excel is often
+quicker.  The workbook below holds the same grain delivery tickets with the cleaning done in
+formula columns beside the raw data, so the original is still there to check against.
 
-1. Every variable has its own **column**.
-2. Every observation has its own **row**.
-3. Every value has its own **cell**.
+- **Categories.** The filter dropdown on a column lists every distinct value in it, which is
+  Excel's `count()`.  Open it on `crop` and the three spellings of canola are all visible at
+  once.  `=PROPER(TRIM(C5))` fixes case and stray spaces; **Find & Replace** handles synonyms
+  like Canola/Rapeseed.
+- **Impossible values and mixed units.** `MIN` and `MAX` at the foot of a column do what
+  `summary()` does.  An `IF` that rescales moisture readings under 1 is the `if_else()` from
+  @sec-mixed-units.
+- **Duplicates.** **Data > Remove Duplicates** drops exact duplicates, and says how many it
+  removed.  It does nothing about the same ticket number with two different weights;
+  `=COUNTIF($A$5:$A$23, A5)` beside each row finds those.
+- **Text that should be numbers.** A number stored as text shows a green triangle in the
+  corner of the cell and sorts in the wrong place.  `VALUE()` converts it, and **Text to
+  Columns** (@sec-csv-excel) converts a whole column at once if you click through with the
+  type set to General.
+- **Missing values.** `COUNTBLANK` counts empty cells.  Excel's `AVERAGE` skips blanks
+  without telling you, which is the difference from R's `NA` described above, so count them
+  before you trust an average.
 
-For example, this dataset is tidy:
+::: {.workbook-callout}
+<!-- iframe embed goes here once the workbook is uploaded to SharePoint; follow the
+mod01_sum.xlsx block in module01a.qmd -->
 
-```
-  region  crop   yield
-  South   Canola    41
-  South   Wheat     52
-  South   Barley    64
-  Central Canola    44
-  Central Wheat     55
-  Central Barley    68
-```
-
-An observation here is a region-crop combination; the variables are `region`, `crop`, and
-`yield`. Each variable has a column and each observation has a row.
-
-Now compare this version of the same data:
-
-```
-  region  Canola Wheat Barley
-  South       41    52     64
-  Central     44    55     68
-```
-
-This table is easier for a person to read, but it is not tidy. Canola, Wheat, and Barley are
-not three different variables; they are three values of the variable `crop`. This is the
-wide-versus-long distinction from @sec-wide-long, where a PivotTable needed the long form.
-For analysis in R, the long form is usually the more convenient one, because `crop` is an
-ordinary variable that R can filter by, group by, and compare.
-
-### Recognizing untidy data {.unnumbered}
-
-Some common warning signs:
-
-- **Values stored in column names.** A table with columns `region`, `2024`, `2025`, `2026`,
-  where the year columns hold yields. The years are values of a variable called `year`; the
-  tidy version has columns `region`, `year`, `yield`.
-- **More than one variable in a column.** A `region_variety` column containing
-  `"South_InVigor"`. That is two variables, `region` and `variety`, in one column.
-- **One observation spread over several rows.** Price in one row and quantity in another row
-  for the same market and year.
-
-What counts as an observation depends on the dataset and the question, but the basic test is
-always the same: what does one row represent? You should be able to answer that. When you
-first open a dataset, ask what one row represents, what each column represents, whether any
-values are hiding in column names, and whether any column holds several variables at once.
-
-::: {.callout-tip collapse="true"}
-## Other resources — tidy data
-
-- **R for Data Science (2nd ed.)** -- [Chapter 5, "Data tidying"](https://r4ds.hadley.nz/data-tidy) develops the tidy-data idea and shows how datasets are reshaped between long and wide forms.
-- **Video** -- Riffomonas Project, [*Reshaping data to be long or wide with pivot_longer and pivot_wider*](https://www.youtube.com/watch?v=ZVddiwrbrr4).
+[Download this workbook](textbook_examples/mod03_cleaning_excel.xlsx)
 :::
 
-## Reshaping: `pivot_longer` and `pivot_wider` {#sec-reshaping}
-
-Fixing the shape is the job of a pair of `tidyr` functions.  Files often arrive with values
-in the column headers -- one column per crop, or per year -- and StatCan downloads have the
-opposite problem: long where you want wide.
-
-`pivot_longer` turns column headers into values.  You tell it which columns to gather, what
-to call the column that will hold their *names*, and what to call the column that will hold
-their *values*:
-
-```r
-yields_wide
-```
-
-```
-  region  Canola Wheat Barley
-  South       41    52     64
-  Central     44    55     68
-  North       38    49     60
-```
-
-```r
-yields_long <- yields_wide |>
-  pivot_longer(cols = c(Canola, Wheat, Barley),
-               names_to = "crop",
-               values_to = "yield")
-yields_long
-```
-
-```
-  region  crop   yield
-  South   Canola    41
-  South   Wheat     52
-  South   Barley    64
-  Central Canola    44
-  ...
-```
-
-Nine rows now: one per region-crop combination, with `crop` and `yield` as ordinary columns
-that `filter` and `group_by` can use.
-
-`pivot_wider` goes the other way.  Tell it which column holds the names and which holds the
-values:
-
-```r
-yields_long |>
-  pivot_wider(names_from = crop, values_from = yield)
-```
-
-Long is usually what analysis wants; wide is often what people want to read.  Expect to
-pivot in both directions.
+What Excel does not give you is a record.  Remove Duplicates, Find & Replace and a retyped
+cell leave no trace, so a month later there is no way to tell what was changed, and no way to
+redo it when a new version of the file arrives.  The formula-column approach in the workbook
+is the compromise: the raw data stays put and the cleaning is visible.  For anything you will
+do more than once, **Power Query** (Data > Get Data) records every step and replays them on
+a new file, which is the closest Excel comes to a script.
 
 ## A Checklist {#sec-cleaning-checklist}
 
