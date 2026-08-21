@@ -599,13 +599,13 @@ You spot an obviously wrong yield value in the csv. A classmate suggests opening
 
 # Section 3 — Data Manipulation Functions
 
-*From here on, use the full eight-crop file: read [`rm_yields_1990_2025.csv`](data/rm_yields_1990_2025.csv) into an object called `rm_yields` at the start of your Section 3 block. These questions use one function at a time; save intermediate results to objects where a later part needs them.*
+*From here on, use the full eight-crop file: read [`rm_yields_1990_2025.csv`](data/rm_yields_1990_2025.csv) into an object called `rm_yields` at the start of your Section 3 block. Each question uses two or three of the functions in sequence -- save each intermediate result to an object and work step by step (pipelines wait for Section 4).*
 
 ### Question 21
 
-**(a)** Filter `rm_yields` to Canola in 2024, saving the result as `canola_2024`. How many rows?
+**(a)** Filter `rm_yields` to Canola in 2024, saving the result as `canola_2024`. How many rows are in the filtered data frame?
 
-**(b)** Filter `rm_yields` to Canola in RM 18 (all years). How many rows?
+**(b)** From `canola_2024`, select only the `RM` and `Yield` columns, saving the result. Report its column names and its number of columns.
 
 **(c)** In a comment: after (a) and (b), how many rows does `rm_yields` itself have, and why?
 
@@ -614,82 +614,95 @@ You spot an obviously wrong yield value in the csv. A classmate suggests opening
 ```r
 canola_2024 <- filter(rm_yields, Crop == "Canola" & Year == 2024)
 nrow(canola_2024)
-canola_rm18 <- filter(rm_yields, Crop == "Canola" & RM == 18)
-nrow(canola_rm18)
+canola_slim <- select(canola_2024, RM, Yield)
+names(canola_slim)
+ncol(canola_slim)
 ```
 
-- (a) **293 rows**. (b) **15 rows**.
-- (c) Still **71,104** -- `filter()` returns a new data frame and leaves the original untouched.
+- (a) **293 rows**.
+- (b) `RM`, `Yield`; **2 columns** (still 293 rows).
+- (c) Still **71,104** -- `filter()` and `select()` return new data frames and leave the original untouched.
 </details>
 
 ### Question 22
 
-**(a)** Filter to rows where the crop is Oats **or** Barley, using `|`. How many rows?
+**(a)** Filter to rows where the crop is Oats **or** Barley, using `|`, saving the result. How many rows are in the filtered data frame?
 
 **(b)** Write the same filter using `%in%` and confirm the row count matches.
 
-**(c)** In a comment: a classmate tried `filter(rm_yields, Crop == "Oats" & Crop == "Barley")` and got zero rows. Why?
+**(c)** Sort your filtered data frame from highest yield to lowest. Which crop, RM, and year hold the top spot, and at what yield?
+
+**(d)** In a comment: a classmate tried `filter(rm_yields, Crop == "Oats" & Crop == "Barley")` and got zero rows. Why?
 
 <details><summary>Answer</summary>
 
 ```r
-nrow(filter(rm_yields, Crop == "Oats" | Crop == "Barley"))
+oats_barley <- filter(rm_yields, Crop == "Oats" | Crop == "Barley")
+nrow(oats_barley)
 nrow(filter(rm_yields, Crop %in% c("Oats", "Barley")))
+arrange(oats_barley, desc(Yield))
 ```
 
 - (a, b) **19,709 rows** both ways.
-- (c) `&` requires both conditions true of the *same row*, and no single row's crop is both Oats and Barley. "Or" is the right connector.
+- (c) Oats, RM **369**, in **2025**, at **165.1 bu/ac**.
+- (d) `&` requires both conditions true of the *same row*, and no single row's crop is both Oats and Barley. "Or" is the right connector.
 </details>
 
 ### Question 23
 
-**(a)** How many Spring Wheat observations exceed 60 bu/ac (all years)?
+**(a)** Filter to the Spring Wheat observations above 60 bu/ac (all years), saving the result. How many rows are in the filtered data frame?
 
-**(b)** How many of those are from 2023?
+**(b)** Filter again to keep only the 2023 rows of that result. How many rows are in this second data frame?
 
-**(c)** In a comment: rewrite the condition "yield above 60 and the crop is *not* Spring Wheat" using `!`, and say what each of `&`, `|`, `!` requires.
+**(c)** From your 2023 data frame, select `RM` and `Yield` and sort best-first. Which RM tops the list, at what yield?
+
+**(d)** In a comment: rewrite the condition "yield above 60 and the crop is *not* Spring Wheat" using `!`, and say what each of `&`, `|`, `!` requires.
 
 <details><summary>Answer</summary>
 
 ```r
-nrow(filter(rm_yields, Crop == "Spring Wheat" & Yield > 60))
-nrow(filter(rm_yields, Crop == "Spring Wheat" & Yield > 60 & Year == 2023))
+sw_60 <- filter(rm_yields, Crop == "Spring Wheat" & Yield > 60)
+nrow(sw_60)
+sw_60_2023 <- filter(sw_60, Year == 2023)
+nrow(sw_60_2023)
+sw_best <- select(sw_60_2023, RM, Yield)
+arrange(sw_best, desc(Yield))
 ```
 
 - (a) **430 rows**. (b) **52 rows**.
-- (c) `filter(rm_yields, Yield > 60 & !Crop == "Spring Wheat")`. `&` needs both conditions true, `|` needs at least one true, `!` flips a condition.
+- (c) RM **187**, at **74.7 bu/ac**.
+- (d) `filter(rm_yields, Yield > 60 & !Crop == "Spring Wheat")`. `&` needs both conditions true, `|` needs at least one true, `!` flips a condition.
 </details>
 
 ### Question 24
 
-**(a)** Make a version of the data with only `Year`, `RM`, `Crop`, and `Yield`, by *naming what you keep*.
+**(a)** Make a version of the data with only `Year`, `RM`, `Crop`, and `Yield` -- once by *naming what you keep*, once by *dropping* what you don't want -- and confirm the two give the same column names.
 
-**(b)** Make the same four-column version by *dropping* what you don't want.
+**(b)** Rename `Yield` to `yield_per_acre` in the full data, saving the result, and show the new column names.
 
-**(c)** Make a version keeping the range of adjacent columns from `Year` through `Crop`.
-
-**(d)** Rename `Yield` to `yield_per_acre` (keeping everything else) and show the new column names.
+**(c)** Filter your renamed data frame to Peas in 2025. How many rows are in the filtered data frame?
 
 <details><summary>Answer</summary>
 
 ```r
-select(rm_yields, Year, RM, Crop, Yield)
-select(rm_yields, -Unit)
-select(rm_yields, Year:Crop)
+names(select(rm_yields, Year, RM, Crop, Yield))
+names(select(rm_yields, -Unit))
 renamed <- rename(rm_yields, yield_per_acre = Yield)
 names(renamed)
+peas_2025 <- filter(renamed, Crop == "Peas" & Year == 2025)
+nrow(peas_2025)
 ```
 
-- (a, b) Identical results: the same rows, four columns.
-- (c) Three columns: `Year`, `RM`, `Crop`.
-- (d) `Year`, `RM`, `Crop`, `yield_per_acre`, `Unit`.
+- (a) Identical: `Year`, `RM`, `Crop`, `Yield` both ways.
+- (b) `Year`, `RM`, `Crop`, `yield_per_acre`, `Unit`.
+- (c) **285 rows**.
 </details>
 
 ### Question 25
 
 Lentil yields are in pounds per acre; one pound per acre is about **1.12 kg per hectare**.
 
-**(a)** Filter to the lentil rows, saving as `lentils`. How many rows?
+**(a)** Filter to the lentil rows, saving as `lentils`. How many rows are in the filtered data frame?
 
 **(b)** Use `mutate()` to add a `yield_kg_ha` column to `lentils`, saving the result back to `lentils`.
 
@@ -711,48 +724,54 @@ mean(lentils$Yield)
 
 ### Question 26
 
-Using `canola_2024` from Question 21 (or re-create it):
-
-**(a)** In one `mutate()` call, add two columns: `yield_t_ha` (multiply by 0.0560) and `yield_kg_ha` (multiply by 56.0). Save the result.
+**(a)** Filter to Canola in 2024, then in one `mutate()` call add two columns: `yield_t_ha` (multiply by 0.0560) and `yield_kg_ha` (multiply by 56.0). Save each step.
 
 **(b)** Compute the mean of each new column.
 
-**(c)** In a comment: without running anything, what is the mean of `yield_kg_ha` divided by the mean of `yield_t_ha`, and why?
+**(c)** Sort by `yield_t_ha`, best first. Which RM tops the table, and at what yield in t/ha?
+
+**(d)** In a comment: without running anything, what is the mean of `yield_kg_ha` divided by the mean of `yield_t_ha`, and why?
 
 <details><summary>Answer</summary>
 
 ```r
+canola_2024 <- filter(rm_yields, Crop == "Canola" & Year == 2024)
 canola_2024 <- mutate(canola_2024,
                       yield_t_ha  = Yield * 0.0560,
                       yield_kg_ha = Yield * 56.0)
 mean(canola_2024$yield_t_ha)
 mean(canola_2024$yield_kg_ha)
+arrange(canola_2024, desc(yield_t_ha))
 ```
 
 - (b) **1.76 t/ha** and **1,764.11 kg/ha**.
-- (c) 1,000 -- both columns are the same yields scaled by constants, and 56.0 / 0.0560 = 1000 (a tonne is 1,000 kg).
+- (c) RM **493**, at **2.57 t/ha**.
+- (d) 1,000 -- both columns are the same yields scaled by constants, and 56.0 / 0.0560 = 1000 (a tonne is 1,000 kg).
 </details>
 
 ### Question 27
 
-Still with `canola_2024`:
+**(a)** Filter to Flax in 2025, saving as `flax_2025`. How many rows are in the filtered data frame?
 
-**(a)** Sort it from highest yield to lowest, and report the RM and yield in the top row.
+**(b)** Sort it from highest yield to lowest, and report the RM and yield in the top row.
 
-**(b)** Sort it from lowest to highest instead. What changes in the code?
+**(c)** Sort it from lowest to highest instead. What changes in the code?
 
-**(c)** In a comment: after (a) and (b), is `canola_2024` itself now sorted? Why or why not?
+**(d)** In a comment: after (b) and (c), is `flax_2025` itself now sorted? Why or why not?
 
 <details><summary>Answer</summary>
 
 ```r
-arrange(canola_2024, desc(Yield))
-arrange(canola_2024, Yield)
+flax_2025 <- filter(rm_yields, Crop == "Flax" & Year == 2025)
+nrow(flax_2025)
+arrange(flax_2025, desc(Yield))
+arrange(flax_2025, Yield)
 ```
 
-- (a) RM **493** at **45.9 bu/ac**.
-- (b) Drop the `desc()`.
-- (c) No -- neither result was assigned, so both were displayed and discarded; `canola_2024` is unchanged.
+- (a) **195 rows**.
+- (b) RM **381** at **45.5 bu/ac**.
+- (c) Drop the `desc()`.
+- (d) No -- neither sorted result was assigned, so both were displayed and discarded; `flax_2025` is unchanged.
 </details>
 
 ### Question 28
@@ -779,7 +798,7 @@ peas <- filter(rm_yields, Crop == "Peas")
 
 ### Question 29
 
-**(a)** Filter to Canola in RM 232 (all years), saving the result. How many rows?
+**(a)** Filter to Canola in RM 232 (all years), saving the result. How many rows are in the filtered data frame?
 
 **(b)** From that object, select only `Year` and `Yield`, saving again.
 
@@ -802,7 +821,7 @@ arrange(canola_232, desc(Yield))
 
 **(a)** Using `head()`, display the first six rows of `rm_yields`.
 
-**(b)** Display the first six rows of the data sorted by `Yield` in descending order (without changing `rm_yields`).
+**(b)** Sort the data by `Yield` in descending order into a new object, select its `Crop`, `Yield`, and `Unit` columns into another, and display the first six rows of that (leaving `rm_yields` unchanged throughout).
 
 **(c)** In a comment: every row in (b) is the same crop. Which one, why those rows, and what would you check before comparing their values with the other crops?
 
@@ -810,7 +829,9 @@ arrange(canola_232, desc(Yield))
 
 ```r
 head(rm_yields)
-head(arrange(rm_yields, desc(Yield)))
+sorted <- arrange(rm_yields, desc(Yield))
+top_cols <- select(sorted, Crop, Yield, Unit)
+head(top_cols)
 ```
 
 - (b, c) All lentils -- their yields are recorded in pounds per acre, so they dominate the top of any sort on `Yield`. Before comparing across crops you would check the `Unit` column and convert to a common unit.
@@ -824,15 +845,9 @@ head(arrange(rm_yields, desc(Yield)))
 
 ### Question 31
 
-Here is a working but hard-to-read line:
+**(a)** Write a pipeline, one step per line with a short comment on each step, that filters `rm_yields` to Durum in 2025, keeps only the `RM` and `Yield` columns, and sorts the result from highest yield to lowest.
 
-```r
-arrange(select(filter(rm_yields, Crop == "Durum" & Year == 2025), RM, Yield), desc(Yield))
-```
-
-**(a)** Rewrite it as a pipeline, one step per line, with a short comment on each step.
-
-**(b)** Run it. How many rows, and which RM had the best durum yield in 2025, at what value?
+**(b)** Run it. How many rows are in the resulting data frame, and which RM had the best durum yield in 2025, at what value?
 
 **(c)** In a comment: read your pipeline aloud as a "take the data, then ..., then ..., then ..." sentence.
 
@@ -1033,7 +1048,7 @@ rm_yields |>
 
 **(b)** Write the table to `output/crop_summary_2025.csv`.
 
-**(c)** Report the top two crops in the sorted table. In a comment: why does the crop in first place not mean what it appears to mean, and which crop is really the standout?
+**(c)** Report the two highest-yielding crops in the sorted table. In a comment: why does the crop in first place not mean what it appears to mean, and which crop is really the standout?
 
 <details><summary>Answer</summary>
 
