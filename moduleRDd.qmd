@@ -11,7 +11,7 @@ trial_data <- readr::read_csv("practice/data/canola_trial.csv", show_col_types =
 Assume a new file is broken until you have checked.  It was typed by someone in a hurry and
 exported by software that had its own ideas about formatting.  This chapter starts with the
 shape a table should have, then tours the defects that show up most often in the values, how
-to find them, and what to do about them, in R and in Excel.
+to find them, and what to do about them, first in Excel and then in R.
 
 The examples below use `grain_deliveries_messy.csv`, a small file of grain deliveries carrying
 every defect in this chapter.
@@ -34,7 +34,7 @@ By the end of this chapter you should be able to:
 4. Recognize the disguises missing values wear, and count them properly.
 5. Decide -- and justify -- when dropping missing values is safe.
 6. Spot dates that imported as text, and say why it matters.
-7. Do the same checks in Excel, and say what Excel cleaning does not give you.
+7. Reshape and clean a table in Excel with Power Query, and say why its recorded steps matter.
 :::
 
 ## Tidy Data {#sec-tidy-data}
@@ -99,16 +99,99 @@ values are hiding in column names, and whether any column holds several variable
 - **Video** -- Riffomonas Project, [*Reshaping data to be long or wide with pivot_longer and pivot_wider*](https://www.youtube.com/watch?v=ZVddiwrbrr4).
 :::
 
-## Reshaping: `pivot_longer` and `pivot_wider` {#sec-reshaping}
+## Tidying and Cleaning in Excel {#sec-cleaning-excel}
 
-Fixing the shape is the job of a pair of `tidyr` functions.  Files often arrive with values
-in the column headers -- one column per crop, or per year -- and StatCan downloads have the
-opposite problem: long where you want wide.
+Excel has two ways to clean a table: formulas beside the data, and Power Query.  Formulas
+are quicker for a file you will clean once.  Power Query is the one to learn, because it
+does the reshaping too, and it records what it did.
 
-`pivot_longer` turns column headers into values.  You tell it which columns to gather, what
-to call the column that will hold their *names*, and what to call the column that will hold
-their *values*.  The Saskatchewan RM yields (@sec-direct-download) are the wide case: one
-column per crop.
+### Reshaping with Power Query {#sec-unpivot}
+
+The RM yields file (@sec-direct-download) is wide, one column per crop, and Power Query's
+**Unpivot** turns it long.  Import the file with **Data > Get Data > From Text/CSV** and
+press **Transform Data** to open the editor.  Select the columns that identify a row, `Year`
+and `RM`, and choose **Transform > Unpivot Columns > Unpivot Other Columns**.  Every crop
+column collapses into two: `Attribute`, holding the crop name that was in the header, and
+`Value`, holding the yield.  Double-click the headers to rename them `crop` and
+`yield_bu_ac`, then **Close & Load**.  2,950 rows become 17,700, one per RM-year-crop.
+
+<!-- Screenshot: Power Query editor with Year and RM selected and the Unpivot Other
+Columns menu open, or the result after unpivoting.
+![Unpivot Other Columns in the Power Query editor.  The crop headers become values in a `crop` column.](images/pq_unpivot.png){#fig-pq-unpivot}
+-->
+
+The other direction, long to wide, is a PivotTable (@sec-wide-long), or **Transform > Pivot
+Column** in the same editor.
+
+### Cleaning with formulas {.unnumbered}
+
+The workbook below holds the grain delivery tickets with the cleaning done in formula
+columns beside the raw data, so the original is still there to check against.
+
+- **Categories.** The filter dropdown on a column lists every distinct value in it, which is
+  Excel's `count()`.  Open it on `crop` and the three spellings of canola are all visible at
+  once.  `=PROPER(TRIM(C5))` fixes case and stray spaces; **Find & Replace** handles synonyms
+  like Canola/Rapeseed.
+- **Impossible values and mixed units.** `MIN` and `MAX` at the foot of a column do what
+  `summary()` does.  An `IF` that rescales moisture readings under 1 is the `if_else()` from
+  @sec-mixed-units.
+- **Duplicates.** **Data > Remove Duplicates** drops exact duplicates, and says how many it
+  removed.  It does nothing about the same ticket number with two different weights;
+  `=COUNTIF($A$5:$A$23, A5)` beside each row finds those.
+- **Text that should be numbers.** A number stored as text shows a green triangle in the
+  corner of the cell and sorts in the wrong place.  `VALUE()` converts it, and **Text to
+  Columns** (@sec-csv-excel) converts a whole column at once if you click through with the
+  type set to General.
+- **Missing values.** `COUNTBLANK` counts empty cells.  Excel's `AVERAGE` skips blanks
+  without telling you, which is the difference from R's `NA` (@sec-missing-values), so count them
+  before you trust an average.
+
+::: {.workbook-callout}
+<!-- iframe embed goes here once the workbook is uploaded to SharePoint; follow the
+mod01_sum.xlsx block in module01a.qmd -->
+
+[Download this workbook](textbook_examples/mod03_cleaning_excel.xlsx)
+:::
+
+### Cleaning with Power Query {.unnumbered}
+
+Each of those has a Power Query equivalent, applied as a step in the editor rather than a
+formula in a cell.  With the deliveries file open in the editor:
+
+- **Remove Top Rows** (Home > Remove Rows) drops a title and notes above the header, and
+  **Use First Row as Headers** then promotes the real header.
+- **Change Type**, by clicking the icon in a column header, sets a column to Text, Whole
+  Number, Decimal or Date.  Rows that fail to convert show `Error`, which is how you find a
+  `38.2 t` in a numeric column.
+- **Transform > Format > Trim** and **Capitalize Each Word** fix spacing and case in
+  `crop`.
+- **Replace Values** handles synonyms and disguised missing values: replace
+  `Canola/Rapeseed` with `Canola`, or `N/A` with nothing, which Power Query stores as
+  `null`, its `NA`.
+- **Remove Duplicates** (Home > Remove Rows) drops exact duplicates.  Conflicting
+  duplicates still need a count: **Group By** `ticket_id` with a row count, then filter
+  to counts above 1.
+- **Split Column > By Delimiter** is Text to Columns inside the editor.
+- **Fill > Down** fills blanks from the cell above, for spreadsheets where a category was
+  typed once and left blank for the rows beneath it.
+
+The difference from formulas and from Find & Replace is that every step lands in the
+**Applied Steps** list on the right of the editor.  You can click any step to see the table
+as it was at that point, delete one, or change its settings.  When a new version of the file
+arrives, **Refresh** runs the whole list again.  Formulas beside the data leave the original
+visible; a retyped cell or a Find & Replace on the sheet leaves nothing, and a month later
+there is no way to tell what was changed.
+
+## Tidying and Cleaning in R {#sec-cleaning-r}
+
+### Reshaping: `pivot_longer` and `pivot_wider` {#sec-reshaping}
+
+Fixing the shape is the job of a pair of `tidyr` functions, which do what Unpivot and Pivot
+Column do in Power Query.
+
+`pivot_longer` is Unpivot.  You tell it which columns to gather, what to call the column
+that will hold their *names*, and what to call the column that will hold their *values*.
+The Saskatchewan RM yields again:
 
 ```{r}
 #| eval: true
@@ -144,7 +227,7 @@ yields_long |>
 Long is usually what analysis wants; wide is often what people want to read.  Expect to
 pivot in both directions.
 
-## Awkward Column Names {#sec-clean-names}
+### Awkward Column Names {#sec-clean-names}
 
 The first thing to fix is often the names. Real files arrive with columns like
 `Yield (bu/ac)`, `REGION_NAME`, or `Field ID Number` -- readable to a person, but annoying
@@ -170,7 +253,7 @@ deliveries <- read_csv("data/grain_deliveries_messy.csv") |> clean_names()
 
 Run it on almost anything you read in.
 
-## Duplicates {#sec-duplicates}
+### Duplicates {#sec-duplicates}
 
 There are two kinds, and the second is the harder one.
 
@@ -195,7 +278,7 @@ No code fixes this one.  Somebody entered the delivery twice, or corrected it an
 rows, and you have to find out which is right.  If you cannot, say so in the write-up and
 explain what you did.
 
-## Impossible Values {#sec-impossible-values}
+### Impossible Values {#sec-impossible-values}
 
 Every variable has values it cannot take.  A weight cannot be negative, a moisture percentage
 cannot be 250, and a delivery of exactly zero tonnes is possible but odd.
@@ -223,7 +306,7 @@ field in the province.  Do not delete a value just because it is extreme.  Check
 the source if you can, and if you cannot, analyze the data with and without it and report
 whether it changes the answer.
 
-## Inconsistent Categories {#sec-categories}
+### Inconsistent Categories {#sec-categories}
 
 The same thing spelled several ways is the most common defect I run into, and it is easy to
 miss because every individual value looks fine.  Count the categories:
@@ -270,7 +353,7 @@ deliveries <- deliveries |>
   ))
 ```
 
-## Mixed Units {#sec-mixed-units}
+### Mixed Units {#sec-mixed-units}
 
 A right value in the wrong unit is harder to catch than a wrong value, because nothing looks
 broken.  In the deliveries file most moisture readings are percentages around 9.5, but a few
@@ -294,7 +377,7 @@ deliveries <- deliveries |>
 A file that records its own units in a column lets you convert with a `case_when` -- one
 condition per unit, as in the crop-name recode above -- instead of inferring from magnitude.
 
-## Missing Values {#sec-missing-values}
+### Missing Values {#sec-missing-values}
 
 In R, a missing value is `NA`, and most operations *propagate* it: any calculation
 involving `NA` returns `NA`.  The canola trial data has three fields with no rainfall
@@ -320,7 +403,7 @@ This is an important difference from Excel, where many functions skip blank cell
 automatically.  Real files complicate it further in two ways: missing values arrive in
 disguise, and deciding what to do with them takes some thought.
 
-### Missing values in disguise {.unnumbered}
+#### Missing values in disguise {.unnumbered}
 
 Missing data shows up in real files in several forms: an empty cell, the text `"NA"`,
 `"N/A"`, `"-"`, `"."`, or `-999`.  R recognises the blank and `NA`.  The rest come in as
@@ -343,7 +426,7 @@ A numeric code like `-999` is the dangerous one.  It will not turn the column to
 just be included in the mean as a number, which is another reason to run `summary()` on arrival
 and look at the minimum.
 
-### Working with missing values {.unnumbered}
+#### Working with missing values {.unnumbered}
 
 A few patterns:
 
@@ -365,7 +448,7 @@ mean(deliveries$weight_tonnes, na.rm = TRUE)
 deliveries |> mutate(weight_tonnes = replace_na(weight_tonnes, 0))
 ```
 
-### When is dropping safe? {.unnumbered}
+#### When is dropping safe? {.unnumbered}
 
 It depends on *why* the values are missing.  If data is missing completely at random (a
 sensor failed arbitrarily), dropping missing values gives you unbiased estimates, just with
@@ -376,7 +459,7 @@ overestimate yields.
 The honest answer to "what should I do with missing values" is almost always: *think about
 why they are missing*, and *document what you decided to do*.  There is no universal fix.
 
-## Dates Stored as Text {#sec-dates-text}
+### Dates Stored as Text {#sec-dates-text}
 
 A date column that imported as `<chr>` cannot be sorted chronologically or used in
 arithmetic.  It happens when the file mixes formats (`2025-09-15` in some rows,
@@ -396,44 +479,6 @@ deliveries |>
 Fixing messy dates properly uses tools we have not covered (the `lubridate` package is the
 standard one); for this course, it is enough to notice the problem and state the format
 explicitly when you read the file.
-
-## Cleaning in Excel {#sec-cleaning-excel}
-
-Everything above has an Excel counterpart, and for a file you will clean once, Excel is often
-quicker.  The workbook below holds the same grain delivery tickets with the cleaning done in
-formula columns beside the raw data, so the original is still there to check against.
-
-- **Categories.** The filter dropdown on a column lists every distinct value in it, which is
-  Excel's `count()`.  Open it on `crop` and the three spellings of canola are all visible at
-  once.  `=PROPER(TRIM(C5))` fixes case and stray spaces; **Find & Replace** handles synonyms
-  like Canola/Rapeseed.
-- **Impossible values and mixed units.** `MIN` and `MAX` at the foot of a column do what
-  `summary()` does.  An `IF` that rescales moisture readings under 1 is the `if_else()` from
-  @sec-mixed-units.
-- **Duplicates.** **Data > Remove Duplicates** drops exact duplicates, and says how many it
-  removed.  It does nothing about the same ticket number with two different weights;
-  `=COUNTIF($A$5:$A$23, A5)` beside each row finds those.
-- **Text that should be numbers.** A number stored as text shows a green triangle in the
-  corner of the cell and sorts in the wrong place.  `VALUE()` converts it, and **Text to
-  Columns** (@sec-csv-excel) converts a whole column at once if you click through with the
-  type set to General.
-- **Missing values.** `COUNTBLANK` counts empty cells.  Excel's `AVERAGE` skips blanks
-  without telling you, which is the difference from R's `NA` described above, so count them
-  before you trust an average.
-
-::: {.workbook-callout}
-<!-- iframe embed goes here once the workbook is uploaded to SharePoint; follow the
-mod01_sum.xlsx block in module01a.qmd -->
-
-[Download this workbook](textbook_examples/mod03_cleaning_excel.xlsx)
-:::
-
-What Excel does not give you is a record.  Remove Duplicates, Find & Replace and a retyped
-cell leave no trace, so a month later there is no way to tell what was changed, and no way to
-redo it when a new version of the file arrives.  The formula-column approach in the workbook
-is the compromise: the raw data stays put and the cleaning is visible.  For anything you will
-do more than once, **Power Query** (Data > Get Data) records every step and replays them on
-a new file, which is the closest Excel comes to a script.
 
 ## A Checklist {#sec-cleaning-checklist}
 
