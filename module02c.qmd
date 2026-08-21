@@ -67,10 +67,17 @@ trial_data <- read_csv("data/canola_trial.csv")
 
 ## Data Manipulation Functions {#sec-verbs-basic}
 
-Two of the four basic functions mainly affect the rows: `filter()` chooses rows, and
-`arrange()` changes their order. Two mainly affect the columns: `select()` chooses columns,
-and `mutate()` creates or changes them. Each takes the data frame as its first argument,
-followed by what to do with it.
+We will learn four functions in this section.  Two affect the rows:
+
+- `filter()` chooses rows, and
+- `arrange()` changes their order.
+
+Two affect the columns:
+
+- `select()` chooses columns, and
+- `mutate()` creates or changes them.
+
+Each function takes the data frame as its first argument, followed by what to do with it.
 
 ### `filter()`: Keep Certain Rows
 
@@ -86,11 +93,7 @@ filter(trial_data, yield_bu_acre > 50)
 
 Read this as: from `trial_data`, keep the rows where `yield_bu_acre` is greater than 50.
 
-Notice that `filter()` displays the high-yielding fields but does not remove the other
-fields from `trial_data` -- check `nrow(trial_data)` and all 120 rows are still there. Every
-function in this chapter works the same way: it takes a data frame as input and returns a
-*new* data frame as output, and if we only display that output, R does not save it. To keep
-a result, assign it to an object:
+Notice that `filter()` displays the high-yielding fields but does not remove the other fields from `trial_data` -- check `nrow(trial_data)` and all 120 rows are still there. Every function in this chapter works the same way: it takes a data frame as input and returns a *new* data frame as output, and if we only display that output, R does not save it. To keep a result, assign it to an object:
 
 ```{r}
 #| eval: true
@@ -102,9 +105,7 @@ high_yield <- filter(trial_data, yield_bu_acre > 50)
 
 (An assignment prints nothing -- the result went into `high_yield` instead of the console.)
 
-Now there are two objects: `trial_data`, the original 120 fields, and `high_yield`, the
-filtered subset. That is a useful feature -- you can experiment without changing the
-original data. Throughout the chapter, an example without `<-` is just displaying a result.
+Now there are two objects: `trial_data`, the original 120 fields, and `high_yield`, the filtered subset. That is a useful feature -- you can experiment without changing the original data. Throughout the chapter, an example without `<-` is just displaying a result.
 
 Text variables work too:
 
@@ -116,44 +117,69 @@ filter(trial_data, variety == "InVigor")
 ')
 ```
 
-Note the **two** equals signs: `==` asks whether two things are equal, so
-`variety == "InVigor"` asks "is `variety` equal to `"InVigor"`?". A single `=` has a
-different job in R -- naming arguments, as in `mean(x, na.rm = TRUE)` -- so writing
-`variety = "InVigor"` inside `filter()` will not do what you want. Also note the quotation
-marks: `"InVigor"` with quotes is text; `InVigor` without quotes would be read as the name
-of an object, which probably doesn't exist and would cause an error.
+Note the **two** equals signs: `==` asks whether two things are equal, so `variety == "InVigor"` asks "is `variety` equal to `"InVigor"`?". A single `=` has a different job in R -- naming arguments, as in `mean(x, na.rm = TRUE)` -- so writing `variety = "InVigor"` inside `filter()` will not do what you want. Also note the quotation marks: `"InVigor"` with quotes is text; `InVigor` without quotes would be read as the name of an object, which probably doesn't exist and would cause an error.
 
-You can combine conditions with `&` (and -- both must be true), `|` (or -- at least one must
-be true), and `!` (not):
+You can combine conditions with `&` (and -- both must be true), `|` (or -- at least one must be true), and `!` (not):
 
 ```{r}
 #| eval: true
 #| echo: false
 console('
+##Filter for yields above 50 with the variety InVigor
 filter(trial_data, yield_bu_acre > 50 & variety == "InVigor")
 
+##Filter for fertilizer below 80 or above 160
 filter(trial_data, fertilizer_kg_ha < 80 | fertilizer_kg_ha > 160)
 
-filter(trial_data, !is.na(rainfall_mm))  # is.na() asks if a value is missing; ! keeps the non-missing
+##Filter for yields above 60 with the variety not equal to InVigor
+filter(trial_data, yield_bu_acre > 60 & !variety == "InVigor")
 ')
 ```
 
-That last one is not hypothetical: three of our fields have no rainfall reading, and this is
-how you would set them aside -- note the 117 rows in its result.
-
-When you want to match several possible values of the same variable, `%in%` is easier to
-read:
+When you want to match several possible values of the same variable, `%in%` is easier to read:
 
 ```{r}
 #| eval: true
 #| echo: false
 console('
+
+##The following two filters are identical
+
+filter(trial_data, variety == "InVigor" | variety == "DEKALB")
+
 filter(trial_data, variety %in% c("InVigor", "DEKALB"))
 ')
 ```
 
-You do not need to memorize every comparison operator. The idea is that `filter()` chooses
-observations by asking a TRUE/FALSE question about each row.
+
+### `arrange()`: Sort Rows
+
+`arrange()` changes the order of the rows. `arrange(trial_data, yield_bu_acre)` sorts from lowest yield to highest.  If you want to arrange from highest to lowest then use the `desc()` (descending order) function. 
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+
+##Sort data by yield (lowest to highest)
+arrange(trial_data, yield_bu_acre)
+
+##Sort data by yield (highest to lowest)
+arrange(trial_data, desc(yield_bu_acre))
+')
+```
+
+You can sort by more than one variable -- `arrange(trial_data, variety, desc(yield_bu_acre))` sorts by variety and then, within each variety, from highest yield to lowest. Like the other functions, `arrange()` does not permanently rearrange `trial_data` unless you save the result.
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+
+## Sort data by variety first, then yield (highest to lowest)
+arrange(trial_data, variety, desc(yield_bu_acre))
+')
+```
 
 ### `select()`: Keep Certain Columns
 
@@ -167,17 +193,18 @@ select(trial_data, field_id, variety, yield_bu_acre)
 ')
 ```
 
-The result has the same rows but only those three columns -- especially useful with datasets
-containing dozens or hundreds of variables. You can also drop a column by putting `-` in
-front of its name, or keep a range of adjacent columns:
+The result has the same rows but only those three columns -- especially useful with datasets containing dozens or hundreds of variables. You can also drop a column by putting `-` in front of its name, or keep a range of adjacent columns:
 
 ```{r}
 #| eval: true
 #| echo: false
 console('
-select(trial_data, -rainfall_mm)                 # everything except rainfall
 
-select(trial_data, field_id:rainfall_mm)         # the columns from field_id through rainfall_mm
+## Select  everything except rainfall
+select(trial_data, -rainfall_mm)                 
+
+# Select columns from field_id through rainfall_mm
+select(trial_data, field_id:rainfall_mm)         
 ')
 ```
 
@@ -202,6 +229,20 @@ The result contains all the original columns plus a new `yield_t_ha`. Read the e
 as: create `yield_t_ha` and set it equal to `yield_bu_acre` × 0.0560. This is the R version
 of adding a formula column in Excel.
 
+As always, the display above is not saved anywhere. To keep the new column, assign the result -- and here it is common to overwrite the original object with the version that has the extra column:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+trial_data <- mutate(trial_data, yield_t_ha = yield_bu_acre * 0.0560)
+
+names(trial_data)
+')
+```
+
+`trial_data` now carries `yield_t_ha` for the rest of the session.
+
 You can create several variables in one call, and later expressions can use variables
 created earlier in the same `mutate()`:
 
@@ -215,23 +256,6 @@ mutate(trial_data,
 ')
 ```
 
-### `arrange()`: Sort Rows
-
-`arrange()` changes the order of the rows. `arrange(trial_data, yield_bu_acre)` sorts from
-lowest yield to highest; wrap the column in `desc()` to sort the other way:
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-arrange(trial_data, desc(yield_bu_acre))
-')
-```
-
-You can sort by more than one variable -- `arrange(trial_data, variety, desc(yield_bu_acre))`
-sorts by variety and then, within each variety, from highest yield to lowest. Like the other
-functions, `arrange()` does not permanently rearrange `trial_data` unless you save the
-result.
 
 ## The Pipe `|>` {#sec-pipe}
 
