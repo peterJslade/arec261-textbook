@@ -49,23 +49,30 @@ console <- function(code, envir = parent.frame(), echo = TRUE) {
     if (length(buf) > 1) transcript <- c(transcript, paste0("+ ", buf[-1]))
 
     for (e in expr) {
-      # Capture messages (e.g. read_csv's column note) and warnings into the
-      # transcript, the way a real console interleaves them with results.
+      # Capture messages (e.g. read_csv's column note), warnings, and printing
+      # done as a side effect during evaluation (e.g. glimpse(), which cat()s
+      # to stdout and returns invisibly) into the transcript, the way a real
+      # console interleaves them with results. Without the stdout capture,
+      # side-effect printing leaks into knitr's chunk output and Quarto places
+      # it before the code block, orphaned from the code that produced it.
       msgs <- character(0)
-      res <- tryCatch(
-        withCallingHandlers(
-          withVisible(eval(e, envir)),
-          message = function(m) {
-            msgs <<- c(msgs, strsplit(sub("\n$", "", conditionMessage(m)), "\n", fixed = TRUE)[[1]])
-            invokeRestart("muffleMessage")
-          },
-          warning = function(w) {
-            msgs <<- c(msgs, paste0("Warning: ", conditionMessage(w)))
-            invokeRestart("muffleWarning")
-          }
-        ),
-        error = function(err) list(err = conditionMessage(err)))
-      transcript <- c(transcript, msgs)
+      res <- NULL
+      side <- utils::capture.output(
+        res <- tryCatch(
+          withCallingHandlers(
+            withVisible(eval(e, envir)),
+            message = function(m) {
+              msgs <<- c(msgs, strsplit(sub("\n$", "", conditionMessage(m)), "\n", fixed = TRUE)[[1]])
+              invokeRestart("muffleMessage")
+            },
+            warning = function(w) {
+              msgs <<- c(msgs, paste0("Warning: ", conditionMessage(w)))
+              invokeRestart("muffleWarning")
+            }
+          ),
+          error = function(err) list(err = conditionMessage(err)))
+      )
+      transcript <- c(transcript, side, msgs)
       if (!is.null(res$err)) {
         transcript <- c(transcript, paste0("Error: ", res$err))
       } else if (isTRUE(res$visible)) {

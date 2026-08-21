@@ -430,35 +430,42 @@ Sample	0.78
 
 ### Question 12
 
-*Paste this block into a blank sheet. Two cells are deliberately empty.*
+*Paste this block into a blank sheet, keeping the blank rows between the three groups.*
 
 ```{.plain}
-Field	Yield (bu/ac)
-Birch	46.9
-Coulee	
-Draw	52.7
-Flats	not seeded
-Gully	44.3
-Hollow	
+Parcel	Acres
+Home quarter	
+NW	142
+SW	318
+NE	96
+	
+River section	
+North strip	205
+South strip	177
+	
+East lease	
+Field 1	264
+Field 2	88
+Field 3	131
 ```
 
-**(a)** Use `COUNT` and `COUNTA` on the yield column. Report both numbers and explain why they differ.
+**(a)** Use `SUM` with a **single** range covering the whole block, from the first acreage to the last. Report what it returns.
 
-**(b)** Use `AVERAGE` on the yield column. State how many values it used.
+**(b)** Now total the acres properly, using one `SUM` that takes all three ranges separated by commas. Report the farm total.
 
-**(c)** Compute the same average a second way, as `SUM` divided by `COUNT`, and confirm the two agree.
+**(c)** A 60-acre parcel is rented mid-season and never given a row. Extend your formula from (b) to include it as an individual number inside the same `SUM`. Report the new total.
 
-**(d)** A colleague suggests typing `0` into the two blank cells "so the column is complete." Compute what the average becomes, and explain why that is the wrong fix.
+**(d)** Explain why the answer to (a) matches the answer to (b), and why that agreement is luck rather than proof.
 
-**(e)** State, in one sentence, what a blank cell means here that a zero does not.
+**(e)** A colleague writes `=SUM(B3:B5)` and reports 556 acres as the farm total. Explain what went wrong and why nothing on their sheet flags it.
 
 <details><summary>Answer</summary>
 
-- (a) `=COUNT(B2:B7)` = **3** (only the numbers); `=COUNTA(B2:B7)` = **4** (the numbers plus the text "not seeded"). `COUNT` ignores text; `COUNTA` counts anything that is not empty.
-- (b) `=AVERAGE(B2:B7)` = **47.97**, over **3** values. Blanks and text are skipped.
-- (c) `=SUM(B2:B7)/COUNT(B2:B7)` = **47.97** — the same.
-- (d) With two zeros the average falls to **28.78**. That treats "we have no number" as "the field yielded nothing," which is a claim about the world, not a repair to the spreadsheet.
-- (e) A blank says the value is unknown or not applicable; a zero says the value is known and it is none.
+- (a) `=SUM(B3:B14)` = **1,421** acres. The blank rows and the text labels are simply skipped.
+- (b) `=SUM(B3:B5,B8:B9,B12:B14)` = **1,421** acres — the same figure, but now the formula names exactly the cells that are meant to be in it.
+- (c) `=SUM(B3:B5,B8:B9,B12:B14,60)` = **1,481** acres. A function can take individual numbers alongside its ranges.
+- (d) They agree only because everything between the first and last acreage happens to belong in the total. Put a subtotal, a note, or another dataset in one of those blank rows and the single range picks it up without warning; the three named ranges do not.
+- (e) They summed only the Home quarter — the first block of three rows — and reported it as the whole farm. The number is a plausible acreage, no error appears, and the sheet gives no sign that two-thirds of the land is missing.
 
 📗 **[Answer workbook](../practice/answers/s1_q12.xlsx)** — the finished sheet, with the formulas live and a `FORMULATEXT` column showing what was typed.
 
@@ -744,39 +751,33 @@ Date	Tonnes
 
 ### Question 21
 
-*Paste this block into a blank sheet.*
+*Paste this block into a blank sheet. Each bin is square, so its floor is the side length squared.*
 
 ```{.plain}
-Field	Acres
-Kestrel	120
-Meadowvale	240
-Nightjar	95
+Bin	Side (m)	Depth (m)
+Bin 1	7.5	4.2
+Bin 2	9.0	3.8
+Bin 3	11.25	5.0
+Bin 4	6.4	4.5
 ```
 
-```{.plain}
-Scenario	Rate (lb/ac)
-Low	2.4
-Mid	2.9
-High	3.5
-```
+**(a)** Add a **Floor area (m²)** column using the `^` operator to square the side length. Show two decimals.
 
-**(a)** Lay the three scenarios across a row and build a grid of total seed required (acres × rate) for each field under each scenario. Write **one** formula and fill it both ways.
+**(b)** Add a **Volume (m³)** column: floor area times depth. Total it with `SUM` and show one decimal.
 
-**(b)** State your formula and explain which reference is locked by column and which by row.
+**(c)** Grain weighs about 0.75 tonnes per cubic metre. Put that figure in a cell of its own and add a **Capacity (t)** column, rounded to whole tonnes with `ROUND`.
 
-**(c)** Total each scenario column with `SUM` and report the three farm totals.
+**(d)** In two spare cells, enter `=4*3^2` and `=(4*3)^2`. Report both results and explain why they differ.
 
-**(d)** Seed costs $1.85 per pound. Add a row converting each scenario total to a cost, with the price in one locked cell. Format as currency.
-
-**(e)** Explain in one sentence why this layout is better than building three separate tables.
+**(e)** A classmate computes Bin 3's floor area as `=11.25*2` and gets 22.5. In one sentence, say what they have actually calculated.
 
 <details><summary>Answer</summary>
 
-- (a) With acres in `B2:B4` and rates laid across in `C6:E6`, the fill formula is `=$B2*C$6`.
-- (b) `$B2` locks the **column** so the acres come from column B wherever the formula lands, but the row still moves down. `C$6` locks the **row** so the rate always comes from row 6, but the column still moves across.
-- (c) Low **1,092.0** lb; Mid **1,319.5** lb; High **1,592.5** lb.
-- (d) `=C8*$G$1` → Low **$2,020.20**; Mid **$2,441.08**; High **$2,946.13**.
-- (e) One formula covers all nine cells, so changing an acre figure or a rate updates everything at once — three separate tables would need three separate edits and could drift apart.
+- (a) `=B2^2` filled down → **56.25, 81.00, 126.56, 40.96** m².
+- (b) `=D2*C2` → **236.3, 307.8, 632.8, 184.3** m³; total **1,361.2** m³.
+- (c) `=ROUND(E2*$H$1,0)` → **177, 231, 475, 138** tonnes.
+- (d) `=4*3^2` returns **36** and `=(4*3)^2` returns **144**. Exponents are evaluated before multiplication, so the first squares the 3 and then multiplies by 4. The brackets in the second force the multiplication first, and 12 squared is 144.
+- (e) They doubled the side length instead of squaring it. `11.25*2` is 22.5 m, which is a distance, not an area — squaring gives 126.56 m².
 
 📗 **[Answer workbook](../practice/answers/s1_q21.xlsx)** — the finished sheet, with the formulas live and a `FORMULATEXT` column showing what was typed.
 
@@ -995,35 +996,36 @@ Insurance	22.40	25.80
 
 ### Question 28
 
-*Paste this block into a blank sheet.*
+*This question is about what Excel does to data on the way in. Type the block below into a blank sheet exactly as shown, into a column you have left as **General** format.*
 
 ```{.plain}
-Field	Acres	Rate (lb/ac)
-Field 1	86	3.4
-Field 2	142	2.9
-Field 3	64	4.1
-Field 4	119	3.2
+RM ID	Variety	Yield (bu/ac)
+00127	SEPT1	41.2
+00308	AAC2	38.6
+01045	MAR2	44.8
+00276	BW945	36.1
+00519	1-3	39.9
 ```
 
-**(a)** Add a **Pounds** column and total it with `SUM`. Total the acres as well.
+**(a)** Report what appears in the **RM ID** column and in the **Variety** column. Three of the five varieties will not read back as you typed them.
 
-**(b)** Compute the farm's blended rate: total pounds divided by total acres.
+**(b)** For each value Excel changed, say what it turned into and why Excel thought that was helpful.
 
-**(c)** Compute the same figure in a single cell with `SUMPRODUCT` over `SUM`, and confirm the two agree.
+**(c)** Now format a fresh pair of columns as **Text** *before* typing, and enter the same RM IDs and varieties again. Report what you get.
 
-**(d)** Use `AVERAGE` on the rate column and compare. Report both figures and explain which one you would give the supplier when ordering.
+**(d)** Explain why this matters more for a `.csv` file than for an `.xlsx` file.
 
-**(e)** Explain in one sentence why the two figures differ in the direction they do here.
+**(e)** The yields are unaffected throughout. Compute their mean and count, and explain in one sentence why a sheet can be badly wrong even when every number in it is right.
 
 <details><summary>Answer</summary>
 
-- (a) `=B2*C2` → 292.4, 411.8, 262.4, 380.8; total **1,347.4** lb. Acres **411**.
-- (b) `=D6/B6` = **3.28** lb/ac.
-- (c) `=SUMPRODUCT(B2:B5,C2:C5)/SUM(B2:B5)` = **3.28** — the same in one step.
-- (d) `=AVERAGE(C2:C5)` = **3.40** lb/ac against a blended **3.28**. Order on the blended rate, or better on the total of **1,347.4 lb** — that is the amount of product the farm actually needs.
-- (e) The blended rate sits below the plain average because the two heaviest rates are on the two smallest fields, so they carry less weight once acres are accounted for.
+- (a) The RM IDs lose their leading zeros and become **127, 308, 1045, 276, 519**, right-aligned as numbers. `SEPT1`, `MAR2` and `1-3` become the dates **1-Sep**, **2-Mar** and **3-Jan**. `AAC2` and `BW945` survive.
+- (b) Excel reads a leading-zero string as a number and drops the zeros, because to a number they carry no value. It reads `SEPT1`, `MAR2` and `1-3` as abbreviated dates. Each guess is reasonable in isolation and wrong here.
+- (c) With the columns formatted as Text first, all five IDs and all five variety codes come back exactly as typed. Setting the type before the data arrives is what prevents the guess.
+- (d) An `.xlsx` file stores the type of every cell, so a workbook reopens holding what it held. A `.csv` is only text, with no type information, so Excel guesses afresh on every open — and a file that has been opened, guessed at, and saved has lost the original values, not just their display. This is why the chapter recommends Data → Get Data → From Text/CSV, where the column types can be set before anything is read.
+- (e) Mean **40.12** bu/ac over **5** values. The identifiers are what let a yield be matched to the right RM and the right variety; corrupt them and the numbers are perfectly accurate measurements of nothing you can name.
 
-📗 **[Answer workbook](../practice/answers/s1_q28.xlsx)** — the finished sheet, with the formulas live and a `FORMULATEXT` column showing what was typed.
+📗 **[Answer workbook](../practice/answers/s1_q28.xlsx)** — the finished sheet, showing each value as typed, as Excel converts it, and as it survives when the column is set to Text first.
 
 </details>
 

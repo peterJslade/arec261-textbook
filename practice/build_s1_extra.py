@@ -199,29 +199,31 @@ def q11():
 
 
 def q12():
-    wb, ws = new_book("Blanks, text, and what the functions count",
-        "COUNT sees numbers, COUNTA sees anything typed, AVERAGE skips both blanks "
-        "and text. Filling the blanks with zero would change the claim being made.")
-    rows=[("Birch",46.9),("Coulee",None),("Draw",52.7),
-          ("Flats","not seeded"),("Gully",44.3),("Hollow",None)]
-    header(ws,4,["Field","Yield (bu/ac)"])
-    for i,(n,v) in enumerate(rows):
-        r=5+i
-        put(ws,r,1,n)
-        put(ws,r,2,v,fmt=ONE if isinstance(v,float) else None,
-            align=centre if isinstance(v,float) else None)
-    last=4+len(rows)
-    rng=f"B5:B{last}"
-    for k,(lab,f,fmt) in enumerate([("COUNT (numbers)",f"=COUNT({rng})",INT),
-            ("COUNTA (anything)",f"=COUNTA({rng})",INT),
-            ("SUM",f"=SUM({rng})",ONE),("AVERAGE",f"=AVERAGE({rng})",TWO),
-            ("SUM / COUNT",f"=SUM({rng})/COUNT({rng})",TWO)]):
-        stat(ws,last+2+k,lab,f,fmt)
-    note(ws,last+8,
-        "COUNT 3, COUNTA 4 -- the difference is the words 'not seeded'. The average is "
-        "47.97 over three values. Type 0 into the two blanks and it falls to 28.78, "
-        "which asserts those fields yielded nothing.",4)
-    finish(ws,[("A",20),("B",14),("C",14),("D",30)],last+8)
+    wb, ws = new_book("One SUM, three blocks",
+        "A range that spans the blank rows happens to give the right answer here. "
+        "Naming the three ranges says what the total is actually made of.")
+    blocks=[("Home quarter",[("NW",142),("SW",318),("NE",96)]),
+            ("River section",[("North strip",205),("South strip",177)]),
+            ("East lease",[("Field 1",264),("Field 2",88),("Field 3",131)])]
+    header(ws,4,["Parcel","Acres"])
+    r=5; spans=[]
+    for name,rows in blocks:
+        put(ws,r,1,name,font=f_bold); r+=1
+        first=r
+        for n,a in rows:
+            put(ws,r,1,n); put(ws,r,2,a,fmt=INT,align=centre); r+=1
+        spans.append((first,r-1)); r+=1
+    last=r-2
+    rng=",".join("B%d:B%d"%(a,b) for a,b in spans)
+    stat(ws,r,"One range, first to last",f"=SUM(B{spans[0][0]}:B{spans[-1][1]})",INT)
+    stat(ws,r+1,"The three ranges named",f"=SUM({rng})",INT)
+    stat(ws,r+2,"...plus a 60-acre rental",f"=SUM({rng},60)",INT)
+    stat(ws,r+3,"The first block only",f"=SUM(B{spans[0][0]}:B{spans[0][1]})",INT)
+    note(ws,r+5,
+        "1,421 / 1,421 / 1,481 / 556. The first two agree only because nothing "
+        "unwanted sits between the first acreage and the last. Put a subtotal in one "
+        "of those blank rows and the single range swallows it without a word.",4)
+    finish(ws,[("A",26),("B",12),("C",16),("D",30)],r+5)
     return wb
 
 
@@ -438,34 +440,32 @@ def q20():
 
 
 def q21():
-    wb, ws = new_book("Three scenarios from one formula",
-        "Fields down, seeding rates across. The acres reference locks its column and "
-        "the rate reference locks its row, so one formula fills the whole grid.")
-    put(ws,4,1,"Seed price ($/lb)",font=f_bold); put(ws,4,2,1.85,fill=lock_fill,fmt=MONEY,align=centre)
-    fields=[("Kestrel",120),("Meadowvale",240),("Nightjar",95)]
-    rates=[("Low",2.4),("Mid",2.9),("High",3.5)]
-    put(ws,6,1,"Field",font=f_head); put(ws,6,2,"Acres",font=f_head)
-    for j,(s,rt) in enumerate(rates):
-        put(ws,6,3+j,s,font=f_head,align=centre); put(ws,7,3+j,rt,fmt=ONE,align=centre)
-    for i,(n,a) in enumerate(fields):
-        r=8+i
-        put(ws,r,1,n); put(ws,r,2,a,fmt=INT,align=centre)
-        for j in range(len(rates)):
-            put(ws,r,3+j,f"=$B{r}*{chr(67+j)}$7",fill=lock_fill,fmt="#,##0.0",align=centre)
-    last=7+len(fields)
-    put(ws,last+1,1,"Total lb",font=f_bold)
-    for j in range(len(rates)):
-        col=chr(67+j)
-        put(ws,last+1,3+j,f"=SUM({col}8:{col}{last})",font=f_bold,fill=lock_fill,fmt="#,##0.0",align=centre)
-        put(ws,last+2,3+j,f"={col}{last+1}*$B$4",fill=lock_fill,fmt=MONEY,align=centre)
-    put(ws,last+2,1,"Seed cost",font=f_bold)
-    put(ws,last+4,1,"The one formula",font=f_bold)
-    put(ws,last+4,3,f"={FT}(C8)",font=f_form)
-    note(ws,last+6,
-        "1,092.0 / 1,319.5 / 1,592.5 lb, costing $2,020.20 / $2,441.08 / $2,946.13. "
-        "One formula covers all nine cells, so changing an acre figure or a rate "
-        "updates everything at once.",6)
-    finish(ws,[("A",18),("B",12),("C",12),("D",12),("E",12),("F",20)],last+6)
+    wb, ws = new_book("Squaring with ^, and what PEMDAS does with it",
+        "A square bin's floor is the side length squared. The exponent runs before "
+        "any multiplication unless brackets say otherwise.")
+    put(ws,4,1,"Grain density (t/m3)",font=f_bold)
+    put(ws,4,2,0.75,fill=lock_fill,fmt=TWO,align=centre)
+    rows=[("Bin 1",7.5,4.2),("Bin 2",9.0,3.8),("Bin 3",11.25,5.0),("Bin 4",6.4,4.5)]
+    header(ws,6,["Bin","Side (m)","Depth (m)","Floor area (m2)","Volume (m3)","Capacity (t)"])
+    for i,(n,s,d) in enumerate(rows):
+        r=7+i
+        put(ws,r,1,n); put(ws,r,2,s,fmt=TWO,align=centre); put(ws,r,3,d,fmt=ONE,align=centre)
+        put(ws,r,4,f"=B{r}^2",fill=lock_fill,fmt=TWO,align=centre)
+        put(ws,r,5,f"=D{r}*C{r}",fill=lock_fill,fmt=ONE,align=centre)
+        put(ws,r,6,f"=ROUND(E{r}*$B$4,0)",fill=lock_fill,fmt=INT,align=centre)
+    last=6+len(rows)
+    put(ws,last+1,1,"Total",font=f_bold)
+    put(ws,last+1,5,f"=SUM(E7:E{last})",font=f_bold,fill=lock_fill,fmt=ONE,align=centre)
+    put(ws,last+1,6,f"=SUM(F7:F{last})",font=f_bold,fill=lock_fill,fmt=INT,align=centre)
+    put(ws,last+3,1,"The formula in D7",font=f_bold)
+    put(ws,last+3,4,f"={FT}(D7)",font=f_form)
+    stat(ws,last+5,"=4*3^2",  "=4*3^2",  INT, 5)
+    stat(ws,last+6,"=(4*3)^2","=(4*3)^2",INT, 5)
+    note(ws,last+8,
+        "36 and 144. Exponents run before multiplication, so the first squares the 3 "
+        "and then multiplies by 4. Doubling a side instead of squaring it gives a "
+        "distance, not an area -- 22.5 m against 126.56 m2 for Bin 3.",6)
+    finish(ws,[("A",20),("B",12),("C",12),("D",16),("E",14),("F",14)],last+8)
     return wb
 
 
@@ -619,27 +619,30 @@ def q27():
 
 
 def q28():
-    wb, ws = new_book("A blended application rate",
-        "Total pounds over total acres. The plain average of the four rates sits "
-        "higher because the heaviest rates are on the smallest fields.")
-    rows=[("Field 1",86,3.4),("Field 2",142,2.9),("Field 3",64,4.1),("Field 4",119,3.2)]
-    header(ws,4,["Field","Acres","Rate (lb/ac)","Pounds","The formula in D"])
-    for i,(n,a,rt) in enumerate(rows):
+    wb, ws = new_book("What Excel does to data on the way in",
+        "Typed into a General column, three of these variety codes become dates and "
+        "every RM ID loses its leading zeros. Setting the column to Text first stops it.")
+    rows=[("00127","SEPT1",41.2,"127","1-Sep"),("00308","AAC2",38.6,"308","AAC2"),
+          ("01045","MAR2",44.8,"1045","2-Mar"),("00276","BW945",36.1,"276","BW945"),
+          ("00519","1-3",39.9,"519","3-Jan")]
+    header(ws,4,["As typed (ID)","As typed (Variety)","Yield",
+                 "ID in a General column","Variety in a General column"])
+    for i,(rid,var,y,gid,gvar) in enumerate(rows):
         r=5+i
-        put(ws,r,1,n); put(ws,r,2,a,fmt=INT,align=centre); put(ws,r,3,rt,fmt=ONE,align=centre)
-        put(ws,r,4,f"=B{r}*C{r}",fill=lock_fill,fmt="#,##0.0",align=centre)
-        put(ws,r,5,f"={FT}(D{r})",font=f_form)
+        put(ws,r,1,rid,fmt="@"); put(ws,r,2,var,fmt="@")
+        put(ws,r,3,y,fmt=ONE,align=centre)
+        put(ws,r,4,int(gid),fmt=INT,align=centre)
+        put(ws,r,5,gvar,align=centre)
     last=4+len(rows)
-    put(ws,last+1,1,"Total",font=f_bold)
-    put(ws,last+1,2,f"=SUM(B5:B{last})",font=f_bold,fill=lock_fill,fmt=INT,align=centre)
-    put(ws,last+1,4,f"=SUM(D5:D{last})",font=f_bold,fill=lock_fill,fmt="#,##0.0",align=centre)
-    stat(ws,last+3,"Blended: pounds / acres",f"=D{last+1}/B{last+1}",TWO,5)
-    stat(ws,last+4,"Blended: SUMPRODUCT",f"=SUMPRODUCT(B5:B{last},C5:C{last})/SUM(B5:B{last})",TWO,5)
-    stat(ws,last+5,"AVERAGE of the rate column",f"=AVERAGE(C5:C{last})",TWO,5)
-    note(ws,last+7,
-        "3.28 lb/ac blended against a plain average of 3.40. Order on the total -- "
-        "1,347.4 lb -- because that is the amount of product the farm actually needs.",5)
-    finish(ws,[("A",24),("B",12),("C",14),("D",12),("E",30)],last+7)
+    stat(ws,last+2,"Mean yield",f"=AVERAGE(C5:C{last})",TWO,6)
+    stat(ws,last+3,"Count",f"=COUNT(C5:C{last})",INT,6)
+    note(ws,last+5,
+        "Columns A and B are formatted as Text, which is why they still read as typed. "
+        "Columns D and E show what a General column does with the same entries: the IDs "
+        "become numbers and lose their zeros, and SEPT1, MAR2 and 1-3 become dates. The "
+        "yields are untouched throughout -- the numbers are right and the sheet is still "
+        "wrong, because nothing can be matched back to the RM it came from.",6)
+    finish(ws,[("A",16),("B",18),("C",10),("D",22),("E",26),("F",20)],last+5)
     return wb
 
 
