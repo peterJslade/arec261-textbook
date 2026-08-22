@@ -527,7 +527,7 @@ ul.task-list li input[type="checkbox"] {
 
 
 <p>Excel creates a chart from a range of cells. The important part happens before the chart menu opens: decide what one row represents, calculate the values the chart needs, and arrange them in the order the reader should see.</p>
-<p>The workbook in this chapter uses sixty hypothetical canola fields. It contains a bar chart of mean yield by region, a line chart of mean yield by year and a scatter plot of field size against yield.</p>
+<p>The examples use sixty hypothetical canola fields. They build a bar chart of mean yield by region, a line chart of mean yield by year and a scatter plot of field size against yield.</p>
 <section id="learning-objectives" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="learning-objectives">Learning Objectives</h2>
 <div class="objectives">
@@ -545,32 +545,56 @@ ul.task-list li input[type="checkbox"] {
 <section id="sec-excel-chart-table" class="level2" data-number="11.1">
 <h2 data-number="11.1" class="anchored" data-anchor-id="sec-excel-chart-table"><span class="header-section-number">11.1</span> Start With the Table</h2>
 <p>A chart reads the cells you select. If those cells contain raw field records when the question concerns regional averages, summarize first. A chart cannot decide which calculation the question requires.</p>
-<p>The <strong>Bar chart</strong> sheet in the workbook calculates one mean for each region. The <strong>Line chart</strong> sheet calculates one mean for each year. Their charts read those small summary tables. The <strong>Scatter plot</strong> uses the raw observations because each field is meant to appear as one point.</p>
-<div class="workbook-callout">
-<!-- Public view-only link expires 2026-11-20 under the University of Saskatchewan 90-day policy. -->
-<div class="excel-embed">
-<iframe width="402" height="700" frameborder="0" scrolling="no" src="https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7B7E79C20B-509A-4F55-83B4-1108F88D92FD%7D&amp;action=embedview&amp;wdAllowInteractivity=False&amp;wdDownloadButton=True&amp;wdInConfigurator=True">
-</iframe>
-</div>
-<p><a href="textbook_examples/mod04_graphing_excel.xlsx">Download this workbook</a> · <a href="https://usaskca1-my.sharepoint.com/:x:/g/personal/pjs998_usask_ca/IQALwnl-mlBVT4O0EQj4jZL9ASmOupIPmOfjGocibTAS9oA?e=xj194K">Open online</a> (File → Save a Copy to view formulas and edit)</p>
-</div>
-<p>Open the workbook and look at the table beside each chart. Change a value in the <strong>Data</strong> sheet and the summary formulas and charts update. The formula column on the bar and line sheets shows how the values were calculated.</p>
+<p>The bar chart has three bars, so its source table has three rows: one region and one mean per row. The line chart has one row per year. The scatter plot uses the raw observations because each field is meant to appear as one point.</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Region</th>
+<th style="text-align: right;">Mean yield (bu/ac)</th>
+<th style="text-align: right;">Fields with yield</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Central</td>
+<td style="text-align: right;">47.6</td>
+<td style="text-align: right;">19</td>
+</tr>
+<tr class="even">
+<td>North</td>
+<td style="text-align: right;">47.3</td>
+<td style="text-align: right;">19</td>
+</tr>
+<tr class="odd">
+<td>South</td>
+<td style="text-align: right;">42.7</td>
+<td style="text-align: right;">19</td>
+</tr>
+</tbody>
+</table>
+<p>Three of the sixty fields have no recorded yield. <code>AVERAGEIF</code> omits those blanks, and a scatter plot draws no point for them, so these charts represent 57 fields. Each regional mean summarizes fields whose yields vary substantially; the 0.3 bu/ac difference between Central and North should not be treated as a meaningful ranking without examining that variation.</p>
+<p>Use <code>=AVERAGEIF(Data[region],A2,Data[yield_bu_acre])</code> when the raw data is an Excel Table named <code>Data</code>. A structured reference expands as rows are added. If a summary cell shows <code>#DIV/0!</code> or the chart is blank, check whether the supposed numeric source column was imported as text (<a href="module03c.html#sec-text-numbers" class="quarto-xref"><span>Section 9.3.3</span></a>).</p>
+<!-- The former mod04_graphing_excel.xlsx embed is intentionally withheld.
+Its numeric columns are stored as text and its scatter chart has no x-values.
+Restore the workbook callout only after rebuilding and validating the file. -->
 </section>
 <section id="sec-excel-chart-build" class="level2" data-number="11.2">
 <h2 data-number="11.2" class="anchored" data-anchor-id="sec-excel-chart-build"><span class="header-section-number">11.2</span> Create a Chart</h2>
-<p>Select the table, including its headers, and use the <strong>Insert</strong> tab to choose a chart type. Excel uses the first column as categories and the other columns as series. If the chart treats years or regions as a series, return to the source selection and check its shape.</p>
+<p>Select the table, including its headers, and use the <strong>Insert</strong> tab to choose a chart type. Excel normally uses a text first column as categories, but it may treat a numeric first column—such as Year—as another series. Use <strong>Chart Design &gt; Select Data</strong>, remove Year from the series list, and set the Year cells as the <strong>Horizontal (Category) Axis Labels</strong>.</p>
 <p>For the three charts in the workbook:</p>
 <ul>
-<li>The bar chart selects region and mean yield, then uses a bar or column chart.</li>
+<li>The bar chart selects region and mean yield, then uses a column chart for vertical bars or a bar chart for horizontal bars.</li>
 <li>The line chart selects year and mean yield, then uses a line chart with markers.</li>
 <li>The scatter plot selects acres and yield, then uses an XY scatter chart. A line chart is not a substitute here because field size is a measured number rather than an ordered label.</li>
 </ul>
-<p>The chart remains linked to its cells. Editing the source values changes the chart; pasting new values outside the selected range may not. An Excel Table expands when rows are added and is usually a better source for a chart that will receive new data.</p>
+<p>The chart remains linked to its cells. Editing the source values changes the chart; pasting new values outside a plain selected range may not. An Excel Table expands when rows are added and is usually a better source for a chart that will receive new data.</p>
+<p>The two-year line chart is useful for learning the mechanics, but two values are more honestly reported as a sentence: mean yield was 45.8 bu/ac in 2024 and 46.0 bu/ac in 2025. A substantive trend chart needs more years.</p>
 </section>
 <section id="sec-excel-chart-elements" class="level2" data-number="11.3">
 <h2 data-number="11.3" class="anchored" data-anchor-id="sec-excel-chart-elements"><span class="header-section-number">11.3</span> Titles, Axes and Legends</h2>
 <p>Use <strong>Chart Design &gt; Add Chart Element</strong> to add or remove titles, axis labels, legends and data labels. A useful chart title describes the comparison and includes the unit when the axes do not make it obvious: <code>Average field yield by region (bu/ac)</code>.</p>
-<p>Bar charts normally need a zero baseline. Right-click the value axis, choose <strong>Format Axis</strong>, and check the minimum bound. The bars in the workbook begin at zero. The line chart uses a narrower vertical range because its values are positions connected through time rather than lengths measured from a baseline (<a href="module04a.html#sec-chart-principles" class="quarto-xref"><span>Section 10.1</span></a>).</p>
+<p>Bar charts normally need a zero baseline. Select the value axis, right-click <strong>Format Axis</strong>, and under <strong>Axis Options &gt; Bounds</strong> set Minimum to 0. Mac users use the <strong>Chart Design</strong> tab for chart elements; the <code>+</code> button beside a selected chart is Windows-only. A line chart may use a narrower vertical range because its values are positions connected through time rather than lengths measured from a baseline (General Principles, <a href="module04a.html#sec-chart-principles" class="quarto-xref"><span>Section 10.1</span></a>), but the chosen bounds should be reported and checked.</p>
+<p>Excel draws bars in the order of the source rows. Sort the summary table to change their order; for a horizontal bar chart, use <strong>Format Axis &gt; Categories in reverse order</strong> to place the first row at the top.</p>
 <p>A legend is needed when colour or shape identifies several series. A one-series chart does not need a legend that says <code>Mean yield</code>; the title and axis already say that. For a few lines, direct labels can be clearer than a legend.</p>
 <p>Data labels are useful when the exact values matter and there are only a few marks. Labelling every point in a scatter plot usually hides the pattern.</p>
 </section>
@@ -582,8 +606,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="sec-excel-chart-export" class="level2" data-number="11.5">
 <h2 data-number="11.5" class="anchored" data-anchor-id="sec-excel-chart-export"><span class="header-section-number">11.5</span> Moving a Chart Into a Report</h2>
-<p>Copying a chart from Excel into Word or PowerPoint gives several paste options. <strong>Paste as Picture</strong> fixes its appearance and prevents later workbook edits from changing the document. A linked chart updates from the workbook but can break when the files are moved or sent to someone else.</p>
-<p>Excel can also save a chart as an image from its right-click menu. PNG works for web pages and slides. Use enough width that the labels remain readable at the size used in the report.</p>
+<p>Copying a chart from Excel into Word or PowerPoint gives several paste options. The <strong>Picture</strong> option—or <strong>Paste Special &gt; Picture (PNG)</strong>—fixes its appearance and prevents later workbook edits from changing the document. A linked chart updates from the workbook but can break when the files are moved or sent to someone else.</p>
+<p>Desktop Excel can also use <strong>Save as Picture</strong> from a chart’s right-click menu; Excel for the web cannot. PNG works for web pages and slides. Use enough width that the labels remain readable at the size used in the report.</p>
 <p>Before handing it over, check the source range, category order, axis minimum, labels and units. Compare one plotted value with its source cell.</p>
 
 
