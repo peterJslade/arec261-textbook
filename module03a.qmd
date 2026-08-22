@@ -46,7 +46,7 @@ Some data you make yourself: a field trial, a survey, a sensor, the records from
 
 Go to the agency that produces the data. A chart in a news story is a good way to discover that a dataset exists; the agency's table is the thing to download.
 
-### Four ways to get it {.unnumbered}
+### Four Ways to Get It
 
 A provider exposes files, an API, or both. Everything else is a different way of using those.
 
@@ -103,7 +103,7 @@ All of this is why wrapper packages exist. `get_cansim("32-10-0359-01")` builds 
 
 Excel can open a file by double-clicking it. For anything you will do twice, Power Query is the better route, and it is the one this section builds up to.
 
-### File formats {.unnumbered}
+### File Formats
 
 An `.xlsx` file can hold several sheets, formatting, formulas and charts. The older `.xls` does the same with more limits. Files other people send you are usually one of these, and the things to look for on opening are which sheet holds the data and whether the table starts on row 1 or under a title and some notes.
 
@@ -111,15 +111,17 @@ A **CSV** (comma-separated values) file is plain text. Each line is a row and co
 
 ### What double-clicking a CSV does {#sec-csv-excel}
 
-Download [`elevator_tickets.csv`](practice/data/elevator_tickets.csv), twenty grain delivery tickets, and open it twice: once in a text editor, once by double-clicking it in Excel. Excel guesses a type for every column on the way in, and these guesses go wrong:
+Download [`elevator_tickets.csv`](practice/data/elevator_tickets.csv), twenty grain delivery tickets, and open it twice: once in a text editor, once by double-clicking it in Excel. Excel guesses a type for every column on the way in, and these guesses can go wrong. The exact conversions depend on the computer's region and language settings; on a computer set to English (Canada), common failures include:
 
 - Leading zeros disappear. `00451` becomes `451`, and an RM number or a postal code loses its shape.
 - Long numbers turn into scientific notation. A 16-digit account number displays as `1.23E+15`, and the last digits are rounded away for good.
-- Anything that looks like a date becomes one. `3-4` becomes March 4th, and the gene name `MARCH1` became a date often enough that geneticists renamed the gene.
+- Anything that looks like a date becomes one. A code such as `3-4` becomes a date, and the gene name `MARCH1` became a date often enough that geneticists renamed the gene.
 - Dates in day-month order are read as month-day when the day is 12 or less, and left as text when it is not.
 - On a computer set to a European locale, a semicolon-separated file lands entirely in column A, and `1.5` is read as text because the decimal mark is expected to be a comma.
 
-In the tickets file, `ticket_id` loses its zeros, `permit_book` becomes `4.52E+15`, and a `lot_code` of `3-2` turns into 2-Mar.
+In the tickets file, `ticket_id` loses its zeros, `permit_book` becomes `4.52E+15`, and every lot code is liable to become a date. Which date Excel displays depends on the computer's date order.
+
+Current versions of Excel may show a warning that leading zeros or long numbers were converted, and Windows Excel has **File > Options > Data > Automatic Data Conversion** settings that can disable some conversions. Those machine-level settings are useful, but they are not a reproducible import recipe: another person may have different settings, and dates still need to be checked. Power Query records the choices with the workbook.
 
 <!-- Screenshot: elevator_tickets.csv opened by double-clicking. Show columns A-C.
 ![The tickets file opened by double-clicking. Ticket `00001` has become `1`, the permit book number is in scientific notation, and lot `3-2` is now a date.](images/csv_doubleclick.png){#fig-csv-doubleclick}
@@ -133,7 +135,12 @@ None of this matters if you only look. It matters when you save, because Excel w
 
 Power Query is Excel's import tool, under **Data > Get Data**. It reads a source, shows a preview, lets you fix the columns, and loads the result onto a sheet. Two things make it the right default. It lets you set each column's type before anything is loaded. And it records every step, so when the source changes you press **Refresh** and the same steps run again on the new data. The import becomes a recipe rather than a set of manual fixes.
 
-For the tickets file: **Get Data > From Text/CSV** (on a Mac, **Get Data (Power Query)**; the wording moves around between versions), pick the file, and look at the preview. It shows the delimiter it detected, the header row and the first rows. Press **Transform Data** rather than Load. The editor opens with two steps already recorded on the right, **Promoted Headers** and **Changed Type**, and the type of each column shown by the icon in its header. Click the icon to change `ticket_id`, `permit_book` and `lot_code` to Text and `delivery_date` to Date. **Close & Load** puts the table on a sheet. Save the workbook as `.xlsx`, which keeps the query; saving as CSV throws it away.
+For the tickets file:
+
+1. Choose **Data > Get Data > From Text/CSV** (on a Mac, **Data > Get Data (Power Query)**; the wording moves around between versions) and select the file.
+2. In the preview, set **Data Type Detection** to **Do not detect data types**. This matters: once `00001` has been converted to the number `1`, changing it back to Text cannot restore the zeros.
+3. Press **Transform Data** rather than **Load**. In the editor, use each column header's type icon to set `ticket_id`, `permit_book` and `lot_code` to Text, `delivery_date` to Date, and `weight_tonnes` to Decimal Number.
+4. Choose **Close & Load**. Save the workbook as `.xlsx`, which keeps the query; saving as CSV throws it away.
 
 <!-- Screenshot: the Power Query editor for elevator_tickets.csv, with the ticket_id column type menu open showing Text.
 ![The Power Query editor. Set `ticket_id`, `permit_book` and `lot_code` to Text before loading.](images/csv_getdata.png){#fig-csv-getdata}
@@ -144,11 +151,13 @@ After loading, check it. The number of rows and columns is what you expected; th
 The same menu reaches other sources with the same recipe idea:
 
 - **From Workbook** for an `.xlsx`, with a choice of sheet.
-- **From Folder** for a folder of monthly files with the same layout. One recipe is applied to every file, and the result is one table. Keep the source filename as a column so each row can be traced back.
+- **From Folder** for a folder of monthly files with the same layout. One recipe is applied to every file, and the result is one table. Keep the source filename as a column so each row can be traced back. Availability on a Mac depends on the Excel version.
 - **From Web** with the address of a file. Paste the RM yields URL and Power Query fetches the CSV and shows the same preview; the address is stored with the query, so Refresh fetches the current file.
 - **From Web** with an API request. Paste the Open-Meteo URL and the response comes in as JSON.
 
-For the API case the editor does not show a table at first. It shows a record with fields like `daily` and `daily_units`. Click into `daily`, and the two lists; **Convert > Into Table** and the expand button in the column header split them into rows, and after setting types you have a two-column table of dates and millimetres. It takes some clicking the first time; the steps are recorded, so the second time is Refresh.
+Excel for Mac does not currently offer a **From Web** button. Use **Get Data (Power Query) > Blank Query**, open **Advanced Editor**, and paste an M query instead. The M example below works the same way on Windows and Mac.
+
+For the API case, the most direct route is **Blank Query > Advanced Editor**. Replace the starter text with the query below. It selects the `daily` record, places its two lists side by side as columns, and sets their types. This is also more reliable than trying to reshape the two lists through the editor's menus.
 
 Every step in the editor is also a line of code in Power Query's own language, M, visible under **Advanced Editor**. You do not need to write M, but seeing it shows what "recorded steps" means. The Open-Meteo import, written out, is:
 
@@ -173,7 +182,7 @@ Endpoint, parameters, the `daily` record, two lists into two columns, then types
 
 Power Query is a good way to see a simple public API work. When a service needs a key, returns pages, or has to be called hundreds of times, R is the easier place to do it.
 
-### Text to Columns is for repairs {.unnumbered}
+### Text to Columns Is for Repairs
 
 If a delimited file is already open with everything in column A, **Data > Text to Columns** splits it after the fact. [`elevator_tickets_semicolon.csv`](practice/data/elevator_tickets_semicolon.csv) is the tickets as a European-style file, semicolons between fields and commas for decimals, and it lands in column A when double-clicked. Select the column, choose **Delimited**, tick Semicolon, and on the last step set each column's type: Text for the identifiers, and under **Advanced** a comma as the decimal separator, so `27,4` becomes 27.4 rather than 274. The same tool splits a column holding two values, like `"Swift Current, SK"`, into town and province.
 
@@ -181,7 +190,7 @@ If a delimited file is already open with everything in column A, **Data > Text t
 ![Step 3 of Text to Columns: each column gets a type, and **Advanced** sets the decimal mark.](images/csv_text_to_columns.png){#fig-csv-text-to-columns}
 -->
 
-This fixes the sheet in front of you and records nothing. For a file you will open again, import it through Power Query instead.
+This fixes the sheet in front of you and records nothing. For a file you will open again, import it through Power Query instead. In the preview choose Semicolon as the delimiter. In the editor, select `weight_tonnes`, then **Change Type > Using Locale** and choose Decimal Number with a comma-decimal locale such as French (Canada). That is Power Query's counterpart to R's `locale()` below.
 
 ## Getting Data Into R {#sec-r-getting}
 
@@ -189,16 +198,24 @@ In R the whole acquisition is a script: the path or address, the parameters, the
 
 ### CSV, TSV and other delimited files {#sec-csv-files}
 
-The tidyverse functions come from **readr**:
+The tidyverse functions come from **readr**. The two files used here are the same ones used in the Excel examples above:
 
 ```r
 library(tidyverse)
 
-deliveries <- read_csv("data/deliveries.csv")
-prices     <- read_tsv("data/prices.tsv")
-prices_eu  <- read_delim("data/prices_semicolon.txt",
-                         delim = ";",
-                         locale = locale(decimal_mark = ","))
+tickets <- read_csv(
+  "practice/data/elevator_tickets.csv"
+)
+
+tickets_eu <- read_delim(
+  "practice/data/elevator_tickets_semicolon.csv",
+  delim = ";",
+  locale = locale(decimal_mark = ",")
+)
+
+tickets_eu |>
+  select(ticket_id, weight_tonnes) |>
+  slice_head(n = 3)
 ```
 
 `locale()` is how R is told about a European file: the decimal mark, and if needed the date format and the encoding.
@@ -216,25 +233,31 @@ dbl  (2): permit_book, weight_tonnes
 date (1): delivery_date
 ```
 
-R did better than a double-click: `ticket_id` kept its zeros and `lot_code` stayed text. It still read `permit_book` as a number, and prints it as `4.520134e+15`. The same rule applies as in Excel: identifiers are text, and the way to say so is `col_types`.
+R did better than a double-click: `ticket_id` kept its zeros and `lot_code` stayed text. It still read `permit_book` as a number, prints it as `4.52e15`, and has already lost its last digits. The same rule applies as in Excel: identifiers are text, and the way to say so is `col_types`.
 
 ```r
-tickets <- read_csv("data/elevator_tickets.csv",
-                    col_types = cols(ticket_id     = col_character(),
-                                     permit_book   = col_character(),
-                                     lot_code      = col_character(),
-                                     delivery_date = col_date("%Y-%m-%d"),
-                                     .default      = col_guess()))
+tickets <- read_csv(
+  "practice/data/elevator_tickets.csv",
+  col_types = cols(
+    ticket_id = col_character(),
+    permit_book = col_character(),
+    lot_code = col_character(),
+    delivery_date = col_date("%Y-%m-%d")
+  )
+)
 ```
 
-`.default = col_guess()` leaves the rest to R. For a file you read repeatedly this is worth doing: it documents what you expect, and when the file changes, the mismatch shows up at the read rather than three steps later when a summary comes back wrong.
+Columns not named in `cols()` are still guessed. For a file you read repeatedly, stating the important types is worth doing: it documents what you expect, and when the file changes, the mismatch shows up at the read rather than three steps later when a summary comes back wrong. After checking all seven types, the compact equivalent is `col_types = "cccDcdc"`. Add `show_col_types = FALSE` only after you have made those choices explicit.
 
 A value that does not fit the stated type does not stop the script. R puts in `NA`, warns, and records the problem, and `problems()` lists what it recorded. `grain_deliveries_messy.csv`, the file @sec-cleaning works through, has one weight typed with its unit:
 
 ```r
-deliveries <- read_csv("data/grain_deliveries_messy.csv",
-                       col_types = cols(weight_tonnes = col_double(),
-                                        .default      = col_guess()))
+deliveries <- read_csv(
+  "practice/data/grain_deliveries_messy.csv",
+  col_types = cols(
+    weight_tonnes = col_double()
+  )
+)
 problems(deliveries)
 ```
 
@@ -242,19 +265,28 @@ problems(deliveries)
 # A tibble: 1 × 5
     row   col expected actual file
   <int> <int> <chr>    <chr>  <chr>
-1    42     4 a double 38.2 t data/grain_deliveries_messy.csv
+1    42     4 a double 38.2 t practice/data/grain_deliveries_messy.csv
 ```
 
-Without the stated type that one cell would have turned the whole column into text. With it, the column is numeric, row 42 is `NA`, and the read told you so. Fixing the value is @sec-cleaning.
+Without the stated type that one cell would have turned the whole column into text. With it, the column is numeric and the read told you where parsing failed. The `row` reported by `problems()` is the line in the file, including the header; filter the imported data to find the affected record:
+
+```r
+deliveries |>
+  filter(is.na(weight_tonnes))
+```
+
+Fixing the value is @sec-cleaning.
 
 The guess goes wrong the other way too. A numeric column with one `"N/A"` in it comes in as text, and `mean()` fails on it. If the file has known missing-value codes, say so:
 
 ```r
-deliveries <- read_csv("data/deliveries.csv",
-                       na = c("", "NA", "N/A", ".."))
+deliveries <- read_csv(
+  "practice/data/grain_deliveries_messy.csv",
+  na = c("", "NA", "N/A", "..")
+)
 ```
 
-Check what the codes mean in the documentation first. Statistics Canada's `..` is "not available", `x` is suppressed for confidentiality, and `E` after a number flags it as unreliable; they are not all the same kind of missing.
+Check what the codes mean in the documentation first. In [Statistics Canada's symbol legend](https://www.statcan.gc.ca/en/concepts/definitions/guide-symbol), `..` means not available for a reference period, `x` means suppressed for confidentiality, `E` marks a published estimate that should be used with caution, and `F` means too unreliable to publish. They are not all the same kind of missing.
 
 `glimpse()` shows the types with a few values of each column alongside, and `spec()` prints the full column specification R used, in a form you can paste into `col_types` and edit.
 
@@ -265,17 +297,20 @@ The package is **readxl**. It installs with the tidyverse but is not loaded by `
 ```r
 library(readxl)
 
-excel_sheets("data/deliveries.xlsx")
+excel_sheets("practice/data/sask_barley_2025.xlsx")
 ```
 
 ```
-[1] "Notes"  "2024"  "2025"  "Summary"
+[1] "README"      "Barley_2025"
 ```
 
 The first sheet is a page of notes. Ask for the one you want, by name or number:
 
 ```r
-deliveries <- read_excel("data/deliveries.xlsx", sheet = "2025")
+barley <- read_excel(
+  "practice/data/sask_barley_2025.xlsx",
+  sheet = "Barley_2025"
+)
 ```
 
 `read_excel()` guesses column types the same way `read_csv()` does, takes `col_types` the same way, and the same checks apply.
@@ -285,18 +320,27 @@ deliveries <- read_excel("data/deliveries.xlsx", sheet = "2025")
 Spreadsheets built by people usually have something above the table: a title, a note about units, a blank row. R takes the first row as column names regardless, and what comes back looks like this:
 
 ```
-# A tibble: 62 × 6
-  `Saskatchewan grain deliveries` ...2   ...3   ...4
-  <chr>                           <chr>  <chr>  <chr>
-1 NA                              NA     NA     NA
-2 Ticket                          Date   Crop   Weight
+# A tibble: 42 × 3
+  `Saskatchewan Barley Varieties — 2025 (provincial)` ...2  ...3
+  <chr>                                                   <chr> <chr>
+1 Acres = total across all risk zones · Yield = ...       NA    NA
+2 NA                                                      NA    NA
+3 Variety                                                 Acres Yield (bu/ac)
 ```
 
 Column names like `...2` and a first row of `NA` mean the real header is further down. Count the rows above it and skip them, or, for a layout that does not change, name the range:
 
 ```r
-deliveries <- read_excel("data/deliveries.xlsx", sheet = "2025", skip = 3)
-deliveries <- read_excel("data/deliveries.xlsx", range = "2025!A4:F66")
+barley <- read_excel(
+  "practice/data/sask_barley_2025.xlsx",
+  sheet = "Barley_2025",
+  skip = 3
+)
+
+barley <- read_excel(
+  "practice/data/sask_barley_2025.xlsx",
+  range = "Barley_2025!A4:C36"
+)
 ```
 
 `read_csv()` takes `skip` too. Print the object after reading it either way; the shape of what comes back is the quickest check that you read the right thing.
@@ -323,7 +367,9 @@ $ `Spring Wheat` <dbl> 4, 9, 12, 18, 20, 21, 20, 16, 13, 15, 16, 18, 18, …
 ...
 ```
 
-One row per RM per year, one column per crop. The column names have spaces, which is why `Winter Wheat` prints in backticks; `clean_names()` (@sec-clean-names) deals with that. The table is wide where most of what we do later wants it long, one row per RM-year-crop, which is @sec-reshaping. And the units are not in the file at all. They are on the dashboard page the link came from, so record that page and not only the link.
+One row per RM per year, one column per crop. The column names have spaces, which is why `Winter Wheat` prints in backticks; `clean_names()` (@sec-clean-names) deals with that. The table is wide where most of what we do later wants it long, one row per RM-year-crop, which is @sec-reshaping.
+
+The [dashboard's RM-yields page](https://dashboard.saskatchewan.ca/agriculture/rm-yields/rm-yields-data) says the Government of Saskatchewan produces these annual RM estimates using Ministry crop-report and Saskatchewan Crop Insurance Corporation data. Values are published only where there are no confidentiality concerns. The page does not explain the weighting rule or distinguish a crop not grown from a value withheld for confidentiality, so a blank value should not be interpreted more narrowly than “not published.” The units and these caveats are absent from the CSV; record the dashboard page, not only the direct file link.
 
 ### Keep a raw copy {#sec-raw-copy}
 
@@ -332,14 +378,16 @@ Reading from the URL is fine for a look. It is not fine for a project, because t
 ```r
 dir.create("data/raw", recursive = TRUE, showWarnings = FALSE)
 
-raw_file <- file.path("data", "raw", paste0("rm_yields_", Sys.Date(), ".csv"))
+raw_file <- file.path("data", "raw", "rm_yields_2026-08-21.csv")
 
-download.file(rm_yields_url, destfile = raw_file, mode = "wb")
+if (!file.exists(raw_file)) {
+  download.file(rm_yields_url, destfile = raw_file, mode = "wb")
+}
 
 rm_yields <- read_csv(raw_file)
 ```
 
-The script records how the data was obtained. The dated file records what was obtained. A project needs both, because a year from now the script will still run and fetch whatever the dashboard holds then, which may not be what the analysis used.
+The script records how the data was obtained. The fixed, dated filename records what was obtained, and the guard prevents a later run from silently replacing it. When intentionally retrieving a new release, choose a new retrieval date and filename. A preparation script should read the named file used for the analysis rather than whichever file happens to be newest.
 
 ### Calling an API {#sec-api-r}
 
@@ -349,12 +397,16 @@ The **httr2** package builds a request one part at a time, which makes the parts
 library(httr2)
 
 weather_request <- request("https://archive-api.open-meteo.com/v1/archive") |>
-  req_url_query(latitude   = 52.13,
-                longitude  = -106.67,
-                start_date = "2024-05-01",
-                end_date   = "2024-05-05",
-                daily      = "precipitation_sum",
-                timezone   = "America/Regina")
+  req_url_query(
+    latitude = 52.13,
+    longitude = -106.67,
+    start_date = "2024-05-01",
+    end_date = "2024-05-05",
+    daily = "precipitation_sum",
+    timezone = "America/Regina"
+  )
+
+req_dry_run(weather_request)
 
 weather_response <- req_perform(weather_request)
 
@@ -365,15 +417,17 @@ resp_status(weather_response)
 [1] 200
 ```
 
-`request()` names the endpoint, `req_url_query()` adds the parameters and takes care of encoding them, `req_perform()` sends it, and `resp_status()` reports the code. A `400` or `404` stops the script with an error, which is what you want.
+`request()` names the endpoint, `req_url_query()` adds and encodes the parameters, and `req_dry_run()` lets you inspect the request before sending it. `req_perform()` sends it and already stops on an HTTP error such as `400` or `404`; `resp_status()` reports the successful response's code.
 
 The body is JSON. `resp_body_json()` turns it into nested R lists, and `tibble()` picks out the two lists we want:
 
 ```r
 weather_json <- resp_body_json(weather_response, simplifyVector = TRUE)
 
-saskatoon_rain <- tibble(date             = as.Date(weather_json$daily$time),
-                         precipitation_mm = weather_json$daily$precipitation_sum)
+saskatoon_rain <- tibble(
+  date = as.Date(weather_json$daily$time),
+  precipitation_mm = weather_json$daily$precipitation_sum
+)
 
 saskatoon_rain
 ```
@@ -421,15 +475,17 @@ The category names differ by table; `count()` on the columns shows what a new on
 
 A package does not freeze the data. Statistics Canada revises past figures, and `get_cansim()` run next year returns next year's version of the table. When the exact version matters, write it out to `data/raw/` with the date, as in @sec-raw-copy.
 
-The USDA's **rnassqs** does the same job for QuickStats, with a key. Put the key in the `NASSQS_TOKEN` environment variable and the package finds it; do not write it into the script.
+The USDA's **rnassqs** does the same job for QuickStats, with a key. Put `NASSQS_TOKEN=yourkey` in `.Renviron`; `usethis::edit_r_environ()` opens that file, and `Sys.getenv("NASSQS_TOKEN")` checks that R can see it after a restart. Do not commit `.Renviron` or write the key into the script. The example below requires a key and is not run when this book is rendered.
 
 ```r
 library(rnassqs)
 
-us_canola <- nassqs(commodity_desc    = "CANOLA",
-                    statisticcat_desc = "YIELD",
-                    agg_level_desc    = "NATIONAL",
-                    year              = 2015:2025)
+us_canola <- nassqs(
+  commodity_desc = "CANOLA",
+  statisticcat_desc = "YIELD",
+  agg_level_desc = "NATIONAL",
+  year = 2015:2025
+)
 ```
 
 The parameter names take some finding. Build the query on the [QuickStats website](https://quickstats.nass.usda.gov/) first, whose dropdowns use the same field names, then mirror the choices in code.
@@ -448,7 +504,9 @@ tickets |>
   filter(n > 1)
 ```
 
-That covers the dimensions and types, the values that failed to parse, the minimums and maximums, and whether the column that should identify a row does. Add to it: do the dates and the geography cover what you expected, are the units explicit, and do a handful of rows agree with what the provider's website shows? In Excel the same checks are the row count, a filter dropdown on the identifier column, `MIN` and `MAX`, and `COUNTBLANK`. The full tour of what goes wrong in the values is @sec-cleaning.
+That covers the dimensions and types, the values that failed to parse, the minimums and maximums, and whether the column that should identify a row does. Add to it: do the dates and the geography cover what you expected, are the units explicit, and do a handful of rows agree with what the provider's website shows?
+
+In Power Query, turn on **View > Column quality**, **Column distribution**, and **Column profile**. Failed type conversions appear as Error; empty, distinct, and unique counts help find missing values and duplicate identifiers. After loading, the same basic checks are the row count, a filter on the identifier, `MIN`, `MAX`, and `COUNTBLANK`. The full tour of what goes wrong in the values is @sec-cleaning.
 
 ## Say Where It Came From {#sec-readme}
 
@@ -477,8 +535,11 @@ Question: do Saskatchewan canola yields move with May-August rainfall?
 data/raw/rm_yields_2026-08-21.csv
   Government of Saskatchewan dashboard, https://dashboard.saskatchewan.ca/agriculture
   Direct file: https://dashboard.saskatchewan.ca/export/rm-yields-data/4950.csv
-  Retrieved 2026-08-21. One row per RM per year. Bushels per acre (from the
-  dashboard page; not in the file).
+  Retrieved 2026-08-21. One row per RM per year. Annual estimates produced
+  from Ministry crop-report and Saskatchewan Crop Insurance Corporation data.
+  Bushels per acre (from the dashboard page; not in the file). Values are
+  published only where there are no confidentiality concerns; blanks are not
+  identified more specifically in the download.
 
 data/raw/saskatoon_weather_2026-08-21.json
   Open-Meteo historical weather API, endpoint
