@@ -4,96 +4,92 @@
 #| include: false
 #| eval: true
 source("_console.R")
-suppressMessages({library(tidyverse); library(janitor)})
 ```
 
-Data arrives in pieces.  Suppose the question is whether canola yields in Saskatchewan track growing-season rain.  The yields are in one file, from one agency.  The rain is in another, from a different agency, measured at weather stations rather than in rural municipalities. Nothing in either file mentions the other.  Answering the question means putting the pieces together, and that is what a **merge** (or **join**) does: it lines up rows from two tables that refer to the same thing and puts their columns side by side.
+Data for one question often arrives in several tables. The Saskatchewan yield data from @sec-direct-download identifies rural municipalities and years. The weather data identifies stations and years. A third table says which weather station is closest to each RM.
 
-This chapter works through one merge, first in Excel and then in R.  Three tables are involved, because yields and rain have no column in common and a third table is needed to connect them.
+A **merge**, also called a **join**, matches rows that refer to the same thing and puts their columns together. In this chapter we will merge the three tables so that every RM-year has its crop yields and May to August precipitation in one row.
 
 ## Learning Objectives {.unnumbered}
 
 ::: {.objectives}
 By the end of this chapter you should be able to:
 
-1. Identify the key that connects two tables, and say whether the relationship is one-to-one, many-to-one or many-to-many.
-2. Merge tables in Excel with `XLOOKUP`, including on a two-part key.
-3. Merge tables in R with `left_join()` and friends.
-4. Check what failed to match, and why a merge can return more rows than it started with.
+1. Identify the key that connects two tables.
+2. Distinguish one-to-one, many-to-one and many-to-many relationships.
+3. Merge tables in Excel with `XLOOKUP`, including a lookup that uses two columns.
+4. Merge tables in R with `left_join()` and related functions.
+5. Check for unmatched rows and unexpected changes in the row count.
 :::
 
 ## The Three Tables {#sec-three-tables}
 
-All three are real and can be downloaded:
+The files are:
 
-- [`rm_yields_2015_2024.csv`](practice/data/rm_yields_2015_2024.csv): the Saskatchewan RM yields from @sec-direct-download, cut down to 2015 to 2024 and six crops.  One row per RM per year, 2,950 rows, yields in bushels per acre.
-- [`station_precip.csv`](practice/data/station_precip.csv): one row per weather station per year, 160 rows, with total May to August precipitation in millimetres computed from Environment Canada's daily records for sixteen stations across the grain belt, and a count of days with no reading.
-- [`rm_lookup.csv`](practice/data/rm_lookup.csv): one row per RM, 296 rows, with its name, census division and 2021 population from Statistics Canada, and the nearest of the sixteen weather stations, with the distance to it in kilometres.
+- [`rm_yields_2015_2024.csv`](practice/data/rm_yields_2015_2024.csv), with one row per RM per year. It contains 2,950 rows for ten years and six crops. Yields are measured in bushels per acre.
+- [`station_precip.csv`](practice/data/station_precip.csv), with one row per weather station per year. It contains May to August precipitation for sixteen stations and a count of days with no reading.
+- [`rm_lookup.csv`](practice/data/rm_lookup.csv), with one row per RM. It contains the RM name, census division, 2021 population and the closest of the sixteen weather stations.
 
-The yields table knows about RMs and years.  The rain table knows about stations and years. Neither knows about the other, and the lookup table is the bridge: it is the only file that says which station goes with which RM.  So the merge has two steps.  Attach a station to every yield row using the lookup, then attach that station's rain for that year.
+The yields table and rain table have no column in common. The lookup table connects them. We first attach a weather station to each yield row, then attach the rain recorded at that station in that year.
 
 ### Keys {.unnumbered}
 
-A merge matches rows on a **key**, a column (or columns) that both tables share and that identifies what a row is about.  Before merging anything, write down what identifies a row in each table:
+A **key** is a column, or a set of columns, used to identify and match rows. The key follows from what one row represents:
 
-- In the yields table it is `RM` and `Year` together.  RM 1 appears ten times, once per year.
-- In the lookup table it is `RM_Number` alone.  Each RM appears once.
-- In the rain table it is `Station` and `Year` together.
+- A row in the yields table is one RM in one year, so its key is `RM` and `Year` together.
+- A row in the lookup table is one RM, so its key is `RM_Number`.
+- A row in the rain table is one station in one year, so its key is `Station` and `Year` together.
 
-The first step joins yields to the lookup on RM.  The second joins the result to the rain on station *and* year, because a station alone does not identify one rain total; it identifies ten of them.
+The first merge uses RM number. The second uses station and year. Station alone is not enough because each station appears once in every year.
 
-### One-to-one, many-to-one, many-to-many {.unnumbered}
+### One-to-one, many-to-one and many-to-many {.unnumbered}
 
-How many rows on each side share a key value decides what comes back from a merge. @fig-join-types shows the three cases with a table of students' grades on the left, joined to three different tables.
+The number of rows sharing a key determines what a join returns. @fig-join-types uses a table of student grades to show the three cases.
 
-![Three kinds of merge.  Each line connects a grades row to the row it matches.  Attendance is one-to-one: each student-class appears once on both sides.  Professors is many-to-one: several grades rows point to the same professor.  Teaching assistants is many-to-many: each class has two TAs, so each grades row matches twice and the result has eight rows instead of four.](images/join_types.svg){#fig-join-types}
+![Three kinds of merge. Each line connects a grades row to the row it matches. Attendance is one-to-one: each student-class appears once on both sides. Professors is many-to-one: several grades rows point to the same professor. Teaching assistants is many-to-many: each class has two TAs, so each grades row matches twice and the result has eight rows instead of four.](images/join_types.svg){#fig-join-types}
 
-- **One-to-one (1:1).** Each key value appears once in both tables.  Grades and attendance, both with one row per student per class.  The result has the same rows as either input.
-- **Many-to-one (n:1), or one-to-many.** The key repeats on one side and is unique on the other.  Grades to professors is many-to-one: many grades per class, one professor per class.  So is yields to the lookup: ten yield rows per RM, one lookup row per RM. The result has as many rows as the "many" side, and every row picks up exactly one name and one station.  Most merges are this kind.
-- **Many-to-many (n:n).** The key repeats on both sides.  Each row on the left matches every row with the same key on the right, and the row count multiplies.  Grades to teaching assistants, with two TAs per class, doubles the grades table.  Joining yields to rain on station alone would be many-to-many too: each RM-year would match all ten years of its station's rain.  Occasionally that is what you want.  Usually it means the key is incomplete.
+- **One-to-one (1:1).** Each key appears once in both tables. Grades and attendance both have one row per student-class, so the merged table has the same number of rows as either input.
+- **Many-to-one (n:1).** The key repeats in one table and is unique in the other. Several grade rows can share one professor. In our data, each RM has ten yield rows but only one lookup row. A many-to-one join should have the same number of rows as the table on the many side.
+- **Many-to-many (n:n).** The key repeats in both tables. Each row on one side matches every row with the same key on the other. If a class has two TAs, each grade row appears twice. If we join yields to rain by station but leave out year, each yield row matches ten years of rain.
 
-Know which one you expect before you merge, and check the row count after.  A many-to-one merge should return exactly as many rows as it started with.
+Before joining, decide which relationship you expect. Then compare the row counts before and after.
 
 ## Merging in Excel {#sec-merge-excel}
 
-In Excel a merge is an `XLOOKUP` (@sec-lookup): for each row, find the matching row in the other table and bring a value across.  The workbook below has the three tables on three sheets and does the merge in formula columns beside thirty of the yield rows.
+In Excel, `XLOOKUP` can bring a column from one table into another (@sec-lookup). The **Merge** sheet in the workbook below contains thirty yield rows and the two lookup columns beside them. The `FORMULATEXT` column shows the precipitation formula, and the checks below the data count `#N/A` results.
 
-The first step is the ordinary `XLOOKUP`.  Look up the RM number in the lookup sheet and return its station:
-
-```
-=XLOOKUP(B5, 'RM lookup'!A:A, 'RM lookup'!E:E)
-```
-
-The second step needs two keys.  `XLOOKUP` takes one, so both sides are glued together with `& "|" &`, the composite-key form from @sec-lookup: the station and year from the yield row on one side, the station and year columns of the rain sheet on the other:
-
-```
-=XLOOKUP(I5 & "|" & A5,
-         Precip!A:A & "|" & Precip!B:B,
-         Precip!C:C)
-```
-
-Two things to check.  An `XLOOKUP` that finds nothing returns `#N/A`, so `COUNTIF(range, "#N/A")` at the foot of each new column counts the rows that failed to match.  And a lookup on an incomplete key does not fail.  Leave the year out of the second step and `XLOOKUP` returns the *first* match for the station, so every year gets 2015's rain, and nothing flags it.  Column K of the workbook does exactly this.  The check is to look at a few rows where you already know the answer.
+The first lookup matches the RM number and returns its station. The second lookup needs station and year, so it joins the two values on each side with `& "|" &` to make a composite key. The shaded column deliberately leaves out year. It returns the first rain value for the station in every year, without producing an error.
 
 ::: {.workbook-callout}
-<!-- iframe embed goes here once the workbook is uploaded to SharePoint; follow the
-mod01_sum.xlsx block in module01a.qmd -->
+<!-- Public view-only link expires 2026-11-20 under the University of Saskatchewan 90-day policy. -->
 
-[Download this workbook](textbook_examples/mod03_merge_excel.xlsx)
+::: {.excel-embed}
+<iframe width="402" height="700" frameborder="0" scrolling="no" src="https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7BE4286D57-D90E-4E60-9E9A-C493B5099E8E%7D&action=embedview&wdAllowInteractivity=False&wdDownloadButton=True&wdInConfigurator=True&ActiveCell=%27Merge%27!A1"></iframe>
 :::
 
-Formulas are fine at thirty rows and fine at three thousand.  Past that, or when the same merge has to be redone every month, **Power Query** (Data > Get Data, then **Merge Queries**) does the join with a dialog that asks for the key columns and the join type, and records the step so it can be re-run on a new file.
+[Download this workbook](textbook_examples/mod03_merge_excel.xlsx) · [Open online](https://usaskca1-my.sharepoint.com/:x:/g/personal/pjs998_usask_ca/IQBXbSjkDtlgTp6axJO1CZ6OAa9jBZn7UhVyZRjoYXeXy3Q?e=AcDC7T) (File → Save a Copy to view formulas and edit)
+:::
+
+An unmatched `XLOOKUP` returns `#N/A`, which is easy to count. An incomplete key can be harder to find because the formula returns a value. Check a few rows against the source tables, especially rows where the year or another part of the key changes.
+
+For a merge that must be repeated, Power Query records the source, the key columns and the join type. Use **Data > Get Data** to load the tables, then **Merge Queries** to select the matching columns. A two-column key is selected in the same order in both tables.
 
 ## Merging in R {#sec-merge-r}
 
-Read the three files and look at them:
+Read the three files and inspect their columns:
 
 ```{r}
 #| eval: true
 #| echo: false
 console('
+# Load the packages used in this chapter
+library(tidyverse)
+library(janitor)
+
+# Read the three tables and clean their column names
 yields <- read_csv("data/rm_yields_2015_2024.csv") |> clean_names()
-rms    <- read_csv("data/rm_lookup.csv") |> clean_names()
-rain   <- read_csv("data/station_precip.csv") |> clean_names()
+rms <- read_csv("data/rm_lookup.csv") |> clean_names()
+rain <- read_csv("data/station_precip.csv") |> clean_names()
 
 glimpse(yields)
 glimpse(rms)
@@ -101,93 +97,105 @@ glimpse(rain)
 ')
 ```
 
-The R function is `left_join()`.  Its `by` argument names the key, and when the key column is called something different on each side, `by = c("left_name" = "right_name")` says so.
+`left_join()` takes two data frames and a `by` argument that identifies the key. If the key has different names in the two tables, write `by = c("left_name" = "right_name")`.
 
-### The four joins {.unnumbered}
+### Four joins {.unnumbered}
 
-`left_join` is one of a family.  They differ in which rows survive.
+The join functions differ in which rows they keep:
 
-- **`left_join(a, b)`** keeps every row of `a` and fills in `NA` where `b` has no match. This is usually the one you want: your data stays intact and the extra columns come along.
-- **`inner_join(a, b)`** keeps only rows that matched in both, and drops the rest without saying so.
-- **`full_join(a, b)`** keeps everything from both, with `NA` wherever either side is missing.
-- **`anti_join(a, b)`** keeps rows of `a` with no match in `b`.  It returns no columns from `b` at all, which sounds useless until you need to find out what failed to match.
+- **`left_join(a, b)`** keeps every row of `a`. New columns contain `NA` where `b` has no match.
+- **`inner_join(a, b)`** keeps only rows that matched in both tables.
+- **`full_join(a, b)`** keeps every row from both tables, with `NA` where either side has no match.
+- **`anti_join(a, b)`** returns the rows of `a` that have no match in `b`. It is useful for finding failed matches before a join.
 
-### First join: yields to the lookup {.unnumbered}
+We will use `left_join()` because the yield rows are the observations we want to keep.
 
-`left_join` does not complain when nothing matches.  It hands you a column of `NA` and lets you carry on, so a join can fail completely without producing an error.  `anti_join` is how you look, so run it first, then join, then check the row count:
+### First join: yields and the RM lookup {.unnumbered}
+
+The RM column is called `rm` in the yields table and `rm_number` in the lookup. Check for unmatched RMs, perform the join and compare the row counts:
 
 ```{r}
 #| eval: true
 #| echo: false
 console('
+# List RM numbers that have no lookup row
 yields |>
   anti_join(rms, by = c("rm" = "rm_number")) |>
   distinct(rm)
 
+# Add the RM information and nearest station
 with_station <- yields |>
-  left_join(rms, by = c("rm" = "rm_number"))
+  left_join(rms,
+            by = c("rm" = "rm_number"),
+            relationship = "many-to-one")
 
 nrow(yields)
 nrow(with_station)
 ')
 ```
 
-Every RM in the yield data has a row in the lookup, and the row count is unchanged, which is what a many-to-one join should look like.  You can tell dplyr what you expect and have it stop if the data disagrees:
+The `anti_join()` returns no rows, so every RM has a match. Both tables have 2,950 rows after the join. The `relationship = "many-to-one"` argument records what we expect and makes `left_join()` stop if the lookup contains more than one row for an RM.
 
-```r
-yields |> left_join(rms, by = c("rm" = "rm_number"), relationship = "many-to-one")
-```
-
-If the lookup turned out to have two rows for some RM, that line errors instead of handing back extra rows.
-
-When an `anti_join` does return rows, the usual reason is text.  One file says `"Canola/Rapeseed"` and the other says `"Canola"`; one says `"Soybean"` and the other `"Soybeans"`.  Neither is wrong, but a join matches on exact text, so every such row comes back with `NA`.  Reconciling categories is part of cleaning (@sec-categories).
+Text keys must match exactly. For example, `"Canola/Rapeseed"` does not match `"Canola"`, and `"Soybean"` does not match `"Soybeans"`. These differences have to be reconciled before the join (@sec-categories).
 
 ### Second join: add the rain {.unnumbered}
 
-The key now has two parts.  The station in `with_station` is called `weather_station`, the year is `year` on both sides, and both are needed:
+The second key has two parts. The station column is called `weather_station` on the left and `station` on the right; `year` has the same name in both tables.
 
 ```{r}
 #| eval: true
 #| echo: false
 console('
+# Find station-years with no precipitation row
 with_station |>
-  anti_join(rain, by = c("weather_station" = "station", "year")) |>
+  anti_join(rain,
+            by = c("weather_station" = "station", "year")) |>
   distinct(weather_station, year)
 
+# Add precipitation for the matching station and year
 merged <- with_station |>
-  left_join(rain, by = c("weather_station" = "station", "year"))
+  left_join(rain,
+            by = c("weather_station" = "station", "year"),
+            relationship = "many-to-one")
 
 nrow(merged)
 ')
 ```
 
+Again there are no unmatched keys and the row count remains 2,950.
+
 ### The row-count trap {.unnumbered}
 
-Here is the many-to-many case, arriving because `year` was left out of the key:
+Now leave `year` out of the key:
 
 ```{r}
 #| eval: true
 #| echo: false
 console('
+# This key is incomplete: every row matches ten years of rain
 with_station |>
-  left_join(rain, by = c("weather_station" = "station")) |>
+  left_join(rain,
+            by = c("weather_station" = "station")) |>
   nrow()
 ')
 ```
 
-Each RM-year matched all ten years of its station's rain, so 2,950 rows became 29,500, and every summary computed afterwards would be wrong in a way that still looks plausible.  Recent versions of dplyr print a warning about an unexpected many-to-many relationship when this happens.  Read it when it appears; it is telling you the key is incomplete.  This is the same mistake as the station-only `XLOOKUP` in the Excel workbook, with the difference that Excel returns one match per row and says nothing, while R returns all of them and warns.
+Each yield row matches all ten years for its station, so 2,950 rows become 29,500. `dplyr` warns about the unexpected many-to-many relationship. Excel's station-only `XLOOKUP` makes the same mistake differently: it returns only the first matching year and gives no warning.
 
 ## What the Merge Gives You {#sec-merge-result}
 
-One table, one row per RM-year, with the yield and the season's rain side by side:
+The merged table has one row per RM-year, with yield and precipitation beside one another:
 
 ```{r}
 #| eval: true
 #| echo: false
 console('
+# Display the columns used in the analysis
 merged |>
-  select(year, rm, rm_name, canola, weather_station, precip_may_aug_mm)
+  select(year, rm, rm_name, canola,
+         weather_station, precip_may_aug_mm)
 
+# Calculate annual mean yield and precipitation
 merged |>
   filter(!is.na(canola)) |>
   group_by(year) |>
@@ -196,6 +204,6 @@ merged |>
 ')
 ```
 
-The wet 2016 season has the highest canola yield in the table and the dry 2017 one of the lowest, which is the pattern you would expect.  2021 is the exception: rainfall was ordinary and yields collapsed, because that summer's problem was heat more than drought.  Rain explains some of the variation in yields and not all of it.
+Canola yield is highest in wet 2016 and among its lowest values in dry 2017. The pattern is not exact. In 2021 rainfall was ordinary but yields fell sharply, because heat also mattered.
 
-Two limits of this particular merge belong in the README.  The nearest station is sometimes far away: RM 1, Argyle, is matched to Kipling, 145 km off, because that is the closest of sixteen stations.  And a few station-years are missing three weeks of daily readings, which is what the `days_missing` column is for.
+The merge also has limits that should be recorded in the project's README. Some RMs are far from the nearest station in this small set. RM 1, Argyle, is matched to Kipling, 145 km away. Some station-years are missing several weeks of daily readings, which is why the rain table includes `days_missing`.

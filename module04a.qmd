@@ -1,64 +1,36 @@
 # Graphing Best Practices {#sec-graphing-principles}
 
-A chart takes a table of numbers and turns it into something a reader can take in at a glance.
-A good test of whether it is working is to ask whether the reader would have understood the
-data faster from the table itself.  A good chart tells you the story immediately.  A bad one
-makes you work through the axes, the labels and the legend before you can see what should have
-been obvious.
+A chart asks the reader to compare positions, lengths, areas or colours instead of reading a table of numbers. It is useful when that comparison reveals a pattern more quickly than the table would.
 
-Let me illustrate with two charts.  @fig-minard is what @tufte concludes "might well be
-the best statistical graphic ever drawn".  The figure, whose text is in French, documents the
-advance and subsequent retreat of Napoleon's army into Russia.  The width of the main line
-denotes the size of Napoleon's forces, the horizontal axis represents the geography of Russia,
-while the bottom line graph denotes the temperature.  The tan band is the army marching east
-and the black band is what came back: 422,000 men crossed the Polish border and 10,000
-returned.  You can read the disasters off it directly -- at the Berezina river crossing the
-black band halves, and the temperature line below it reads -30° Réaumur, about -37 Celsius.
-I can take issue with the size of the labels in the graph, but one cannot deny the ominous
-story that it tells.
+@fig-minard records Napoleon's 1812 invasion of Russia. The width of the band represents the size of the army, its position follows the route, and the line below records temperature during the retreat. The tan band begins with 422,000 men crossing into Russia. The black band returns with 10,000. Tufte called it one of the best statistical graphics ever drawn [@tufte].
 
-![Charles Joseph Minard, *Carte figurative des pertes successives en hommes de l'Armée
-Française dans la campagne de Russie 1812--1813* (1869).  Public domain.  Click to view it
-full size.](images/minard.png){#fig-minard}
+![Charles Joseph Minard, *Carte figurative des pertes successives en hommes de l'Armée Française dans la campagne de Russie 1812--1813* (1869). Public domain. Click to view it full size.](images/minard.png){#fig-minard}
 
-The second chart, @fig-georgia, was published by the Georgia Department of Public Health in
-May 2020.  It shows confirmed COVID-19 cases in the state's five worst-affected counties over
-a fifteen-day window, and the story it appears to tell is a steady decline.
+@fig-georgia was published by the Georgia Department of Public Health in May 2020. It appears to show COVID-19 cases falling steadily in the five counties with the most confirmed cases.
 
-![Georgia Department of Public Health, "Top 5 Counties with the Greatest Number of Confirmed
-COVID-19 Cases," May 2020.  Reproduced from the Sabin Center for Climate Change Law
-[@sabin2020georgia].  Click to view it full size.](images/georgia_covid.png){#fig-georgia}
+![Georgia Department of Public Health, "Top 5 Counties with the Greatest Number of Confirmed COVID-19 Cases," May 2020. Reproduced from the Sabin Center for Climate Change Law [@sabin2020georgia]. Click to view it full size.](images/georgia_covid.png){#fig-georgia}
 
-However, when you read the dates along the bottom you will find that they are not-sequential -- the graph is sorted by case count not by date.  The story this graph imparts is wrong and it's only when the reader strains to read every element of the graph does can some semblance of truth emerge.
+The dates along the horizontal axis are out of order. They were sorted by case count, so the decline is built into the chart rather than present in the data. The labels contain the information needed to catch the problem, but only a reader who checks every date will find it.
 
-The state did not defend the design.  A spokesperson for the governor's office said: "The x
-axis was set up that way to show descending values to more easily demonstrate peak values and
-counties on those dates.  Our mission failed.  We apologize.  It is fixed."
-
-Hopefully, we can learn to create graphs that more are more like @fig-minard rather than @fig-georgia.
+These examples set the two jobs of a chart. It should make the comparison easy to see, and it should represent the data honestly.
 
 ## Learning Objectives {.unnumbered}
 
 ::: {.objectives}
-By the end of this chapter, you will be able to:
+By the end of this chapter you should be able to:
 
-- Say what question a chart is supposed to answer before you build it
-- Choose a chart type that suits the comparison you are making
-- Label a chart so a reader who did not make it can read it
-- Spot the common ways a chart misleads, and avoid them in your own work
+1. State the comparison a chart is meant to show.
+2. Choose a chart type that fits that comparison.
+3. Label a chart so that it can be read without its maker present.
+4. Remove clutter and use colour, text and legends deliberately.
+5. Identify axis choices and chart forms that can mislead a reader.
 :::
 
-## The Principles {#sec-chart-principles}
+## General Principles {#sec-chart-principles}
 
-Before we get into specific chart types, some general principles.  These come from a long tradition of work on data visualization, especially by Edward Tufte (*The Visual Display of Quantitative Information*) and more recently by Cole Nussbaumer Knaflic (*Storytelling with Data*).
+### Decide whether a chart helps {.unnumbered}
 
-### Do you need a chart? {.unnumbered}
-
-A chart earns its place when there is a pattern in the data that prose
-cannot carry.  With two numbers there is no pattern, only two
-numbers, and a sentence does the job: *in 2024 the United States produced 53.7 million tonnes
-of wheat and Canada produced 34.9 million.*  A chart of those two figures asks the reader to
-measure two bars to recover what the sentence already told them.
+Two numbers can usually be written in a sentence: *In 2024 the United States produced 53.7 million tonnes of wheat and Canada produced 34.9 million.* Turning them into two bars makes the reader estimate values that the sentence could have given directly.
 
 ```{r}
 #| label: fig-wheat-two
@@ -68,13 +40,12 @@ measure two bars to recover what the sentence already told them.
 #| warning: false
 #| fig-width: 5.0
 #| fig-height: 1.5
-#| fig-cap: "Two numbers do not need a chart."
+#| fig-cap: "Two values that are easier to state in a sentence."
 source("R/chart_types.R")
 fig_wheat(2)
 ```
 
-Now ask a question with a shape to it -- where does Canada sit among the world's wheat
-producers? -- and the chart starts doing work no sentence can.
+The top fifteen producers make a different comparison. The chart shows Canada's position, the gap between the first three countries and the rest, and the closeness of Canada and Australia.
 
 ```{r}
 #| label: fig-wheat-fifteen
@@ -84,22 +55,17 @@ producers? -- and the chart starts doing work no sentence can.
 #| warning: false
 #| fig-width: 5.4
 #| fig-height: 3.4
-#| fig-cap: "The top fifteen wheat producing countries, 2024/25. Canada highlighted. Approximate figures from USDA."
+#| fig-cap: "The top fifteen wheat-producing countries, 2024/25. Canada is highlighted. Approximate figures from USDA."
 fig_wheat(15)
 ```
 
-You can see at once that Canada is fifth, that the top three are in a different league, and
-that Canada and Australia are close enough to trade places in a bad year.  Writing that out
-would take a paragraph, and the reader still would not see it.
+A chart helps when the question concerns a ranking, a trend, a distribution or a relationship. If the point is one or two exact values, use prose or a small table.
 
-### Be honest {.unnumbered}
+### Check the scale and order {.unnumbered}
 
-As with the case of the Georgia covid case counts above, charts can deceive as much as they can illuminate.  Methods of deception include: a) sorting data  .  Humans minds try to recognize patterns and assign meaning -- if we see dates on the horizontal axis, we expect them to be in sequential order.  If we see one bars on a chart, we expect their relative size to be representative of something.
+Charts can mislead without containing a false number. The Georgia chart did it by changing the order of the dates. A truncated axis can do it by changing what the length of a bar represents.
 
-Truncating an axis is the commonest version.
-
-Both panels show the same five malting barley varieties, which yield between 103 and 114
-bushels.
+Both panels below show the same five malting barley varieties, with yields from 103 to 114 bushels per acre.
 
 ```{r}
 #| label: fig-truncated
@@ -109,7 +75,7 @@ bushels.
 #| warning: false
 #| fig-width: 4.6
 #| fig-height: 2.5
-#| fig-cap: "The same five yields: axis at 100, and axis at zero."
+#| fig-cap: "The same five yields with the axis beginning at 100 and at zero."
 #| fig-subcap:
 #|   - "A. Axis starting at 100"
 #|   - "B. Axis starting at zero"
@@ -119,23 +85,19 @@ fig_truncated(ymin = 100, labels = FALSE)
 fig_truncated(ymin = 0)
 ```
 
-Panel A has no numbers on the bars, so there is nothing to check the heights against.  Starting
-the axis at 100 means the bars show yield *minus one hundred*: CDC Copeland's 3 sits next to
-AAC Synergy's 14, and a 10% gap becomes a bar four times taller.  Nothing is fabricated, which
-is what makes it both effective and dishonest.  Check where the axis starts before you read
-anything else.
+In panel A the bars encode yield minus 100. A yield of 103 becomes a bar of length 3 and a yield of 114 becomes a bar of length 14, making a 10% yield difference look more than four times as large. Bar charts should normally begin at zero because their values are read from bar length.
 
-### Descriptive titles and labels {.unnumbered}
+Line charts are different. A line shows position rather than length, so its vertical axis does not always need to begin at zero. The displayed range should still be wide enough that ordinary movement does not look like a crisis.
 
-Label both axes, noting the units were applicale. In Excel, add these from **Chart Design → Add Chart Element → Chart Title** and **→ Axis Titles**. Missing labels are the most common problem in student charts.  Note that if you are embedding the chart in a Word document, it is generally better to put a title or caption in Word itself, rather than using the Excel built-in title.
+### Use descriptive labels {.unnumbered}
 
-### Minimize clutter {.unnumbered}
+A title should say what the chart shows. Axis labels should name the variables and their units. A caption should identify the source and any definition the reader needs. `Yield` is incomplete when the value could mean bushels per acre, kilograms per hectare or pounds per acre.
 
-Some charts are embellished with 3d effects, shadows, patterned fills, or tick marks.  Usually these are just distracting noise.  Ruthlessly remove noise that does not tell the story of the data.
+When a figure appears in a report, use the document's caption rather than repeating the same title inside the chart. A chart copied out of the report may need its own title and source.
 
-Panel A has a tick every 5 bushels, gridlines in both directions, a marker on every point,
-a drop shadow behind every line, a shaded panel and a boxed legend.  Panel B has the same
-four series.
+### Remove clutter {.unnumbered}
+
+Gridlines, borders, markers and decoration all compete with the data. Keep the elements that help the comparison and remove the rest.
 
 ```{r}
 #| label: fig-clutter
@@ -145,18 +107,17 @@ four series.
 #| warning: false
 #| fig-width: 4.7
 #| fig-height: 2.7
-#| fig-cap: "The same four series, cluttered and decluttered."
+#| fig-cap: "The same four series before and after unnecessary chart elements are removed."
 #| fig-subcap:
-#|   - ""
-#|   - ""
+#|   - "A. Cluttered"
+#|   - "B. Reduced"
 #| layout-ncol: 2
 source("R/chart_types.R")
 fig_clutter(load_yields())
 fig_declutter(load_yields())
 ```
 
-Patterned fills come from an era when charts were printed in black and white and hatching
-was the only way to tell one bar from another.  On a screen they shimmer.
+Three-dimensional effects distort length and area. Patterned fills were useful when charts had to be printed in black and white, but on a screen they make the bars harder to read.
 
 ```{r}
 #| label: fig-pattern
@@ -166,36 +127,30 @@ was the only way to tell one bar from another.  On a screen they shimmer.
 #| warning: false
 #| fig-width: 4.7
 #| fig-height: 2.7
-#| fig-cap: "Patterned fills, and the same bars filled flat."
+#| fig-cap: "Patterned and flat fills applied to the same bars."
 #| fig-subcap:
-#|   - ""
-#|   - ""
+#|   - "A. Patterned fills"
+#|   - "B. Flat fills"
 #| layout-ncol: 2
 fig_pattern(load_yields())
 fig_flat(load_yields())
 ```
 
-A 3D bar or pie chart tilts the plane, so bars at the front read larger than identical bars
-at the back and you can no longer line a bar up against the axis.
+### Label lines directly {.unnumbered}
 
-### Label directly {.unnumbered}
-
-A chart where each line is labeled at the end is easier to read than one with a legend that forces the eye to jump back and forth.
-
-Below are the same barley variety shares drawn both ways.  Try finding Newdale in each.
+A legend makes the reader match each line to a separate key. When there is room, put the series name at the end of the line instead.
 
 ::: {layout-ncol=2}
-![A. Direct labels](images/variety_shares_direct_labels.png)
+![A. Labels placed beside the lines.](images/variety_shares_direct_labels.png)
 
-![B. Legend](images/variety_shares_legend.png)
+![B. The same lines identified with a legend.](images/variety_shares_legend.png)
 :::
 
-### Use text sparingly {.unnumbered}
+Legends are still useful when there are many marks, when direct labels would overlap, or when the same symbols appear in several panels.
 
-If a reader is going to stop at something and wonder why, a few words on the plot save them
-the trip to the caption.  The temptation is then to explain everything.  Panel A annotates
-every bend in twenty-five years of nitrogen fertilizer prices; panel B annotates the one a
-reader would actually stop at.
+### Annotate what needs explanation {.unnumbered}
+
+A short note can explain an unusual point or change. Too many notes hide the series they are meant to explain.
 
 ```{r}
 #| label: fig-fertilizer
@@ -205,29 +160,20 @@ reader would actually stop at.
 #| warning: false
 #| fig-width: 5.0
 #| fig-height: 2.9
-#| fig-cap: "Nitrogen fertilizer prices, annotated twice. Indicative urea prices, USD per tonne."
+#| fig-cap: "Indicative nitrogen fertilizer prices, USD per tonne, with many annotations and with one."
 #| fig-subcap:
-#|   - "A. Everything explained"
-#|   - "B. One thing explained"
+#|   - "A. Every movement annotated"
+#|   - "B. The unusual movement annotated"
 #| layout-ncol: 2
 fig_fertilizer("heavy")
 fig_fertilizer("light")
 ```
 
-Panel A is not wrong, and each note on its own is reasonable.  Together they bury the series
-they are describing: the line is now the least visible thing on the plot, and a reader has no
-idea which of the ten notes matters.  Panel B leaves the ordinary movements alone and names the
-one event that would otherwise send the reader looking for an explanation.
+The second panel leaves ordinary changes alone and identifies the movement most readers would stop at.
 
-Text costs the same as everything else on a chart: space that could have shown data.
+### Add variables carefully {.unnumbered}
 
-### More than two variables {.unnumbered}
-
-Position on the two axes is
-what the eye reads best, but it is not all you have.  The size of a point, its colour, its
-shape: each can carry another variable.  Minard's map manages six.  Below is the scatter of
-wheat against barley yields from earlier, with the acres seeded in each zone added as the
-size of the point.
+Position on the horizontal and vertical axes carries two variables. Colour, shape and point size can carry more. In @fig-bubble, point size represents seeded acres in addition to wheat and barley yield.
 
 ```{r}
 #| label: fig-bubble
@@ -237,18 +183,13 @@ size of the point.
 #| warning: false
 #| fig-width: 5.4
 #| fig-height: 2.9
-#| fig-cap: "Three variables: wheat yield, barley yield, and acres as the size of the point."
+#| fig-cap: "Wheat yield, barley yield and seeded acres for Saskatchewan risk zones."
 fig_bubble(load_yields())
 ```
 
-The extra variable answers a question the plain scatter could not: the zones at the top right
-are not just the highest yielding, they are also where most of the wheat is grown.  Size
-works here because it is only being asked to rank -- big, medium, small -- and not to be read
-off precisely.
+Point size is good for broad comparisons such as large, medium and small. It is poor for reading exact values because people do not judge area very precisely.
 
-What does not work is giving a chart two different vertical scales, one on the left and one
-on the right.  Both panels below plot canola yield and canola acres over the same five years,
-and the only difference between them is how the right-hand axis was scaled.
+Avoid putting two different vertical scales on the same panel. Both charts below contain the same canola yield and acreage data. Only the right-hand scale changes.
 
 ```{r}
 #| label: fig-dual
@@ -258,52 +199,26 @@ and the only difference between them is how the right-hand axis was scaled.
 #| warning: false
 #| fig-width: 4.4
 #| fig-height: 2.6
-#| fig-cap: "The same two series, with the right-hand axis scaled two different ways."
+#| fig-cap: "The same two series under two choices for the right-hand axis."
 #| fig-subcap:
-#|   - ""
-#|   - ""
+#|   - "A. First right-hand scale"
+#|   - "B. Second right-hand scale"
 #| layout-ncol: 2
 fig_dual_axis(load_yields(), TRUE)
 fig_dual_axis(load_yields(), FALSE)
 ```
 
-In A the lines cross in 2022 and acres appear to run ahead of yield.  In B they barely meet.
-Nothing in the data changed.  Where two series cross, which one looks higher, and whether one
-seems to lead the other are all decided by a choice of scale that the reader cannot see and
-the author may not have thought about.  Plot the two series in separate panels instead, or
-put one of them on an index.
+The apparent crossing point and distance between the lines are controlled by the two scales. Use separate panels or convert both series to an index when their units differ.
 
-### Use colour purposefully {.unnumbered}
+### Use colour for a reason {.unnumbered}
 
-Colour is not just decoration!  It can be used to convey information. Colour can also be used to draw the reader's attention to a particular finding (though one should avoid misusing this power!) or to express intensity.
+Colour can distinguish groups, show an ordered scale or draw attention to one observation. Most categories can remain grey while the category under discussion is highlighted. If every bar has a different bright colour, none has emphasis.
 
-### Be wary of pie charts {.unnumbered}
-
-Most books on visual display are pretty hostile to pie charts.  One reason is that it it is much more difficult to compare the size of angles to the size of bars.  See below the pie chart of the vote share in the 2021 Canadian election.  It is kind of hard to immediately see that the Conservatives gained more votes than the Liberals in the pie chart.  Much easier in the bar chart.  Of course you can also put the percentages directly in the pie chart -- but then why not simply use a table?
-
-```{r}
-#| label: fig-vote
-#| eval: true
-#| echo: false
-#| message: false
-#| warning: false
-#| fig-width: 4.4
-#| fig-height: 2.7
-#| fig-cap: "Popular vote share in the 2021 Canadian federal election. Source: Elections Canada."
-#| fig-subcap:
-#|   - ""
-#|   - ""
-#| layout-ncol: 2
-fig_vote("pie")
-fig_vote("bar")
-```
+Choose colours that remain distinguishable for readers with colour-vision deficiencies and when printed in grey. Do not use red and green as the only signal; add labels, position or shape.
 
 ## Types of Charts {#sec-chart-types}
 
-Most of the work in making a good chart is picking the right kind in the first place.  The
-choice follows from the comparison you want the reader to make, so it helps to state that
-comparison out loud before you open a chart menu.  All the figures below are drawn from the
-same Saskatchewan variety data, so you can see how differently the same numbers read.
+Choose a chart from the comparison the reader needs to make. The examples below use the same Saskatchewan variety data.
 
 ```{r}
 #| label: setup-charts
@@ -315,11 +230,9 @@ source("R/chart_types.R")
 yields <- load_yields()
 ```
 
-### Bar charts: comparing categories {.unnumbered}
+### Bar charts: compare categories {.unnumbered}
 
-A bar chart compares a value across categories -- yields by crop, acres by region, revenue by
-customer.  The eye is good at judging the length of a bar against its neighbours, which is why
-bar charts do so much of the work in practice.
+A bar chart compares a value across categories such as yield by crop, acres by region or revenue by customer.
 
 ```{r}
 #| label: fig-bar
@@ -329,20 +242,11 @@ bar charts do so much of the work in practice.
 #| warning: false
 #| fig-width: 6.4
 #| fig-height: 2.6
-#| fig-cap: "A bar chart compares one value across categories."
+#| fig-cap: "Average spring wheat yield by risk zone."
 fig_bar(yields)
 ```
 
-Two habits make bar charts better.  Sort the bars by size unless the categories have their own
-natural order, because a sorted chart answers "which is biggest?" instantly and an
-alphabetical one makes the reader hunt.  And start the axis at zero.  A bar encodes its value
-by length, so cutting the axis at 30 makes a 5% difference look like a doubling.  This is the
-single most common way a chart misleads, and it is usually the software's default rather than
-anyone's intent.
-
-Note that the chart above runs horizontally.  Most people reach for vertical bars by default,
-which is fine when the labels are short, but category names are often long -- variety names,
-regions, product lines -- and vertical bars leave no room for them.
+Sort bars by value unless the categories have a natural order. Start the value axis at zero. Horizontal bars give long category names enough room.
 
 ```{r}
 #| label: fig-bar-orientation
@@ -352,25 +256,20 @@ regions, product lines -- and vertical bars leave no room for them.
 #| warning: false
 #| fig-width: 4.4
 #| fig-height: 2.7
-#| fig-cap: "The same five varieties, vertical and horizontal."
+#| fig-cap: "The same five varieties drawn with vertical and horizontal bars."
 #| fig-subcap:
-#|   - ""
-#|   - ""
+#|   - "A. Vertical"
+#|   - "B. Horizontal"
 #| layout-ncol: 2
 fig_bar_vertical()
 fig_bar_horizontal()
 ```
 
-In panel A the names have to be rotated to fit, so the reader tilts their head and the labels
-take up a third of the plot.  In panel B they sit on their own line, horizontal and left
-aligned, and the chart can hold twenty categories as comfortably as five.  Turn the chart on
-its side whenever the labels are longer than a word or two.
+Vertical bars work when labels are short. Turn the chart when labels need to be rotated or crowded.
 
-### Line charts: change over time {.unnumbered}
+### Line charts: show change over time {.unnumbered}
 
-A line chart shows how something moves over a continuous scale, almost always time.  The line
-implies the values connect, which is exactly why you should not use one for categories: a line
-running from Barley to Canola to Oats suggests a progression that does not exist.
+A line chart shows movement over a continuous scale, usually time. The connection between points implies that the order and interval have meaning.
 
 ```{r}
 #| label: fig-line
@@ -380,18 +279,15 @@ running from Barley to Canola to Oats suggests a progression that does not exist
 #| warning: false
 #| fig-width: 6.4
 #| fig-height: 2.9
-#| fig-cap: "A line chart shows movement over time. Labelling each line at its right-hand end saves the reader a trip to the legend."
+#| fig-cap: "Average crop yield by year, with labels at the right-hand ends of the lines."
 fig_line(yields)
 ```
 
-Unlike bar charts, line charts do not need a zero baseline.  Nothing is encoded by length, so
-you are free to zoom in on the range where the action is -- but say so, and do not zoom so far
-that ordinary variation looks like a crisis.
+Do not connect unordered categories such as Barley, Canola and Oats with a line.
 
-### Scatter plots: the relationship between two variables {.unnumbered}
+### Scatter plots: compare two numeric variables {.unnumbered}
 
-A scatter plot puts one variable on each axis and a point at every observation.  Use it when
-you want to know whether two things move together.
+A scatter plot places one numeric variable on each axis and one observation at each point.
 
 ```{r}
 #| label: fig-scatter
@@ -401,21 +297,15 @@ you want to know whether two things move together.
 #| warning: false
 #| fig-width: 6.4
 #| fig-height: 2.8
-#| fig-cap: "A scatter plot asks whether two variables move together. Each point is one of Saskatchewan's 21 risk zones."
+#| fig-cap: "Spring wheat and barley yield in Saskatchewan's 21 risk zones."
 fig_scatter(yields)
 ```
 
-Each point is a risk zone, with its wheat yield on one axis and its barley yield on the other.
-The points run up and to the right, which says a zone that grew good wheat that year generally
-grew good barley too -- unsurprising, since both crops got the same rain.  A scatter showing
-*no* pattern would be just as informative.
+The points rise from left to right, so zones with higher wheat yield also tended to have higher barley yield. Module 7 develops the numerical tools for describing that relationship.
 
-This is the workhorse of statistical analysis and it returns in Module 7, where we put a line
-through the cloud and start measuring how strong the relationship is.
+### Stacked and grouped bars: compare composition {.unnumbered}
 
-### Stacked bars: parts of a whole {.unnumbered}
-
-A stacked bar breaks each bar into components, showing both the total and its composition.
+A stacked bar shows a total and its components.
 
 ```{r}
 #| label: fig-stacked
@@ -425,17 +315,11 @@ A stacked bar breaks each bar into components, showing both the total and its co
 #| warning: false
 #| fig-width: 6.6
 #| fig-height: 2.9
-#| fig-cap: "A stacked bar shows the total and its composition at once."
+#| fig-cap: "Seeded acres by crop and year, drawn as stacked bars."
 fig_stacked(yields)
 ```
 
-The catch is that only the bottom segment sits on a common baseline.  You can compare canola
-acres across years easily because they all start at zero; comparing the middle segments means
-judging the length of a floating block, which the eye does poorly.
-
-### Grouped bars {.unnumbered}
-
-The obvious fix is to unstack the bars and set them side by side, so every bar starts at zero.
+Only the bottom segment has a common baseline. The middle and top segments are harder to compare across years. Grouped bars give each component a zero baseline, but they become crowded as the number of groups grows.
 
 ```{r}
 #| label: fig-grouped
@@ -445,20 +329,11 @@ The obvious fix is to unstack the bars and set them side by side, so every bar s
 #| warning: false
 #| fig-width: 6.6
 #| fig-height: 2.9
-#| fig-cap: "The same acres, grouped rather than stacked."
+#| fig-cap: "The same acreage data drawn as grouped bars."
 fig_grouped(yields)
 ```
 
-This solves the baseline problem and introduces a different one.  There are now twenty bars,
-and the chart supports two comparisons at once: across crops within a year, and across years
-within a crop.  The second is the one you usually want, and it is the harder of the two --
-following canola from 2021 to 2025 means jumping over three other bars at every step.  The
-grouping does not help; it is in the way.
-
-Grouped bars work when there are only two or three series and few categories, so the eye can
-take in a group at once.  Past that they get busy quickly.  When you find yourself building
-one, it is worth asking whether the chart is really several charts.  Splitting it into a small
-panel per crop gives each series its own baseline and its own space:
+When the grouped chart becomes busy, divide it into **small multiples**, with one panel per series.
 
 ```{r}
 #| label: fig-facet
@@ -468,20 +343,15 @@ panel per crop gives each series its own baseline and its own space:
 #| warning: false
 #| fig-width: 6.6
 #| fig-height: 2.2
-#| fig-cap: "The same acres again, one panel per crop."
+#| fig-cap: "The acreage data divided into one panel per crop."
 fig_facet(yields)
 ```
 
-These are called **small multiples**, and they scale in a way that grouped bars do not: twelve
-crops would be twelve panels, still readable, where twelve series in a grouped bar chart would
-be unusable.  The trade is that comparing exact values across panels is harder, so use them
-when the shape of each series matters more than ranking them against each other.
+Shared axes support comparisons of levels across panels. Free axes make the shape within each panel easier to see but prevent direct comparisons of height.
 
-### Pie charts: use sparingly {.unnumbered}
+### Pie charts: show a simple share {.unnumbered}
 
-A pie chart shows shares of a total.  It is the most criticized chart type in the field, and
-the reason is worth seeing rather than taking on faith.  @fig-pie shows the same four numbers
-twice.
+A pie chart shows parts of a total. Angles and areas are harder to compare than lengths, so a bar chart is usually better when the differences matter.
 
 ```{r}
 #| label: fig-pie
@@ -491,42 +361,25 @@ twice.
 #| warning: false
 #| fig-width: 3.4
 #| fig-height: 2.7
-#| fig-cap: "The same four numbers, twice."
+#| fig-cap: "The same four acreage shares shown as a pie and as bars."
 #| fig-subcap:
-#|   - ""
-#|   - ""
+#|   - "A. Pie"
+#|   - "B. Bars"
 #| layout-ncol: 2
 pv <- fig_pie_vs_bar(yields)
 pv$pie
 pv$bar
 ```
 
-In panel A, how much bigger is canola than spring wheat?  Most people guess a much wider gap
-than the real one, because the eye judges angle and area poorly.  In panel B you compare two
-bar lengths against a common baseline, and the gap is about a fifth.  Neither chart is labelled
-with its numbers -- the difference is entirely in how easily the eye reads the encoding.  The
-pie is not useless, it does convey "canola is about half the acres" at a glance, but any
-comparison finer than that is easier in a bar chart.
+The pie shows that canola accounts for about half of the total. The bars make the smaller differences easier to compare. If a pie is used, keep the number of slices small, label them directly and leave it two-dimensional.
 
-If you use one, keep it to a handful of slices, label them directly, and never make it 3D.  A
-3D pie tilts the plane, which makes the near slices larger than the far ones for no reason but
-decoration.
+### Histograms and box plots: show distributions {.unnumbered}
 
-### Histograms and box plots {.unnumbered}
+A histogram shows the shape of one numeric variable by counting observations in intervals. A box plot shows the median, the middle half and potential outliers in a compact form. Use a histogram when the shape matters and a box plot when several groups need to be compared (@sec-charts).
 
-These two describe the distribution of a single variable rather than comparing categories, and
-you met them in @sec-charts.  A histogram bins the values and shows the shape; a box plot
-compresses that shape into a median, a box holding the middle half of the data, and whiskers.
-Reach for them when the question is about spread rather than comparison.
+### Ranges, trend lines and reference lines {.unnumbered}
 
-### A few more things you can do {.unnumbered}
-
-The chart types above are the vocabulary.  A handful of additions come up often enough to be
-worth knowing.
-
-**Shade a range behind a line.**  A single line hides how much variation sits behind it.
-Shading a band -- a minimum and maximum, a middle 80%, a confidence interval -- shows the
-average and the spread together.
+A line of averages can be shown with a shaded range behind it. The range might represent a minimum and maximum, a middle percentage of observations or an interval estimate. Its definition belongs in the caption.
 
 ```{r}
 #| label: fig-extras-1
@@ -536,24 +389,18 @@ average and the spread together.
 #| warning: false
 #| fig-width: 4.6
 #| fig-height: 2.6
-#| fig-cap: "Average spring wheat yield with the middle 80% of risk zones shaded, and a scatter with a fitted trend line."
+#| fig-cap: "Average spring wheat yield with the middle 80% of risk zones shaded, and a scatter plot with a fitted line."
 #| fig-subcap:
 #|   - "A. Shaded range"
-#|   - "B. Trend line"
+#|   - "B. Fitted line"
 #| layout-ncol: 2
 fig_ribbon(yields)
 fig_trend(yields)
 ```
 
-**Add a trend line.**  A straight line through a scatter summarizes the relationship the
-points suggest, and the shaded band around it shows how confident the fit is.  Excel calls
-this a trendline (**Chart Design → Add Chart Element → Trendline**); in ggplot it is
-`geom_smooth()`.  Fit one when the relationship is the point, not as decoration on every
-scatter you draw, and be wary of extending it past the data you have.
+A fitted line summarizes the pattern in a scatter plot. Use one when the relationship is the question and do not extend it beyond the observed data without a reason.
 
-**Draw a reference line.**  A horizontal line at an average, a target, a break-even price or
-last year's figure turns "how big is this?" into "how does this compare?".  It is one of the
-cheapest ways to make a chart answer a question.
+A reference line can show an average, a target, a break-even value or last year's result. A waterfall chart shows how additions and subtractions turn a starting value into an ending value.
 
 ```{r}
 #| label: fig-extras-2
@@ -563,7 +410,7 @@ cheapest ways to make a chart answer a question.
 #| warning: false
 #| fig-width: 4.6
 #| fig-height: 2.7
-#| fig-cap: "Canola yields against their own five-year average, and a waterfall from revenue to net margin."
+#| fig-cap: "Canola yield against its five-year average, and a waterfall from revenue to net margin."
 #| fig-subcap:
 #|   - "A. Reference line"
 #|   - "B. Waterfall"
@@ -572,43 +419,24 @@ fig_refline(yields)
 fig_waterfall()
 ```
 
-**Waterfall charts** show how a starting figure becomes an ending one through a series of
-gains and losses -- gross revenue down through each cost to net margin, or last year's profit
-to this year's.  Each bar floats where the previous one left off.  Excel has a built-in
-waterfall type; ggplot has no `geom_waterfall()`, so panel B above is drawn with rectangles.
-
-A few others worth naming: **dot plots**, which do a bar chart's job with less ink and suit
-long category lists; **heatmaps**, for a grid of values where the pattern matters more than
-the numbers, like yield by zone and year; and **maps**, which are the natural choice for
-anything reported by region and which we return to in AREC 262.
+Dot plots can replace bars in long category lists. Heatmaps use colour to show patterns in a grid. Maps are suited to values reported by region and return in AREC 262.
 
 ### Choosing {.unnumbered}
 
-The short version:
-
-| If the question is | Use |
+| Comparison | Chart |
 |---|---|
-| How does this value compare across categories? | Bar chart |
-| How has this changed over time? | Line chart |
-| Are these two variables related? | Scatter plot |
-| What is this total made of? | Stacked bar, or a bar chart of the components |
-| How does each of several series move? | One panel per series |
-| How is a single variable distributed? | Histogram or box plot |
-| How did we get from this figure to that one? | Waterfall |
+| Values across categories | Bar chart |
+| Change over time | Line chart |
+| Relationship between two numeric variables | Scatter plot |
+| Components of a total | Stacked bar or bars for the components |
+| Movement of several series | Small multiples |
+| Distribution of one variable | Histogram or box plot |
+| Contributions from a starting value to an ending value | Waterfall |
 
-When a chart does not obviously fit one of these, that is often a sign the question is not
-sharp enough yet.
+If the chart type is hard to choose, state the comparison more precisely before opening the chart menu.
 
-## Excel vs R for Charts {#sec-excel-vs-r-charts}
+## Excel and R for Charts {#sec-excel-vs-r-charts}
 
-**Excel charts are fine for many purposes.** They are easy to make, they look acceptable with default settings, and they are immediately editable by non-technical colleagues. If you are making a one-off chart for an internal meeting, Excel may be the right choice.
+Excel is convenient for a one-off chart that will be edited in a workbook or passed to someone who does not use R. The chart remains easy to change by clicking.
 
-R (ggplot2) wins when you need:
-
-- The chart to be reproducible from a script.
-- The chart to update automatically as the underlying data changes.
-- Many similar charts (via faceting or loops).
-- Fine-grained control over appearance.
-- Statistical features (trend lines, confidence bands, quantile ribbons).
-
-Most working analysts use both. In this course we will lean on R, because reproducibility is the harder habit to pick up later.
+R is useful when the chart must be recreated from a script, updated with new data, repeated for many groups or given the same formatting as a set of other figures. The next two chapters make comparable charts in Excel and with `ggplot2`.

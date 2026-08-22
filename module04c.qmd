@@ -3,107 +3,107 @@
 ```{r}
 #| include: false
 #| eval: true
-suppressMessages({library(ggplot2); library(dplyr); library(readr)})
-yields <- readr::read_csv("practice/data/field_yields.csv", show_col_types = FALSE)
+source("_console.R")
 ```
 
-Excel draws a chart from a selection.  R takes a different approach: you describe the chart
--- which variable goes on which axis, what shape to draw -- and `ggplot2` builds it.  That
-takes more typing for a single quick chart and far less for the twentieth one.
+Excel starts with a selected range and a chart menu. In R, we describe the chart in code: the data, the variables assigned to visual properties, and the marks to draw. The `ggplot2` package turns that description into a figure.
+
+The examples use [`field_yields.csv`](practice/data/field_yields.csv), with one row for each of sixty hypothetical canola fields.
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the tidyverse and read the field data
+library(tidyverse)
+
+yields <- read_csv("data/field_yields.csv")
+glimpse(yields)
+')
+```
 
 ## Learning Objectives {.unnumbered}
 
 ::: {.objectives}
-By the end of this chapter, you will be able to:
+By the end of this chapter you should be able to:
 
-- Build a plot with `ggplot()`, an aesthetic mapping, and a geom
-- Choose the geom that suits your data
-- Tell the difference between mapping an aesthetic to a variable and setting it
-  to a constant
-- Add titles, axis labels and a theme
-- Split a plot into small multiples with facets, and save the result
+1. Build a plot with `ggplot()`, `aes()` and a geom.
+2. Choose a geom for a comparison, trend, relationship or distribution.
+3. Distinguish mapping an aesthetic to a variable from setting it to a constant.
+4. Add titles, axis labels and a theme.
+5. Divide a plot into small multiples with facets.
+6. save a plot with `ggsave()`.
 :::
 
-## Why a New Grammar? {#sec-grammar}
+## The Grammar of Graphics {#sec-grammar}
 
-You already know how to make charts in Excel.  The case for learning ggplot2 as well is mostly
-reproducibility: the chart is generated from code, so it updates when the data does and anyone
-can see how it was made.
+`ggplot2` follows the **grammar of graphics**. A plot is assembled from a few parts:
 
-ggplot2 is built on the **grammar of graphics** (Leland Wilkinson, 1999), which describes a
-chart as a few pieces combined.  Once you know the pieces, a chart you have never made before
-is mostly a matter of picking different ones.
+- **Data:** the data frame to plot.
+- **Aesthetic mappings:** columns assigned to position, colour, size or shape.
+- **Geometries:** points, lines, bars, boxes and other marks.
+- **Scales:** the rules connecting data values to axis positions or colours.
+- **Facets:** separate panels for groups.
 
-The grammar of graphics says that every chart is a combination of a few basic elements:
+Some geoms also calculate a statistic. A histogram bins values before drawing bars, and a smooth fits a line or curve before drawing it.
 
-- **Data** -- the dataset being plotted.
-- **Aesthetics** -- mappings from data columns to visual properties (x, y, color, size, shape).
-- **Geometries** -- the shapes that appear on the page (points, lines, bars, boxes).
-- **Statistics** -- transformations of the data done as part of plotting (binning for histograms, smoothing for trend lines).
-- **Scales** -- how data values map to aesthetic values (linear vs log axes, color palettes).
-- **Coordinate systems** -- Cartesian, polar, etc.
-- **Faceting** -- splitting the chart into small multiples by a categorical variable.
+## A First Plot {#sec-first-ggplot}
 
-Every ggplot2 chart is built by adding these layers together. Once you know the grammar, most charts are a matter of picking the right pieces.
-
-## Your First ggplot {#sec-first-ggplot}
-
-ggplot2 is part of the tidyverse, so if you have loaded the tidyverse, it's already available.
-
-A basic scatter plot:
+This scatter plot places field size on the horizontal axis and yield on the vertical axis:
 
 ```{r}
-#| label: fig-e-scatter
+#| label: fig-r-first-scatter
 #| eval: true
 #| echo: true
 #| message: false
 #| warning: false
-#| fig-width: 4.8
-#| fig-height: 2.8
+#| fig-width: 5.4
+#| fig-height: 3.2
+#| fig-cap: "Field size and canola yield for sixty hypothetical fields."
 ggplot(yields, aes(x = acres, y = yield_bu_acre)) +
-  geom_point()
+  geom_point(na.rm = TRUE)
 ```
 
-Break it down:
+Read the code in three parts:
 
-- `ggplot(yields, ...)` -- start a new plot using the `yields` data frame.
-- `aes(x = acres, y = yield_bu_acre)` -- the **aesthetic** mapping. The x position is mapped to the `acres` column, the y position to the `yield_bu_acre` column.
-- `+ geom_point()` -- add a point geometry. Each row in the data becomes one point.
+- `ggplot(yields, ...)` names the data frame.
+- `aes(x = acres, y = yield_bu_acre)` maps two columns to position.
+- `geom_point()` draws one point for each row with both values present.
 
-Note the `+` -- ggplot2 layers are added with `+`, not the pipe. Note that layers are joined with `+`, not the pipe.
+Layers are joined with `+`. A pipe passes a data object into a function; the `+` adds a layer to a ggplot object.
 
-## The Main Geoms {#sec-geoms}
+## Common Geoms {#sec-geoms}
 
-A tour of the most important `geom_` functions. In each case, you set the aesthetic mapping with `aes()` and the geom draws something based on those mappings.
+### `geom_point()`: scatter plots {.unnumbered}
 
-### `geom_point()` — Scatter Plots {.unnumbered}
-
-For showing the relationship between two continuous variables.
+Use points for the relationship between two numeric variables. The `alpha` argument makes overlapping points partly transparent.
 
 ```{r}
-#| label: fig-e-alpha
+#| label: fig-r-alpha
 #| eval: true
 #| echo: true
 #| message: false
 #| warning: false
-#| fig-width: 4.8
-#| fig-height: 2.8
+#| fig-width: 5.4
+#| fig-height: 3.2
+#| fig-cap: "Transparency makes overlapping observations easier to see."
 ggplot(yields, aes(x = acres, y = yield_bu_acre)) +
-  geom_point(alpha = 0.5)  # alpha = transparency, helps when points overlap
+  geom_point(alpha = 0.55, na.rm = TRUE)
 ```
 
-### `geom_line()` — Line Charts {.unnumbered}
+### `geom_line()`: change over time {.unnumbered}
 
-For showing how a value changes over a continuous variable (usually time).
+A line chart needs one value for each point along the horizontal axis. Our file has many fields in each year, so calculate the annual means first:
 
 ```{r}
-#| label: fig-e-line
+#| label: fig-r-line
 #| eval: true
 #| echo: true
 #| message: false
 #| warning: false
-#| fig-width: 4.8
-#| fig-height: 2.6
+#| fig-width: 5.4
+#| fig-height: 3.0
+#| fig-cap: "Mean field yield in 2024 and 2025."
 annual_mean <- yields |>
   group_by(year) |>
   summarise(mean_yield = mean(yield_bu_acre, na.rm = TRUE))
@@ -113,20 +113,21 @@ ggplot(annual_mean, aes(x = year, y = mean_yield)) +
   geom_point()
 ```
 
-Notice that we summarized first, then plotted. ggplot2 does not have a built-in "line connecting the means" geom; you compute the means and then plot them.
+The summary creates one row per year. `geom_line()` then connects those two rows in year order.
 
-### `geom_col()` and `geom_bar()` — Bar Charts {.unnumbered}
+### `geom_col()` and `geom_bar()`: bars {.unnumbered}
 
-`geom_col()` plots bars with heights equal to values you give it. Use this when you have already computed the values.
+Use `geom_col()` when the bar heights have already been calculated.
 
 ```{r}
-#| label: fig-e-col
+#| label: fig-r-col
 #| eval: true
 #| echo: true
 #| message: false
 #| warning: false
-#| fig-width: 4.8
-#| fig-height: 2.6
+#| fig-width: 5.4
+#| fig-height: 3.0
+#| fig-cap: "Mean field yield by region."
 region_means <- yields |>
   group_by(region) |>
   summarise(mean_yield = mean(yield_bu_acre, na.rm = TRUE))
@@ -135,126 +136,181 @@ ggplot(region_means, aes(x = region, y = mean_yield)) +
   geom_col()
 ```
 
-`geom_bar()` counts rows automatically. Use it when you have un-summarized data and want bar heights to be counts.
+Use `geom_bar()` when the desired value is the number of rows. It counts the observations in each category:
 
 ```{r}
-#| label: fig-e-bar
+#| label: fig-r-bar
 #| eval: true
 #| echo: true
 #| message: false
 #| warning: false
-#| fig-width: 4.4
-#| fig-height: 2.4
-ggplot(yields, aes(x = region)) + geom_bar()
+#| fig-width: 5.0
+#| fig-height: 2.8
+#| fig-cap: "Number of fields in each region."
+ggplot(yields, aes(x = region)) +
+  geom_bar()
 ```
 
-Rule of thumb: if your data is already summarized, use `geom_col`; if you want ggplot to count things for you, use `geom_bar`.
+### `geom_histogram()` and `geom_boxplot()`: distributions {.unnumbered}
 
-### `geom_histogram()` — Histograms {.unnumbered}
-
-For showing the distribution of a single continuous variable.
+A histogram shows the shape of one numeric variable. State the number of bins or the bin width rather than accepting the default without looking at it.
 
 ```{r}
-#| label: fig-e-hist
+#| label: fig-r-hist
 #| eval: true
 #| echo: true
 #| message: false
 #| warning: false
-#| fig-width: 4.8
-#| fig-height: 2.6
+#| fig-width: 5.2
+#| fig-height: 3.0
+#| fig-cap: "Distribution of recorded field yields."
 ggplot(yields, aes(x = yield_bu_acre)) +
-  geom_histogram(bins = 30)
+  geom_histogram(bins = 12, na.rm = TRUE)
 ```
 
-The `bins` argument controls how many bins to use. ggplot will print a warning if you don't set it, nudging you to think about bin width.
-
-### `geom_boxplot()` — Box Plots {.unnumbered}
-
-For comparing distributions across categories.
+A box plot makes distributions compact enough to compare across categories.
 
 ```{r}
-#| label: fig-e-box
+#| label: fig-r-box
 #| eval: true
 #| echo: true
 #| message: false
 #| warning: false
-#| fig-width: 4.8
-#| fig-height: 2.6
+#| fig-width: 5.2
+#| fig-height: 3.0
+#| fig-cap: "Field-yield distributions by region."
 ggplot(yields, aes(x = region, y = yield_bu_acre)) +
-  geom_boxplot()
+  geom_boxplot(na.rm = TRUE)
 ```
 
-This shows, for each region, the median, quartiles, and outliers of yield -- side by side.
+### `geom_smooth()`: fitted patterns {.unnumbered}
 
-### `geom_smooth()` — Trend Lines {.unnumbered}
+`geom_smooth(method = "lm")` adds a fitted straight line and an interval around it:
 
-Adds a smoother to a scatter plot.
-
-```r
+```{r}
+#| label: fig-r-smooth
+#| eval: true
+#| echo: true
+#| message: false
+#| warning: false
+#| fig-width: 5.4
+#| fig-height: 3.2
+#| fig-cap: "Field size and yield with a fitted straight line."
 ggplot(yields, aes(x = acres, y = yield_bu_acre)) +
-  geom_point(alpha = 0.3) +
-  geom_smooth(method = "lm")  # lm = linear regression
+  geom_point(alpha = 0.45, na.rm = TRUE) +
+  geom_smooth(method = "lm", na.rm = TRUE)
 ```
 
-Use `method = "lm"` for a straight line; omit for a flexible nonparametric smoother. Useful for visual inspection of trends, but don't confuse a visual smoother for a rigorous model -- that comes later.
+The line summarizes the relationship present in these observations. Module 7 explains what the fitted line estimates and how to interpret it.
 
-## Mapping vs Setting Aesthetics {#sec-mapping-vs-setting}
+## Mapping and Setting Aesthetics {#sec-mapping-vs-setting}
 
-A critical distinction. Consider these two:
+Put an aesthetic inside `aes()` when it should depend on a variable. Put it outside `aes()` when every mark should receive the same value.
 
-```r
-# Mapping: color depends on region
-ggplot(yields, aes(x = acres, y = yield_bu_acre, color = region)) +
-  geom_point()
+```{r}
+#| label: fig-r-map-set
+#| eval: true
+#| echo: true
+#| message: false
+#| warning: false
+#| fig-width: 4.7
+#| fig-height: 3.0
+#| fig-subcap:
+#|   - "A. Colour mapped to region"
+#|   - "B. One colour set for all points"
+#| layout-ncol: 2
+# Map colour to a column in the data
+ggplot(yields, aes(x = acres, y = yield_bu_acre, colour = region)) +
+  geom_point(na.rm = TRUE)
 
-# Setting: all points are blue
+# Set one colour for every point
 ggplot(yields, aes(x = acres, y = yield_bu_acre)) +
-  geom_point(color = "blue")
+  geom_point(colour = "steelblue", na.rm = TRUE)
 ```
 
-When you want an aesthetic to *depend on* the data (each region gets its own color), put it inside `aes()`. When you want to *set* it to a constant (all points blue), put it outside `aes()`. If you see colors that don't look right, check whether your `color` argument is in the right place.
+Putting `colour = "steelblue"` inside `aes()` would ask ggplot to map the literal category `"steelblue"` to a colour scale, producing an unnecessary legend.
 
-## Labels, Titles, and Themes {#sec-ggplot-polish}
+## Labels and Themes {#sec-ggplot-polish}
 
-A bare ggplot is functional but ugly. Polish it with `labs()` and a `theme_`:
+`labs()` supplies the text and `theme_minimal()` changes the non-data elements of the plot:
 
-```r
-ggplot(yields, aes(x = acres, y = yield_bu_acre, color = region)) +
-  geom_point(alpha = 0.6) +
+```{r}
+#| label: fig-r-polished
+#| eval: true
+#| echo: true
+#| message: false
+#| warning: false
+#| fig-width: 6.0
+#| fig-height: 3.4
+#| fig-cap: "A labelled scatter plot with region mapped to colour."
+ggplot(yields, aes(x = acres, y = yield_bu_acre, colour = region)) +
+  geom_point(alpha = 0.65, na.rm = TRUE) +
   labs(
     title = "Canola yield by field size",
-    subtitle = "Saskatchewan, 2025",
+    subtitle = "Sixty hypothetical Saskatchewan fields, 2024--2025",
     x = "Field size (acres)",
     y = "Yield (bu/acre)",
-    color = "Region",
-    caption = "Data: [TBD]"
+    colour = "Region",
+    caption = "Source: synthetic AREC 261 data"
   ) +
   theme_minimal()
 ```
 
-`theme_minimal()` is a clean, publication-ready default. Other good ones: `theme_classic()`, `theme_bw()`. Avoid the default grey background for anything you will show in public.
+Other built-in themes include `theme_classic()` and `theme_bw()`. A theme changes the surrounding presentation; it does not change the data or mappings.
 
 ## Faceting {#sec-faceting}
 
-Often the most powerful thing you can do with ggplot is split the chart into small multiples:
+Faceting divides one plot into panels. Each panel below uses the same histogram definition for a different region:
 
-```r
+```{r}
+#| label: fig-r-facet
+#| eval: true
+#| echo: true
+#| message: false
+#| warning: false
+#| fig-width: 6.2
+#| fig-height: 3.2
+#| fig-cap: "One yield histogram for each region."
 ggplot(yields, aes(x = yield_bu_acre)) +
-  geom_histogram(bins = 30) +
-  facet_wrap(~ region)
+  geom_histogram(bins = 8, na.rm = TRUE) +
+  facet_wrap(~ region) +
+  labs(x = "Yield (bu/acre)", y = "Fields")
 ```
 
-This produces one histogram per region, in a grid. Much easier to read than a single chart with overlapping histograms or legends.
-
-`facet_grid(region ~ variety)` makes a two-dimensional grid. Useful for comparing combinations.
+`facet_grid(region ~ variety)` creates a two-dimensional grid. Use it only when the resulting number of panels remains readable.
 
 ## Saving Plots {#sec-saving-plots}
 
-```r
-my_plot <- ggplot(yields, aes(x = region, y = yield_bu_acre)) +
-  geom_boxplot()
+Save a ggplot object before passing it to `ggsave()`:
 
-ggsave("region_boxplot.png", plot = my_plot, width = 6, height = 4, dpi = 300)
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Build and save the regional box plot
+region_plot <- ggplot(
+  yields,
+  aes(x = region, y = yield_bu_acre)
+) +
+  geom_boxplot(na.rm = TRUE) +
+  labs(x = NULL, y = "Yield (bu/acre)")
+
+ggsave(
+  "output/region_boxplot.png",
+  plot = region_plot,
+  width = 6,
+  height = 4,
+  dpi = 300
+)
+')
 ```
 
-Specify dimensions in inches and a DPI of 300 for print quality. PNG is fine for slides and web; PDF or SVG for publication.
+Width and height are in inches unless another unit is supplied. PNG works for slides and web pages; PDF or SVG preserves vector lines and text for publication.
+
+::: {.callout-tip collapse="true"}
+## Other resources -- ggplot2
+
+- **R for Data Science (2nd ed.)** -- [Chapter 1, "Data visualization"](https://r4ds.hadley.nz/data-visualize) introduces `ggplot()`, aesthetic mappings, geoms and facets.
+- **ggplot2 documentation** -- the [function reference](https://ggplot2.tidyverse.org/reference/) lists the arguments and examples for each geom.
+- **RStudio cheatsheet** -- [Data visualization with ggplot2](https://rstudio.github.io/cheatsheets/html/data-visualization.html).
+:::

@@ -4,378 +4,469 @@
 #| include: false
 #| eval: true
 source("_console.R")
-suppressMessages({library(tidyverse); library(janitor)})
-trial_data <- readr::read_csv("practice/data/canola_trial.csv", show_col_types = FALSE)
 ```
 
-Assume a new file is broken until you have checked.  It was typed by someone in a hurry and exported by software that had its own ideas about formatting.  This chapter starts with the shape a table should have, then tours the defects that show up most often in the values, how to find them, and what to do about them, first in Excel and then in R.
+A file that opens without an error may still contain duplicate rows, inconsistent names, mixed units and missing values recorded as ordinary text. Cleaning starts by finding these problems. The decisions that follow depend on what the values mean and where the file came from.
 
-The examples below use `grain_deliveries_messy.csv`, a small file of grain deliveries carrying every defect in this chapter.
+The examples use [`grain_deliveries_messy.csv`](practice/data/grain_deliveries_messy.csv), a small file of grain delivery tickets. Read it without letting `read_csv()` trim spaces so that we can see the spaces in some crop names:
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the packages used in this chapter
 library(tidyverse)
+library(janitor)
 
-deliveries <- read_csv("data/grain_deliveries_messy.csv")
+# Read the file and identify common missing-value codes
+deliveries <- read_csv(
+  "data/grain_deliveries_messy.csv",
+  na = c("", "NA", "N/A", "-", "."),
+  trim_ws = FALSE
+)
+
 glimpse(deliveries)
+')
 ```
+
+The output already shows two problems. `weight_tonnes` was read as text because one value contains a unit, and `delivery_date` is text because the file mixes date formats.
 
 ## Learning Objectives {.unnumbered}
 
 ::: {.objectives}
 By the end of this chapter you should be able to:
 
-1. Explain what tidy data means, and reshape a dataset between wide and long with `pivot_longer` and `pivot_wider`.
-2. Clean up awkward column names with `rename()` and `janitor::clean_names()`.
-3. Find duplicates, impossible values, inconsistent categories and mixed units in a new file.
-4. Recognize the disguises missing values wear, and count them properly.
-5. Decide -- and justify -- when dropping missing values is safe.
-6. Spot dates that imported as text, and say why it matters.
-7. Reshape and clean a table in Excel with Power Query, and say why its recorded steps matter.
+1. Explain what tidy data means and reshape a dataset with `pivot_longer()` and `pivot_wider()`.
+2. Clean column names with `rename()` and `janitor::clean_names()`.
+3. Find exact and conflicting duplicates.
+4. Find impossible values, inconsistent categories and mixed units.
+5. Recognize common codes for missing values and decide when observations can be dropped.
+6. Identify dates that were imported as text.
+7. Reshape and clean a table in Excel with Power Query.
 :::
 
 ## Tidy Data {#sec-tidy-data}
 
-Before the defects in individual values, the shape of the whole table.  The tidyverse is built around an idea called **tidy data** [@r4ds]. A dataset is tidy when:
+The tidyverse is organized around **tidy data** [@r4ds]. A dataset is tidy when:
 
-1. Every variable has its own **column**.
-2. Every observation has its own **row**.
-3. Every value has its own **cell**.
+1. Every variable has its own column.
+2. Every observation has its own row.
+3. Every value has its own cell.
 
-For example, this dataset is tidy:
+Suppose a table records yield for three crops in two regions. In a tidy version the columns are `region`, `crop` and `yield`, and each row is one region-crop combination. In a wide version the columns are `region`, `Canola`, `Wheat` and `Barley`. The crop names are values of the variable `crop`, but they have been stored as column names.
 
-```
-  region  crop   yield
-  South   Canola    41
-  South   Wheat     52
-  South   Barley    64
-  Central Canola    44
-  Central Wheat     55
-  Central Barley    68
-```
-
-An observation here is a region-crop combination; the variables are `region`, `crop`, and `yield`. Each variable has a column and each observation has a row.
-
-Now compare this version of the same data:
-
-```
-  region  Canola Wheat Barley
-  South       41    52     64
-  Central     44    55     68
-```
-
-This table is easier for a person to read, but it is not tidy. Canola, Wheat, and Barley are not three different variables; they are three values of the variable `crop`. This is the wide-versus-long distinction from @sec-wide-long, where a PivotTable needed the long form. For analysis in R, the long form is usually the more convenient one, because `crop` is an ordinary variable that R can filter by, group by, and compare.
+The wide table may be easier to read. The long, tidy table is usually easier to analyze because `crop` is a column that can be filtered, grouped and plotted. This is the wide-versus-long distinction from @sec-wide-long.
 
 ### Recognizing untidy data {.unnumbered}
 
-Some common warning signs:
+Common signs include:
 
-- **Values stored in column names.** A table with columns `region`, `2024`, `2025`, `2026`, where the year columns hold yields. The years are values of a variable called `year`; the tidy version has columns `region`, `year`, `yield`.
-- **More than one variable in a column.** A `region_variety` column containing `"South_InVigor"`. That is two variables, `region` and `variety`, in one column.
-- **One observation spread over several rows.** Price in one row and quantity in another row for the same market and year.
+- **Values stored in column names.** Columns named `2024`, `2025` and `2026` usually contain values of a variable called `year`.
+- **Several variables stored in one column.** A value such as `"South_InVigor"` combines a region and a variety.
+- **One observation spread over several rows.** Price in one row and quantity in another row for the same market and year prevents either row from describing the observation on its own.
 
-What counts as an observation depends on the dataset and the question, but the basic test is always the same: what does one row represent? You should be able to answer that. When you first open a dataset, ask what one row represents, what each column represents, whether any values are hiding in column names, and whether any column holds several variables at once.
+When you open a table, write down what one row represents and what each column represents. This usually makes the shape problem visible.
 
 ::: {.callout-tip collapse="true"}
-## Other resources — tidy data
+## Other resources -- tidy data
 
-- **R for Data Science (2nd ed.)** -- [Chapter 5, "Data tidying"](https://r4ds.hadley.nz/data-tidy) develops the tidy-data idea and shows how datasets are reshaped between long and wide forms.
+- **R for Data Science (2nd ed.)** -- [Chapter 5, "Data tidying"](https://r4ds.hadley.nz/data-tidy) develops the tidy-data idea and shows how to reshape datasets between long and wide forms.
 - **Video** -- Riffomonas Project, [*Reshaping data to be long or wide with pivot_longer and pivot_wider*](https://www.youtube.com/watch?v=ZVddiwrbrr4).
 :::
 
 ## Tidying and Cleaning in Excel {#sec-cleaning-excel}
 
-Excel has two ways to clean a table: formulas beside the data, and Power Query.  Formulas are quicker for a file you will clean once.  Power Query is the one to learn, because it does the reshaping too, and it records what it did.
+Excel offers three approaches. Formulas can clean a file once while leaving the raw columns visible. Power Query can reshape the table and records each cleaning step. Find & Replace changes cells directly and leaves little evidence of what was changed.
 
 ### Reshaping with Power Query {#sec-unpivot}
 
-The RM yields file (@sec-direct-download) is wide, one column per crop, and Power Query's **Unpivot** turns it long.  Import the file with **Data > Get Data > From Text/CSV** and press **Transform Data** to open the editor.  Select the columns that identify a row, `Year` and `RM`, and choose **Transform > Unpivot Columns > Unpivot Other Columns**.  Every crop column collapses into two: `Attribute`, holding the crop name that was in the header, and `Value`, holding the yield.  Double-click the headers to rename them `crop` and `yield_bu_ac`, then **Close & Load**.  2,950 rows become 17,700, one per RM-year-crop.
+The RM yields file (@sec-direct-download) is wide, with one column for each crop. Power Query calls the wide-to-long operation **Unpivot**. Import the CSV with **Data > Get Data > From Text/CSV**, choose **Transform Data**, select `Year` and `RM`, and then choose **Transform > Unpivot Columns > Unpivot Other Columns**. Rename the two new columns `crop` and `yield_bu_ac` before loading the result.
 
-<!-- Screenshot: Power Query editor with Year and RM selected and the Unpivot Other
-Columns menu open, or the result after unpivoting.
-![Unpivot Other Columns in the Power Query editor.  The crop headers become values in a `crop` column.](images/pq_unpivot.png){#fig-pq-unpivot}
--->
-
-The other direction, long to wide, is a PivotTable (@sec-wide-long), or **Transform > Pivot Column** in the same editor.
+The original 2,950 RM-year rows become 17,700 RM-year-crop rows. The reverse operation is **Pivot Column** in Power Query or a PivotTable on a worksheet.
 
 ### Cleaning with formulas {.unnumbered}
 
-The workbook below holds the grain delivery tickets with the cleaning done in formula columns beside the raw data, so the original is still there to check against.
-
-- **Categories.** The filter dropdown on a column lists every distinct value in it, which is Excel's `count()`.  Open it on `crop` and the three spellings of canola are all visible at once.  `=PROPER(TRIM(C5))` fixes case and stray spaces; **Find & Replace** handles synonyms like Canola/Rapeseed.
-- **Impossible values and mixed units.** `MIN` and `MAX` at the foot of a column do what `summary()` does.  An `IF` that rescales moisture readings under 1 is the `if_else()` from @sec-mixed-units.
-- **Duplicates.** **Data > Remove Duplicates** drops exact duplicates, and says how many it removed.  It does nothing about the same ticket number with two different weights; `=COUNTIF($A$5:$A$23, A5)` beside each row finds those.
-- **Text that should be numbers.** A number stored as text shows a green triangle in the corner of the cell and sorts in the wrong place.  `VALUE()` converts it, and **Text to Columns** (@sec-csv-excel) converts a whole column at once if you click through with the type set to General.
-- **Missing values.** `COUNTBLANK` counts empty cells.  Excel's `AVERAGE` skips blanks without telling you, which is the difference from R's `NA` (@sec-missing-values), so count them before you trust an average.
+The workbook below keeps the raw delivery data in columns A through F and places cleaning formulas beside it. The formulas standardize crop names, rescale moisture values entered as decimals, count repeated ticket numbers and flag impossible weights. `FORMULATEXT` cells show the formulas, and summary checks appear below the table.
 
 ::: {.workbook-callout}
-<!-- iframe embed goes here once the workbook is uploaded to SharePoint; follow the
-mod01_sum.xlsx block in module01a.qmd -->
+<!-- Public view-only link expires 2026-11-20 under the University of Saskatchewan 90-day policy. -->
 
-[Download this workbook](textbook_examples/mod03_cleaning_excel.xlsx)
+::: {.excel-embed}
+<iframe width="402" height="700" frameborder="0" scrolling="no" src="https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7B6F136BC8-96DB-499F-AE4B-A04CFDF86DED%7D&action=embedview&wdAllowInteractivity=False&wdDownloadButton=True&wdInConfigurator=True&ActiveCell=%27Cleaning%27!A1"></iframe>
 :::
+
+[Download this workbook](textbook_examples/mod03_cleaning_excel.xlsx) · [Open online](https://usaskca1-my.sharepoint.com/:x:/g/personal/pjs998_usask_ca/IQDIaxNv25afSa5LoEz9-G3tAXoBxYJcoWjP4fMOie4JVrQ?e=PsWLYM) (File → Save a Copy to view formulas and edit)
+:::
+
+The filter dropdown is useful when checking categories because it lists each distinct value. `MIN`, `MAX`, `COUNTBLANK` and a count of repeated identifiers cover many of the numerical checks. Keep the raw columns beside the cleaned ones so that a changed value can be traced back.
 
 ### Cleaning with Power Query {.unnumbered}
 
-Each of those has a Power Query equivalent, applied as a step in the editor rather than a formula in a cell.  With the deliveries file open in the editor:
+Power Query has recorded steps for the same work:
 
-- **Remove Top Rows** (Home > Remove Rows) drops a title and notes above the header, and **Use First Row as Headers** then promotes the real header.
-- **Change Type**, by clicking the icon in a column header, sets a column to Text, Whole Number, Decimal or Date.  Rows that fail to convert show `Error`, which is how you find a `38.2 t` in a numeric column.
-- **Transform > Format > Trim** and **Capitalize Each Word** fix spacing and case in `crop`.
-- **Replace Values** handles synonyms and disguised missing values: replace `Canola/Rapeseed` with `Canola`, or `N/A` with nothing, which Power Query stores as `null`, its `NA`.
-- **Remove Duplicates** (Home > Remove Rows) drops exact duplicates.  Conflicting duplicates still need a count: **Group By** `ticket_id` with a row count, then filter to counts above 1.
-- **Split Column > By Delimiter** is Text to Columns inside the editor.
-- **Fill > Down** fills blanks from the cell above, for spreadsheets where a category was typed once and left blank for the rows beneath it.
+- **Remove Top Rows** and **Use First Row as Headers** deal with files that begin with a title or notes.
+- The type icon in a column header sets a column to Text, Whole Number, Decimal or Date. A value that cannot be converted becomes an error that can be inspected.
+- **Transform > Format > Trim** removes extra spaces, and **Capitalize Each Word** standardizes capitalization.
+- **Replace Values** handles synonyms and missing-value codes. Power Query stores a missing value as `null`.
+- **Remove Duplicates** drops exact duplicates. To find a repeated identifier with different values, use **Group By** to count rows for each identifier and filter to counts above one.
+- **Split Column > By Delimiter** separates values that were stored together.
+- **Fill > Down** copies a category into blank cells below it when a spreadsheet records the label only once for a group of rows.
 
-The difference from formulas and from Find & Replace is that every step lands in the **Applied Steps** list on the right of the editor.  You can click any step to see the table as it was at that point, delete one, or change its settings.  When a new version of the file arrives, **Refresh** runs the whole list again.  Formulas beside the data leave the original visible; a retyped cell or a Find & Replace on the sheet leaves nothing, and a month later there is no way to tell what was changed.
+Each operation appears in the **Applied Steps** list. Clicking a step shows the table at that point. When a new version of the source file arrives, **Refresh** runs the steps again.
 
 ## Tidying and Cleaning in R {#sec-cleaning-r}
 
-### Reshaping: `pivot_longer` and `pivot_wider` {#sec-reshaping}
+### Reshaping with `pivot_longer()` and `pivot_wider()` {#sec-reshaping}
 
-Fixing the shape is the job of a pair of `tidyr` functions, which do what Unpivot and Pivot Column do in Power Query.
-
-`pivot_longer` is Unpivot.  You tell it which columns to gather, what to call the column that will hold their *names*, and what to call the column that will hold their *values*. The Saskatchewan RM yields again:
+`pivot_longer()` does the same job as Unpivot. It takes several columns, puts their names in one column and puts their values in another. Here is the RM yields table:
 
 ```{r}
 #| eval: true
 #| echo: false
 console('
-yields_wide <- read_csv("data/rm_yields_2015_2024.csv") |> clean_names()
+# Read the wide table and clean its column names
+yields_wide <- read_csv("data/rm_yields_2015_2024.csv") |>
+  clean_names()
+
 yields_wide
 
+# Put crop names and crop yields into columns
 yields_long <- yields_wide |>
-  pivot_longer(cols = spring_wheat:peas,
-               names_to = "crop",
-               values_to = "yield_bu_ac")
+  pivot_longer(
+    cols = spring_wheat:peas,
+    names_to = "crop",
+    values_to = "yield_bu_ac"
+  )
+
 yields_long
+nrow(yields_long)
 ')
 ```
 
-Six times as many rows, 17,700: one per RM-year-crop, with `crop` and `yield_bu_ac` as ordinary columns that `filter()` and `group_by()` can use.  `spring_wheat:peas` means every column from `spring_wheat` through `peas`; listing them with `c()` works too.
+The column selection `spring_wheat:peas` means every column from `spring_wheat` through `peas`. The result has one row per RM-year-crop and six times as many rows as the wide table.
 
-`pivot_wider` goes the other way.  Tell it which column holds the names and which holds the values:
+`pivot_wider()` goes in the other direction. `names_from` supplies the new column names and `values_from` supplies the values placed under them:
 
 ```{r}
 #| eval: true
 #| echo: false
 console('
+# Return the crop column to six separate crop columns
 yields_long |>
-  pivot_wider(names_from = crop, values_from = yield_bu_ac)
+  pivot_wider(
+    names_from = crop,
+    values_from = yield_bu_ac
+  )
 ')
 ```
 
-Long is usually what analysis wants; wide is often what people want to read.  Expect to pivot in both directions.
+Analysis often uses the long form, while a report may use the wide form.
 
 ### Awkward Column Names {#sec-clean-names}
 
-The first thing to fix is often the names. Real files arrive with columns like `Yield (bu/ac)`, `REGION_NAME`, or `Field ID Number` -- readable to a person, but annoying to type and easy to mistype in code. This book prefers **snake_case**: lowercase, words separated by underscores, short but descriptive -- `yield_bu_ac`, `region`, `field_id`.
+Column names such as `Yield (bu/ac)`, `REGION_NAME` and `Field ID Number` are cumbersome in code. This book uses **snake case**: lower-case words separated by underscores, such as `yield_bu_ac`, `region_name` and `field_id`.
 
-For individual columns, `rename()` does it:
+Use `rename()` when only a few names need changing. The new name goes on the left and the old name on the right:
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Make a small table with awkward names
+awkward_names <- tibble(
+  `Weight (t)` = c(42.1, 37.8),
+  CROP_NAME = c("Canola", "Wheat")
+)
+
+awkward_names |>
+  rename(
+    weight_tonnes = `Weight (t)`,
+    crop = CROP_NAME
+  )
+')
+```
+
+`janitor::clean_names()` converts every name in a data frame to snake case. The package is installed once with `install.packages("janitor")`, then loaded in each new R session with `library(janitor)`.
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Clean every column name in one call
+awkward_names |>
+  clean_names() |>
+  names()
+
+deliveries <- deliveries |> clean_names()
+')
+```
+
+### Text in a Numeric Column {#sec-text-numbers}
+
+The first `glimpse()` reported `weight_tonnes` as `<chr>`, or character text. One row contains `"38.2 t"`, so `read_csv()` could not treat the whole column as numeric. Find the values containing something other than a number, decimal point or minus sign:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Find weights containing a unit or other text
+deliveries |>
+  filter(str_detect(weight_tonnes, "[^0-9.-]")) |>
+  select(ticket_id, weight_tonnes)
+')
+```
+
+The file documentation says every weight is in tonnes, so the suffix can be removed. `parse_number()` keeps the numeric part:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Convert the weight column after checking its units
 deliveries <- deliveries |>
-  rename(weight_tonnes = "Weight (t)",
-         crop = CROP_NAME)
+  mutate(weight_tonnes = parse_number(weight_tonnes))
+
+glimpse(deliveries)
+')
 ```
 
-For wholesale renaming, `janitor::clean_names()` converts every column to snake_case in one call -- lowercase, underscores, special characters stripped. (It comes from the `janitor` package, not the tidyverse. Install it once with `install.packages("janitor")`.)
-
-```r
-library(janitor)
-deliveries <- read_csv("data/grain_deliveries_messy.csv") |> clean_names()
-```
-
-Run it on almost anything you read in.
+If the suffix indicated a different unit, removing it would give the wrong answer. Convert the value to the common unit before discarding the label.
 
 ### Duplicates {#sec-duplicates}
 
-There are two kinds, and the second is the harder one.
+An **exact duplicate** repeats the entire row. `duplicated()` finds the later copy, while `distinct()` keeps one copy of every unique row:
 
-An **exact duplicate** is the same row entered twice:
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Show exact duplicates
+deliveries |>
+  filter(duplicated(deliveries))
 
-```r
-deliveries |> filter(duplicated(deliveries))     # show them
-deliveries |> distinct()                          # drop them
+nrow(deliveries)
+
+# Keep one copy of each unique row
+deliveries <- deliveries |> distinct()
+nrow(deliveries)
+')
 ```
 
-A **conflicting duplicate** is the same identifier with different values: ticket `T0030` appearing twice with two different weights.  `distinct()` leaves these alone, because the rows are not identical.  Count to find them:
+A **conflicting duplicate** repeats an identifier but not the whole row. Ticket `T0030` appears with two different weights, so `distinct()` keeps both. Count the identifier to find it:
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Find ticket numbers that still occur more than once
 deliveries |>
   count(ticket_id) |>
   filter(n > 1)
+
+# Inspect every version of the repeated ticket
+deliveries |>
+  filter(ticket_id == "T0030")
+')
 ```
 
-No code fixes this one.  Somebody entered the delivery twice, or corrected it and left both rows, and you have to find out which is right.  If you cannot, say so in the write-up and explain what you did.
+The data alone does not say which row is correct. Check the source record. If that is impossible, report how the conflict was handled.
 
 ### Impossible Values {#sec-impossible-values}
 
-Every variable has values it cannot take.  A weight cannot be negative, a moisture percentage cannot be 250, and a delivery of exactly zero tonnes is possible but odd.
+Every numeric variable has a possible range. A delivery weight cannot be negative and a moisture percentage cannot be 250. `summary()` is a quick way to inspect the minimum and maximum:
 
-`summary()` catches most of this in one line, because impossible values turn up in the minimum and maximum:
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Inspect the ranges of the numeric measurements
+deliveries |>
+  select(weight_tonnes, moisture_pct) |>
+  summary()
 
-```r
-summary(deliveries)
+# Display values outside their possible ranges
+deliveries |>
+  filter(weight_tonnes <= 0 | moisture_pct > 100) |>
+  select(ticket_id, weight_tonnes, moisture_pct)
+')
 ```
 
-Then look at the offending rows:
+A negative weight may be a sign error or a reversed transaction. A moisture value of 250 may have lost its decimal point. Those are possible explanations, not facts. Correct a value only when the source supports the correction.
 
-```r
-deliveries |> filter(weight_tonnes <= 0 | moisture_pct > 100)
-```
-
-A negative weight is probably a sign error or a reversed transaction.  A moisture of 250 is probably 25.0 with a lost decimal point.  Both of those are guesses, so record them as guesses. Dropping the rows without saying anything is the thing to avoid.
-
-An impossible value is easy to rule on.  A merely *implausible* one -- a canola yield of 95 bu/ac, twice the provincial average -- is a judgement call: it might be an error, or the best field in the province.  Do not delete a value just because it is extreme.  Check it against the source if you can, and if you cannot, analyze the data with and without it and report whether it changes the answer.
+An extreme value can still be valid. A canola yield of 95 bu/ac is unusual, but it may belong to a very good field. Check it against the source and, if uncertainty remains, compare the analysis with and without it.
 
 ### Inconsistent Categories {#sec-categories}
 
-The same thing spelled several ways is the most common defect I run into, and it is easy to miss because every individual value looks fine.  Count the categories:
+Several spellings of the same category produce separate groups. Count each categorical column before using it in `group_by()`:
 
-```r
-deliveries |> count(crop)
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Count the crop names as they arrived
+deliveries |>
+  count(crop, sort = TRUE)
+')
 ```
 
-```
-  crop            n
-  "CANOLA"        2
-  "Canola"        6
-  "canola"        4
-  "Spring Wheat"  2
-  "Spring wheat"  8
-  "spring wheat"  5
-  ...
-```
+Capitalization and spaces can be standardized with string functions:
 
-Three spellings of canola and three of spring wheat, which `group_by(crop)` reads as six different crops.
-
-Fix the mechanical cases first:
-
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Remove extra spaces and use consistent capitalization
 deliveries <- deliveries |>
-  mutate(crop = str_trim(crop),        # strip stray spaces
-         crop = str_to_title(crop))    # "CANOLA" and "canola" -> "Canola"
+  mutate(crop = str_squish(crop),
+         crop = str_to_title(crop))
+
+deliveries |>
+  count(crop, sort = TRUE)
+')
 ```
 
-`str_to_title` handles capitalisation.  `read_csv` already strips surrounding spaces, so `str_trim` is belt-and-braces here, but other readers do not, and a space you cannot see is a match you cannot explain.
+Synonyms require an explicit decision. Put that decision in the script:
 
-Genuine synonyms like `"Canola"` and `"Canola/Rapeseed"` are a judgement call, so put them in an explicit recode where a reader can see the decision:
-
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Reconcile known synonyms while leaving other values unchanged
 deliveries <- deliveries |>
   mutate(crop = case_when(
     crop == "Canola/Rapeseed" ~ "Canola",
-    crop == "Soybean"         ~ "Soybeans",
-    TRUE                      ~ crop
+    crop == "Soybean" ~ "Soybeans",
+    TRUE ~ crop
   ))
+')
 ```
 
 ### Mixed Units {#sec-mixed-units}
 
-A right value in the wrong unit is harder to catch than a wrong value, because nothing looks broken.  In the deliveries file most moisture readings are percentages around 9.5, but a few were entered as decimals: 0.094 rather than 9.4.  No error, no warning, and the mean comes out too low.
-
-Knowing what range the variable should occupy is what catches it:
-
-```r
-deliveries |> filter(moisture_pct < 1)
-```
-
-Grain moisture is normally 8 to 16 percent, so anything under 1 is in the wrong unit.  Convert rather than drop:
-
-```r
-deliveries <- deliveries |>
-  mutate(moisture_pct = if_else(moisture_pct < 1, moisture_pct * 100, moisture_pct))
-```
-
-A file that records its own units in a column lets you convert with a `case_when` -- one condition per unit, as in the crop-name recode above -- instead of inferring from magnitude.
-
-### Missing Values {#sec-missing-values}
-
-In R, a missing value is `NA`, and most operations *propagate* it: any calculation involving `NA` returns `NA`.  The canola trial data has three fields with no rainfall reading -- a rain gauge fails, or a value never gets recorded -- so:
+Most moisture readings in the file are percentages near 8 to 15. Three were entered as decimal proportions, such as `0.099` rather than `9.9`. The values are numeric, so they produce no parsing error.
 
 ```{r}
 #| eval: true
 #| echo: false
 console('
-mean(trial_data$rainfall_mm)
+# Find moisture readings recorded as decimal proportions
+deliveries |>
+  filter(moisture_pct < 1) |>
+  select(ticket_id, moisture_pct)
 
+# Convert decimal proportions to percentages
+deliveries <- deliveries |>
+  mutate(
+    moisture_pct = if_else(
+      moisture_pct < 1,
+      moisture_pct * 100,
+      moisture_pct
+    )
+  )
+')
+```
+
+This rule depends on subject knowledge: a grain moisture value below 1 percent is not plausible here. If the file contains a unit column, use that column in `case_when()` instead of inferring the unit from the size of the value.
+
+### Missing Values {#sec-missing-values}
+
+R represents a missing value as `NA`. Most calculations involving `NA` return `NA`. The canola trial data has three fields with no rainfall reading:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Read a file containing three missing rainfall values
+trial_data <- read_csv("data/canola_trial.csv")
+
+mean(trial_data$rainfall_mm)
 mean(trial_data$rainfall_mm, na.rm = TRUE)
 ')
 ```
 
-The first call says: calculate the mean of these observations.  Three of them are unknown, so R cannot calculate the mean, and it returns `NA` rather than silently discarding information.  The second call, with `na.rm = TRUE` ("remove NAs"), says: calculate the mean using the observations that are not missing.  That may be exactly what we want -- but now the decision is visible in the code.
-
-This is an important difference from Excel, where many functions skip blank cells automatically.  Real files complicate it further in two ways: missing values arrive in disguise, and deciding what to do with them takes some thought.
+The first call returns `NA` because three rainfall values are unknown. The second calculates the mean from the observed values. The argument `na.rm = TRUE` makes that decision visible. Many Excel functions skip blank cells automatically, so the missing values need to be counted separately there.
 
 #### Missing values in disguise {.unnumbered}
 
-Missing data shows up in real files in several forms: an empty cell, the text `"NA"`, `"N/A"`, `"-"`, `"."`, or `-999`.  R recognises the blank and `NA`.  The rest come in as ordinary text and turn their column into `<chr>`.
+A blank cell, `"NA"`, `"N/A"`, `"-"`, `"."` and `-999` may all mean that no value was recorded. The `na` argument in the first `read_csv()` call told R which text codes to treat as missing.
 
-Tell `read_csv` what counts as missing:
+Count missing values in every column before deciding what to do with them:
 
-```r
-deliveries <- read_csv("data/grain_deliveries_messy.csv",
-                       na = c("", "NA", "N/A", "-", "."))
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Count missing values in each column
+deliveries |>
+  summarise(across(everything(), ~ sum(is.na(.))))
+')
 ```
 
-Then count what you have before deciding anything:
-
-```r
-deliveries |> summarise(across(everything(), ~ sum(is.na(.))))
-```
-
-A numeric code like `-999` is the dangerous one.  It will not turn the column to text; it will just be included in the mean as a number, which is another reason to run `summary()` on arrival and look at the minimum.
+A numeric code such as `-999` is more dangerous. R reads it as a number and includes it in calculations. `summary()` exposes it as an implausible minimum unless it is converted to `NA` when the file is read.
 
 #### Working with missing values {.unnumbered}
 
-A few patterns:
+`is.na()` identifies missing values and `drop_na()` removes rows that contain them:
 
-```r
-# Check for missing values
-is.na(deliveries$weight_tonnes)              # logical vector
-sum(is.na(deliveries$weight_tonnes))          # count of NAs
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Count missing weights
+sum(is.na(deliveries$weight_tonnes))
 
-# Remove rows with any missing values
-deliveries_clean <- deliveries |> drop_na()
+# Remove rows missing any variable
+deliveries |> drop_na()
 
-# Remove rows with missing values in specific columns
-deliveries_clean <- deliveries |> drop_na(weight_tonnes)
+# Remove rows missing selected variables
+deliveries |> drop_na(weight_tonnes, moisture_pct)
 
-# Compute a statistic ignoring NAs
-mean(deliveries$weight_tonnes, na.rm = TRUE)
-
-# Replace NAs with a value
-deliveries |> mutate(weight_tonnes = replace_na(weight_tonnes, 0))
+# Calculate a mean from the observed moisture readings
+mean(deliveries$moisture_pct, na.rm = TRUE)
+')
 ```
+
+Dropping every incomplete row can remove far more data than dropping rows missing the variables used in a particular calculation.
 
 #### When is dropping safe? {.unnumbered}
 
-It depends on *why* the values are missing.  If data is missing completely at random (a sensor failed arbitrarily), dropping missing values gives you unbiased estimates, just with less data.  If data is missing for a reason related to the value itself (only high-yielding fields were reported), dropping them can bias your results -- you will systematically overestimate yields.
-
-The honest answer to "what should I do with missing values" is almost always: *think about why they are missing*, and *document what you decided to do*.  There is no universal fix.
+The answer depends on why the values are missing. If a rain gauge failed at arbitrary times, the observed days may still represent the season, although there are fewer of them. If low-yielding farms were less likely to report, the remaining records will overstate average yield. Record how many values were missing, which observations were excluded and why the exclusion seemed reasonable.
 
 ### Dates Stored as Text {#sec-dates-text}
 
-A date column that imported as `<chr>` cannot be sorted chronologically or used in arithmetic.  It happens when the file mixes formats (`2025-09-15` in some rows, `Sept 15, 2025` in others), and it is worth catching early because `arrange()` on a text date sorts alphabetically without complaint.
+`glimpse()` reported `delivery_date` as `<chr>` because most rows use `2025-09-07` while two use day/month/year. Text dates sort alphabetically and cannot be used in date arithmetic.
 
-`glimpse()` shows the problem (`<chr>` where you expected `<date>`).  If the format is consistent, tell the reader what it is with `col_types` (@sec-col-types); if it is mixed, the rows that failed to parse are found the same way as any other type problem:
+Parse the expected format and inspect the rows that fail:
 
-```r
-deliveries |>
-  filter(is.na(as.Date(delivery_date))) |>
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Parse dates written as year-month-day
+deliveries_with_dates <- deliveries |>
+  mutate(date_parsed = as.Date(
+    delivery_date,
+    format = "%Y-%m-%d"
+  ))
+
+# Display dates written in a different format
+deliveries_with_dates |>
+  filter(is.na(date_parsed)) |>
   select(ticket_id, delivery_date)
+')
 ```
 
-Fixing messy dates properly uses tools we have not covered (the `lubridate` package is the standard one); for this course, it is enough to notice the problem and state the format explicitly when you read the file.
+Those rows need a second stated format or a date parser that accepts several formats. For this course, the main check is in `glimpse()`: a date column should be `<date>`, not `<chr>` (@sec-col-types).
 
 ## A Checklist {#sec-cleaning-checklist}
 
-Run through this on every new file:
+Use these checks on a new file:
 
-1. `glimpse()` -- are the column types what you expect?
-2. `summary()` -- are the minimums and maximums possible?
-3. `count()` each categorical column -- are the categories consistent?
-4. Count rows, and check for duplicated identifiers.
-5. Count `NA`s per column, and ask whether the missingness is random.
-6. Check the range of each numeric column against what the unit should be.
-
+1. Use `glimpse()` to check the dimensions, column names and types.
+2. Write down what one row represents and whether the table is tidy.
+3. Use `summary()` to inspect the ranges of numeric variables.
+4. Use `count()` on categorical variables and look for spelling and spacing differences.
+5. Check for exact duplicates and repeated identifiers.
+6. Count `NA`s in every column and look for other missing-value codes.
+7. Check that units are consistent and dates were read as dates.
+8. Record every correction, exclusion and assumption in the script or Power Query steps.
