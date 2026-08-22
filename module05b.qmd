@@ -1,8 +1,16 @@
 # GitHub Copilot {#sec-copilot}
 
+```{r}
+#| include: false
+#| eval: true
+source("_console.R")
+```
+
 GitHub Copilot works inside Positron. It can complete code while you type and provide a model for Posit Assistant chat, so the assistant can work with the script and project already open in the editor.
 
-The useful part is the context. Copilot can see more of the file than a question pasted into a separate browser window. It still does not know what a dataset contains unless the data or its structure is included in that context.
+The useful part is the context. Inline completions use text around the cursor; chat uses the selection or files you attach. It still does not know what a dataset contains unless the data or its structure is included in that context.
+
+GitHub Copilot and Microsoft 365 Copilot are separate products. GitHub Copilot supplies coding help in Positron and is the product used here. Copilot in Excel requires separate Microsoft licensing; GitHub Education does not unlock it.
 
 ## Learning Objectives {.unnumbered}
 
@@ -18,7 +26,7 @@ By the end of this chapter you should be able to:
 
 ## Getting Access {#sec-copilot-signup}
 
-GitHub offers a limited **Copilot Free** plan to individual developers. Verified students can also be eligible for **Copilot Student**, which includes additional use without a paid subscription.
+GitHub's plan names and student eligibility change. Check the linked GitHub student-access page for what is available this term and do not enter payment information for this course.
 
 To apply for the student benefit:
 
@@ -28,22 +36,14 @@ To apply for the student benefit:
 4. Supply current proof of enrolment, such as a student card with an enrolment date, a class schedule, a transcript or an enrolment letter.
 5. After verification, return to the benefits page and activate the Copilot benefit. Education approval and Copilot activation are separate steps.
 
-::: {.callout-note}
-## Current access note
-
-GitHub's documentation says that new sign-ups for student and several paid Copilot plans have been temporarily paused since April 20, 2026. Existing student access continues, and Copilot Free remains available. Do not enter payment information for this course. Use the free plan while the pause is in place and check GitHub's [student access page](https://docs.github.com/en/copilot/how-tos/copilot-on-github/set-up-copilot/enable-copilot/set-up-for-students) for the current status.
-:::
-
 Apply early. Verification can take several days, and the account may not be ready on the night an assignment is due.
-
-![Applying for GitHub Education student benefits.](images/copilot_student_pack.png){#fig-copilot-pack}
 
 ## Connecting Copilot to Positron {#sec-copilot-positron}
 
 Recent versions of Positron include AI support directly. You do not need to install the GitHub Copilot extension from the Extensions pane.
 
 1. Update Positron before beginning.
-2. Open the Command Palette with `Cmd+Shift+P` on macOS or `Ctrl+Shift+P` on Windows.
+2. Open **View > Command Palette**, or use `Cmd+Shift+P` on macOS or `Ctrl+Shift+P` on Windows.
 3. Run **Authentication: Configure Language Model Providers**.
 4. Select **GitHub Copilot** and sign in through the browser window that opens.
 5. Return to Positron and open Posit Assistant chat. Copilot should appear as an available provider.
@@ -51,6 +51,8 @@ Recent versions of Positron include AI support directly. You do not need to inst
 Copilot's grey inline completions become available after the same sign-in. If chat or completions do not appear, restart Positron. If the account was connected in an older Positron release, sign out of GitHub from the Accounts menu and sign in again.
 
 The command **AI: Create Diagnostic Report** lists the active providers and AI settings without exposing the content of your prompts. It is the quickest check when Positron appears connected but produces no suggestions.
+
+These command names were checked in August 2026. If a later Positron release uses different wording, search the Command Palette for “language model” or “AI” and consult the configuration page linked below.
 
 ## Two Ways to Use It {#sec-copilot-modes}
 
@@ -64,6 +66,15 @@ A comment can provide a short instruction:
 # Read the yield data and count rows by crop
 ```
 
+A plausible completion might invent both the file and column name:
+
+```r
+yields <- read_csv("yields.csv")
+count(yields, crop)
+```
+
+Neither name was supplied by the comment. Grey text is a suggestion, not evidence that the assistant found the correct file.
+
 Inline completion is useful for predictable syntax, repeated arguments and the next line of a pattern already present in the script. It is a poor place to ask for an explanation because the result arrives as code rather than a discussion.
 
 ### Posit Assistant chat {.unnumbered}
@@ -74,19 +85,62 @@ Posit Assistant is the default chat interface in Positron. GitHub Copilot can su
 
 ## Show the Shape of the Data {#sec-copilot-context}
 
-Copilot cannot infer a file's columns from its filename. If it has not seen `sask_variety_yields.csv`, code using `df$yield` is a guess.
+Copilot cannot infer a file's columns from its filename. If it has not seen `sask_variety_yields.csv`, code using an assumed column name is a guess.
 
-Run `glimpse(d)`, `str(d)` or `head(d)` and give the assistant the relevant output. A short comment above the request is often enough:
+Run `glimpse()` and inspect the categories rather than typing them from memory:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(janitor)
+})
+
+d <- read_csv(
+  "practice/data/sask_variety_yields.csv",
+  show_col_types = FALSE
+) |>
+  clean_names()
+
+glimpse(d)
+d |> distinct(crop)
+')
+```
+
+Paste that output, then make the requested missing-value decision explicit:
 
 ```r
-# d has columns: Risk_Zone, Crop, Variety, Year, Acres, Yield
-# Crop includes "Barley", "Canola/Rapeseed", and "Wheat - Hard Red Spring"
-# Acres and Yield contain missing values
+# d has columns: risk_zone, crop, variety, year, acres, yield
+# The complete crop list from distinct(crop) is pasted above.
+# Drop rows missing acres or yield and report how many were dropped.
 #
 # Compute mean 2025 yield by crop, weighted by acres
 ```
 
-This supplies the column names, category spelling, missing-value problem and intended calculation. Without those details, the assistant has to invent them.
+This supplies the exact names, category spellings, missing-value decision and intended calculation. A reasonable suggestion is:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+d_2025 <- d |>
+  filter(
+    year == 2025,
+    !is.na(yield),
+    !is.na(acres),
+    acres > 0
+  )
+
+d_2025 |>
+  summarise(
+    mean_yield = weighted.mean(yield, acres),
+    rows = n(),
+    .by = crop
+  )
+')
+```
 
 Context also has a privacy cost. A file included in an AI request leaves your machine. Public course data is suitable; confidential farm, employee, client or research data may not be. Follow the data owner's rules and the restrictions in @sec-ai-privacy.
 
@@ -97,6 +151,7 @@ Accept code when you can explain what it does and can name the check that would 
 - **Usually safe to accept after reading:** syntax you recognize, plotting boilerplate and repetitive argument lists.
 - **Read and test carefully:** joins, filters, grouped summaries, missing-value handling and any code that changes the number of rows.
 - **Stop and investigate:** unfamiliar functions or packages, an unexpectedly long solution or code whose result you cannot predict.
+- **For Excel, stop at `#NAME?`:** the function may require a newer Microsoft 365 build. Ask for a `SUMIFS` or `INDEX`/`MATCH` alternative when compatibility matters.
 
 Rejecting a suggestion costs almost nothing. Accepting code you do not understand leaves you responsible for a calculation you cannot defend or repair.
 
@@ -111,6 +166,25 @@ Use the same checks after every AI-assisted change:
 5. Inspect the final table or chart against the question that was asked.
 
 The assistant can help write a check. It cannot replace the independent evidence supplied by that check.
+
+For the weighted-mean example, count the rows and independently recalculate one crop from its numerator and denominator:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+nrow(d)
+nrow(d_2025)
+
+d_2025 |>
+  filter(crop == "Barley") |>
+  summarise(
+    checked_mean = sum(acres * yield) / sum(acres)
+  )
+')
+```
+
+In Excel, press F2 or use **Formulas > Evaluate Formula** to see which cells a formula reads, compare the result with a PivotTable, copy the formula down to test relative and absolute references, compare `COUNT` with `COUNTA` to find numbers stored as text, and require exact matching in every lookup.
 
 ::: {.callout-tip collapse="true"}
 ## Other resources -- Copilot and Positron
