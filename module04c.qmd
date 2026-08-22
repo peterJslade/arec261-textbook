@@ -15,12 +15,17 @@ The examples use [`field_yields.csv`](practice/data/field_yields.csv), with one 
 #| echo: false
 console('
 # Load the tidyverse and read the field data
-library(tidyverse)
+suppressPackageStartupMessages(library(tidyverse))
 
-yields <- read_csv("data/field_yields.csv")
+yields <- read_csv(
+  "practice/data/field_yields.csv",
+  show_col_types = FALSE
+)
 glimpse(yields)
 ')
 ```
+
+The file is simulated for teaching, so its patterns are not facts about canola. Three fields have no recorded yield.
 
 ## Learning Objectives {.unnumbered}
 
@@ -56,12 +61,11 @@ This scatter plot places field size on the horizontal axis and yield on the vert
 #| eval: true
 #| echo: true
 #| message: false
-#| warning: false
 #| fig-width: 5.4
 #| fig-height: 3.2
 #| fig-cap: "Field size and canola yield for sixty hypothetical fields."
 ggplot(yields, aes(x = acres, y = yield_bu_acre)) +
-  geom_point(na.rm = TRUE)
+  geom_point()
 ```
 
 Read the code in three parts:
@@ -71,6 +75,8 @@ Read the code in three parts:
 - `geom_point()` draws one point for each row with both values present.
 
 Layers are joined with `+`. A pipe passes a data object into a function; the `+` adds a layer to a ggplot object.
+
+The warning says that three rows were removed because their yields are missing. It is information, not an error. Once you have verified that the count is expected, `na.rm = TRUE` suppresses the message. Excel drops blank values from a chart without reporting how many it omitted.
 
 ## Common Geoms {#sec-geoms}
 
@@ -93,7 +99,7 @@ ggplot(yields, aes(x = acres, y = yield_bu_acre)) +
 
 ### `geom_line()`: change over time {.unnumbered}
 
-A line chart needs one value for each point along the horizontal axis. Our file has many fields in each year, so calculate the annual means first:
+A line chart needs one value for each point along the horizontal axis. The field file has only two years, which is not enough to show a meaningful trend, so use the ten-year RM-yield series from Module 3:
 
 ```{r}
 #| label: fig-r-line
@@ -103,17 +109,22 @@ A line chart needs one value for each point along the horizontal axis. Our file 
 #| warning: false
 #| fig-width: 5.4
 #| fig-height: 3.0
-#| fig-cap: "Mean field yield in 2024 and 2025."
-annual_mean <- yields |>
-  group_by(year) |>
-  summarise(mean_yield = mean(yield_bu_acre, na.rm = TRUE))
+#| fig-cap: "Mean published RM canola yield, 2015–2024."
+annual_mean <- read_csv(
+  "practice/data/rm_yields_2015_2024.csv",
+  show_col_types = FALSE
+) |>
+  group_by(Year) |>
+  summarise(mean_yield = mean(Canola, na.rm = TRUE)) |>
+  rename(year = Year)
 
 ggplot(annual_mean, aes(x = year, y = mean_yield)) +
   geom_line() +
-  geom_point()
+  geom_point() +
+  scale_x_continuous(breaks = 2015:2024)
 ```
 
-The summary creates one row per year. `geom_line()` then connects those two rows in year order.
+The summary creates one row per year. `geom_line()` connects those rows in year order, and `scale_x_continuous()` states the integer-year tick marks. Excel's Line chart usually treats years as evenly spaced category labels instead.
 
 ### `geom_col()` and `geom_bar()`: bars {.unnumbered}
 
@@ -136,6 +147,8 @@ ggplot(region_means, aes(x = region, y = mean_yield)) +
   geom_col()
 ```
 
+A bar of means hides how many fields are behind it and how much they vary. The box plot below shows the spread and is usually more informative for comparing these regions. In Excel, sort the summary table to reorder the bars.
+
 Use `geom_bar()` when the desired value is the number of rows. It counts the observations in each category:
 
 ```{r}
@@ -150,6 +163,8 @@ Use `geom_bar()` when the desired value is the number of rows. It counts the obs
 ggplot(yields, aes(x = region)) +
   geom_bar()
 ```
+
+Excel has no counting chart: use `COUNTIF` or a PivotTable to create the counts, then chart that summary.
 
 ### `geom_histogram()` and `geom_boxplot()`: distributions {.unnumbered}
 
@@ -168,6 +183,8 @@ ggplot(yields, aes(x = yield_bu_acre)) +
   geom_histogram(bins = 12, na.rm = TRUE)
 ```
 
+With only 57 recorded yields, the apparent shape changes noticeably with 5, 12 or 30 bins; none is a uniquely true display. In Excel use **Insert > Statistical Chart > Histogram**, then **Format Axis** to set Bin width or Number of bins.
+
 A box plot makes distributions compact enough to compare across categories.
 
 ```{r}
@@ -182,6 +199,8 @@ A box plot makes distributions compact enough to compare across categories.
 ggplot(yields, aes(x = region, y = yield_bu_acre)) +
   geom_boxplot(na.rm = TRUE)
 ```
+
+Excel's **Box and Whisker** chart is in the same Statistical Chart menu, but it expects each group's values in a separate column.
 
 ### `geom_smooth()`: fitted patterns {.unnumbered}
 
@@ -198,10 +217,14 @@ ggplot(yields, aes(x = region, y = yield_bu_acre)) +
 #| fig-cap: "Field size and yield with a fitted straight line."
 ggplot(yields, aes(x = acres, y = yield_bu_acre)) +
   geom_point(alpha = 0.45, na.rm = TRUE) +
-  geom_smooth(method = "lm", na.rm = TRUE)
+  geom_smooth(
+    method = "lm",
+    formula = y ~ x,
+    na.rm = TRUE
+  )
 ```
 
-The line summarizes the relationship present in these observations. Module 7 explains what the fitted line estimates and how to interpret it.
+Here the line is nearly flat and the 95% confidence band is wide: these synthetic fields show no clear relationship between field size and yield. A fitted line is drawn whether or not a clear relationship exists, so read the points and band as well as the line. In Excel use **Chart Design > Add Chart Element > Trendline > Linear**; Excel can display the equation and R-squared but does not add this confidence band. Module 7 explains what the line estimates.
 
 ## Mapping and Setting Aesthetics {#sec-mapping-vs-setting}
 
@@ -230,6 +253,8 @@ ggplot(yields, aes(x = acres, y = yield_bu_acre)) +
 
 Putting `colour = "steelblue"` inside `aes()` would ask ggplot to map the literal category `"steelblue"` to a colour scale, producing an unnecessary legend.
 
+In Excel, colouring points by a category requires one series per group: restructure the data with `FILTER()` or a PivotTable, then use **Select Data > Add** for each series. The one-line `aes(colour = region)` is a practical advantage of ggplot2.
+
 ## Labels and Themes {#sec-ggplot-polish}
 
 `labs()` supplies the text and `theme_minimal()` changes the non-data elements of the plot:
@@ -246,7 +271,7 @@ Putting `colour = "steelblue"` inside `aes()` would ask ggplot to map the litera
 ggplot(yields, aes(x = acres, y = yield_bu_acre, colour = region)) +
   geom_point(alpha = 0.65, na.rm = TRUE) +
   labs(
-    title = "Canola yield by field size",
+    title = "Field size and yield, by region",
     subtitle = "Sixty hypothetical Saskatchewan fields, 2024--2025",
     x = "Field size (acres)",
     y = "Yield (bu/acre)",
@@ -279,15 +304,19 @@ ggplot(yields, aes(x = yield_bu_acre)) +
 
 `facet_grid(region ~ variety)` creates a two-dimensional grid. Use it only when the resulting number of panels remains readable.
 
+Excel has no direct faceting feature. Use a PivotChart with a slicer to view one group at a time, or build one chart per group and set identical axis bounds manually.
+
 ## Saving Plots {#sec-saving-plots}
 
-Save a ggplot object before passing it to `ggsave()`:
+Assigning a plot to a name before `ggsave()` makes the saved object explicit and lets you reuse it. Create the destination folder first:
 
 ```{r}
 #| eval: true
 #| echo: false
 console('
 # Build and save the regional box plot
+dir.create("output", showWarnings = FALSE)
+
 region_plot <- ggplot(
   yields,
   aes(x = region, y = yield_bu_acre)
@@ -305,7 +334,7 @@ ggsave(
 ')
 ```
 
-Width and height are in inches unless another unit is supplied. PNG works for slides and web pages; PDF or SVG preserves vector lines and text for publication.
+Width and height are in inches unless another unit is supplied. PNG works for slides and web pages; PDF preserves vector lines and text for publication. SVG output requires the **svglite** package. Unlike Excel's **Save as Picture**, `ggsave()` lets you state the output dimensions and resolution in code.
 
 ::: {.callout-tip collapse="true"}
 ## Other resources -- ggplot2
