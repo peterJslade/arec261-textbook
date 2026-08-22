@@ -1,123 +1,178 @@
-# Seeing Relationships {#sec-seeing-relationships}
+# Making a Workbook Someone Else Can Read {#sec-workbook-aesthetics}
 
-```{r}
-#| include: false
-#| eval: true
-source("_console.R")
-```
-
-Modules 1 to 6 were about one variable at a time: how is yield distributed, what is the
-mean, what is the spread.  This module is about pairs of variables: does yield change with
-fertilizer, does price move with quality, do two crops rise and fall together.
-
-Almost every interesting question in data analysis is a question about a relationship.  The
-rest of the course is, in one way or another, about formalizing these questions.
+Module 1 was about getting Excel to compute the right answer.  This chapter is about the
+other half of the job: handing the file to someone else.  A workbook that only you can
+follow is not finished work, and the difference between the two is mostly decisions about
+layout and presentation rather than anything technical.
 
 ## Learning Objectives {.unnumbered}
 
 ::: {.objectives}
-By the end of this chapter you should be able to:
+By the end of this chapter, you will be able to:
 
-1. Read a scatter plot before computing anything from it.
-2. Say whether a relationship looks linear, curved, or absent.
-3. Spot outliers and explain why one point can move a fitted line.
-4. Recognize spread that grows across the plot, and hidden subgroups.
+- Decide how much polish a workbook needs, based on who will open it
+- Lay a workbook out so a reader can find their way around it
+- Use shading, borders and labels to make a table readable without making it
+  harder to analyse
+- Recognize the trade-off between a workbook that looks good and one that is easy
+  to compute with
+- Link between sheets, and protect the cells a reader should not change
 :::
 
-## Look First {#sec-look-first}
+## Who Is Going to Open This? {#sec-workbook-audience}
 
-You met the scatter plot in @sec-graphing-principles: one variable on each axis, a point for
-every observation.  Here we use it for a different purpose.  There it was a way to *show* a
-relationship to a reader.  Now it is a way to *find out* what the relationship is, before you
-put a number on it.
 
-The order matters.  Every summary in this module -- the correlation, the fitted line -- is a
-single number standing in for a whole cloud of points.  Each one assumes something about the
-shape of that cloud, and each one will hand you an answer whether or not the assumption holds.
-The plot is how you check.
+A **workbook** is one Excel file; it holds one or more **worksheets** ("sheets" or "tabs"). A habit worth building early is deciding deliberately how to split work across sheets -- and that starts with one question you should ask *every time*: **who is the audience for this workbook?** Three answers, each shaping how you build it:
 
-The dataset for this module is [`canola_trial.csv`](practice/data/canola_trial.csv).
-Download it into your project's `data/` folder and load it:
+- **Just you.** A scratchpad -- quick numbers for today's decision, or exploratory work. You can get away with fewer sheets, terser labels, less formatting. But be honest: "just for me" files have a habit of becoming "I need to send this to my boss tomorrow" files, so if there is any chance it will be shared, build it as if it will be.
+- **Internal colleagues.** A file for a co-worker, your boss, or the TA. Now you want a README, clear labels, consistent structure, and enough formatting to navigate without asking you questions. Aim for "clean and self-explanatory," not "pretty."
+- **External audiences.** A file for clients, regulators, or the public. Here aesthetics genuinely matter -- consistent formatting, polished tables, charts that stand on their own, often with the working sheets hidden. Every element reflects on you or your organization.
 
-```r
-library(tidyverse)
+There is no single "right" level of polish -- it depends on who opens the file. The mistake is not thinking about it at all. Match the polish to the audience.
 
-trial <- read_csv("data/canola_trial.csv")
+A complex workbook should open with a **README or contents** sheet. This explains what the workbook is, who made it and when, where the inputs came from, and what each of the other sheets contains. It can also hold *links* to those sheets, so a reader can jump straight to what they need.
+
+If you are doing a lot of data cleaning, it is also good practice to store **raw data** in a separate sheet from the **cleaned data**.  This way you can always come back to the raw data and see what is the result of your work versus the raw data.
+
+Finally, it is best to do **analysis** and **charts** in separate sheets, rather than having one sheet with 32 charts and 16 summary statistics.  Of course, you don't need to have a separate worksheet where you calculate the mean, and another where you calculate the median, and another where you calculate the standard deviation.  But generally, you don't want too much analysis on the same sheet.  So for example, you might have one sheet for **summary statistics** and another for **hypothesis tests**.
+
+The principle is **separation of concerns**: raw data, cleaning, analysis, and presentation each have their own place.
+
+## Aesthetics {#sec-aesthetics}
+
+In addition to calculations, Excel allows you to shade cells, put borders around tables, add text that describes the data, and insert images.  These can all create a much nicer aesthetic than a wall of numbers.  However, they can also make subsequent analysis of the data frustrating.  So how many of these flourishes you add depends on your audience.
+
+One audience might simply want to view the data -- in which case you should format it so that they can see the dataset as easily as possible -- use borders around tables, use bold text for totals, etc. An example of this is the data showing the capacity of grain elevators in Manitoba.  The aesthetic is pretty minimal, but the bolding and borders allow the user to quickly understand the dataset.  
+
+::: {.workbook-callout}
+::: {.callout-tip collapse="true"}
+## Manitoba primary elevator capacity 
+::: {.excel-embed}
+<iframe width="402" height="700" frameborder="0" scrolling="no" src="https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc={8fb90cb0-7b85-48ea-805c-51ea6c2fe1fc}&action=embedview&wdAllowInteractivity=False&wdHideGridlines=True&wdHideHeaders=True&wdDownloadButton=True&wdInConfigurator=True&wdInConfigurator=True"></iframe>
+:::
+
+[Download this workbook](textbook_examples/mb_primary_elevator_capacity_2025.xlsx) · [Open online](https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7B8fb90cb0-7b85-48ea-805c-51ea6c2fe1fc%7D&action=default) (File → Save a Copy to view formulas and edit)
+
+Source: Manitoba Agriculture, Foresight and Analysis -- [Markets and Statistics](https://www.gov.mb.ca/agriculture/markets-and-statistics/index.html).
+:::
+:::
+
+Another audience might want to do specific calculations with the data.  An example of this is the Saskatchewan Crop Planning Guide, which allows users to input their own costs, expected yields, and crop prices to calculate the profitability of different crops.  It is a fairly complex workbook, with a sheet for every major crop in the province.  However, it is pretty user-friendly and easy to navigate: it opens with a disclaimer, lists its assumptions on their own sheet, and uses an identical layout on every crop sheet, so once you can read one you can read them all.
+
+::: {.workbook-callout}
+::: {.callout-tip collapse="true"}
+## Saskatchewan Crop Planning Guide
+::: {.excel-embed}
+<iframe width="402" height="700" frameborder="0" scrolling="no" src="https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc={f42f0752-ddfe-4935-b6b6-329751f5e17d}&action=embedview&wdAllowInteractivity=False&wdHideGridlines=True&wdHideHeaders=True&wdDownloadButton=True&wdInConfigurator=True&wdInConfigurator=True"></iframe>
+:::
+
+[Download this workbook](textbook_examples/sask_crop_planning_guide_2026.xlsx) · [Open online](https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7Bf42f0752-ddfe-4935-b6b6-329751f5e17d%7D&action=default) (File → Save a Copy to view formulas and edit)
+
+Source: Saskatchewan Ministry of Agriculture -- [Crop Planning Guide and Crop Planner](https://www.saskatchewan.ca/business/agriculture-natural-resources-and-industry/agribusiness-farmers-and-ranchers/farm-business-management/crop-planning-guide-and-crop-planner) (2026 edition).
+:::
+:::
+
+Yet another audience might want to do more detailed analysis of the data, and would prefer it in a more raw form.  An example is the yield data from the Saskatchewan government (which we will work with more throughout this book), which gives yields of major crops in each of Saskatchewan's rural municipalities.  This data has no adornments -- one header row, one row per observation, starting in cell `A1` -- which is exactly what an audience that wants to run its own analysis needs.
+
+::: {.workbook-callout}
+::: {.callout-tip collapse="true"}
+## Saskatchewan RM yields, 2024–2025 
+::: {.excel-embed}
+<iframe width="402" height="700" frameborder="0" scrolling="no" src="https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc={2f01e9d5-cb52-4910-bfe2-a45c008087f2}&action=embedview&AllowTyping=True&ActiveCell='RM_Yields_2024_2025'!A1&wdHideGridlines=True&wdHideHeaders=True&wdDownloadButton=True&wdInConfigurator=True&wdInConfigurator=True"></iframe>
+:::
+
+[Download this workbook](textbook_examples/sask_rm_yields_2024_2025.xlsx) · [Open online](https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7B2f01e9d5-cb52-4910-bfe2-a45c008087f2%7D&action=default) (File → Save a Copy to view formulas and edit)
+
+Source: Government of Saskatchewan -- [Saskatchewan's Dashboard: RM Yields](https://dashboard.saskatchewan.ca/agriculture/rm-yields/rm-yields-data). Extract filtered to 2024–2025.
+:::
+:::
+
+## Sympathy for Your Audience {#sec-audience-sympathy}
+
+Every piece of analysis has a reader. Before you write a single sentence, ask yourself:
+
+- **Who is this reader?** Their job, their technical background, what they care about.
+- **What do they already know?** Don't explain things they know. Do explain things they don't.
+- **What decision are they trying to make?** Every report exists to inform some decision. Find it.
+- **What will they do with the report?** Read it front to back? Skim the executive summary? Search for a specific number?
+- **How much time will they spend?** Be ruthlessly respectful of it.
+
+Good technical writing takes some sympathy for the reader: imagining what the file looks like to someone who has not spent the last three days inside it. That is hard to do, precisely because you have.
+
+A practical tip: after you finish a draft, put it away for a day and come back to it. You will read it with fresher eyes and spot places where you assumed too much context.
+
+## Formatting Excel Workbooks for Handoff {#sec-excel-formatting}
+
+Sometimes your deliverable is an Excel workbook. Here are habits that will make the difference between a workbook your colleague can use and one they'll quietly throw away:
+
+- **Start with a README sheet.** What is this file? Who made it? When? What does each sheet contain? How often is it updated?
+- **Separate raw, cleaned, and analyzed data.** As discussed in Module 1 -- and consider protecting the raw sheet (@sec-locking-cells) so nobody edits it by accident.
+- **Use named cells for assumptions.** Every assumption in your model (discount rate, growth rate, cost per unit) should live in a labelled cell that is easy to find and change.
+- **Label everything.** Every column, every chart, every table header. "The reader should never have to ask 'what is this?'"
+- **Use conditional formatting sparingly.** It can be powerful, but it can also make a workbook look like a Christmas tree. Use it to highlight things that need attention, not to decorate.
+- **Freeze panes.** If you have a large table, freeze the header row so it stays visible when you scroll.
+- **Document your formulas.** At the top of an analysis column, write a cell explaining what the formula computes.
+- **Include the date you last updated it.** In the README.
+
+## Hyperlinks {#sec-hyperlinks}
+
+Once a workbook runs to more than three or four sheets, a reader has to hunt along the tabs
+at the bottom of the window to find anything.  A hyperlink fixes that: it turns a cell into
+something you can click to jump somewhere else.
+
+To make one, right-click a cell and choose **Link** (or press `Ctrl+K` / `⌘K`).  The dialog
+offers a few kinds:
+
+- **To a place in this document.**  Pick a sheet from the list, and optionally a cell
+  reference like `A1`.  This is the one that makes a README sheet worth having: list the
+  other sheets down the page and link each one, so a reader can jump straight to the part
+  they want.
+- **To a file or web page.**  Point at the source the data came from -- the SCIC page, the
+  StatCan table -- so the provenance is one click away rather than in an email somewhere.
+- **To an email address.**  Useful on a README: whose file is this, and who does a reader
+  ask about it.
+
+There is also a formula version, `HYPERLINK(target, friendly_name)`, which is handy when the
+destination is itself calculated:
+
+```
+=HYPERLINK("#'Summary'!A1", "Go to summary")
+=HYPERLINK("https://dashboard.saskatchewan.ca/agriculture/rm-yields/rm-yields-data",
+           "Source: Saskatchewan Dashboard")
 ```
 
-It has 120 canola fields, each with a nitrogen rate (`fertilizer_kg_ha`), growing-season
-rainfall (`rainfall_mm`), the `variety` grown, and the `yield_bu_acre` harvested.
+Note the `#` for a destination inside the same workbook, and the single quotes around a
+sheet name that contains a space.
 
-```r
-ggplot(trial, aes(x = fertilizer_kg_ha, y = yield_bu_acre)) +
-  geom_point()
-```
+One caveat worth knowing, because it will bite you.  **Links between sheets work in desktop
+Excel but often do nothing in Excel for the web**, and they are usually dead in the read-only
+preview windows that embed a workbook in a web page.  So use them, but do not rely on them
+as the only way to find something.  Name your tabs clearly, and if a README refers to
+another sheet, say its name in the text as well as linking it.
 
-## Four Things to Look For {#sec-what-to-look-for}
+## Locking Cells {#sec-locking-cells}
 
-### Is it a line, or a curve? {.unnumbered}
+If you hand someone a workbook where they are meant to type in their own numbers, you
+usually want them typing in *some* cells and not others.  The Crop Planning Guide from
+earlier is a good example: a producer fills in their own acres and prices, and the formulas
+that turn those into a cost per acre are none of their business.  If they overwrite one by
+accident the whole sheet quietly goes wrong.
 
-The methods in this module fit straight lines.  If the cloud bends, a straight line will
-still be fitted, and it will still report a slope, and the slope will be misleading.
+Excel handles this with two settings that have to be used together, which is the part people
+find confusing.  Every cell has a **Locked** property, switched on by default -- but it does
+nothing at all until you **protect the sheet**.  So the workflow runs backwards from what you
+might expect:
 
-Curvature is common in agronomy.  Fertilizer response is the standard case: the first
-50 kg/ha of nitrogen buys a lot of yield, the next 50 buys less, and past some point more
-nitrogen does nothing.  That is a curve, and forcing a line through it understates the effect
-at low rates and overstates it at high ones.
+1. Select the cells you want people to be able to edit -- the input cells.
+2. Right-click, **Format Cells → Protection**, and *untick* **Locked**.
+3. Then **Review → Protect Sheet**, and click OK.
 
-### Is one point running the show? {.unnumbered}
+Everything you did not unlock is now read-only.  Typing in it gets you a polite refusal
+rather than a broken formula.  You can set a password, though for a teaching workbook or a
+file for a colleague there is rarely a reason to.  The point is to prevent accidents, not to
+keep secrets.  Anyone who really needs to change something can unprotect the sheet.
 
-A single observation far from the rest can pull a fitted line a long way, particularly if it
-sits at the far left or right of the plot.  A point out at the edge has leverage: it is a long
-way from the centre of the data, so tilting the line toward it costs little elsewhere.
-
-When you see one, find out what it is before you decide what to do.  A field that yielded
-9 bu/ac because it was hailed out is a real observation, but it is not telling you about the
-fertilizer response, and it does not belong in a regression that is meant to.  A yield of
-340 bu/ac is a data-entry error.  Neither should be dropped silently -- say what you removed
-and why.
-
-### Does the spread stay the same? {.unnumbered}
-
-Look at how tightly the points hug the trend at the left of the plot, and compare it with the
-right.  If the scatter fans out -- tight at low values, wide at high ones -- the relationship
-is less predictable at one end than the other.
-
-The fitted line can still be a reasonable summary.  What breaks is the uncertainty around it,
-which is calculated assuming the scatter is even.  We will not do anything about that in this
-module; Modules 11 to 13 are where uncertainty gets treated properly.  For now, notice it and
-say so.
-
-### Is the cloud actually two clouds? {.unnumbered}
-
-Sometimes what looks like one relationship is two groups sitting in different places.  Two
-varieties with different yield potential, two soil zones, two years with different weather.
-Colour the points by a third variable and the structure appears:
-
-```r
-ggplot(trial, aes(x = fertilizer_kg_ha, y = yield_bu_acre, colour = variety)) +
-  geom_point()
-```
-
-This matters more than it looks.  A relationship computed across mixed groups can be quite
-different from the relationship within each one -- occasionally it even points the other way.
-That is a real phenomenon with a name, Simpson's paradox, and the multiple regression in
-@sec-multiple-regression is one way of dealing with it.
-
-## Anscombe's Quartet {#sec-anscombe}
-
-The argument for plotting first has a famous demonstration.  Frank Anscombe built four small
-datasets that share almost every summary statistic: the same means, the same standard
-deviations, the same correlation, the same fitted line.  Plotted, they look nothing alike --
-one is a tidy linear relationship, one is a clean curve, one is a perfect line with a single
-outlier dragging it, and one is a vertical stack with one point off to the side.
-
-It ships with R, so you can see it yourself:
-
-```r
-anscombe
-```
-
-Four numbers agreed on four datasets that have nothing in common.  Any of the summaries in
-this module can be computed on data it has no business describing.  Plot first.
-
+Two things worth knowing.  Protection is per sheet, so a workbook with a raw-data tab and a
+working tab needs each protected separately.  And it is not security: a protected sheet
+without a password comes apart in a couple of clicks, and even with one it is not hard to
+get around.  Treat it as a guard rail, not a lock.

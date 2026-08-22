@@ -1,127 +1,201 @@
-# Writing a Report {#sec-writing-reports}
+# Merging Data {#sec-merging-data}
 
-Almost everything you produce in a working life ends up inside a document someone else
-reads.  The analysis might be excellent, but if the report is confusing, or buries the
-answer on page four, or presents a number without saying what it means, the work does not
-land.  This chapter is about the document.
+```{r}
+#| include: false
+#| eval: true
+source("_console.R")
+suppressMessages({library(tidyverse); library(janitor)})
+```
 
-The advice here is the same whether you are writing the course project, a memo for a farm
-manager, or a report for a client -- only the length changes.  You now have charts worth
-putting in one, and this is where they go.
+Data arrives in pieces.  Suppose the question is whether canola yields in Saskatchewan track growing-season rain.  The yields are in one file, from one agency.  The rain is in another, from a different agency, measured at weather stations rather than in rural municipalities. Nothing in either file mentions the other.  Answering the question means putting the pieces together, and that is what a **merge** (or **join**) does: it lines up rows from two tables that refer to the same thing and puts their columns side by side.
+
+This chapter works through one merge, first in Excel and then in R.  Three tables are involved, because yields and rain have no column in common and a third table is needed to connect them.
 
 ## Learning Objectives {.unnumbered}
 
 ::: {.objectives}
-By the end of this chapter, you will be able to:
+By the end of this chapter you should be able to:
 
-- Structure a report so a reader finds the answer quickly
-- Write an opening that states what you found, rather than what you did
-- Present a number so that it means something to the reader
-- Introduce a chart in the text rather than leaving it to speak for itself
-- Say what your analysis cannot tell you, without undermining it
+1. Identify the key that connects two tables, and say whether the relationship is one-to-one, many-to-one or many-to-many.
+2. Merge tables in Excel with `XLOOKUP`, including on a two-part key.
+3. Merge tables in R with `left_join()` and friends.
+4. Check what failed to match, and why a merge can return more rows than it started with.
 :::
 
-## Lead With the Answer {#sec-lead-with-answer}
+## The Three Tables {#sec-three-tables}
 
-The commonest mistake in a data report is telling the story in the order you did the work:
-here is the data, here is how I cleaned it, here is the method, here is the result, and
-finally -- on the last page -- here is what it means.  That is the order of your effort, not
-the order of your reader's interest.
+All three are real and can be downloaded:
 
-Your reader wants the answer.  Put it first, in plain language, in the opening paragraph:
+- [`rm_yields_2015_2024.csv`](practice/data/rm_yields_2015_2024.csv): the Saskatchewan RM yields from @sec-direct-download, cut down to 2015 to 2024 and six crops.  One row per RM per year, 2,950 rows, yields in bushels per acre.
+- [`station_precip.csv`](practice/data/station_precip.csv): one row per weather station per year, 160 rows, with total May to August precipitation in millimetres computed from Environment Canada's daily records for sixteen stations across the grain belt, and a count of days with no reading.
+- [`rm_lookup.csv`](practice/data/rm_lookup.csv): one row per RM, 296 rows, with its name, census division and 2021 population from Statistics Canada, and the nearest of the sixteen weather stations, with the distance to it in kilometres.
 
-> Canola yields in the black soil zone averaged 42 bushels per acre over the last five
-> years, about 15% higher than in the brown zone.  The gap is consistent across every year
-> in the data, so it is unlikely to be weather in any single season.
+The yields table knows about RMs and years.  The rain table knows about stations and years. Neither knows about the other, and the lookup table is the bridge: it is the only file that says which station goes with which RM.  So the merge has two steps.  Attach a station to every yield row using the lookup, then attach that station's rain for that year.
 
-That is a whole report in three sentences.  Everything that follows is there so a reader who
-wants to check the claim can do so -- but a reader who only has thirty seconds still leaves
-with the finding.
+### Keys {.unnumbered}
 
-Write this paragraph last, once you know what you actually found.
+A merge matches rows on a **key**, a column (or columns) that both tables share and that identifies what a row is about.  Before merging anything, write down what identifies a row in each table:
 
-## A Structure That Works {#sec-report-structure}
+- In the yields table it is `RM` and `Year` together.  RM 1 appears ten times, once per year.
+- In the lookup table it is `RM_Number` alone.  Each RM appears once.
+- In the rain table it is `Station` and `Year` together.
 
-Almost any data report fits this shape.  For a short piece, each numbered item is a
-paragraph; for a long one, a section.
+The first step joins yields to the lookup on RM.  The second joins the result to the rain on station *and* year, because a station alone does not identify one rain total; it identifies ten of them.
 
-1. **The answer.**  What you found, stated plainly.  As above.
-2. **The question.**  What were you asked, and why does it matter?  A reader needs to know
-   what problem this is solving before they will care about the method.
-3. **The data.**  Where it came from, what it covers, and what it does *not* cover.  If you
-   cleaned or filtered it, say what you dropped and why -- this is where a reader decides
-   whether to trust the rest.
-4. **What you did.**  In plain language.  Not every function you called; the idea of the
-   analysis.  "We compared the average yield in each soil zone, weighting by acres so that
-   larger regions counted more."
-5. **The results.**  The main body: charts, tables, and the numbers that matter, each one
-   introduced in the text.
-6. **What it means, and what it does not.**  The interpretation, and the honest caveats.
-7. **Sources.**  Where the data came from, so someone else could repeat the work.
+### One-to-one, many-to-one, many-to-many {.unnumbered}
 
-Two things about the order.  The answer comes first and the caveats come last, which is the
-opposite of how nervous writers do it -- they hedge for two pages before committing to
-anything.  Hedge at the end, once the reader knows what you are hedging about.
+How many rows on each side share a key value decides what comes back from a merge. @fig-join-types shows the three cases with a table of students' grades on the left, joined to three different tables.
 
-## Presenting Numbers {#sec-presenting-numbers}
+![Three kinds of merge.  Each line connects a grades row to the row it matches.  Attendance is one-to-one: each student-class appears once on both sides.  Professors is many-to-one: several grades rows point to the same professor.  Teaching assistants is many-to-many: each class has two TAs, so each grades row matches twice and the result has eight rows instead of four.](images/join_types.svg){#fig-join-types}
 
-A number on its own means very little.  `42.3851` is a calculation result, not yet an answer.
+- **One-to-one (1:1).** Each key value appears once in both tables.  Grades and attendance, both with one row per student per class.  The result has the same rows as either input.
+- **Many-to-one (n:1), or one-to-many.** The key repeats on one side and is unique on the other.  Grades to professors is many-to-one: many grades per class, one professor per class.  So is yields to the lookup: ten yield rows per RM, one lookup row per RM. The result has as many rows as the "many" side, and every row picks up exactly one name and one station.  Most merges are this kind.
+- **Many-to-many (n:n).** The key repeats on both sides.  Each row on the left matches every row with the same key on the right, and the row count multiplies.  Grades to teaching assistants, with two TAs per class, doubles the grades table.  Joining yields to rain on station alone would be many-to-many too: each RM-year would match all ten years of its station's rain.  Occasionally that is what you want.  Usually it means the key is incomplete.
 
-**Round to what you can defend.**  If your yields are measured to the nearest tenth of a
-bushel, reporting `42.3851` implies a precision you do not have.  Write 42.4, or often just
-42.  Decimals that carry no information make a report harder to read and make the writer
-look like they pasted a cell without thinking.
+Know which one you expect before you merge, and check the row count after.  A many-to-one merge should return exactly as many rows as it started with.
 
-**Give the number a comparison.**  "Average yield was 42 bu/ac" is a fact.  "Average yield
-was 42 bu/ac, about 15% above the provincial average" is a finding.  A reader almost never
-knows whether a number is high or low on its own -- give them something to measure it
-against, whether that is another group, another year, or a target.
+## Merging in Excel {#sec-merge-excel}
 
-**Say the units, every time.**  Bushels per acre and pounds per acre are both "yield", and
-we have already seen what happens when they get mixed.
+In Excel a merge is an `XLOOKUP` (@sec-lookup): for each row, find the matching row in the other table and bring a value across.  The workbook below has the three tables on three sheets and does the merge in formula columns beside thirty of the yield rows.
 
-**Do not report more numbers than you can discuss.**  A table of forty figures where you
-comment on three is forty figures of noise.  Cut it to the three, or move the rest to an
-appendix.
+The first step is the ordinary `XLOOKUP`.  Look up the RM number in the lookup sheet and return its station:
 
-## Charts in a Report {#sec-charts-in-reports}
+```
+=XLOOKUP(B5, 'RM lookup'!A:A, 'RM lookup'!E:E)
+```
 
-A chart in a report needs three things beyond the chart itself: a number, a caption, and a
-sentence in the text that says what to look at.
+The second step needs two keys.  `XLOOKUP` takes one, so both sides are glued together with `& "|" &`, the composite-key form from @sec-lookup: the station and year from the yield row on one side, the station and year columns of the rain sheet on the other:
 
-Introduce every chart before the reader reaches it -- "Figure 3 shows average yield by soil
-zone" -- and then say what it shows: "the black zone is consistently higher, and the gap
-does not close in the drought year."  A chart dropped into a page with no introduction makes
-the reader do work you should have done for them, and different readers will take away
-different things.
+```
+=XLOOKUP(I5 & "|" & A5,
+         Precip!A:A & "|" & Precip!B:B,
+         Precip!C:C)
+```
 
-The rule of thumb is one chart, one point.  If you cannot say in a single sentence what a
-chart shows, it is probably doing two jobs and should be two charts.
+Two things to check.  An `XLOOKUP` that finds nothing returns `#N/A`, so `COUNTIF(range, "#N/A")` at the foot of each new column counts the rows that failed to match.  And a lookup on an incomplete key does not fail.  Leave the year out of the second step and `XLOOKUP` returns the *first* match for the station, so every year gets 2015's rain, and nothing flags it.  Column K of the workbook does exactly this.  The check is to look at a few rows where you already know the answer.
 
-## Saying What You Do Not Know {#sec-caveats}
+::: {.workbook-callout}
+<!-- iframe embed goes here once the workbook is uploaded to SharePoint; follow the
+mod01_sum.xlsx block in module01a.qmd -->
 
-Students often think admitting a limitation weakens the report.  In my experience the
-analyst who names the weaknesses of their own work is the one you end up trusting, because
-you know they are not hiding anything you might find later.
+[Download this workbook](textbook_examples/mod03_merge_excel.xlsx)
+:::
 
-The caveats worth stating are the ones that would change a reader's decision:
+Formulas are fine at thirty rows and fine at three thousand.  Past that, or when the same merge has to be redone every month, **Power Query** (Data > Get Data, then **Merge Queries**) does the join with a dialog that asks for the key columns and the join type, and records the step so it can be re-run on a new file.
 
-- **What the data does not cover.**  Insured acres only.  One province.  Five years, one of
-  them a drought.
-- **What you assumed.**  That the sample is representative.  That a variety planted in two
-  zones performs comparably.
-- **What you could not separate.**  If high-yielding varieties are also grown on the best
-  land, your data cannot tell you which is responsible.
+## Merging in R {#sec-merge-r}
 
-Say these plainly, in a sentence each, and then stop.  A report that spends a page
-apologising for itself is as unhelpful as one that admits nothing.
+Read the three files and look at them:
 
-## The Course Project {#sec-project-report}
+```{r}
+#| eval: true
+#| echo: false
+console('
+yields <- read_csv("data/rm_yields_2015_2024.csv") |> clean_names()
+rms    <- read_csv("data/rm_lookup.csv") |> clean_names()
+rain   <- read_csv("data/station_precip.csv") |> clean_names()
 
-The course project is a report of exactly this kind: a question about agricultural data, an
-analysis you carry out yourself, and a written argument about what you found.  The structure
-above is the one to follow.
+glimpse(yields)
+glimpse(rms)
+glimpse(rain)
+')
+```
 
-Marks do not go to the most complicated analysis.  A straightforward comparison, clearly
-explained, with honest caveats and a chart that makes its point, will beat an elaborate model
-the reader cannot follow.
+The R function is `left_join()`.  Its `by` argument names the key, and when the key column is called something different on each side, `by = c("left_name" = "right_name")` says so.
+
+### The four joins {.unnumbered}
+
+`left_join` is one of a family.  They differ in which rows survive.
+
+- **`left_join(a, b)`** keeps every row of `a` and fills in `NA` where `b` has no match. This is usually the one you want: your data stays intact and the extra columns come along.
+- **`inner_join(a, b)`** keeps only rows that matched in both, and drops the rest without saying so.
+- **`full_join(a, b)`** keeps everything from both, with `NA` wherever either side is missing.
+- **`anti_join(a, b)`** keeps rows of `a` with no match in `b`.  It returns no columns from `b` at all, which sounds useless until you need to find out what failed to match.
+
+### First join: yields to the lookup {.unnumbered}
+
+`left_join` does not complain when nothing matches.  It hands you a column of `NA` and lets you carry on, so a join can fail completely without producing an error.  `anti_join` is how you look, so run it first, then join, then check the row count:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+yields |>
+  anti_join(rms, by = c("rm" = "rm_number")) |>
+  distinct(rm)
+
+with_station <- yields |>
+  left_join(rms, by = c("rm" = "rm_number"))
+
+nrow(yields)
+nrow(with_station)
+')
+```
+
+Every RM in the yield data has a row in the lookup, and the row count is unchanged, which is what a many-to-one join should look like.  You can tell dplyr what you expect and have it stop if the data disagrees:
+
+```r
+yields |> left_join(rms, by = c("rm" = "rm_number"), relationship = "many-to-one")
+```
+
+If the lookup turned out to have two rows for some RM, that line errors instead of handing back extra rows.
+
+When an `anti_join` does return rows, the usual reason is text.  One file says `"Canola/Rapeseed"` and the other says `"Canola"`; one says `"Soybean"` and the other `"Soybeans"`.  Neither is wrong, but a join matches on exact text, so every such row comes back with `NA`.  Reconciling categories is part of cleaning (@sec-categories).
+
+### Second join: add the rain {.unnumbered}
+
+The key now has two parts.  The station in `with_station` is called `weather_station`, the year is `year` on both sides, and both are needed:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+with_station |>
+  anti_join(rain, by = c("weather_station" = "station", "year")) |>
+  distinct(weather_station, year)
+
+merged <- with_station |>
+  left_join(rain, by = c("weather_station" = "station", "year"))
+
+nrow(merged)
+')
+```
+
+### The row-count trap {.unnumbered}
+
+Here is the many-to-many case, arriving because `year` was left out of the key:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+with_station |>
+  left_join(rain, by = c("weather_station" = "station")) |>
+  nrow()
+')
+```
+
+Each RM-year matched all ten years of its station's rain, so 2,950 rows became 29,500, and every summary computed afterwards would be wrong in a way that still looks plausible.  Recent versions of dplyr print a warning about an unexpected many-to-many relationship when this happens.  Read it when it appears; it is telling you the key is incomplete.  This is the same mistake as the station-only `XLOOKUP` in the Excel workbook, with the difference that Excel returns one match per row and says nothing, while R returns all of them and warns.
+
+## What the Merge Gives You {#sec-merge-result}
+
+One table, one row per RM-year, with the yield and the season's rain side by side:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+merged |>
+  select(year, rm, rm_name, canola, weather_station, precip_may_aug_mm)
+
+merged |>
+  filter(!is.na(canola)) |>
+  group_by(year) |>
+  summarise(canola_bu_ac = mean(canola),
+            rain_mm = mean(precip_may_aug_mm))
+')
+```
+
+The wet 2016 season has the highest canola yield in the table and the dry 2017 one of the lowest, which is the pattern you would expect.  2021 is the exception: rainfall was ordinary and yields collapsed, because that summer's problem was heat more than drought.  Rain explains some of the variation in yields and not all of it.
+
+Two limits of this particular merge belong in the README.  The nearest station is sometimes far away: RM 1, Argyle, is matched to Kipling, 145 km off, because that is the closest of sixteen stations.  And a few station-years are missing three weeks of daily readings, which is what the `days_missing` column is for.

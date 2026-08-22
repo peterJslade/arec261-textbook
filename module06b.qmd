@@ -1,109 +1,127 @@
-# Correlation {#sec-correlation-chapter}
+# Writing a Report {#sec-writing-reports}
 
-```{r}
-#| include: false
-#| eval: true
-source("_console.R")
-```
+Almost everything you produce in a working life ends up inside a document someone else
+reads.  The analysis might be excellent, but if the report is confusing, or buries the
+answer on page four, or presents a number without saying what it means, the work does not
+land.  This chapter is about the document.
 
-The last chapter was about looking.  This one puts a number on what you saw: how strongly do
-two variables move together, and in which direction.
+The advice here is the same whether you are writing the course project, a memo for a farm
+manager, or a report for a client -- only the length changes.  You now have charts worth
+putting in one, and this is where they go.
 
 ## Learning Objectives {.unnumbered}
 
 ::: {.objectives}
-By the end of this chapter you should be able to:
+By the end of this chapter, you will be able to:
 
-1. Compute and interpret a correlation coefficient.
-2. Explain what correlation does not measure.
-3. Distinguish correlation from causation, and name the ways they come apart.
+- Structure a report so a reader finds the answer quickly
+- Write an opening that states what you found, rather than what you did
+- Present a number so that it means something to the reader
+- Introduce a chart in the text rather than leaving it to speak for itself
+- Say what your analysis cannot tell you, without undermining it
 :::
 
-## Covariance and Correlation {#sec-correlation}
+## Lead With the Answer {#sec-lead-with-answer}
 
-### The Intuition {.unnumbered}
+The commonest mistake in a data report is telling the story in the order you did the work:
+here is the data, here is how I cleaned it, here is the method, here is the result, and
+finally -- on the last page -- here is what it means.  That is the order of your effort, not
+the order of your reader's interest.
 
-Suppose you have two variables — say, fertilizer rate and yield — measured across 100 fields. You make a scatter plot. What does it look like?
+Your reader wants the answer.  Put it first, in plain language, in the opening paragraph:
 
-- If the points form an upward-sloping cloud, yield tends to increase with fertilizer.
-- If they form a downward-sloping cloud, yield tends to decrease with fertilizer.
-- If they are a shapeless blob, there is no obvious relationship.
-- If they form a tight line, the relationship is strong.
-- If they are widely scattered, the relationship is weak.
+> Canola yields in the black soil zone averaged 42 bushels per acre over the last five
+> years, about 15% higher than in the brown zone.  The gap is consistent across every year
+> in the data, so it is unlikely to be weather in any single season.
 
-The **correlation coefficient** turns this visual intuition into a single number between -1 and +1.
+That is a whole report in three sentences.  Everything that follows is there so a reader who
+wants to check the claim can do so -- but a reader who only has thirty seconds still leaves
+with the finding.
 
-### The Formula {.unnumbered}
+Write this paragraph last, once you know what you actually found.
 
-First, the **covariance** between two variables $X$ and $Y$, for a sample of size $n$:
+## A Structure That Works {#sec-report-structure}
 
-$$
-\text{Cov}(X, Y) = \frac{1}{n-1} \sum_{i=1}^{n} (x_i - \bar{x})(y_i - \bar{y})
-$$
+Almost any data report fits this shape.  For a short piece, each numbered item is a
+paragraph; for a long one, a section.
 
-The covariance is positive when $X$ and $Y$ tend to be above (or below) their means together, and negative when one is above while the other is below. But its magnitude depends on the units of both variables, which makes it hard to interpret directly.
+1. **The answer.**  What you found, stated plainly.  As above.
+2. **The question.**  What were you asked, and why does it matter?  A reader needs to know
+   what problem this is solving before they will care about the method.
+3. **The data.**  Where it came from, what it covers, and what it does *not* cover.  If you
+   cleaned or filtered it, say what you dropped and why -- this is where a reader decides
+   whether to trust the rest.
+4. **What you did.**  In plain language.  Not every function you called; the idea of the
+   analysis.  "We compared the average yield in each soil zone, weighting by acres so that
+   larger regions counted more."
+5. **The results.**  The main body: charts, tables, and the numbers that matter, each one
+   introduced in the text.
+6. **What it means, and what it does not.**  The interpretation, and the honest caveats.
+7. **Sources.**  Where the data came from, so someone else could repeat the work.
 
-The **(Pearson) correlation coefficient** normalizes the covariance by the standard deviations:
+Two things about the order.  The answer comes first and the caveats come last, which is the
+opposite of how nervous writers do it -- they hedge for two pages before committing to
+anything.  Hedge at the end, once the reader knows what you are hedging about.
 
-$$
-r = \frac{\text{Cov}(X, Y)}{s_X \, s_Y}
-$$
+## Presenting Numbers {#sec-presenting-numbers}
 
-The result is always between -1 and +1, regardless of units.
+A number on its own means very little.  `42.3851` is a calculation result, not yet an answer.
 
-- $r = +1$: perfect positive linear relationship.
-- $r = 0$: no linear relationship.
-- $r = -1$: perfect negative linear relationship.
-- $|r|$ between 0 and 1 measures the strength of the (linear!) relationship.
+**Round to what you can defend.**  If your yields are measured to the nearest tenth of a
+bushel, reporting `42.3851` implies a precision you do not have.  Write 42.4, or often just
+42.  Decimals that carry no information make a report harder to read and make the writer
+look like they pasted a cell without thinking.
 
-### In Excel and R {.unnumbered}
+**Give the number a comparison.**  "Average yield was 42 bu/ac" is a fact.  "Average yield
+was 42 bu/ac, about 15% above the provincial average" is a finding.  A reader almost never
+knows whether a number is high or low on its own -- give them something to measure it
+against, whether that is another group, another year, or a target.
 
-Excel:
+**Say the units, every time.**  Bushels per acre and pounds per acre are both "yield", and
+we have already seen what happens when they get mixed.
 
-```
-=CORREL(A2:A101, B2:B101)
-```
+**Do not report more numbers than you can discuss.**  A table of forty figures where you
+comment on three is forty figures of noise.  Cut it to the three, or move the rest to an
+appendix.
 
-R:
+## Charts in a Report {#sec-charts-in-reports}
 
-```r
-cor(trial$fertilizer_kg_ha, trial$yield_bu_acre)
-```
+A chart in a report needs three things beyond the chart itself: a number, a caption, and a
+sentence in the text that says what to look at.
 
-Or every pair at once:
+Introduce every chart before the reader reaches it -- "Figure 3 shows average yield by soil
+zone" -- and then say what it shows: "the black zone is consistently higher, and the gap
+does not close in the drought year."  A chart dropped into a page with no introduction makes
+the reader do work you should have done for them, and different readers will take away
+different things.
 
-```r
-cor(trial[, c("fertilizer_kg_ha", "rainfall_mm", "yield_bu_acre")],
-    use = "complete.obs")
-```
+The rule of thumb is one chart, one point.  If you cannot say in a single sentence what a
+chart shows, it is probably doing two jobs and should be two charts.
 
-The `use = "complete.obs"` argument matters here: three fields in the trial data have no
-rainfall reading, and without it any correlation involving rainfall comes back `NA` --
-missing values propagate through `cor()` just as they did through `mean()`.
+## Saying What You Do Not Know {#sec-caveats}
 
-That matrix is worth running on the trial data.  Yield correlates with fertilizer, and it
-correlates with rainfall -- but fertilizer and rainfall also correlate with *each other*, at
-about 0.46.  Hold on to that number; it is the whole subject of @sec-multiple-regression.
+Students often think admitting a limitation weakens the report.  In my experience the
+analyst who names the weaknesses of their own work is the one you end up trusting, because
+you know they are not hiding anything you might find later.
 
-### What Correlation Does Not Measure {.unnumbered}
+The caveats worth stating are the ones that would change a reader's decision:
 
-Correlation measures *linear* relationships. If the true relationship between $X$ and $Y$ is a curve — say, $Y$ rises with $X$ and then falls — the correlation can be zero even though there is a very strong relationship. This is why you should **always plot your data** before computing a correlation. A single scatter plot tells you more than a single number.
+- **What the data does not cover.**  Insured acres only.  One province.  Five years, one of
+  them a drought.
+- **What you assumed.**  That the sample is representative.  That a variety planted in two
+  zones performs comparably.
+- **What you could not separate.**  If high-yielding varieties are also grown on the best
+  land, your data cannot tell you which is responsible.
 
-Anscombe's quartet in @sec-anscombe makes the point concretely: four datasets with identical
-correlations that look nothing alike.
+Say these plainly, in a sentence each, and then stop.  A report that spends a page
+apologising for itself is as unhelpful as one that admits nothing.
 
-## Correlation Is Not Causation {#sec-correlation-causation}
+## The Course Project {#sec-project-report}
 
-If you remember nothing else from this course, remember this sentence. **Correlation does not imply causation.**
+The course project is a report of exactly this kind: a question about agricultural data, an
+analysis you carry out yourself, and a written argument about what you found.  The structure
+above is the one to follow.
 
-There are several reasons two variables can be correlated without one causing the other:
-
-1. **Coincidence.** If you look at enough pairs of variables, some will be correlated by chance alone. There is a famous website (tylervigen.com) that collects absurd correlations: per-capita cheese consumption correlates with deaths by bedsheet entanglement. Neither causes the other. They are both just trending over time.
-2. **Reverse causation.** You observe that people who exercise more have lower weights. Does exercise cause low weight, or do people with low weight exercise more? Usually a bit of both.
-3. **Confounding.** A third variable causes both. Ice cream sales correlate with drowning deaths. Does ice cream cause drowning? No. Both are caused by summer.
-4. **Selection.** The dataset was assembled in a way that induces a spurious correlation. (We will see examples of this when we get to sampling.)
-
-To establish causation, you generally need either a controlled experiment (randomly assign treatment and control) or some clever reasoning about the source of variation. This is the domain of **causal inference**, which you will meet in AREC 262.
-
-For AREC 261, the point is: **any time you see a correlation, the first question should be "is there a plausible causal story, and what else could explain this?"** The second question should be "could it be the reverse direction?" And the third should be "what could be confounding this?"
-
+Marks do not go to the most complicated analysis.  A straightforward comparison, clearly
+explained, with honest caveats and a chart that makes its point, will beat an elaborate model
+the reader cannot follow.

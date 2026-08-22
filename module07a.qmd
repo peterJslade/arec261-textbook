@@ -1,0 +1,123 @@
+# Seeing Relationships {#sec-seeing-relationships}
+
+```{r}
+#| include: false
+#| eval: true
+source("_console.R")
+```
+
+Modules 1 to 6 were about one variable at a time: how is yield distributed, what is the
+mean, what is the spread.  This module is about pairs of variables: does yield change with
+fertilizer, does price move with quality, do two crops rise and fall together.
+
+Almost every interesting question in data analysis is a question about a relationship.  The
+rest of the course is, in one way or another, about formalizing these questions.
+
+## Learning Objectives {.unnumbered}
+
+::: {.objectives}
+By the end of this chapter you should be able to:
+
+1. Read a scatter plot before computing anything from it.
+2. Say whether a relationship looks linear, curved, or absent.
+3. Spot outliers and explain why one point can move a fitted line.
+4. Recognize spread that grows across the plot, and hidden subgroups.
+:::
+
+## Look First {#sec-look-first}
+
+You met the scatter plot in @sec-graphing-principles: one variable on each axis, a point for
+every observation.  Here we use it for a different purpose.  There it was a way to *show* a
+relationship to a reader.  Now it is a way to *find out* what the relationship is, before you
+put a number on it.
+
+The order matters.  Every summary in this module -- the correlation, the fitted line -- is a
+single number standing in for a whole cloud of points.  Each one assumes something about the
+shape of that cloud, and each one will hand you an answer whether or not the assumption holds.
+The plot is how you check.
+
+The dataset for this module is [`canola_trial.csv`](practice/data/canola_trial.csv).
+Download it into your project's `data/` folder and load it:
+
+```r
+library(tidyverse)
+
+trial <- read_csv("data/canola_trial.csv")
+```
+
+It has 120 canola fields, each with a nitrogen rate (`fertilizer_kg_ha`), growing-season
+rainfall (`rainfall_mm`), the `variety` grown, and the `yield_bu_acre` harvested.
+
+```r
+ggplot(trial, aes(x = fertilizer_kg_ha, y = yield_bu_acre)) +
+  geom_point()
+```
+
+## Four Things to Look For {#sec-what-to-look-for}
+
+### Is it a line, or a curve? {.unnumbered}
+
+The methods in this module fit straight lines.  If the cloud bends, a straight line will
+still be fitted, and it will still report a slope, and the slope will be misleading.
+
+Curvature is common in agronomy.  Fertilizer response is the standard case: the first
+50 kg/ha of nitrogen buys a lot of yield, the next 50 buys less, and past some point more
+nitrogen does nothing.  That is a curve, and forcing a line through it understates the effect
+at low rates and overstates it at high ones.
+
+### Is one point running the show? {.unnumbered}
+
+A single observation far from the rest can pull a fitted line a long way, particularly if it
+sits at the far left or right of the plot.  A point out at the edge has leverage: it is a long
+way from the centre of the data, so tilting the line toward it costs little elsewhere.
+
+When you see one, find out what it is before you decide what to do.  A field that yielded
+9 bu/ac because it was hailed out is a real observation, but it is not telling you about the
+fertilizer response, and it does not belong in a regression that is meant to.  A yield of
+340 bu/ac is a data-entry error.  Neither should be dropped silently -- say what you removed
+and why.
+
+### Does the spread stay the same? {.unnumbered}
+
+Look at how tightly the points hug the trend at the left of the plot, and compare it with the
+right.  If the scatter fans out -- tight at low values, wide at high ones -- the relationship
+is less predictable at one end than the other.
+
+The fitted line can still be a reasonable summary.  What breaks is the uncertainty around it,
+which is calculated assuming the scatter is even.  We will not do anything about that in this
+module; Modules 11 to 13 are where uncertainty gets treated properly.  For now, notice it and
+say so.
+
+### Is the cloud actually two clouds? {.unnumbered}
+
+Sometimes what looks like one relationship is two groups sitting in different places.  Two
+varieties with different yield potential, two soil zones, two years with different weather.
+Colour the points by a third variable and the structure appears:
+
+```r
+ggplot(trial, aes(x = fertilizer_kg_ha, y = yield_bu_acre, colour = variety)) +
+  geom_point()
+```
+
+This matters more than it looks.  A relationship computed across mixed groups can be quite
+different from the relationship within each one -- occasionally it even points the other way.
+That is a real phenomenon with a name, Simpson's paradox, and the multiple regression in
+@sec-multiple-regression is one way of dealing with it.
+
+## Anscombe's Quartet {#sec-anscombe}
+
+The argument for plotting first has a famous demonstration.  Frank Anscombe built four small
+datasets that share almost every summary statistic: the same means, the same standard
+deviations, the same correlation, the same fitted line.  Plotted, they look nothing alike --
+one is a tidy linear relationship, one is a clean curve, one is a perfect line with a single
+outlier dragging it, and one is a vertical stack with one point off to the side.
+
+It ships with R, so you can see it yourself:
+
+```r
+anscombe
+```
+
+Four numbers agreed on four datasets that have nothing in common.  Any of the summaries in
+this module can be computed on data it has no business describing.  Plot first.
+

@@ -1,137 +1,116 @@
-# Bootstrap Methods {#sec-module12}
+# Randomization Tests {#sec-module11}
 
 ## Learning Objectives {.unnumbered}
 
 ::: {.objectives}
 By the end of this module you should be able to:
 
-1. Explain the bootstrap principle: treat the sample as a stand-in for the population.
-2. Construct a bootstrap confidence interval for a mean or other statistic.
-3. Interpret a confidence interval correctly.
-4. Use the bootstrap in situations where no formula exists.
-5. Recognize when the bootstrap works and when it doesn't.
+1. Explain the logic of hypothesis testing.
+2. State a null and alternative hypothesis for a two-group comparison.
+3. Conduct a permutation test by hand and in R.
+4. Interpret a $p$-value correctly.
+5. Distinguish statistical significance from practical significance.
 :::
 
-## The Problem {#sec-bootstrap-problem}
+## The Question: Is This Difference Real? {#sec-is-this-real}
 
-You have a sample of 100 canola fields with a mean yield of 45 bu/ac. What is the mean yield *in the population*? Well, the sample mean is your best estimate — but it's not perfect, because of sampling variability (@sec-sampling-variability). How much uncertainty is there in the estimate?
+You have two groups of canola fields: one treated with a new biological product, one untreated. The treated group has a mean yield of 48 bu/ac. The untreated group has a mean yield of 45 bu/ac. Is the product working?
 
-The classical answer uses the standard error formula: $SE = s / \sqrt{n}$, and then a confidence interval of the form $\bar{x} \pm 1.96 \cdot SE$ (which you will meet formally in AREC 262). But this relies on the sample mean being normally distributed, which relies on the Central Limit Theorem, which requires a "large enough" sample.
+Before we answer, notice that even if the product does *nothing*, the two groups would not have exactly the same mean. By chance alone, one group will have slightly higher yields. The question is whether the difference we see (3 bu/ac) is *bigger than what we would expect by chance alone*.
 
-What if you want a confidence interval for the **median** instead of the mean? Or the **correlation coefficient**? Or the **75th percentile of yields**? Or some weird custom statistic? There is no nice formula for the standard error of most of these. The classical approach is stuck.
+This is the core question of **hypothesis testing**: is the observed pattern consistent with nothing interesting going on, or is it too big to be chance?
 
-The bootstrap gets unstuck by doing simulation.
+## The Null Hypothesis {#sec-null-hypothesis}
 
-## The Bootstrap Principle {#sec-bootstrap-principle}
+We formalize "nothing interesting is going on" as the **null hypothesis**, written $H_0$. For our example:
 
-**The bootstrap principle** is this: your sample is the best information you have about the population, so use it *as if it were* the population. Repeatedly draw new samples of the same size, *with replacement*, from your original sample. Each of these "bootstrap samples" is one hypothetical version of what your sample might have been. The spread of the statistic across bootstrap samples is a measure of its sampling variability.
+$$
+H_0: \text{the product has no effect (mean yield is the same in both groups)}
+$$
 
-The name comes from the phrase "to pull yourself up by your bootstraps" — doing something that sounds impossible, namely estimating uncertainty from a single sample. But it works.
+And the **alternative hypothesis**, $H_1$ (or $H_A$):
 
-## Bootstrap Confidence Interval for the Mean {#sec-bootstrap-ci}
+$$
+H_1: \text{the product does have an effect (means differ)}
+$$
 
-Let's do a concrete example. Suppose you have yields from 50 fields. You want a 95% confidence interval for the mean.
+The logic of a hypothesis test is: *assume the null hypothesis is true*, compute how likely your observed data (or something more extreme) would be under that assumption, and if it is very unlikely, reject the null. This is a form of proof by contradiction.
+
+## Permutation Tests: Hypothesis Testing by Simulation {#sec-permutation}
+
+The traditional way to test hypotheses uses formulas (the $t$-test, the $z$-test, etc., which you will meet in AREC 262). Those formulas are useful but they obscure the intuition. Here we do it the modern way, with simulation.
+
+The idea of a **permutation test**: if the null hypothesis is true — if the product has no effect — then the labels "treated" and "untreated" are meaningless. A given field would have the same yield whether we called it treated or untreated. So we can *randomly shuffle* the labels and compute the difference in means again. And again. And again. The distribution of differences we get by random shuffling is the distribution of differences we'd expect *if the null were true*. If our actual observed difference is way out in the tail of this distribution, we reject the null.
+
+In R:
 
 ```r
 set.seed(42)
 
-# Your sample
-yields <- c(48, 52, 47, 55, 50, 41, 46, 49, 53, 45,
-            47, 51, 49, 44, 48, 50, 52, 46, 43, 49,
-            50, 48, 47, 51, 54, 46, 48, 45, 50, 49,
-            47, 52, 48, 50, 46, 49, 47, 51, 48, 50,
-            49, 47, 52, 48, 50, 45, 49, 47, 51, 48)
+# Observed data
+treated   <- c(49, 52, 47, 50, 46, 51, 48, 47, 49, 50)  # 10 fields
+untreated <- c(44, 46, 45, 47, 43, 44, 46, 47, 45, 43)  # 10 fields
+observed_diff <- mean(treated) - mean(untreated)
+# observed_diff ≈ 4
 
-n <- length(yields)
-observed_mean <- mean(yields)
+# Combine all values
+all_yields <- c(treated, untreated)
+n_treated <- length(treated)
 
-# Bootstrap: draw many resamples and compute the mean of each
-n_boot <- 10000
-boot_means <- replicate(n_boot, mean(sample(yields, n, replace = TRUE)))
-
-# 95% confidence interval: middle 95% of the bootstrap means
-ci <- quantile(boot_means, c(0.025, 0.975))
-
-observed_mean
-ci
-```
-
-The two numbers in `ci` are the lower and upper bounds of the confidence interval. A reasonable interpretation: "we are 95% confident that the population mean lies between the lower and upper bound."
-
-Actually, let me be careful about interpretation.
-
-## What a Confidence Interval Means (and Does Not) {#sec-ci-interpretation}
-
-The correct interpretation of a 95% confidence interval is:
-
-**If we repeated the sampling procedure many times and computed the 95% CI each time, about 95% of those intervals would contain the true population mean.**
-
-This is a statement about the *procedure*, not about any specific interval. For the interval you have in front of you, either the true mean is in it or it isn't — we just don't know which.
-
-In practice, most people read a 95% CI as "I am 95% sure the true mean is in this range," and that's close enough for most purposes. But be aware of the subtlety: frequentist CIs are not probability statements about the parameter.
-
-What a confidence interval *does* tell you:
-
-- **Point estimate**: the center of the interval is your best guess.
-- **Precision**: a narrow interval means a precise estimate; a wide interval means "we don't really know."
-- **Consistency with hypotheses**: if a hypothesized value (say, "the mean is 50") lies outside the interval, your data is evidence against that hypothesis at the 5% level.
-
-## Bootstrapping Other Statistics {#sec-bootstrap-other}
-
-The beauty of the bootstrap is that it works for (almost) any statistic. Just replace `mean()` with whatever you're interested in:
-
-```r
-# Median
-boot_medians <- replicate(10000, median(sample(yields, n, replace = TRUE)))
-quantile(boot_medians, c(0.025, 0.975))
-
-# Standard deviation
-boot_sds <- replicate(10000, sd(sample(yields, n, replace = TRUE)))
-quantile(boot_sds, c(0.025, 0.975))
-
-# 90th percentile
-boot_p90 <- replicate(10000, quantile(sample(yields, n, replace = TRUE), 0.9))
-quantile(boot_p90, c(0.025, 0.975))
-```
-
-All three of these would be much harder to do with closed-form formulas. The bootstrap makes them trivial.
-
-## Bootstrapping a Regression Coefficient {#sec-bootstrap-regression}
-
-Here's a more sophisticated example. You fit a linear regression of yield on fertilizer and want a confidence interval for the slope. The classical CI uses a formula based on normal-distribution assumptions. The bootstrap CI makes no such assumption.
-
-```r
-# Suppose you have a data frame `yields` with columns yield and fertilizer
-observed_slope <- coef(lm(yield ~ fertilizer, data = yields))["fertilizer"]
-
-boot_slopes <- replicate(10000, {
-  idx <- sample(nrow(yields), nrow(yields), replace = TRUE)
-  boot_sample <- yields[idx, ]
-  coef(lm(yield ~ fertilizer, data = boot_sample))["fertilizer"]
+# Shuffle labels many times and compute the difference
+n_perms <- 10000
+perm_diffs <- replicate(n_perms, {
+  shuffled <- sample(all_yields)
+  mean(shuffled[1:n_treated]) - mean(shuffled[(n_treated+1):length(shuffled)])
 })
 
-quantile(boot_slopes, c(0.025, 0.975))
+# What fraction of shuffles produce a difference as extreme as observed?
+p_value <- mean(abs(perm_diffs) >= abs(observed_diff))
+
+# Plot
+hist(perm_diffs, breaks = 40, main = "Permutation distribution")
+abline(v = observed_diff, col = "red", lwd = 2)
+abline(v = -observed_diff, col = "red", lwd = 2)
 ```
 
-This is a fully honest confidence interval for the slope of the regression, without assuming normality. For a large enough sample, the two CIs (classical and bootstrap) will be very similar. For small samples or non-normal data, the bootstrap can be meaningfully different — and more honest.
+The $p$-value here is the fraction of random shuffles where the difference in means was as extreme as (or more extreme than) what we actually saw. If that fraction is small, the observed difference is unlikely under the null, and we reject the null.
 
-## When the Bootstrap Works and When It Doesn't {#sec-bootstrap-limits}
+## Interpreting the $p$-Value {#sec-p-value}
 
-The bootstrap is remarkable but not magic. A few things to know:
+This is where a lot of people get confused, so I am going to be careful.
 
-- **Small samples.** With $n < 20$ or so, the bootstrap gets wobbly. You are resampling from a tiny set, and there are not enough different possibilities. For very small samples, classical methods (or more sophisticated bootstraps) can work better.
-- **Extremes.** The bootstrap is not great for estimating the maximum, the minimum, or other extreme quantiles. By definition, the resample contains at most what the original sample contained — so the maximum never increases.
-- **Dependent data.** If your observations are correlated (time series, spatial data, repeated measures from the same farm), the simple bootstrap underestimates uncertainty. Fancier "block bootstraps" exist for these cases.
-- **Biased statistics.** If your statistic has bias, the bootstrap estimates its distribution but doesn't remove the bias.
+**The $p$-value is the probability, assuming the null hypothesis is true, of seeing data as extreme or more extreme than what you observed.**
 
-For most of what you will do in AREC 261, the bootstrap is a safe and sensible default.
+That sentence is precise and you should memorize it. Several things the $p$-value is *not*:
 
-## Bootstrap vs Permutation {#sec-boot-vs-perm}
+- **It is not the probability that the null hypothesis is true.** The null is either true or false; it has no probability in the frequentist framework.
+- **It is not the probability that your result is due to chance.** The $p$-value conditions on the null being true; it tells you how surprising the data is under that condition.
+- **It is not a measure of the size of the effect.** A tiny effect with a huge sample can have a tiny $p$-value. A huge effect with a small sample can have a large $p$-value. The $p$-value alone does not tell you whether the effect matters in practice.
 
-A confusing point: both bootstrap and permutation tests involve resampling. What's the difference?
+A convention: if $p < 0.05$, we reject the null. This threshold is arbitrary (a historical accident, really) and should not be treated as a sharp boundary between "real" and "not real." A $p$-value of 0.049 is not meaningfully different from 0.051. Report the actual $p$-value and let the reader interpret it.
 
-- **Permutation tests** are for **hypothesis testing**. They answer "is there a difference?" by shuffling labels to see what would happen if there weren't.
-- **Bootstrap** is for **confidence intervals and uncertainty quantification**. It answers "how precise is my estimate?" by resampling with replacement to see how the estimate varies.
+A better way to think about $p$-values: they are a measure of how surprised the data would make you if the null were true. Small $p$-value = very surprised = evidence against the null. Large $p$-value = not surprised = no evidence against the null (which is *not* the same as evidence for the null).
 
-They look similar in code but answer different questions. Use permutation when you are testing a null hypothesis; use bootstrap when you want a confidence interval or standard error.
+## Statistical vs Practical Significance {#sec-practical-significance}
+
+Here is a common mistake: "the difference was statistically significant, so the treatment works."
+
+**Statistical significance means the effect is bigger than chance.** That's all. It does not mean the effect is large. It does not mean the treatment is worth adopting.
+
+A 0.1 bu/ac yield increase might be statistically significant in a 10,000-field trial and completely useless in practice. Conversely, a 10 bu/ac yield increase might fail to achieve statistical significance in a 5-field trial and still be a big deal.
+
+Always report *both*:
+
+- **The effect size** (in meaningful units).
+- **A measure of uncertainty** (confidence interval, $p$-value, standard error).
+
+Then let the decision-maker weigh whether the effect is worth acting on.
+
+## One-Sided vs Two-Sided Tests {#sec-one-sided-two-sided}
+
+A brief note. Our example above asked "is there a difference?" — which is a **two-sided** test. It tests the null against "there is a difference in either direction."
+
+Sometimes you only care about one direction: "does the product *increase* yield?" That's a **one-sided** test. Its $p$-value is half of the two-sided one (roughly).
+
+In general, use two-sided tests unless you have a strong reason to only care about one direction *before you see the data*. Picking one-sided after you look at the data is cheating — it's a form of $p$-hacking.
 

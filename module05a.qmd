@@ -1,0 +1,350 @@
+# AI Tools {#sec-ai-tools}
+
+You have been writing R for two modules now, and you have probably already asked an AI
+something about it.  This module is about doing that well.
+
+I said in the Introduction that you are encouraged to use these tools to learn, and that they
+are not permitted on tests.  That policy has not changed.  What follows is the practical
+version: what the tools are doing when they answer you, where they fail, and how to work in a
+way that catches the failures.
+
+There is one question underneath all of it, and it is worth having before you read anything
+else.  When you are deciding whether to hand a piece of work to an AI, the question is not
+*can it do this?*  The answer to that is usually yes.  The question is **will I know if it did
+it wrong?**
+
+Everything else in this module follows from that.  A task you can check quickly is a safe task
+to hand over.  A task where a wrong answer looks exactly like a right one is not, no matter
+how capable the tool is.
+
+## Learning Objectives {.unnumbered}
+
+::: {.objectives}
+By the end of this chapter, you will be able to:
+
+- Decide whether a task is safe to hand to an AI, by asking whether you could tell if it went wrong
+- Explain why an AI can be fluent and wrong at the same time
+- Distinguish chatbots, in-editor assistants, and agents, and say what each asks of you
+- Recognize the failure modes that show up most often in agricultural data work
+- Say what data should not be pasted into these tools
+- State the course policy on AI and the reasoning behind it
+:::
+
+## What These Tools Are Doing {#sec-what-ai-does}
+
+A large language model predicts the next piece of text, given everything before it.  It was
+trained by doing this over an enormous amount of writing, including a great deal of R code,
+until it got good at continuing text in a way that resembles what a person would have
+written.
+
+That is the whole mechanism, and one consequence of it matters more than any other: the
+fluency of an answer and the accuracy of an answer come from the same process.  The model is
+not consulting a store of facts and then writing them up.  It is producing text that reads
+like a correct answer.  Most of the time text that reads like a correct answer *is* a correct
+answer, which is why these tools are useful.  But when it is wrong, it is wrong in the same
+confident register as when it is right.  Nothing in the tone tells you which one you are
+looking at.
+
+We are not well equipped for this.  When a person answers a question hesitantly we discount
+it, and when they answer briskly and in detail we trust it more.  That instinct is useless
+here.
+
+## Three Generations of Coding Tool {#sec-ai-generations}
+
+The way people use AI to write code has changed twice in the last few years, and the three
+stages still coexist.  Knowing which one you are using matters, because they demand different
+amounts of attention from you.
+
+**The chatbot.**  You open a browser, describe your problem, and copy the answer back into your
+editor.  This is how most people first used ChatGPT, and it is still how a lot of work gets
+done.  The tool has no access to your files, so everything it knows about your project is what
+you thought to tell it.  That is the main weakness -- and, from a learning point of view, a
+quiet strength, because describing the problem clearly is most of the work of solving it.
+
+**The assistant in the editor.**  Copilot and its equivalents sit inside your editor, read the
+file you have open, and suggest the next lines as you type.  You are still writing the code;
+the tool is finishing your sentences and answering questions about the code in front of it.
+The friction of copying and pasting disappears, which makes it much faster and makes it much
+easier to accept something without reading it.  This is where the course sits, and the next
+chapter sets it up.
+
+**The agent.**  Given a task, the agent writes code, runs it, reads the error, edits, and runs
+it again -- repeating until it works or gives up.  Claude Code and the Copilot coding agent
+work this way.  You hand over a task and come back to a finished change rather than a
+suggestion.  This is how a great deal of professional software is now written, and it is
+genuinely useful, but it puts you in a different job.  You are no longer writing code; you are
+reviewing it.  You will meet this in industry.  We stay with the first two here, because
+reviewing code well is a skill built on having written a lot of it, and you are still building
+that.
+
+## The Line That Matters {#sec-ai-understanding}
+
+What matters is how much you understand of what ends up in your file.  Simon Willison, a programmer who writes carefully about these
+tools, puts it as a rule for his own work:
+
+> My golden rule for production-quality AI-assisted programming is that I won't commit any
+> code to my repository if I couldn't explain exactly what it does to somebody else.
+
+By that standard a model can write every line and the work is still yours, provided you read
+and understood it.  Accept code you did not read because it seemed to work, and you own a
+script you cannot debug.  Willison calls the second thing *vibe coding*, and he is not against
+it -- for a throwaway experiment it is fine.  It is not fine for anything whose answer you plan
+to rely on.
+
+That is the same test as the one at the top of the chapter, asked after the fact rather than
+before.
+
+## How This Shows Up {#sec-ai-failure-modes}
+
+Five failures account for most of the trouble in data work.
+
+**Invented functions and packages.**  You will be told to use a function that does not exist,
+in a package that does, or occasionally a package that does not exist either.  The name will
+be plausible -- `read_excel_sheet()`, `summarise_by()` -- because plausible names are exactly
+what the model is good at generating.  You find these immediately, because R throws an error.
+
+**Assumed column names.**  Ask for code to summarise your yield data and you will get
+something referring to `yield`, `crop`, and `year`, whether or not your file uses those
+names.  The model cannot see your data.  It is guessing from convention.
+
+**Out-of-date advice.**  Packages change.  A model trained before a change will confidently
+give you the old argument name or the deprecated function, and the version installed on your
+machine will disagree.
+
+**Confidently wrong numbers.**  If you paste in data and ask for a mean, you may get a number
+that is close to right and is not right.  Some chatbots now run code behind the scenes to do
+arithmetic and get it right; some produce the number the same way they produce everything
+else.  You cannot tell from the answer which one happened.  Ask for the code that computes the
+mean, and run it yourself.
+
+**American defaults.**  The training data is dominated by US agriculture, so the model's
+plausible guess is a plausible *American* guess.  It will reach for corn and soybeans, quote
+county-level figures where you want rural municipalities, cite USDA where Statistics Canada is
+the source, and describe crop insurance that works nothing like SCIC.  Units are the sharpest
+version of this: canola is quoted in bushels per acre here, pounds per acre in some datasets,
+and kilograms per hectare in others, and a model asked for "typical canola yield" may answer in
+any of them without saying which.  Our own dataset labels the crop `Canola/Rapeseed`, which is
+the sort of local convention no model will guess.
+
+That last one deserves more caution than the first three.  An invented function name stops your
+script.  A yield converted with the wrong constant runs perfectly and hands you an answer that
+is off by a factor of fifty -- @fig-units is the same 2025 canola crop written three ways.
+
+```{r}
+#| label: fig-units
+#| eval: true
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 5.0
+#| fig-height: 2.0
+#| fig-cap: "The same canola yield in the three units it gets quoted in."
+source("R/ai_failures.R")
+fig_units()
+```
+
+Sorting the five failures by how loudly they announce themselves gives @fig-spectrum.  Your
+attention is limited, and it belongs on the right-hand end.
+
+```{r}
+#| label: fig-spectrum
+#| eval: true
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 6.0
+#| fig-height: 2.2
+#| fig-cap: "The five failures, by whether anything stops you."
+fig_failure_spectrum()
+```
+
+## The Failure That Matters {#sec-ai-silent-failure}
+
+Code that breaks is a nuisance.  Code that runs and answers a different question than the one
+you asked is a problem, because nothing tells you it happened.
+
+Here is one you can run yourself.  Both files ship with this book.  Ask for average revenue per
+acre for the four main crops in 2025 -- yields in one file, prices in the other -- and you will
+get something close to this:
+
+```r
+d   <- read.csv("practice/data/sask_variety_yields.csv")
+p   <- read.csv("practice/data/crop_prices.csv")
+
+d25 <- d |> filter(Year == 2025,
+                   Crop %in% c("Wheat - Hard Red Spring", "Canola/Rapeseed",
+                               "Barley", "Oats"),
+                   !is.na(Yield), Acres > 0)
+
+j <- d25 |> left_join(p, by = "Crop") |>
+            mutate(Revenue = Yield * Price_per_bu)
+
+weighted.mean(j$Revenue, j$Acres, na.rm = TRUE)
+#> 476.79
+```
+
+It runs.  No error, no warning.  $476.79 an acre is an entirely plausible figure and you would
+have no particular reason to doubt it.
+
+It is wrong.  The two files do not spell the crops the same way: the price table says `Canola`
+and `Spring wheat`, the yield data says `Canola/Rapeseed` and `Wheat - Hard Red Spring`.  Only
+barley and oats happen to match.  Of the 1,416 rows, **1,051 came out of the join with no
+price**, and `na.rm = TRUE` -- which you learned to add in Module 2, and which the model adds
+by reflex -- quietly dropped every one of them.
+
+```{r}
+#| label: fig-join-loss
+#| eval: true
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 5.4
+#| fig-height: 2.5
+#| fig-cap: "Rows in the 2025 data, by whether the join found a price for them."
+fig_join_loss()
+```
+
+The average was computed over barley and oats, which between them are the two smallest crops on
+the list.  Canola, the most valuable one, contributed nothing.  Fix the names and rejoin, and
+the answer is **$571.17** -- ninety-four dollars an acre higher.
+
+Both numbers look like answers.  Nothing about $476.79 announces itself as the average of the
+wrong subset.
+
+Nearly every serious mistake I have seen in student work -- and in my own -- has this shape.
+Not a crash, but a quiet mismatch between the question asked and the question answered.  AI
+makes it easier to produce a lot of code quickly, which means it makes this easier to do at
+volume.
+
+Nothing about this failure is exotic, and the habits that catch it are dull: read the code,
+count the rows, test on something small, check one number by hand.  @sec-copilot-verify sets
+them out properly, once you have a tool in front of you.
+
+## Where AI Earns Its Place {#sec-ai-good-uses}
+
+Being sceptical about these tools does not mean avoiding them.  They are genuinely good at
+several things you will do constantly in this course.
+
+- **Explaining error messages.**  R's errors are often opaque.  Pasting one in and asking what
+  it means is usually faster than searching, and this is the single best use of AI in this
+  course.
+- **Naming the function you want.**  You know what you want to do and cannot remember what it
+  is called.  Describe it and you will get the name.
+- **Boilerplate.**  Date formatting, regular expressions, long `case_when()` chains -- tedious
+  to write, easy to check once written.
+- **A first draft of a script.**  Something to react to is easier than a blank file, as long as
+  you treat it as a draft rather than an answer.
+- **Explaining a concept a second way.**  If my explanation of standard deviation does not land,
+  asking for another one costs nothing.
+
+Notice what these have in common.  In each case you can tell quickly whether the answer is any
+good, either because R will tell you or because you know enough to judge.  That is the question
+from the start of the chapter, doing its work.
+
+## Where It Does Not {#sec-ai-bad-uses}
+
+- **Deciding what analysis to do.**  The model will happily produce a regression when what the
+  question needed was a cross-tabulation.  It has no view on whether the analysis makes sense,
+  because it does not know what you are trying to find out.
+- **Anything about your specific data.**  It has not seen your file.  Everything it says about
+  your columns is inference from their names.
+- **Judging whether a result is plausible.**  A yield of 4,000 bushels per acre will not strike
+  it as odd.  It should strike you as odd.
+- **Finding sources.**  Ask for references and you will get citations formatted perfectly,
+  with plausible authors, in real journals, that do not exist.  Check every one.  This will
+  matter when you write up the course project.
+- **Learning the material for you.**  This one matters most on test day.
+
+## What Not to Paste In {#sec-ai-privacy}
+
+Everything you send to one of these tools leaves your computer.  That includes what you type
+into a chatbot, and it includes the file you have open when an in-editor assistant is running,
+because the assistant sends that file to a server to work out what to suggest.
+
+For this course it does not matter.  The data we use is public -- variety trials, StatCan
+tables, figures I have made up -- and you can paste any of it anywhere.
+
+It will matter the first time you work with someone's real numbers.  On a summer job, in a
+co-op placement, or helping with the books at home, you will have data that is not yours to
+share: a producer's field records, a farm's financial statements, anything covered by a
+confidentiality agreement or a privacy policy.  A consumer chatbot is not the place for it.
+Depending on the service and the plan, what you paste may be retained, may be reviewed by a
+human, and may be used to train future versions.
+
+The habit worth forming now, while the stakes are zero:
+
+- **Public or synthetic data** -- paste freely.
+- **Someone else's real data** -- do not paste it into a chatbot.  Ask about the *shape* of the
+  problem instead: describe the columns and their types without the values.  You will get the
+  same code.
+- **Check what your editor has open.**  If Copilot is running and a spreadsheet of producer
+  contacts is in the open file, that file is being sent whether or not you asked a question.
+
+If you are unsure whether something is shareable, assume it is not, and ask whoever gave it to
+you.
+
+## The Course Policy {#sec-ai-policy}
+
+You may use AI freely for the module practice and for the course project.  You may not use it
+on tests, where you will be working on your own.
+
+This is not about suspicion.  Tests are the one point where we find out whether
+*you* can read a data file, choose a summary, and tell whether the answer is sensible.  If the
+tool does that for you, neither of us learns anything from the result.
+
+There is now some evidence about what happens when students use AI to do the work rather than
+to learn from it.  @fig-ai-penalty is from a study of 26,811 Chinese secondary students
+tracked over thirty months [@stromberg2026].
+
+![Homework, completion time, and exam scores for students before and after they started using
+AI, against students who never used it.  Source: Strömberg, Lei and Wu
+(2026).](images/ai_learning_penalty.png){#fig-ai-penalty}
+
+Read the three panels together.  Homework scores went up by about 18%.  Homework took about
+30% less time.  And exam scores went *down* -- around 20% within six months, and further after
+that.  The students got faster and their marked work got better, while the thing the marks
+were supposed to measure got worse.
+
+The authors find the losses concentrated in roughly 80% of AI users, identified by a
+combination the middle panel makes visible: unusually short completion times together with
+high homework scores.  They call it *homework outsourcing*.
+
+The other 20% matter more for our purposes.  Students who used AI but still spent about as
+long on their homework as everyone else showed only small learning losses.  The tool was not
+the problem; skipping the work was.
+
+So this is not a warning off the tools -- this course asks you to use them.  It is the
+distinction that matters, between asking an AI why your code failed and asking it for an
+answer you submit without reading.  The first is why the policy is permissive.  The second is
+what the exam finds out.
+
+There is one condition on assignment use that is worth stating plainly: **you must be able to
+explain every line you submit.**  If you cannot, it is not your work, and you have not learned
+what the exercise was for.  This is the same standard Willison sets for himself, and it is not
+an academic invention.
+
+One thing that does not follow: this policy is for AREC 261 only.  Other courses set their own
+rules, and some of them prohibit AI entirely, including for work you might think of as
+drafting.  Read each syllabus.  Do not assume that because one professor allows it, the next
+one does.
+
+## What the Rest of This Module Does {#sec-ai-module-plan}
+
+The next chapter sets up GitHub Copilot, which is the tool we will use in this course, and
+covers how to work with it inside Positron.  The chapter after that puts it to work on
+graphing -- a good place to start, for reasons that will become obvious once you try it.
+
+::: {.callout-tip collapse="true"}
+## Other resources — how language models work
+
+- **3Blue1Brown**, [*But what is a GPT?*](https://www.youtube.com/watch?v=wjZofJX0v4M) -- a
+  visual explanation of the prediction mechanism.  Longer and more technical than you need,
+  but the first ten minutes are the clearest version of this I know.
+- **Simon Willison**, [*Not all AI-assisted programming is vibe coding*](https://simonwillison.net/2025/Mar/19/vibe-coding/)
+  -- where the "did you understand it?" line comes from, and worth reading in full.  His
+  [blog](https://simonwillison.net/) is a working programmer writing carefully about what these
+  tools can and cannot do, and a good antidote to both the hype and the dismissal.
+- **Swarmia**, [*Five levels of AI coding agent autonomy*](https://www.swarmia.com/blog/five-levels-ai-agent-autonomy/)
+  -- one attempt at formalising the progression above, from inline suggestions to unattended
+  fleets of agents, with the argument that higher is not automatically better.
+:::

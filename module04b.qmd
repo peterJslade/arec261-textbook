@@ -1,155 +1,21 @@
-# GitHub Copilot {#sec-copilot}
+# Graphing in Excel {#sec-graphing-excel}
 
-Copilot is an AI assistant that runs inside your editor.  Instead of switching to a browser,
-describing your data, and pasting code back, it sits in the file you are already writing and
-suggests the next few lines.
-
-There are other tools that do this.  I am asking you to use Copilot because it is free for
-students, it works in Positron, and it is the one you are most likely to meet in a workplace.
+Excel builds a chart from a selection: highlight the numbers, choose a chart type, and it
+draws one.  Getting a chart that is worth showing anyone takes a few more steps, and this
+chapter walks through them.
 
 ## Learning Objectives {.unnumbered}
 
 ::: {.objectives}
 By the end of this chapter, you will be able to:
 
-- Get a free Copilot subscription through GitHub's student program
-- Enable Copilot in Positron and confirm it is working
-- Use inline suggestions and Copilot chat, and say when each is appropriate
-- Give Copilot enough context about your data to get useful answers
-- Decide whether to accept or reject a suggestion
+- Build a bar, line and scatter chart from a range of cells
+- Add and edit titles, axis labels and legends
+- Adjust an axis, and know when changing its range misleads
+- Save or copy a chart into a document
 :::
 
-## Getting Copilot Free {#sec-copilot-signup}
+## Building a Chart {#sec-excel-chart-build}
 
-GitHub gives students free access to Copilot through the **GitHub Student Developer Pack**.
-
-1. Create a GitHub account at [github.com](https://github.com) if you do not have one.  Use
-   whatever email you like for the account itself.
-2. Go to [education.github.com/pack](https://education.github.com/pack) and apply.  You will
-   need to verify that you are a student -- add your **@usask.ca** address to your GitHub
-   account, and be ready to upload a photo of your student card or a copy of your enrolment
-   confirmation from PAWS.
-3. Wait.  Approval usually takes a day or two, occasionally longer at the start of term.
-
-That last point is the one that catches people.  **Apply in the first week.**  If you leave it
-until the night before something is due, you will not have access when you need it.
-
-Student access is free at the time of writing.  These terms change, and by the time you read
-this the free tier may cover more or less than it does now.  Nothing in this chapter depends on
-Copilot specifically -- the habits transfer to whatever assistant you end up with.  If you
-cannot get access, tell me and we will sort something out.
-
-![Applying for the GitHub Student Developer Pack.](images/copilot_student_pack.png){#fig-copilot-pack}
-
-## Turning It On in Positron {#sec-copilot-positron}
-
-Once your student status is approved:
-
-1. Open Positron and go to the **Extensions** pane in the left sidebar.
-2. Search for **GitHub Copilot** and install it.
-3. Positron will prompt you to sign in to GitHub.  Follow the prompt -- it opens a browser
-   window, gives you a code to paste, and returns you to the editor.
-4. Check the status indicator in the bottom right.  A Copilot icon without a warning badge
-   means it is running.
-
-![Installing the Copilot extension in Positron.](images/copilot_extension.png){#fig-copilot-extension}
-
-![The Copilot status indicator once you are signed in.](images/copilot_status.png){#fig-copilot-status}
-
-If the icon shows a warning, it is almost always one of two things: you are not signed in, or
-your student application has not been approved yet.
-
-## Two Ways to Use It {#sec-copilot-modes}
-
-**Inline suggestions** appear as you type.  Start a line, pause, and grey "ghost text" appears
-proposing the rest.  Press `Tab` to accept it, `Esc` to dismiss it, or keep typing to ignore
-it.  Suggestions also respond to comments -- write `# read the yield data and count rows by
-crop` on its own line, press Enter, and you will usually get the code.
-
-![A suggestion appearing as ghost text.](images/copilot_inline.png){#fig-copilot-inline}
-
-**Copilot Chat** is a panel where you ask questions in words.  Select some code first and it
-will answer about that selection.  This is the one to use for "why does this throw an error",
-"what does this line do", or "rewrite this so the labels do not overlap".
-
-![Asking Copilot about a selected block of code.](images/copilot_chat.png){#fig-copilot-chat}
-
-Inline is for writing.  Chat is for understanding and for fixing.  Most of your use in this
-course will be chat, because most of what you need is explanation rather than volume.
-
-## What Copilot Can See {#sec-copilot-context}
-
-Copilot reads the file you have open and, to a limited extent, other files in the same folder.
-
-It does **not** see your data.  It has no idea what is inside `sask_variety_yields.csv`.  When
-it writes `df$yield`, it is guessing from the filename and from what columns in agricultural
-data are usually called.
-
-Sending the file also means the file leaves your machine, which is fine for the public data we
-use in this course and is not fine for everything -- see @sec-ai-privacy before you point
-Copilot at anyone's real numbers.
-
-This is why one habit improves your results more than any prompting trick: **show it the
-shape of your data first.**  Run `str(d)` or `head(d)` in the console and paste a few lines
-into a comment above your request.
-
-```r
-# d has columns: Risk_Zone, Crop, Variety, Year, Acres, Yield
-# Crop values include "Barley", "Canola/Rapeseed", "Wheat - Hard Red Spring"
-# Some rows have NA in Acres and Yield
-#
-# Compute mean yield by crop for 2025, weighting by acres
-```
-
-A request like this gets you code that uses your actual column names, handles the missing
-values, and does not have to guess at anything.  A request without it gets you a plausible
-script written for an imaginary dataset.
-
-## Accepting and Rejecting {#sec-copilot-accept}
-
-The rule I would offer is this: **accept what you could have written yourself given enough
-time and a reference.**  Reject anything else, or read it until it moves into the first
-category.
-
-Accepting a suggestion you do not understand feels efficient.  You have committed
-code to your script that you cannot defend, cannot debug when it misbehaves, and cannot
-explain if asked -- which, in this course, you will be.
-
-In practice that means:
-
-- **Accept freely**: syntax you recognise, plotting boilerplate, tedious argument lists,
-  anything you can verify at a glance.
-- **Read carefully first**: joins, filters, anything that changes how many rows you have,
-  anything involving `NA`.
-- **Reject**: code using functions you do not recognise, unless you look them up.  Code that
-  is longer than the problem warrants.  Anything you find yourself accepting because you are
-  tired of the problem.
-
-That last one is worth watching for.  The moment you are most likely to accept something
-careless is when you have been stuck for twenty minutes, and that is also the moment it is
-most likely to be wrong.
-
-## Checking the Work {#sec-copilot-verify}
-
-Four habits, applied to every suggestion you accept:
-
-1. **Read every line.**  If you cannot say what one does, ask before you run it.
-2. **Count rows before and after.**  `nrow()` on either side of any join, filter, or group.
-   @sec-ai-silent-failure is the reason.
-3. **Test on something small.**  Run it on a handful of rows whose answer you already know.
-4. **Recompute one number another way.**  In Excel, by hand, with a different function.  If the
-   two disagree, one of them is wrong and you have found it early.
-
-None of this takes long.  All of it is faster than finding out three weeks later that a
-summary you reported was computed over two-thirds of your data.
-
-::: {.callout-tip collapse="true"}
-## Other resources — Copilot
-
-- **GitHub Docs**, [Getting started with Copilot](https://docs.github.com/en/copilot/getting-started-with-github-copilot)
-  -- the official setup guide, kept current.
-- **GitHub Education**, [Student Developer Pack](https://education.github.com/pack) -- the
-  application page, plus the other tools that come free with it.
-- **Positron docs**, [positron.posit.co](https://positron.posit.co/) -- Positron's own
-  documentation on assistants and extensions.
-:::
+*(to write -- this chapter needs screenshots of the Insert Chart menu and the chart
+elements panel, and a worksheet with a few charts already built.)*

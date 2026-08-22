@@ -1,0 +1,142 @@
+# Graphing with AI {#sec-graphing-ai}
+
+This chapter is mostly exercises.  Before them, a word on why graphing is where I want you to
+start.
+
+ggplot2 is a good tool with a fussy surface.  The grammar is consistent once you know it, but
+the details -- placing an annotation, putting labels at the ends of lines instead of in a
+legend, controlling where the axis breaks fall -- involve arguments nobody remembers.  I have
+written the figures in this book and I still look up `annotate()` every time.  This is exactly
+the sort of work an AI is good at.
+
+It is also the safest place to learn the habit, because **a chart checks itself.**  If the
+annotation points at the wrong year, you see it.  If a panel is missing, you count them.  If
+the axis cuts off the top of the data, it is right there.  Compare that to the join in
+@sec-ai-silent-failure, which dropped a thousand rows and produced a number that looked
+perfectly reasonable.  In graphing, the mistakes are visible.
+
+## Learning Objectives {.unnumbered}
+
+::: {.objectives}
+By the end of this chapter, you will be able to:
+
+- Use Copilot to produce ggplot2 code for tasks whose syntax you do not remember
+- Give the model enough context about your data to get working code
+- Check an AI-produced chart against the data it claims to show
+- Recognise when the model is stuck and change approach rather than re-prompting
+:::
+
+## What Visual Verification Does Not Catch {#sec-visual-limits}
+
+The chart tells you whether the *drawing* is right.  It says nothing about whether the data
+going in was right.
+
+A chart of the wrong subset looks exactly as convincing as a chart of the right one.  If your
+code filtered to 2024 when you meant 2025, or dropped every row with a missing acreage figure
+when you meant to keep them, the result is a clean, well-labelled, entirely wrong figure.
+
+So the check has two halves.  Before plotting, look at what you are plotting: how many rows,
+how many groups, what range.  After plotting, look at the chart.  Both, every time.
+
+The dataset for these exercises makes the point.  `sask_variety_yields.csv` has 13,625 rows,
+and 4,186 of them have no yield recorded -- but not evenly.
+
+```{r}
+#| label: fig-missing
+#| eval: true
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 5.0
+#| fig-height: 2.3
+#| fig-cap: "Rows with and without a recorded yield, by year."
+source("R/ai_failures.R")
+fig_missing_by_year()
+```
+
+Half of 2021 is missing and almost none of 2025.  So a chart of 2021 rests on half the data a
+chart of 2025 does, and nothing on either chart says so.  Any code that quietly drops those
+rows is making a decision on your behalf.
+
+## The Exercises {#sec-ai-graph-exercises}
+
+All five use `practice/data/sask_variety_yields.csv`, the Saskatchewan variety trial data from
+Module 3.  Columns are `Risk_Zone`, `Crop`, `Variety`, `Year`, `Acres`, `Yield`.
+
+Work in Positron with Copilot on.  For each one: describe what you want, read what you get,
+run it, then work through the checks.  If the first answer is wrong, do not just re-run it —
+tell the model what was wrong with it.
+
+### 1. Annotate a single point {.unnumbered}
+
+Plot average spring wheat yield by year, then add a text note with an arrow pointing at 2021,
+saying it was a drought year.
+
+*Checks.*  Does the arrow point at 2021 and not 2020 or 2022?  Is the text inside the plot
+area, or has it been cut off at the edge?  Did the code average over all varieties, or did it
+silently drop the rows with missing yields -- and how many rows went into each point?
+
+### 2. Replace a legend with direct labels {.unnumbered}
+
+Plot average yield by year for four crops as four lines.  Put each crop's name at the right
+end of its line instead of using a legend.
+
+*Checks.*  Are all four labels present, or has one been drawn off the edge of the panel?  Does
+each label sit next to the right line?  Are the colours still distinguishable if you print it
+in grey?
+
+### 3. Shade a range behind a line {.unnumbered}
+
+Plot average spring wheat yield by year with a shaded band showing the range across risk
+zones.
+
+*Checks.*  Does the band actually contain the line at every year?  Do the axis limits include
+the whole band, or is the top of it clipped?  How many zones went into each year's range?
+
+### 4. Small multiples {.unnumbered}
+
+One panel per crop, each showing that crop's average yield over time, for the six crops with
+the most acres.
+
+*Checks.*  Six panels?  Are the year labels readable, or are they colliding between panels?
+Do the panels share a y-axis, and is that what you wanted -- shared axes let you compare
+levels, free axes let you compare shapes.
+
+### 5. Rebuild a chart from Module 3 {.unnumbered}
+
+Pick any figure from @sec-chart-types and reproduce it using only the description in the text.
+Do not open `R/chart_types.R` until you are done.  Then open it and compare.
+
+*Checks.*  Is your version readable?  Is there anything the original does that yours does not,
+or the reverse?  This one is about noticing the decisions that go into a figure, most of which
+are invisible until you try to make the same one.
+
+## When It Gets Stuck {#sec-ai-stuck}
+
+Sometimes you will report an error, get a fix, run it, get the same error, report it again,
+and get the same fix back.  This happens with ggplot more than with most things, and it is not
+you.  The model has settled into a pattern and re-prompting will not shift it.
+
+Three things that work better than asking again:
+
+- **Change the description.** Describe the goal differently rather than repeating the failure.
+  "Move the label so it does not overlap the line" instead of "it is still overlapping".
+- **Ask for an explanation instead of a fix.**  "What does this error mean?" often produces the
+  understanding that lets you fix it yourself in one line.
+- **Start a fresh chat.**  A conversation that has gone wrong tends to stay wrong, because
+  everything said so far is context for what comes next.
+
+And when none of that works: look it up.  The ggplot2 documentation is good, and the examples
+in `R/chart_types.R` cover most of what this course needs.
+
+::: {.callout-tip collapse="true"}
+## Other resources — ggplot2
+
+- **ggplot2: Elegant Graphics for Data Analysis**, [ggplot2-book.org](https://ggplot2-book.org/)
+  -- the full reference, by the package's author.
+- **The R Graph Gallery**, [r-graph-gallery.com](https://r-graph-gallery.com/) -- worked
+  examples with code, useful when you know what you want the chart to look like but not what
+  it is called.
+- **ggplot2 function reference**, [ggplot2.tidyverse.org/reference](https://ggplot2.tidyverse.org/reference/)
+  -- for when you need the actual argument names.
+:::

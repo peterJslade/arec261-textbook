@@ -1,614 +1,381 @@
-# Graphing Best Practices {#sec-graphing-principles}
+# Cleaning Data {#sec-cleaning}
 
-A chart takes a table of numbers and turns it into something a reader can take in at a glance.
-A good test of whether it is working is to ask whether the reader would have understood the
-data faster from the table itself.  A good chart tells you the story immediately.  A bad one
-makes you work through the axes, the labels and the legend before you can see what should have
-been obvious.
+```{r}
+#| include: false
+#| eval: true
+source("_console.R")
+suppressMessages({library(tidyverse); library(janitor)})
+trial_data <- readr::read_csv("practice/data/canola_trial.csv", show_col_types = FALSE)
+```
 
-Let me illustrate with two charts.  @fig-minard is what @tufte concludes "might well be
-the best statistical graphic ever drawn".  The figure, whose text is in French, documents the
-advance and subsequent retreat of Napoleon's army into Russia.  The width of the main line
-denotes the size of Napoleon's forces, the horizontal axis represents the geography of Russia,
-while the bottom line graph denotes the temperature.  The tan band is the army marching east
-and the black band is what came back: 422,000 men crossed the Polish border and 10,000
-returned.  You can read the disasters off it directly -- at the Berezina river crossing the
-black band halves, and the temperature line below it reads -30° Réaumur, about -37 Celsius.
-I can take issue with the size of the labels in the graph, but one cannot deny the ominous
-story that it tells.
+Assume a new file is broken until you have checked.  It was typed by someone in a hurry and exported by software that had its own ideas about formatting.  This chapter starts with the shape a table should have, then tours the defects that show up most often in the values, how to find them, and what to do about them, first in Excel and then in R.
 
-![Charles Joseph Minard, *Carte figurative des pertes successives en hommes de l'Armée
-Française dans la campagne de Russie 1812--1813* (1869).  Public domain.  Click to view it
-full size.](images/minard.png){#fig-minard}
+The examples below use `grain_deliveries_messy.csv`, a small file of grain deliveries carrying every defect in this chapter.
 
-The second chart, @fig-georgia, was published by the Georgia Department of Public Health in
-May 2020.  It shows confirmed COVID-19 cases in the state's five worst-affected counties over
-a fifteen-day window, and the story it appears to tell is a steady decline.
+```r
+library(tidyverse)
 
-![Georgia Department of Public Health, "Top 5 Counties with the Greatest Number of Confirmed
-COVID-19 Cases," May 2020.  Reproduced from the Sabin Center for Climate Change Law
-[@sabin2020georgia].  Click to view it full size.](images/georgia_covid.png){#fig-georgia}
-
-However, when you read the dates along the bottom you will find that they are not-sequential -- the graph is sorted by case count not by date.  The story this graph imparts is wrong and it's only when the reader strains to read every element of the graph does can some semblance of truth emerge.
-
-The state did not defend the design.  A spokesperson for the governor's office said: "The x
-axis was set up that way to show descending values to more easily demonstrate peak values and
-counties on those dates.  Our mission failed.  We apologize.  It is fixed."
-
-Hopefully, we can learn to create graphs that more are more like @fig-minard rather than @fig-georgia.
+deliveries <- read_csv("data/grain_deliveries_messy.csv")
+glimpse(deliveries)
+```
 
 ## Learning Objectives {.unnumbered}
 
 ::: {.objectives}
-By the end of this chapter, you will be able to:
+By the end of this chapter you should be able to:
 
-- Say what question a chart is supposed to answer before you build it
-- Choose a chart type that suits the comparison you are making
-- Label a chart so a reader who did not make it can read it
-- Spot the common ways a chart misleads, and avoid them in your own work
+1. Explain what tidy data means, and reshape a dataset between wide and long with `pivot_longer` and `pivot_wider`.
+2. Clean up awkward column names with `rename()` and `janitor::clean_names()`.
+3. Find duplicates, impossible values, inconsistent categories and mixed units in a new file.
+4. Recognize the disguises missing values wear, and count them properly.
+5. Decide -- and justify -- when dropping missing values is safe.
+6. Spot dates that imported as text, and say why it matters.
+7. Reshape and clean a table in Excel with Power Query, and say why its recorded steps matter.
 :::
 
-## The Principles {#sec-chart-principles}
+## Tidy Data {#sec-tidy-data}
 
-Before we get into specific chart types, some general principles.  These come from a long tradition of work on data visualization, especially by Edward Tufte (*The Visual Display of Quantitative Information*) and more recently by Cole Nussbaumer Knaflic (*Storytelling with Data*).
+Before the defects in individual values, the shape of the whole table.  The tidyverse is built around an idea called **tidy data** [@r4ds]. A dataset is tidy when:
 
-### Do you need a chart? {.unnumbered}
+1. Every variable has its own **column**.
+2. Every observation has its own **row**.
+3. Every value has its own **cell**.
 
-A chart earns its place when there is a pattern in the data that prose
-cannot carry.  With two numbers there is no pattern, only two
-numbers, and a sentence does the job: *in 2024 the United States produced 53.7 million tonnes
-of wheat and Canada produced 34.9 million.*  A chart of those two figures asks the reader to
-measure two bars to recover what the sentence already told them.
+For example, this dataset is tidy:
 
-```{r}
-#| label: fig-wheat-two
-#| eval: true
-#| echo: false
-#| message: false
-#| warning: false
-#| fig-width: 5.0
-#| fig-height: 1.5
-#| fig-cap: "Two numbers do not need a chart."
-source("R/chart_types.R")
-fig_wheat(2)
+```
+  region  crop   yield
+  South   Canola    41
+  South   Wheat     52
+  South   Barley    64
+  Central Canola    44
+  Central Wheat     55
+  Central Barley    68
 ```
 
-Now ask a question with a shape to it -- where does Canada sit among the world's wheat
-producers? -- and the chart starts doing work no sentence can.
+An observation here is a region-crop combination; the variables are `region`, `crop`, and `yield`. Each variable has a column and each observation has a row.
 
-```{r}
-#| label: fig-wheat-fifteen
-#| eval: true
-#| echo: false
-#| message: false
-#| warning: false
-#| fig-width: 5.4
-#| fig-height: 3.4
-#| fig-cap: "The top fifteen wheat producing countries, 2024/25. Canada highlighted. Approximate figures from USDA."
-fig_wheat(15)
+Now compare this version of the same data:
+
+```
+  region  Canola Wheat Barley
+  South       41    52     64
+  Central     44    55     68
 ```
 
-You can see at once that Canada is fifth, that the top three are in a different league, and
-that Canada and Australia are close enough to trade places in a bad year.  Writing that out
-would take a paragraph, and the reader still would not see it.
+This table is easier for a person to read, but it is not tidy. Canola, Wheat, and Barley are not three different variables; they are three values of the variable `crop`. This is the wide-versus-long distinction from @sec-wide-long, where a PivotTable needed the long form. For analysis in R, the long form is usually the more convenient one, because `crop` is an ordinary variable that R can filter by, group by, and compare.
 
-### Be honest {.unnumbered}
+### Recognizing untidy data {.unnumbered}
 
-As with the case of the Georgia covid case counts above, charts can deceive as much as they can illuminate.  Methods of deception include: a) sorting data  .  Humans minds try to recognize patterns and assign meaning -- if we see dates on the horizontal axis, we expect them to be in sequential order.  If we see one bars on a chart, we expect their relative size to be representative of something.
+Some common warning signs:
 
-Truncating an axis is the commonest version.
+- **Values stored in column names.** A table with columns `region`, `2024`, `2025`, `2026`, where the year columns hold yields. The years are values of a variable called `year`; the tidy version has columns `region`, `year`, `yield`.
+- **More than one variable in a column.** A `region_variety` column containing `"South_InVigor"`. That is two variables, `region` and `variety`, in one column.
+- **One observation spread over several rows.** Price in one row and quantity in another row for the same market and year.
 
-Both panels show the same five malting barley varieties, which yield between 103 and 114
-bushels.
+What counts as an observation depends on the dataset and the question, but the basic test is always the same: what does one row represent? You should be able to answer that. When you first open a dataset, ask what one row represents, what each column represents, whether any values are hiding in column names, and whether any column holds several variables at once.
 
-```{r}
-#| label: fig-truncated
-#| eval: true
-#| echo: false
-#| message: false
-#| warning: false
-#| fig-width: 4.6
-#| fig-height: 2.5
-#| fig-cap: "The same five yields: axis at 100, and axis at zero."
-#| fig-subcap:
-#|   - "A. Axis starting at 100"
-#|   - "B. Axis starting at zero"
-#| layout-ncol: 2
-source("R/chart_types.R")
-fig_truncated(ymin = 100, labels = FALSE)
-fig_truncated(ymin = 0)
-```
+::: {.callout-tip collapse="true"}
+## Other resources — tidy data
 
-Panel A has no numbers on the bars, so there is nothing to check the heights against.  Starting
-the axis at 100 means the bars show yield *minus one hundred*: CDC Copeland's 3 sits next to
-AAC Synergy's 14, and a 10% gap becomes a bar four times taller.  Nothing is fabricated, which
-is what makes it both effective and dishonest.  Check where the axis starts before you read
-anything else.
-
-### Descriptive titles and labels {.unnumbered}
-
-Label both axes, noting the units were applicale. In Excel, add these from **Chart Design → Add Chart Element → Chart Title** and **→ Axis Titles**. Missing labels are the most common problem in student charts.  Note that if you are embedding the chart in a Word document, it is generally better to put a title or caption in Word itself, rather than using the Excel built-in title.
-
-### Minimize clutter {.unnumbered}
-
-Some charts are embellished with 3d effects, shadows, patterned fills, or tick marks.  Usually these are just distracting noise.  Ruthlessly remove noise that does not tell the story of the data.
-
-Panel A has a tick every 5 bushels, gridlines in both directions, a marker on every point,
-a drop shadow behind every line, a shaded panel and a boxed legend.  Panel B has the same
-four series.
-
-```{r}
-#| label: fig-clutter
-#| eval: true
-#| echo: false
-#| message: false
-#| warning: false
-#| fig-width: 4.7
-#| fig-height: 2.7
-#| fig-cap: "The same four series, cluttered and decluttered."
-#| fig-subcap:
-#|   - ""
-#|   - ""
-#| layout-ncol: 2
-source("R/chart_types.R")
-fig_clutter(load_yields())
-fig_declutter(load_yields())
-```
-
-Patterned fills come from an era when charts were printed in black and white and hatching
-was the only way to tell one bar from another.  On a screen they shimmer.
-
-```{r}
-#| label: fig-pattern
-#| eval: true
-#| echo: false
-#| message: false
-#| warning: false
-#| fig-width: 4.7
-#| fig-height: 2.7
-#| fig-cap: "Patterned fills, and the same bars filled flat."
-#| fig-subcap:
-#|   - ""
-#|   - ""
-#| layout-ncol: 2
-fig_pattern(load_yields())
-fig_flat(load_yields())
-```
-
-A 3D bar or pie chart tilts the plane, so bars at the front read larger than identical bars
-at the back and you can no longer line a bar up against the axis.
-
-### Label directly {.unnumbered}
-
-A chart where each line is labeled at the end is easier to read than one with a legend that forces the eye to jump back and forth.
-
-Below are the same barley variety shares drawn both ways.  Try finding Newdale in each.
-
-::: {layout-ncol=2}
-![A. Direct labels](images/variety_shares_direct_labels.png)
-
-![B. Legend](images/variety_shares_legend.png)
+- **R for Data Science (2nd ed.)** -- [Chapter 5, "Data tidying"](https://r4ds.hadley.nz/data-tidy) develops the tidy-data idea and shows how datasets are reshaped between long and wide forms.
+- **Video** -- Riffomonas Project, [*Reshaping data to be long or wide with pivot_longer and pivot_wider*](https://www.youtube.com/watch?v=ZVddiwrbrr4).
 :::
 
-### Use text sparingly {.unnumbered}
+## Tidying and Cleaning in Excel {#sec-cleaning-excel}
 
-If a reader is going to stop at something and wonder why, a few words on the plot save them
-the trip to the caption.  The temptation is then to explain everything.  Panel A annotates
-every bend in twenty-five years of nitrogen fertilizer prices; panel B annotates the one a
-reader would actually stop at.
+Excel has two ways to clean a table: formulas beside the data, and Power Query.  Formulas are quicker for a file you will clean once.  Power Query is the one to learn, because it does the reshaping too, and it records what it did.
 
-```{r}
-#| label: fig-fertilizer
-#| eval: true
-#| echo: false
-#| message: false
-#| warning: false
-#| fig-width: 5.0
-#| fig-height: 2.9
-#| fig-cap: "Nitrogen fertilizer prices, annotated twice. Indicative urea prices, USD per tonne."
-#| fig-subcap:
-#|   - "A. Everything explained"
-#|   - "B. One thing explained"
-#| layout-ncol: 2
-fig_fertilizer("heavy")
-fig_fertilizer("light")
-```
+### Reshaping with Power Query {#sec-unpivot}
 
-Panel A is not wrong, and each note on its own is reasonable.  Together they bury the series
-they are describing: the line is now the least visible thing on the plot, and a reader has no
-idea which of the ten notes matters.  Panel B leaves the ordinary movements alone and names the
-one event that would otherwise send the reader looking for an explanation.
+The RM yields file (@sec-direct-download) is wide, one column per crop, and Power Query's **Unpivot** turns it long.  Import the file with **Data > Get Data > From Text/CSV** and press **Transform Data** to open the editor.  Select the columns that identify a row, `Year` and `RM`, and choose **Transform > Unpivot Columns > Unpivot Other Columns**.  Every crop column collapses into two: `Attribute`, holding the crop name that was in the header, and `Value`, holding the yield.  Double-click the headers to rename them `crop` and `yield_bu_ac`, then **Close & Load**.  2,950 rows become 17,700, one per RM-year-crop.
 
-Text costs the same as everything else on a chart: space that could have shown data.
+<!-- Screenshot: Power Query editor with Year and RM selected and the Unpivot Other
+Columns menu open, or the result after unpivoting.
+![Unpivot Other Columns in the Power Query editor.  The crop headers become values in a `crop` column.](images/pq_unpivot.png){#fig-pq-unpivot}
+-->
 
-### More than two variables {.unnumbered}
+The other direction, long to wide, is a PivotTable (@sec-wide-long), or **Transform > Pivot Column** in the same editor.
 
-Position on the two axes is
-what the eye reads best, but it is not all you have.  The size of a point, its colour, its
-shape: each can carry another variable.  Minard's map manages six.  Below is the scatter of
-wheat against barley yields from earlier, with the acres seeded in each zone added as the
-size of the point.
+### Cleaning with formulas {.unnumbered}
 
-```{r}
-#| label: fig-bubble
-#| eval: true
-#| echo: false
-#| message: false
-#| warning: false
-#| fig-width: 5.4
-#| fig-height: 2.9
-#| fig-cap: "Three variables: wheat yield, barley yield, and acres as the size of the point."
-fig_bubble(load_yields())
-```
+The workbook below holds the grain delivery tickets with the cleaning done in formula columns beside the raw data, so the original is still there to check against.
 
-The extra variable answers a question the plain scatter could not: the zones at the top right
-are not just the highest yielding, they are also where most of the wheat is grown.  Size
-works here because it is only being asked to rank -- big, medium, small -- and not to be read
-off precisely.
+- **Categories.** The filter dropdown on a column lists every distinct value in it, which is Excel's `count()`.  Open it on `crop` and the three spellings of canola are all visible at once.  `=PROPER(TRIM(C5))` fixes case and stray spaces; **Find & Replace** handles synonyms like Canola/Rapeseed.
+- **Impossible values and mixed units.** `MIN` and `MAX` at the foot of a column do what `summary()` does.  An `IF` that rescales moisture readings under 1 is the `if_else()` from @sec-mixed-units.
+- **Duplicates.** **Data > Remove Duplicates** drops exact duplicates, and says how many it removed.  It does nothing about the same ticket number with two different weights; `=COUNTIF($A$5:$A$23, A5)` beside each row finds those.
+- **Text that should be numbers.** A number stored as text shows a green triangle in the corner of the cell and sorts in the wrong place.  `VALUE()` converts it, and **Text to Columns** (@sec-csv-excel) converts a whole column at once if you click through with the type set to General.
+- **Missing values.** `COUNTBLANK` counts empty cells.  Excel's `AVERAGE` skips blanks without telling you, which is the difference from R's `NA` (@sec-missing-values), so count them before you trust an average.
 
-What does not work is giving a chart two different vertical scales, one on the left and one
-on the right.  Both panels below plot canola yield and canola acres over the same five years,
-and the only difference between them is how the right-hand axis was scaled.
+::: {.workbook-callout}
+<!-- iframe embed goes here once the workbook is uploaded to SharePoint; follow the
+mod01_sum.xlsx block in module01a.qmd -->
+
+[Download this workbook](textbook_examples/mod03_cleaning_excel.xlsx)
+:::
+
+### Cleaning with Power Query {.unnumbered}
+
+Each of those has a Power Query equivalent, applied as a step in the editor rather than a formula in a cell.  With the deliveries file open in the editor:
+
+- **Remove Top Rows** (Home > Remove Rows) drops a title and notes above the header, and **Use First Row as Headers** then promotes the real header.
+- **Change Type**, by clicking the icon in a column header, sets a column to Text, Whole Number, Decimal or Date.  Rows that fail to convert show `Error`, which is how you find a `38.2 t` in a numeric column.
+- **Transform > Format > Trim** and **Capitalize Each Word** fix spacing and case in `crop`.
+- **Replace Values** handles synonyms and disguised missing values: replace `Canola/Rapeseed` with `Canola`, or `N/A` with nothing, which Power Query stores as `null`, its `NA`.
+- **Remove Duplicates** (Home > Remove Rows) drops exact duplicates.  Conflicting duplicates still need a count: **Group By** `ticket_id` with a row count, then filter to counts above 1.
+- **Split Column > By Delimiter** is Text to Columns inside the editor.
+- **Fill > Down** fills blanks from the cell above, for spreadsheets where a category was typed once and left blank for the rows beneath it.
+
+The difference from formulas and from Find & Replace is that every step lands in the **Applied Steps** list on the right of the editor.  You can click any step to see the table as it was at that point, delete one, or change its settings.  When a new version of the file arrives, **Refresh** runs the whole list again.  Formulas beside the data leave the original visible; a retyped cell or a Find & Replace on the sheet leaves nothing, and a month later there is no way to tell what was changed.
+
+## Tidying and Cleaning in R {#sec-cleaning-r}
+
+### Reshaping: `pivot_longer` and `pivot_wider` {#sec-reshaping}
+
+Fixing the shape is the job of a pair of `tidyr` functions, which do what Unpivot and Pivot Column do in Power Query.
+
+`pivot_longer` is Unpivot.  You tell it which columns to gather, what to call the column that will hold their *names*, and what to call the column that will hold their *values*. The Saskatchewan RM yields again:
 
 ```{r}
-#| label: fig-dual
 #| eval: true
 #| echo: false
-#| message: false
-#| warning: false
-#| fig-width: 4.4
-#| fig-height: 2.6
-#| fig-cap: "The same two series, with the right-hand axis scaled two different ways."
-#| fig-subcap:
-#|   - ""
-#|   - ""
-#| layout-ncol: 2
-fig_dual_axis(load_yields(), TRUE)
-fig_dual_axis(load_yields(), FALSE)
+console('
+yields_wide <- read_csv("data/rm_yields_2015_2024.csv") |> clean_names()
+yields_wide
+
+yields_long <- yields_wide |>
+  pivot_longer(cols = spring_wheat:peas,
+               names_to = "crop",
+               values_to = "yield_bu_ac")
+yields_long
+')
 ```
 
-In A the lines cross in 2022 and acres appear to run ahead of yield.  In B they barely meet.
-Nothing in the data changed.  Where two series cross, which one looks higher, and whether one
-seems to lead the other are all decided by a choice of scale that the reader cannot see and
-the author may not have thought about.  Plot the two series in separate panels instead, or
-put one of them on an index.
+Six times as many rows, 17,700: one per RM-year-crop, with `crop` and `yield_bu_ac` as ordinary columns that `filter()` and `group_by()` can use.  `spring_wheat:peas` means every column from `spring_wheat` through `peas`; listing them with `c()` works too.
 
-### Use colour purposefully {.unnumbered}
-
-Colour is not just decoration!  It can be used to convey information. Colour can also be used to draw the reader's attention to a particular finding (though one should avoid misusing this power!) or to express intensity.
-
-### Be wary of pie charts {.unnumbered}
-
-Most books on visual display are pretty hostile to pie charts.  One reason is that it it is much more difficult to compare the size of angles to the size of bars.  See below the pie chart of the vote share in the 2021 Canadian election.  It is kind of hard to immediately see that the Conservatives gained more votes than the Liberals in the pie chart.  Much easier in the bar chart.  Of course you can also put the percentages directly in the pie chart -- but then why not simply use a table?
+`pivot_wider` goes the other way.  Tell it which column holds the names and which holds the values:
 
 ```{r}
-#| label: fig-vote
 #| eval: true
 #| echo: false
-#| message: false
-#| warning: false
-#| fig-width: 4.4
-#| fig-height: 2.7
-#| fig-cap: "Popular vote share in the 2021 Canadian federal election. Source: Elections Canada."
-#| fig-subcap:
-#|   - ""
-#|   - ""
-#| layout-ncol: 2
-fig_vote("pie")
-fig_vote("bar")
+console('
+yields_long |>
+  pivot_wider(names_from = crop, values_from = yield_bu_ac)
+')
 ```
 
-## Types of Charts {#sec-chart-types}
+Long is usually what analysis wants; wide is often what people want to read.  Expect to pivot in both directions.
 
-Most of the work in making a good chart is picking the right kind in the first place.  The
-choice follows from the comparison you want the reader to make, so it helps to state that
-comparison out loud before you open a chart menu.  All the figures below are drawn from the
-same Saskatchewan variety data, so you can see how differently the same numbers read.
+### Awkward Column Names {#sec-clean-names}
+
+The first thing to fix is often the names. Real files arrive with columns like `Yield (bu/ac)`, `REGION_NAME`, or `Field ID Number` -- readable to a person, but annoying to type and easy to mistype in code. This book prefers **snake_case**: lowercase, words separated by underscores, short but descriptive -- `yield_bu_ac`, `region`, `field_id`.
+
+For individual columns, `rename()` does it:
+
+```r
+deliveries <- deliveries |>
+  rename(weight_tonnes = "Weight (t)",
+         crop = CROP_NAME)
+```
+
+For wholesale renaming, `janitor::clean_names()` converts every column to snake_case in one call -- lowercase, underscores, special characters stripped. (It comes from the `janitor` package, not the tidyverse. Install it once with `install.packages("janitor")`.)
+
+```r
+library(janitor)
+deliveries <- read_csv("data/grain_deliveries_messy.csv") |> clean_names()
+```
+
+Run it on almost anything you read in.
+
+### Duplicates {#sec-duplicates}
+
+There are two kinds, and the second is the harder one.
+
+An **exact duplicate** is the same row entered twice:
+
+```r
+deliveries |> filter(duplicated(deliveries))     # show them
+deliveries |> distinct()                          # drop them
+```
+
+A **conflicting duplicate** is the same identifier with different values: ticket `T0030` appearing twice with two different weights.  `distinct()` leaves these alone, because the rows are not identical.  Count to find them:
+
+```r
+deliveries |>
+  count(ticket_id) |>
+  filter(n > 1)
+```
+
+No code fixes this one.  Somebody entered the delivery twice, or corrected it and left both rows, and you have to find out which is right.  If you cannot, say so in the write-up and explain what you did.
+
+### Impossible Values {#sec-impossible-values}
+
+Every variable has values it cannot take.  A weight cannot be negative, a moisture percentage cannot be 250, and a delivery of exactly zero tonnes is possible but odd.
+
+`summary()` catches most of this in one line, because impossible values turn up in the minimum and maximum:
+
+```r
+summary(deliveries)
+```
+
+Then look at the offending rows:
+
+```r
+deliveries |> filter(weight_tonnes <= 0 | moisture_pct > 100)
+```
+
+A negative weight is probably a sign error or a reversed transaction.  A moisture of 250 is probably 25.0 with a lost decimal point.  Both of those are guesses, so record them as guesses. Dropping the rows without saying anything is the thing to avoid.
+
+An impossible value is easy to rule on.  A merely *implausible* one -- a canola yield of 95 bu/ac, twice the provincial average -- is a judgement call: it might be an error, or the best field in the province.  Do not delete a value just because it is extreme.  Check it against the source if you can, and if you cannot, analyze the data with and without it and report whether it changes the answer.
+
+### Inconsistent Categories {#sec-categories}
+
+The same thing spelled several ways is the most common defect I run into, and it is easy to miss because every individual value looks fine.  Count the categories:
+
+```r
+deliveries |> count(crop)
+```
+
+```
+  crop            n
+  "CANOLA"        2
+  "Canola"        6
+  "canola"        4
+  "Spring Wheat"  2
+  "Spring wheat"  8
+  "spring wheat"  5
+  ...
+```
+
+Three spellings of canola and three of spring wheat, which `group_by(crop)` reads as six different crops.
+
+Fix the mechanical cases first:
+
+```r
+deliveries <- deliveries |>
+  mutate(crop = str_trim(crop),        # strip stray spaces
+         crop = str_to_title(crop))    # "CANOLA" and "canola" -> "Canola"
+```
+
+`str_to_title` handles capitalisation.  `read_csv` already strips surrounding spaces, so `str_trim` is belt-and-braces here, but other readers do not, and a space you cannot see is a match you cannot explain.
+
+Genuine synonyms like `"Canola"` and `"Canola/Rapeseed"` are a judgement call, so put them in an explicit recode where a reader can see the decision:
+
+```r
+deliveries <- deliveries |>
+  mutate(crop = case_when(
+    crop == "Canola/Rapeseed" ~ "Canola",
+    crop == "Soybean"         ~ "Soybeans",
+    TRUE                      ~ crop
+  ))
+```
+
+### Mixed Units {#sec-mixed-units}
+
+A right value in the wrong unit is harder to catch than a wrong value, because nothing looks broken.  In the deliveries file most moisture readings are percentages around 9.5, but a few were entered as decimals: 0.094 rather than 9.4.  No error, no warning, and the mean comes out too low.
+
+Knowing what range the variable should occupy is what catches it:
+
+```r
+deliveries |> filter(moisture_pct < 1)
+```
+
+Grain moisture is normally 8 to 16 percent, so anything under 1 is in the wrong unit.  Convert rather than drop:
+
+```r
+deliveries <- deliveries |>
+  mutate(moisture_pct = if_else(moisture_pct < 1, moisture_pct * 100, moisture_pct))
+```
+
+A file that records its own units in a column lets you convert with a `case_when` -- one condition per unit, as in the crop-name recode above -- instead of inferring from magnitude.
+
+### Missing Values {#sec-missing-values}
+
+In R, a missing value is `NA`, and most operations *propagate* it: any calculation involving `NA` returns `NA`.  The canola trial data has three fields with no rainfall reading -- a rain gauge fails, or a value never gets recorded -- so:
 
 ```{r}
-#| label: setup-charts
 #| eval: true
 #| echo: false
-#| message: false
-#| warning: false
-source("R/chart_types.R")
-yields <- load_yields()
+console('
+mean(trial_data$rainfall_mm)
+
+mean(trial_data$rainfall_mm, na.rm = TRUE)
+')
 ```
 
-### Bar charts: comparing categories {.unnumbered}
+The first call says: calculate the mean of these observations.  Three of them are unknown, so R cannot calculate the mean, and it returns `NA` rather than silently discarding information.  The second call, with `na.rm = TRUE` ("remove NAs"), says: calculate the mean using the observations that are not missing.  That may be exactly what we want -- but now the decision is visible in the code.
 
-A bar chart compares a value across categories -- yields by crop, acres by region, revenue by
-customer.  The eye is good at judging the length of a bar against its neighbours, which is why
-bar charts do so much of the work in practice.
+This is an important difference from Excel, where many functions skip blank cells automatically.  Real files complicate it further in two ways: missing values arrive in disguise, and deciding what to do with them takes some thought.
 
-```{r}
-#| label: fig-bar
-#| eval: true
-#| echo: false
-#| message: false
-#| warning: false
-#| fig-width: 6.4
-#| fig-height: 2.6
-#| fig-cap: "A bar chart compares one value across categories."
-fig_bar(yields)
+#### Missing values in disguise {.unnumbered}
+
+Missing data shows up in real files in several forms: an empty cell, the text `"NA"`, `"N/A"`, `"-"`, `"."`, or `-999`.  R recognises the blank and `NA`.  The rest come in as ordinary text and turn their column into `<chr>`.
+
+Tell `read_csv` what counts as missing:
+
+```r
+deliveries <- read_csv("data/grain_deliveries_messy.csv",
+                       na = c("", "NA", "N/A", "-", "."))
 ```
 
-Two habits make bar charts better.  Sort the bars by size unless the categories have their own
-natural order, because a sorted chart answers "which is biggest?" instantly and an
-alphabetical one makes the reader hunt.  And start the axis at zero.  A bar encodes its value
-by length, so cutting the axis at 30 makes a 5% difference look like a doubling.  This is the
-single most common way a chart misleads, and it is usually the software's default rather than
-anyone's intent.
+Then count what you have before deciding anything:
 
-Note that the chart above runs horizontally.  Most people reach for vertical bars by default,
-which is fine when the labels are short, but category names are often long -- variety names,
-regions, product lines -- and vertical bars leave no room for them.
-
-```{r}
-#| label: fig-bar-orientation
-#| eval: true
-#| echo: false
-#| message: false
-#| warning: false
-#| fig-width: 4.4
-#| fig-height: 2.7
-#| fig-cap: "The same five varieties, vertical and horizontal."
-#| fig-subcap:
-#|   - ""
-#|   - ""
-#| layout-ncol: 2
-fig_bar_vertical()
-fig_bar_horizontal()
+```r
+deliveries |> summarise(across(everything(), ~ sum(is.na(.))))
 ```
 
-In panel A the names have to be rotated to fit, so the reader tilts their head and the labels
-take up a third of the plot.  In panel B they sit on their own line, horizontal and left
-aligned, and the chart can hold twenty categories as comfortably as five.  Turn the chart on
-its side whenever the labels are longer than a word or two.
+A numeric code like `-999` is the dangerous one.  It will not turn the column to text; it will just be included in the mean as a number, which is another reason to run `summary()` on arrival and look at the minimum.
 
-### Line charts: change over time {.unnumbered}
+#### Working with missing values {.unnumbered}
 
-A line chart shows how something moves over a continuous scale, almost always time.  The line
-implies the values connect, which is exactly why you should not use one for categories: a line
-running from Barley to Canola to Oats suggests a progression that does not exist.
+A few patterns:
 
-```{r}
-#| label: fig-line
-#| eval: true
-#| echo: false
-#| message: false
-#| warning: false
-#| fig-width: 6.4
-#| fig-height: 2.9
-#| fig-cap: "A line chart shows movement over time. Labelling each line at its right-hand end saves the reader a trip to the legend."
-fig_line(yields)
+```r
+# Check for missing values
+is.na(deliveries$weight_tonnes)              # logical vector
+sum(is.na(deliveries$weight_tonnes))          # count of NAs
+
+# Remove rows with any missing values
+deliveries_clean <- deliveries |> drop_na()
+
+# Remove rows with missing values in specific columns
+deliveries_clean <- deliveries |> drop_na(weight_tonnes)
+
+# Compute a statistic ignoring NAs
+mean(deliveries$weight_tonnes, na.rm = TRUE)
+
+# Replace NAs with a value
+deliveries |> mutate(weight_tonnes = replace_na(weight_tonnes, 0))
 ```
 
-Unlike bar charts, line charts do not need a zero baseline.  Nothing is encoded by length, so
-you are free to zoom in on the range where the action is -- but say so, and do not zoom so far
-that ordinary variation looks like a crisis.
+#### When is dropping safe? {.unnumbered}
 
-### Scatter plots: the relationship between two variables {.unnumbered}
+It depends on *why* the values are missing.  If data is missing completely at random (a sensor failed arbitrarily), dropping missing values gives you unbiased estimates, just with less data.  If data is missing for a reason related to the value itself (only high-yielding fields were reported), dropping them can bias your results -- you will systematically overestimate yields.
 
-A scatter plot puts one variable on each axis and a point at every observation.  Use it when
-you want to know whether two things move together.
+The honest answer to "what should I do with missing values" is almost always: *think about why they are missing*, and *document what you decided to do*.  There is no universal fix.
 
-```{r}
-#| label: fig-scatter
-#| eval: true
-#| echo: false
-#| message: false
-#| warning: false
-#| fig-width: 6.4
-#| fig-height: 2.8
-#| fig-cap: "A scatter plot asks whether two variables move together. Each point is one of Saskatchewan's 21 risk zones."
-fig_scatter(yields)
+### Dates Stored as Text {#sec-dates-text}
+
+A date column that imported as `<chr>` cannot be sorted chronologically or used in arithmetic.  It happens when the file mixes formats (`2025-09-15` in some rows, `Sept 15, 2025` in others), and it is worth catching early because `arrange()` on a text date sorts alphabetically without complaint.
+
+`glimpse()` shows the problem (`<chr>` where you expected `<date>`).  If the format is consistent, tell the reader what it is with `col_types` (@sec-col-types); if it is mixed, the rows that failed to parse are found the same way as any other type problem:
+
+```r
+deliveries |>
+  filter(is.na(as.Date(delivery_date))) |>
+  select(ticket_id, delivery_date)
 ```
 
-Each point is a risk zone, with its wheat yield on one axis and its barley yield on the other.
-The points run up and to the right, which says a zone that grew good wheat that year generally
-grew good barley too -- unsurprising, since both crops got the same rain.  A scatter showing
-*no* pattern would be just as informative.
+Fixing messy dates properly uses tools we have not covered (the `lubridate` package is the standard one); for this course, it is enough to notice the problem and state the format explicitly when you read the file.
 
-This is the workhorse of statistical analysis and it returns in Module 7, where we put a line
-through the cloud and start measuring how strong the relationship is.
+## A Checklist {#sec-cleaning-checklist}
 
-### Stacked bars: parts of a whole {.unnumbered}
+Run through this on every new file:
 
-A stacked bar breaks each bar into components, showing both the total and its composition.
+1. `glimpse()` -- are the column types what you expect?
+2. `summary()` -- are the minimums and maximums possible?
+3. `count()` each categorical column -- are the categories consistent?
+4. Count rows, and check for duplicated identifiers.
+5. Count `NA`s per column, and ask whether the missingness is random.
+6. Check the range of each numeric column against what the unit should be.
 
-```{r}
-#| label: fig-stacked
-#| eval: true
-#| echo: false
-#| message: false
-#| warning: false
-#| fig-width: 6.6
-#| fig-height: 2.9
-#| fig-cap: "A stacked bar shows the total and its composition at once."
-fig_stacked(yields)
-```
-
-The catch is that only the bottom segment sits on a common baseline.  You can compare canola
-acres across years easily because they all start at zero; comparing the middle segments means
-judging the length of a floating block, which the eye does poorly.
-
-### Grouped bars {.unnumbered}
-
-The obvious fix is to unstack the bars and set them side by side, so every bar starts at zero.
-
-```{r}
-#| label: fig-grouped
-#| eval: true
-#| echo: false
-#| message: false
-#| warning: false
-#| fig-width: 6.6
-#| fig-height: 2.9
-#| fig-cap: "The same acres, grouped rather than stacked."
-fig_grouped(yields)
-```
-
-This solves the baseline problem and introduces a different one.  There are now twenty bars,
-and the chart supports two comparisons at once: across crops within a year, and across years
-within a crop.  The second is the one you usually want, and it is the harder of the two --
-following canola from 2021 to 2025 means jumping over three other bars at every step.  The
-grouping does not help; it is in the way.
-
-Grouped bars work when there are only two or three series and few categories, so the eye can
-take in a group at once.  Past that they get busy quickly.  When you find yourself building
-one, it is worth asking whether the chart is really several charts.  Splitting it into a small
-panel per crop gives each series its own baseline and its own space:
-
-```{r}
-#| label: fig-facet
-#| eval: true
-#| echo: false
-#| message: false
-#| warning: false
-#| fig-width: 6.6
-#| fig-height: 2.2
-#| fig-cap: "The same acres again, one panel per crop."
-fig_facet(yields)
-```
-
-These are called **small multiples**, and they scale in a way that grouped bars do not: twelve
-crops would be twelve panels, still readable, where twelve series in a grouped bar chart would
-be unusable.  The trade is that comparing exact values across panels is harder, so use them
-when the shape of each series matters more than ranking them against each other.
-
-### Pie charts: use sparingly {.unnumbered}
-
-A pie chart shows shares of a total.  It is the most criticized chart type in the field, and
-the reason is worth seeing rather than taking on faith.  @fig-pie shows the same four numbers
-twice.
-
-```{r}
-#| label: fig-pie
-#| eval: true
-#| echo: false
-#| message: false
-#| warning: false
-#| fig-width: 3.4
-#| fig-height: 2.7
-#| fig-cap: "The same four numbers, twice."
-#| fig-subcap:
-#|   - ""
-#|   - ""
-#| layout-ncol: 2
-pv <- fig_pie_vs_bar(yields)
-pv$pie
-pv$bar
-```
-
-In panel A, how much bigger is canola than spring wheat?  Most people guess a much wider gap
-than the real one, because the eye judges angle and area poorly.  In panel B you compare two
-bar lengths against a common baseline, and the gap is about a fifth.  Neither chart is labelled
-with its numbers -- the difference is entirely in how easily the eye reads the encoding.  The
-pie is not useless, it does convey "canola is about half the acres" at a glance, but any
-comparison finer than that is easier in a bar chart.
-
-If you use one, keep it to a handful of slices, label them directly, and never make it 3D.  A
-3D pie tilts the plane, which makes the near slices larger than the far ones for no reason but
-decoration.
-
-### Histograms and box plots {.unnumbered}
-
-These two describe the distribution of a single variable rather than comparing categories, and
-you met them in @sec-charts.  A histogram bins the values and shows the shape; a box plot
-compresses that shape into a median, a box holding the middle half of the data, and whiskers.
-Reach for them when the question is about spread rather than comparison.
-
-### A few more things you can do {.unnumbered}
-
-The chart types above are the vocabulary.  A handful of additions come up often enough to be
-worth knowing.
-
-**Shade a range behind a line.**  A single line hides how much variation sits behind it.
-Shading a band -- a minimum and maximum, a middle 80%, a confidence interval -- shows the
-average and the spread together.
-
-```{r}
-#| label: fig-extras-1
-#| eval: true
-#| echo: false
-#| message: false
-#| warning: false
-#| fig-width: 4.6
-#| fig-height: 2.6
-#| fig-cap: "Average spring wheat yield with the middle 80% of risk zones shaded, and a scatter with a fitted trend line."
-#| fig-subcap:
-#|   - "A. Shaded range"
-#|   - "B. Trend line"
-#| layout-ncol: 2
-fig_ribbon(yields)
-fig_trend(yields)
-```
-
-**Add a trend line.**  A straight line through a scatter summarizes the relationship the
-points suggest, and the shaded band around it shows how confident the fit is.  Excel calls
-this a trendline (**Chart Design → Add Chart Element → Trendline**); in ggplot it is
-`geom_smooth()`.  Fit one when the relationship is the point, not as decoration on every
-scatter you draw, and be wary of extending it past the data you have.
-
-**Draw a reference line.**  A horizontal line at an average, a target, a break-even price or
-last year's figure turns "how big is this?" into "how does this compare?".  It is one of the
-cheapest ways to make a chart answer a question.
-
-```{r}
-#| label: fig-extras-2
-#| eval: true
-#| echo: false
-#| message: false
-#| warning: false
-#| fig-width: 4.6
-#| fig-height: 2.7
-#| fig-cap: "Canola yields against their own five-year average, and a waterfall from revenue to net margin."
-#| fig-subcap:
-#|   - "A. Reference line"
-#|   - "B. Waterfall"
-#| layout-ncol: 2
-fig_refline(yields)
-fig_waterfall()
-```
-
-**Waterfall charts** show how a starting figure becomes an ending one through a series of
-gains and losses -- gross revenue down through each cost to net margin, or last year's profit
-to this year's.  Each bar floats where the previous one left off.  Excel has a built-in
-waterfall type; ggplot has no `geom_waterfall()`, so panel B above is drawn with rectangles.
-
-A few others worth naming: **dot plots**, which do a bar chart's job with less ink and suit
-long category lists; **heatmaps**, for a grid of values where the pattern matters more than
-the numbers, like yield by zone and year; and **maps**, which are the natural choice for
-anything reported by region and which we return to in AREC 262.
-
-### Choosing {.unnumbered}
-
-The short version:
-
-| If the question is | Use |
-|---|---|
-| How does this value compare across categories? | Bar chart |
-| How has this changed over time? | Line chart |
-| Are these two variables related? | Scatter plot |
-| What is this total made of? | Stacked bar, or a bar chart of the components |
-| How does each of several series move? | One panel per series |
-| How is a single variable distributed? | Histogram or box plot |
-| How did we get from this figure to that one? | Waterfall |
-
-When a chart does not obviously fit one of these, that is often a sign the question is not
-sharp enough yet.
-
-## Excel vs R for Charts {#sec-excel-vs-r-charts}
-
-**Excel charts are fine for many purposes.** They are easy to make, they look acceptable with default settings, and they are immediately editable by non-technical colleagues. If you are making a one-off chart for an internal meeting, Excel may be the right choice.
-
-R (ggplot2) wins when you need:
-
-- The chart to be reproducible from a script.
-- The chart to update automatically as the underlying data changes.
-- Many similar charts (via faceting or loops).
-- Fine-grained control over appearance.
-- Statistical features (trend lines, confidence bands, quantile ribbons).
-
-Most working analysts use both. In this course we will lean on R, because reproducibility is the harder habit to pick up later.
