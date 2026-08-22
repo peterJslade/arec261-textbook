@@ -1,8 +1,16 @@
 # Graphing with AI {#sec-graphing-ai}
 
+```{r}
+#| include: false
+#| eval: true
+source("_console.R")
+```
+
 Graphing is a good place to begin using AI assistance. `ggplot2` is consistent, but details such as annotations, direct labels and axis breaks require arguments that are easy to forget. An assistant can draft that syntax quickly.
 
 Charts also expose many mistakes. A label beside the wrong year, a missing panel or a clipped axis can be seen. That makes the draft easier to check than a join that drops rows and still returns a plausible number.
+
+These exercises use R because ggplot2 code is text that an assistant can draft and you can inspect. Copilot inside Excel is a separately licensed product and is not unlocked by GitHub Copilot. A browser assistant can suggest Excel steps if you provide headers and made-up rows, but you must carry out and verify the clicks yourself.
 
 ## Learning Objectives {.unnumbered}
 
@@ -26,7 +34,29 @@ Check both sides of the plot:
 1. Before plotting, inspect the number of rows, groups, missing values and numerical ranges.
 2. After plotting, inspect the marks, labels, axes and panels.
 
-The exercise data makes the distinction clear. `sask_variety_yields.csv` has 13,625 rows, including 4,186 with no recorded yield. The missing values are not spread evenly across years.
+The synthetic teaching file contains one row for a variety in a risk zone and year. Its rectangular layout includes combinations with no acreage and yield, often because that variety is absent from that zone-year. Consequently, comparisons across years also compare changing sets of varieties. The file has 13,625 rows, including 4,186 with no recorded yield. Inspect the counts before drawing the figure:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+suppressPackageStartupMessages(library(tidyverse))
+
+d <- read_csv(
+  "practice/data/sask_variety_yields.csv",
+  show_col_types = FALSE
+)
+
+glimpse(d)
+
+d |>
+  summarise(
+    rows = n(),
+    missing_yield = sum(is.na(Yield)),
+    .by = Year
+  )
+')
+```
 
 ```{r}
 #| label: fig-missing
@@ -41,7 +71,7 @@ source("R/ai_failures.R")
 fig_missing_by_year()
 ```
 
-About half the 2021 rows have no yield, while almost all 2025 rows have one. A chart of 2021 therefore rests on a much thinner set of observations. Nothing in the finished chart reveals that unless the missingness is checked separately.
+About half the 2021 rows have no yield, while almost all 2025 rows have one. A trend therefore reflects turnover in the varieties represented as well as changes in yield. In Excel, a PivotTable with Year in Rows and both Count of Variety and Count of Yield in Values provides the same check.
 
 ## The Exercises {#sec-ai-graph-exercises}
 
@@ -51,33 +81,33 @@ Work in Positron with an assistant connected. For each exercise, describe the re
 
 ### 1. Annotate one point {.unnumbered}
 
-Plot average spring wheat yield by year. Add a note with an arrow pointing to 2021 and identify it as a drought year.
+Plot the unweighted mean yield by year for `Crop == "Wheat - Hard Red Spring"`. Add a note with an arrow pointing to 2021 and identify it as a drought year; that label comes from outside weather knowledge, while the file itself shows only a low-yield year.
 
-**Checks:** Does the arrow point to 2021? Is the note inside the plotting area? Did the calculation average over the intended varieties? How many recorded yields contribute to each annual point?
+**Checks:** Does the arrow point to 2021? Is the note inside the plotting area? Which `Crop` value did the code filter? How many recorded yields contribute to each annual point? Is the mean weighted or unweighted, and is that what you intended?
 
 ### 2. Replace a legend with direct labels {.unnumbered}
 
-Plot average yield by year for four crops. Put each crop name beside the right end of its line and remove the legend.
+Plot average yield by year for `Wheat - Hard Red Spring`, `Canola/Rapeseed`, `Barley` and `Oats`. Put each crop name beside the right end of its line and remove the legend.
 
 **Checks:** Are all four labels present and beside the correct line? Has a label been clipped at the panel edge? Can the series still be distinguished when printed in grey?
 
 ### 3. Shade a range behind a line {.unnumbered}
 
-Plot average spring wheat yield by year and add a shaded band showing the range across risk zones.
+Plot average `Wheat - Hard Red Spring` yield by year and add a `geom_ribbon()` band showing the range across risk-zone means. Summarize first by zone-year and then by year; draw the ribbon before the line so it sits behind it.
 
-**Checks:** Does the band contain the mean line in every year? Do the axis limits include the whole band? How many risk zones contribute to each year's range?
+**Checks:** Does the band contain the mean line in every year? Is it drawn behind the line? Do the axis limits include it? How many recorded yields sit behind each zone-year mean?
 
 ### 4. Build small multiples {.unnumbered}
 
 Find the six crops with the greatest total acreage. Make one panel per crop showing average yield over time.
 
-**Checks:** Are there exactly six panels? Are the year labels readable? Do the panels share a vertical scale? Decide whether a common scale for comparing levels or free scales for comparing shapes better answers the question.
+**Checks:** Print the acreage ranking used by the code. Were missing acres excluded or treated as zero? Are any selected categories sub-classes of another, such as Lentils and Lentils - Red? Are there exactly six panels? Decide whether the default shared scale or `scales = "free_y"` better answers the question.
 
 ### 5. Rebuild a chart from Module 4 {.unnumbered}
 
 Choose a figure from @sec-chart-types and reproduce it using only the description in the text. Do not open `R/chart_types.R` until the new version is finished. Then compare the two scripts and figures.
 
-**Checks:** Does each figure make the same comparison? Which design decisions differ? Is either version clearer at the size used in the book?
+**Checks:** Compare the pre-plot summary, aesthetic mappings and geoms; ignore differences that are only theme or colour. Does each figure make the same comparison? Is either version clearer at the size used in the book?
 
 ## A Useful Prompt Structure {#sec-ai-graph-prompt}
 
@@ -92,16 +122,17 @@ For example:
 
 ```text
 The data frame d has columns Crop, Year, Risk_Zone, Acres and Yield.
-Keep spring wheat rows with recorded Yield. Calculate mean Yield by Year and
-Risk_Zone, then plot one line per zone. Put each zone name at the right end of
-its line and remove the legend. Show the summary table before the plot code.
+Keep recorded rows for Wheat - Hard Red Spring, Canola/Rapeseed, Barley and
+Oats. Calculate unweighted mean Yield by Year and Crop, then plot one line per
+crop. Put each crop name at the right end of its line and remove the legend.
+Show the summary table before the plot code.
 ```
 
-Asking for the summary table is useful. It separates the calculation from the drawing and gives you something numerical to inspect.
+Asking for the summary table is useful. It separates the calculation from the drawing and gives you something numerical to inspect. For a workbook prompt, paste the header and several made-up rows and state which fields are categories—`Risk_Zone` is an identifier, not a quantity.
 
 ## When the Assistant Gets Stuck {#sec-ai-stuck}
 
-An assistant may repeat the same failed fix after each error report. More repetitions usually reinforce the same approach.
+An assistant may repeat the same failed fix after each error report. Repeating the same symptom can return the same approach.
 
 Try one of these instead:
 
