@@ -87,6 +87,8 @@ fig_truncated(ymin = 0)
 
 In panel A the bars encode yield minus 100. A yield of 103 becomes a bar of length 3 and a yield of 114 becomes a bar of length 14, making a 10% yield difference look more than four times as large. Bar charts should normally begin at zero because their values are read from bar length.
 
+Excel chooses axis bounds automatically and may produce panel A by default when the values are close together. For a column chart, right-click the value axis, choose **Format Axis**, and set the Minimum bound to 0. The zero baseline displays the size difference honestly, but it does not establish that small differences between trial averages are meaningful.
+
 Line charts are different. A line shows position rather than length, so its vertical axis does not always need to begin at zero. The displayed range should still be wide enough that ordinary movement does not look like a crisis.
 
 ### Use descriptive labels {.unnumbered}
@@ -173,7 +175,7 @@ The second panel leaves ordinary changes alone and identifies the movement most 
 
 ### Add variables carefully {.unnumbered}
 
-Position on the horizontal and vertical axes carries two variables. Colour, shape and point size can carry more. In @fig-bubble, point size represents seeded acres in addition to wheat and barley yield.
+Position on the horizontal and vertical axes carries two variables. Colour, shape and point size can carry more. In @fig-bubble, point size represents spring wheat seeded acres in addition to wheat and barley yield.
 
 ```{r}
 #| label: fig-bubble
@@ -183,7 +185,7 @@ Position on the horizontal and vertical axes carries two variables. Colour, shap
 #| warning: false
 #| fig-width: 5.4
 #| fig-height: 2.9
-#| fig-cap: "Wheat yield, barley yield and seeded acres for Saskatchewan risk zones."
+#| fig-cap: "Wheat yield, barley yield and spring wheat seeded acres for Saskatchewan risk zones."
 fig_bubble(load_yields())
 ```
 
@@ -210,6 +212,8 @@ fig_dual_axis(load_yields(), FALSE)
 
 The apparent crossing point and distance between the lines are controlled by the two scales. Use separate panels or convert both series to an index when their units differ.
 
+In Excel, this is the **Combo Chart** with the **Secondary Axis** box selected, and Recommended Charts may suggest it when the series have different magnitudes. Prefer two aligned charts or calculate each series as an index relative to its first year so both can share one scale.
+
 ### Use colour for a reason {.unnumbered}
 
 Colour can distinguish groups, show an ordered scale or draw attention to one observation. Most categories can remain grey while the category under discussion is highlighted. If every bar has a different bright colour, none has emphasis.
@@ -218,7 +222,7 @@ Choose colours that remain distinguishable for readers with colour-vision defici
 
 ## Types of Charts {#sec-chart-types}
 
-Choose a chart from the comparison the reader needs to make. The examples below use the same Saskatchewan variety data.
+Choose a chart from the comparison the reader needs to make. The examples below use [`sask_variety_yields.csv`](practice/data/sask_variety_yields.csv), a synthetic AREC 261 teaching dataset with risk-zone, crop, variety, year, seeded-acre and yield observations for 2021–2025. The charts aggregate the variety rows into acreage-weighted averages. A risk zone is an SCIC crop-insurance region, but these teaching values should not be presented as published SCIC estimates.
 
 ```{r}
 #| label: setup-charts
@@ -242,11 +246,13 @@ A bar chart compares a value across categories such as yield by crop, acres by r
 #| warning: false
 #| fig-width: 6.4
 #| fig-height: 2.6
-#| fig-cap: "Average spring wheat yield by risk zone."
+#| fig-cap: "Average yield by crop, 2021–2025, bu/ac."
 fig_bar(yields)
 ```
 
 Sort bars by value unless the categories have a natural order. Start the value axis at zero. Horizontal bars give long category names enough room.
+
+Excel calls vertical bars a **Column** chart and horizontal bars a **Bar** chart. Switch between them with **Chart Design > Change Chart Type**. Excel places the first category at the bottom of a horizontal bar chart; after sorting largest-first, use **Format Axis > Axis Options > Categories in reverse order** if the largest bar should appear at the top.
 
 ```{r}
 #| label: fig-bar-orientation
@@ -265,11 +271,13 @@ fig_bar_vertical()
 fig_bar_horizontal()
 ```
 
-Vertical bars work when labels are short. Turn the chart when labels need to be rotated or crowded.
+Vertical bars work when labels are short. Use a horizontal bar chart when labels would otherwise be rotated or crowded.
 
 ### Line charts: show change over time {.unnumbered}
 
 A line chart shows movement over a continuous scale, usually time. The connection between points implies that the order and interval have meaning.
+
+Excel Line charts normally space categories evenly, even when years are missing. For uneven intervals, use an XY Scatter chart with lines or set a recognized date axis under **Format Axis > Axis Type**.
 
 ```{r}
 #| label: fig-line
@@ -301,7 +309,7 @@ A scatter plot places one numeric variable on each axis and one observation at e
 fig_scatter(yields)
 ```
 
-The points rise from left to right, so zones with higher wheat yield also tended to have higher barley yield. Module 7 develops the numerical tools for describing that relationship.
+The points rise from left to right in this 2025 cross-section. Both crops in a zone shared the same growing season, so the pattern says little by itself about whether zones that are good for wheat are generally good for barley. Module 7 develops the numerical tools for describing relationships like this.
 
 ### Stacked and grouped bars: compare composition {.unnumbered}
 
@@ -349,6 +357,8 @@ fig_facet(yields)
 
 Shared axes support comparisons of levels across panels. Free axes make the shape within each panel easier to see but prevent direct comparisons of height.
 
+Excel does not create small multiples automatically. Make one chart, copy it for the other crops, change each copy's series, and set identical Minimum and Maximum axis bounds. This is a case where R's `facet_wrap()` requires less manual work.
+
 ### Pie charts: show a simple share {.unnumbered}
 
 A pie chart shows parts of a total. Angles and areas are harder to compare than lengths, so a bar chart is usually better when the differences matter.
@@ -371,7 +381,7 @@ pv$pie
 pv$bar
 ```
 
-The pie shows that canola accounts for about half of the total. The bars make the smaller differences easier to compare. If a pie is used, keep the number of slices small, label them directly and leave it two-dimensional.
+The pie shows that canola accounts for about half of the acres seeded to these four crops. The bars make the smaller differences easier to compare. If a pie is used, keep the number of slices small, label them directly and leave it two-dimensional.
 
 ### Histograms and box plots: show distributions {.unnumbered}
 
@@ -398,9 +408,11 @@ fig_ribbon(yields)
 fig_trend(yields)
 ```
 
-A fitted line summarizes the pattern in a scatter plot. Use one when the relationship is the question and do not extend it beyond the observed data without a reason.
+A fitted line summarizes the pattern in a scatter plot. The grey band in panel B is a 95% confidence interval for the fitted mean; later modules develop what that means. Use a fitted line when the relationship is the question and do not extend it beyond the observed data without a reason.
 
 A reference line can show an average, a target, a break-even value or last year's result. A waterfall chart shows how additions and subtractions turn a starting value into an ending value.
+
+Excel provides Trendline, Histogram, Box and Whisker, and Waterfall directly. In a Waterfall chart, right-click the starting and ending bars and choose **Set as Total**. A reference line usually requires a helper column containing the constant value; a shaded range requires additional area-series columns.
 
 ```{r}
 #| label: fig-extras-2
@@ -437,6 +449,6 @@ If the chart type is hard to choose, state the comparison more precisely before 
 
 ## Excel and R for Charts {#sec-excel-vs-r-charts}
 
-Excel is convenient for a one-off chart that will be edited in a workbook or passed to someone who does not use R. The chart remains easy to change by clicking.
+Excel is convenient for a one-off chart that will be edited in a workbook or passed to someone who does not use R. A chart updates when cells in its source range change; using an Excel Table also extends the source when new rows are added. Right-click **Save as Template** to reuse formatting across charts.
 
 R is useful when the chart must be recreated from a script, updated with new data, repeated for many groups or given the same formatting as a set of other figures. The next two chapters make comparable charts in Excel and with `ggplot2`.

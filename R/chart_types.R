@@ -1,4 +1,4 @@
-# Figures for Module 3: the common chart types, each drawn from the same
+# Figures for Module 4: the common chart types, each drawn from the same
 # Saskatchewan variety data so students can compare the shapes directly.
 # Palette matches R/strip_plot.R.
 
@@ -54,8 +54,7 @@ fig_bar <- function(d) {
     geom_text(aes(label = round(Yield)), hjust = -0.25,
               colour = ink, size = 3.1) +
     scale_x_continuous(expand = expansion(mult = c(0, 0.12))) +
-    labs(title = "Average yield by crop, 2021-2025",
-         x = "Yield (bu/ac)", y = NULL) +
+    labs(title = NULL, x = "Yield (bu/ac)", y = NULL) +
     theme_arec() +
     theme(panel.grid.major.y = element_blank())
 }
@@ -68,7 +67,7 @@ fig_bar_vertical <- function() {
   d$Variety <- factor(d$Variety, levels = d$Variety[order(-d$Yield)])
   ggplot(d, aes(x = Variety, y = Yield)) +
     geom_col(fill = prairie, width = 0.68) +
-    labs(title = "A. Vertical", x = NULL, y = "Yield (bu/ac)") +
+    labs(title = NULL, x = NULL, y = "Yield (bu/ac)") +
     theme_arec() +
     theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))
 }
@@ -79,7 +78,7 @@ fig_bar_horizontal <- function() {
   ggplot(d, aes(x = Yield, y = Variety)) +
     geom_col(fill = prairie, width = 0.68) +
     scale_x_continuous(expand = expansion(mult = c(0, 0.08))) +
-    labs(title = "B. Horizontal", x = "Yield (bu/ac)", y = NULL) +
+    labs(title = NULL, x = "Yield (bu/ac)", y = NULL) +
     theme_arec() +
     theme(panel.grid.major.y = element_blank(),
           axis.text.y = element_text(size = 8))
@@ -118,7 +117,7 @@ fig_scatter <- function(d) {
 
   ggplot(w, aes(x = Yield_wheat, y = Yield_barley)) +
     geom_point(colour = prairie, alpha = 0.75, size = 2.4) +
-    labs(title = paste0("Zones that grow good wheat also grow good barley (", yr, ")"),
+    labs(title = NULL,
          x = "Spring wheat yield (bu/ac)", y = "Barley yield (bu/ac)") +
     theme_arec() +
     theme(panel.grid.major.x = element_line(colour = "grey92",
@@ -179,7 +178,7 @@ fig_dual_axis <- function(d, scale_hi = TRUE) {
   m$AcresM <- m$Acres / 1e6
 
   # the arbitrary choice: how to map acres onto the yield axis
-  rng <- if (scale_hi) c(30, 50) else c(20, 62)
+  rng <- if (scale_hi) c(42, 52) else c(18, 30)
   rescale <- function(x) {
     (x - min(m$AcresM)) / diff(range(m$AcresM)) * diff(rng) + rng[1]
   }
@@ -258,10 +257,9 @@ fig_vote <- function(kind = c("pie", "bar")) {
       geom_col(width = 1, colour = "white", linewidth = 0.3) +
       coord_polar(theta = "y", direction = -1) +
       scale_fill_manual(values = cols) +
-      labs(title = "A. Pie chart") +
+      labs(title = NULL) +
       theme_void(base_size = 10) +
-      theme(plot.title = element_text(colour = ink, size = 10, face = "bold"),
-            legend.title = element_blank(),
+      theme(legend.title = element_blank(),
             legend.text = element_text(size = 8),
             legend.key.size = unit(0.72, "lines"))
   } else {
@@ -270,7 +268,7 @@ fig_vote <- function(kind = c("pie", "bar")) {
       geom_col(width = 0.68, show.legend = FALSE) +
       scale_fill_manual(values = cols) +
       scale_x_continuous(expand = expansion(mult = c(0, 0.06))) +
-      labs(title = "B. Bar chart", x = "Share of the popular vote (%)", y = NULL) +
+      labs(title = NULL, x = "Share of the popular vote (%)", y = NULL) +
       theme_arec() +
       theme(panel.grid.major.y = element_blank(),
             axis.text.y = element_text(size = 8))
@@ -433,7 +431,7 @@ fig_clutter <- function(d) {
                        minor_breaks = seq(2021, 2025, 0.25)) +
     scale_y_continuous(breaks = seq(20, 120, 5),
                        minor_breaks = seq(20, 120, 2.5)) +
-    labs(title = "A. Cluttered", x = "Year", y = "Yield (bu/ac)") +
+    labs(title = NULL, x = "Year", y = "Yield (bu/ac)") +
     theme_grey(base_size = 10) +
     theme(
       panel.background  = element_rect(fill = "#eef0f4", colour = NA),
@@ -460,7 +458,7 @@ fig_declutter <- function(d) {
                                    "Barley" = sky, "Oats" = clay)) +
     scale_x_continuous(breaks = seq(2021, 2025, 2),
                        expand = expansion(mult = c(0.03, 0.34))) +
-    labs(title = "B. Decluttered", x = NULL, y = "Yield (bu/ac)") +
+    labs(title = NULL, x = NULL, y = "Yield (bu/ac)") +
     theme_arec()
 }
 
@@ -494,7 +492,7 @@ fig_pattern <- function(d) {
     scale_x_continuous(breaks = a$i, labels = a$Crop) +
     scale_y_continuous(breaks = seq(0, 100, 10),
                        minor_breaks = seq(0, 100, 5)) +
-    labs(title = "A. Patterned fills", x = NULL, y = "Yield (bu/ac)") +
+    labs(title = NULL, x = NULL, y = "Yield (bu/ac)") +
     theme_grey(base_size = 10) +
     theme(
       panel.background = element_rect(fill = "#f2f2f2", colour = NA),
@@ -515,7 +513,7 @@ fig_flat <- function(d) {
     geom_col(fill = prairie, width = 0.66) +
     geom_text(aes(label = round(Yield)), hjust = -0.25, colour = ink, size = 3.1) +
     scale_x_continuous(expand = expansion(mult = c(0, 0.14))) +
-    labs(title = "B. Flat fills", x = "Yield (bu/ac)", y = NULL) +
+    labs(title = NULL, x = "Yield (bu/ac)", y = NULL) +
     theme_arec() +
     theme(panel.grid.major.y = element_blank(),
           axis.text.y = element_text(size = 8))
@@ -599,18 +597,22 @@ fig_pie_vs_bar <- function(d) {
 
   pie <- ggplot(a, aes(x = "", y = share, fill = Crop)) +
     geom_col(width = 1) +
+    geom_text(
+      aes(label = paste0(Crop, "\n", round(share), "%")),
+      position = position_stack(vjust = 0.5),
+      colour = ink,
+      size = 2.7
+    ) +
     coord_polar(theta = "y") +
     scale_fill_manual(values = cols) +
-    labs(title = "A. As a pie chart") +
+    labs(title = NULL) +
     theme_void(base_size = 10) +
-    theme(plot.title = element_text(colour = ink, size = 10, face = "bold"),
-          legend.title = element_blank(),
-          legend.key.size = unit(0.8, "lines"))
+    theme(legend.position = "none")
 
   bar <- ggplot(a, aes(x = share, y = factor(Crop, levels = rev(levels(Crop))))) +
     geom_col(fill = prairie, width = 0.66) +
     scale_x_continuous(expand = expansion(mult = c(0, 0.06))) +
-    labs(title = "B. As a bar chart", x = "Share of acres (%)", y = NULL) +
+    labs(title = NULL, x = "Share of acres (%)", y = NULL) +
     theme_arec() +
     theme(panel.grid.major.y = element_blank())
 
