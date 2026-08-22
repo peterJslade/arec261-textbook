@@ -1,6 +1,22 @@
 # Presentations {#sec-presentations}
 
-This module is assessed with a short presentation in a lab session. The task is to communicate a finding to people who hear it once, at the pace set by the speaker.
+```{r}
+#| include: false
+#| eval: true
+library(tidyverse)
+
+wheat_summary <- read_csv(
+  "practice/data/sask_wheat_2025.csv",
+  show_col_types = FALSE
+) |>
+  group_by(soil_zone) |>
+  summarise(
+    mean_yield = mean(yield_bu_ac, na.rm = TRUE),
+    .groups = "drop"
+  )
+```
+
+The assessment for this part of the course is a short presentation in a lab session. The task is to communicate a finding to people who hear it once, at the pace set by the speaker. Follow the course schedule and assignment instructions for the presentation's date, length and required files.
 
 The principles from @sec-writing-reports still apply: lead with the answer, give each chart one job and state the limits. A presentation needs more signposting because the audience cannot turn back a page.
 
@@ -9,11 +25,11 @@ The principles from @sec-writing-reports still apply: lead with the answer, give
 ::: {.objectives}
 By the end of this chapter you should be able to:
 
-1. Structure a short talk so the question and answer arrive early.
-2. Build slides that support speech rather than duplicate it.
-3. Explain a chart in the order a listener needs.
-4. Rehearse a presentation against a fixed time limit.
-5. Answer a question honestly when the available analysis does not settle it.
+- Structure a short talk so the question and answer arrive early.
+- Build slides that support speech rather than duplicate it.
+- Explain a chart in the order a listener needs.
+- Rehearse a presentation against a fixed time limit.
+- Answer a question honestly when the available analysis does not settle it.
 :::
 
 ## The Audience Gets One Pass {#sec-one-pass}
@@ -22,7 +38,13 @@ A reader who loses the thread can return to the previous paragraph. A listener h
 
 Repeat the main finding. Use fewer numbers than a written report. Pause after introducing a chart and give the audience time to orient itself before explaining the pattern.
 
-Signposting helps: "The question is...", "The main result is...", and "This chart provides the evidence..." These sentences may feel explicit to the speaker; they make the talk easier to follow.
+Signposting helps:
+
+- "The question is..."
+- "The main result is..."
+- "This chart provides the evidence..."
+
+They may sound obvious when you say them, and that is the point. On a slide, use at most one or two important numbers, already rounded and labelled with units (@sec-presenting-numbers).
 
 ## Structure a Short Talk {#sec-talk-structure}
 
@@ -38,11 +60,23 @@ Do not save the result for the final slide. An audience that knows the destinati
 
 The ending repeats the answer because it is the last complete idea the audience hears. "Any questions?" should invite discussion, not replace the conclusion.
 
+For a seven-minute talk, a workable plan is:
+
+| Slide | Purpose | Approximate time |
+|---|---|---:|
+| 1 | Question and why it matters | 30 seconds |
+| 2 | One-sentence answer | 30 seconds |
+| 3--5 | One piece of evidence per slide | 90 seconds each |
+| 6 | Most important limitation | 60 seconds |
+| 7 | Answer and practical meaning | 30 seconds |
+
+The remaining minute allows for transitions and a brief pause at each chart. An acceptable one-sentence answer can be that the available data do not settle the question.
+
 ## Build Slides for Listening {#sec-slides}
 
 A slide should carry the visual evidence and a short statement of its meaning. It should not contain the script being spoken.
 
-- **Use a claim as the headline.** "Canola yields were 15% higher in the black soil zone" tells the audience why the slide exists. "Yield by soil zone" only labels the topic.
+- **Use a claim as the headline.** "Black-zone wheat fields averaged 14.4 bu/ac more than brown-zone fields in 2025" tells the audience why the slide exists. "Yield by soil zone" only labels the topic.
 - **Use one idea per slide.** Split a slide when its explanation requires "and separately" or a second conclusion.
 - **Keep text short.** Use enough words to anchor the argument, not enough to compete with the speaker.
 - **Make every element readable from the back of the room.** Test the projected size, not only the laptop view.
@@ -51,14 +85,55 @@ A slide should carry the visual evidence and a short statement of its meaning. I
 
 Six or seven slides are usually enough for a ten-minute talk. The exact count matters less than whether each slide receives enough time to be understood.
 
+Figure @fig-slide-example models a claim headline, large chart text, one highlighted series and a source note. The data are synthetic and the comparison is descriptive; the chart does not show why the zones differ.
+
+```{r}
+#| label: fig-slide-example
+#| eval: true
+#| echo: false
+#| fig-width: 10
+#| fig-height: 5.625
+#| fig-cap: "A slide-sized chart with a claim headline and traceable source note."
+#| fig-alt: "Horizontal bars show mean wheat yield of 53.0 bushels per acre in the Black zone, 45.2 in Dark Brown and 38.6 in Brown. The headline states that Black-zone fields averaged 14.4 bushels per acre more than Brown-zone fields in 2025."
+print(wheat_summary |>
+  mutate(highlight = soil_zone == "Black") |>
+  ggplot(aes(x = reorder(soil_zone, mean_yield), y = mean_yield,
+             fill = highlight)) +
+  geom_col(width = 0.65, show.legend = FALSE) +
+  geom_text(aes(label = sprintf("%.1f", mean_yield)),
+            hjust = -0.18, size = 6) +
+  coord_flip(clip = "off") +
+  scale_fill_manual(values = c(`TRUE` = "#2f6b4f", `FALSE` = "#b8c4bd")) +
+  scale_y_continuous(limits = c(0, 60), expand = expansion(mult = c(0, 0.02))) +
+  labs(
+    title = "Black-zone wheat fields averaged 14.4 bu/ac more\nthan brown-zone fields",
+    subtitle = "Mean field yield, Saskatchewan synthetic data, 2025",
+    x = NULL,
+    y = "Mean yield (bu/ac)",
+    caption = "Source: practice/data/sask_wheat_2025.csv; four missing yields excluded"
+  ) +
+  theme_minimal(base_size = 18) +
+  theme(
+    panel.grid.major.y = element_blank(),
+    plot.title = element_text(face = "bold"),
+    plot.caption = element_text(hjust = 0)
+  ))
+```
+
+### Move a Chart onto a Slide {.unnumbered}
+
+Prepare an Excel chart at slide size before copying it: make it roughly 25 cm wide, set chart and axis text to at least 18 pt and remove detail that will not survive projection. For a finished chart, use **Paste Special > Picture** (Enhanced Metafile on Windows or PDF on macOS). If it still needs editing, embed the workbook rather than linking to a file that may not travel with the deck. See @sec-excel-chart-export for the paste choices.
+
+In R, use a wide aspect ratio and larger base text, then export the plot—for example, `ggsave("output/wheat_slide.png", width = 10, height = 5.625, dpi = 150)`. Submit the workbook or script separately because a pasted picture does not preserve its calculation trail.
+
 ## Explain a Chart Out Loud {#sec-presenting-charts}
 
-The presenter has studied the chart; the audience has just seen it. Explain it in this order:
+The presenter has studied the chart; the audience has just seen it. Using Figure @fig-slide-example, explain it in this order:
 
-1. **Axes:** "Yield in bushels per acre is on the vertical axis, and year is across the bottom."
-2. **Marks:** "Each line represents one soil zone."
-3. **Pattern:** "The black zone remains above the brown zone in all five years."
-4. **Meaning:** "The yield gap therefore appears broader than one unusual season."
+1. **Axes:** "Mean yield in bushels per acre is along the horizontal axis; soil zones are listed vertically."
+2. **Marks:** "Each bar is the mean of the fields with a reported yield in one zone."
+3. **Pattern:** "The black-zone mean is 53.0 bu/ac, compared with 38.6 in the brown zone."
+4. **Meaning:** "The 2025 fields in this sample differ by 14.4 bu/ac; the chart does not establish that soil zone caused the difference."
 
 Point to the relevant line, bar or period while describing it. Then pause. Moving immediately to the next slide removes the audience's chance to inspect the evidence.
 
@@ -68,7 +143,7 @@ Do not read every value. Quote the one or two numbers needed to establish the sc
 
 Rehearsal reveals problems that slide editing does not: a missing transition, a chart that takes too long to explain or a conclusion that arrives after the time limit.
 
-Run the presentation from beginning to end with a timer. Speak at the intended pace and advance the actual slides. If it is too long, remove material rather than accelerating through it.
+Run the presentation from beginning to end with a timer. Speak at the intended pace and advance the actual slides. In PowerPoint, **Slide Show > Rehearse Timings** records time by slide. If the talk is too long, remove material rather than accelerating through it.
 
 Check three times:
 
@@ -78,13 +153,15 @@ Check three times:
 
 The goal is not memorization. Know the opening, the main sentence for each slide and the final sentence. The connecting words can remain natural.
 
-## Questions {#sec-talk-questions}
+## Handling Questions {#sec-talk-questions}
 
 A question may go beyond the available data. Say so directly, identify what would be needed to answer it and stop there.
 
-> I did not test whether the zones differ in seeding date. We would need field-level planting dates before separating that explanation from the soil-zone difference.
+::: {.callout-tip title="Example answer"}
+**Question:** Is the yield difference caused by soil zone?
 
-This is stronger than guessing. It distinguishes what the analysis shows from what remains possible.
+**Answer:** This analysis compares zones but does not isolate soil as the cause. Rainfall, varieties and management may also differ. We would need additional variables or a study designed to separate those explanations.
+:::
 
 If a question is unclear, ask the person to repeat or rephrase it. If the question identifies a real problem, acknowledge it and explain how it changes the conclusion.
 
@@ -98,10 +175,10 @@ The presentation is short and low-stakes. The assessment asks whether:
 - limitations are stated honestly;
 - the talk finishes within its assigned time.
 
-Nervousness is not an analytical error. A talk succeeds when the audience can state what was found and why the evidence supports it.
+Nervousness is not marked. Keep the workbook or script that produced each chart, and put a short source note on each slide so quoted values can be traced.
 
-::: {.callout-tip collapse="true"}
-## Other resources -- presenting
+::: {.callout-tip collapse="false"}
+## Other resources: presenting
 
 - **Michael Alley**, [The Craft of Scientific Presentations](https://www.craftofscientificpresentations.com/) -- the assertion-evidence approach, in which a slide headline makes a claim and the visual supports it.
 - **Cole Nussbaumer Knaflic**, [Storytelling with Data](https://www.storytellingwithdata.com/blog) -- examples of reducing visual clutter and directing attention.
