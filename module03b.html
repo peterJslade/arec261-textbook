@@ -544,6 +544,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul>
   <li><a href="#four-joins" id="toc-four-joins" class="nav-link" data-scroll-target="#four-joins">Four joins</a></li>
   <li><a href="#first-join-yields-and-the-rm-lookup" id="toc-first-join-yields-and-the-rm-lookup" class="nav-link" data-scroll-target="#first-join-yields-and-the-rm-lookup">First join: yields and the RM lookup</a></li>
+  <li><a href="#a-failed-match-on-purpose" id="toc-a-failed-match-on-purpose" class="nav-link" data-scroll-target="#a-failed-match-on-purpose">A failed match on purpose</a></li>
   <li><a href="#second-join-add-the-rain" id="toc-second-join-add-the-rain" class="nav-link" data-scroll-target="#second-join-add-the-rain">Second join: add the rain</a></li>
   <li><a href="#the-row-count-trap" id="toc-the-row-count-trap" class="nav-link" data-scroll-target="#the-row-count-trap">The row-count trap</a></li>
   </ul></li>
@@ -597,6 +598,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><a href="practice/data/rm_lookup.csv"><code>rm_lookup.csv</code></a>, with one row per RM. It contains the RM name, census division, 2021 population and the closest of the sixteen weather stations.</li>
 </ul>
 <p>The yields table and rain table have no column in common. The lookup table connects them. We first attach a weather station to each yield row, then attach the rain recorded at that station in that year.</p>
+<p>The yields are the Government of Saskatchewan data described in <a href="module03a.html#sec-direct-download" class="quarto-xref"><span>Section 7.5.5</span></a>, restricted to 2015–2024. The other two files were assembled for this course from public sources. <code>station_precip.csv</code> sums Environment and Climate Change Canada daily station observations from May 1 through August 31; <code>days_missing</code> records dates with no observation, and the total sums the days that were available. <code>rm_lookup.csv</code> combines RM names and 2021 population from Statistics Canada with the nearest station among the sixteen selected for the course. <code>station_km</code> records the resulting distance. These construction choices are part of the data’s provenance, not facts supplied by either original file.</p>
 <section id="keys" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="keys">Keys</h3>
 <p>A <strong>key</strong> is a column, or a set of columns, used to identify and match rows. The key follows from what one row represents:</p>
@@ -613,10 +615,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div id="fig-join-types" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-join-types-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="images/join_types.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;8.1: Three kinds of merge. Each line connects a grades row to the row it matches. Attendance is one-to-one: each student-class appears once on both sides. Professors is many-to-one: several grades rows point to the same professor. Teaching assistants is many-to-many: each class has two TAs, so each grades row matches twice and the result has eight rows instead of four."><img src="images/join_types.svg" class="img-fluid figure-img"></a>
+<a href="images/join_types.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;8.1: Three kinds of merge. Each line connects a grades row to the row it matches."><img src="images/join_types.svg" class="img-fluid figure-img"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-join-types-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;8.1: Three kinds of merge. Each line connects a grades row to the row it matches. Attendance is one-to-one: each student-class appears once on both sides. Professors is many-to-one: several grades rows point to the same professor. Teaching assistants is many-to-many: each class has two TAs, so each grades row matches twice and the result has eight rows instead of four.
+Figure&nbsp;8.1: Three kinds of merge. Each line connects a grades row to the row it matches.
 </figcaption>
 </figure>
 </div>
@@ -631,7 +633,7 @@ Figure&nbsp;8.1: Three kinds of merge. Each line connects a grades row to the ro
 <section id="sec-merge-excel" class="level2" data-number="8.2">
 <h2 data-number="8.2" class="anchored" data-anchor-id="sec-merge-excel"><span class="header-section-number">8.2</span> Merging in Excel</h2>
 <p>In Excel, <code>XLOOKUP</code> can bring a column from one table into another (<a href="module01b.html#sec-lookup" class="quarto-xref"><span>Section 2.2</span></a>). The <strong>Merge</strong> sheet in the workbook below contains thirty yield rows and the two lookup columns beside them. The <code>FORMULATEXT</code> column shows the precipitation formula, and the checks below the data count <code>#N/A</code> results.</p>
-<p>The first lookup matches the RM number and returns its station. The second lookup needs station and year, so it joins the two values on each side with <code>&amp; "|" &amp;</code> to make a composite key. The shaded column deliberately leaves out year. It returns the first rain value for the station in every year, without producing an error.</p>
+<p>The first lookup matches the RM number and returns its station. The second lookup needs station and year, so it joins the two values on each side with <code>&amp; "|" &amp;</code> to make a composite key. The shaded column deliberately leaves out year. It returns the first rain value for that station in the rain sheet—2015 here—for every year, without producing an error. These formulas require Microsoft 365’s <code>XLOOKUP</code>, which University of Saskatchewan students can use through the university.</p>
 <div class="workbook-callout">
 <!-- Public view-only link expires 2026-11-20 under the University of Saskatchewan 90-day policy. -->
 <div class="excel-embed">
@@ -640,73 +642,55 @@ Figure&nbsp;8.1: Three kinds of merge. Each line connects a grades row to the ro
 </div>
 <p><a href="textbook_examples/mod03_merge_excel.xlsx">Download this workbook</a> · <a href="https://usaskca1-my.sharepoint.com/:x:/g/personal/pjs998_usask_ca/IQBXbSjkDtlgTp6axJO1CZ6OAa9jBZn7UhVyZRjoYXeXy3Q?e=AcDC7T">Open online</a> (File → Save a Copy to view formulas and edit)</p>
 </div>
-<p>An unmatched <code>XLOOKUP</code> returns <code>#N/A</code>, which is easy to count. An incomplete key can be harder to find because the formula returns a value. Check a few rows against the source tables, especially rows where the year or another part of the key changes.</p>
-<p>For a merge that must be repeated, Power Query records the source, the key columns and the join type. Use <strong>Data &gt; Get Data</strong> to load the tables, then <strong>Merge Queries</strong> to select the matching columns. A two-column key is selected in the same order in both tables.</p>
+<p>An unmatched <code>XLOOKUP</code> returns <code>#N/A</code>, which is easy to count. An incomplete key can be harder to find because the formula returns a value. Before a lookup, confirm that the key on the lookup side is unique: <code>XLOOKUP</code> silently returns the first duplicate. Check a few rows against the source tables, especially where the year or another part of the key changes. Excel lookups ignore case but not stray spaces, and the number <code>1</code> does not match the text <code>"1"</code>; if an entire column returns <code>#N/A</code>, check the key types and use <code>TRIM()</code> to remove extra spaces.</p>
+<p>For a merge that must be repeated, Power Query records the source, key columns and join type. Import each table with <strong>Data &gt; Get Data &gt; From Text/CSV &gt; Transform Data</strong>. In the editor choose <strong>Home &gt; Merge Queries</strong>, select the key columns in the same order on both sides using Ctrl-click (Command-click on a Mac), and keep <strong>Left Outer</strong> as the join kind. The dialog reports how many rows match. After clicking <strong>OK</strong>, expand the new Table column with the double-arrow icon in its header. Power Query also offers Inner, Full Outer and Left Anti joins, corresponding to the R joins below.</p>
 </section>
 <section id="sec-merge-r" class="level2" data-number="8.3">
 <h2 data-number="8.3" class="anchored" data-anchor-id="sec-merge-r"><span class="header-section-number">8.3</span> Merging in R</h2>
 <p>Read the three files and inspect their columns:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the packages used in this chapter</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(janitor)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the three tables and clean their column names</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/rm_yields_2015_2024.csv"</span>) <span class="sc">|&gt;</span> <span class="fu">clean_names</span>()</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>rms <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/rm_lookup.csv"</span>) <span class="sc">|&gt;</span> <span class="fu">clean_names</span>()</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>rain <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/station_precip.csv"</span>) <span class="sc">|&gt;</span> <span class="fu">clean_names</span>()</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(yields)</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(rms)</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(rain)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressPackageStartupMessages</span>({</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">library</span>(janitor)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the three tables and clean their column names</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="st">"practice/data/rm_yields_2015_2024.csv"</span>,</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">show_col_types =</span> <span class="cn">FALSE</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span> <span class="fu">clean_names</span>()</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>rms <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  <span class="st">"practice/data/rm_lookup.csv"</span>,</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">show_col_types =</span> <span class="cn">FALSE</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span> <span class="fu">clean_names</span>()</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>rain <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>  <span class="st">"practice/data/station_precip.csv"</span>,</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">show_col_types =</span> <span class="cn">FALSE</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span> <span class="fu">clean_names</span>()</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(yields)</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(rms)</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(rain)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
-<pre><code>&gt; # Load the packages used in this chapter
-&gt; library(tidyverse)
-── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-✔ dplyr     1.2.1     ✔ readr     2.2.0
-✔ forcats   1.0.1     ✔ stringr   1.6.0
-✔ ggplot2   4.0.3     ✔ tibble    3.3.1
-✔ lubridate 1.9.5     ✔ tidyr     1.3.2
-✔ purrr     1.2.2     
-── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-✖ dplyr::filter() masks stats::filter()
-✖ dplyr::lag()    masks stats::lag()
-ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors
-&gt; library(janitor)
-
-Attaching package: 'janitor'
-The following objects are masked from 'package:stats':
-
-    chisq.test, fisher.test
+<pre><code>&gt; suppressPackageStartupMessages({
++   library(tidyverse)
++   library(janitor)
++ })
 &gt; 
 &gt; # Read the three tables and clean their column names
-&gt; yields &lt;- read_csv("data/rm_yields_2015_2024.csv") |&gt; clean_names()
-Rows: 2950 Columns: 8
-── Column specification ────────────────────────────────────────────────────────
-Delimiter: ","
-dbl (8): Year, RM, Spring Wheat, Durum, Canola, Barley, Oats, Peas
-
-ℹ Use `spec()` to retrieve the full column specification for this data.
-ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
-&gt; rms &lt;- read_csv("data/rm_lookup.csv") |&gt; clean_names()
-Rows: 296 Columns: 6
-── Column specification ────────────────────────────────────────────────────────
-Delimiter: ","
-chr (3): RM_Name, Census_Division, Weather_Station
-dbl (3): RM_Number, Population_2021, Station_km
-
-ℹ Use `spec()` to retrieve the full column specification for this data.
-ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
-&gt; rain &lt;- read_csv("data/station_precip.csv") |&gt; clean_names()
-Rows: 160 Columns: 4
-── Column specification ────────────────────────────────────────────────────────
-Delimiter: ","
-chr (1): Station
-dbl (3): Year, Precip_May_Aug_mm, Days_Missing
-
-ℹ Use `spec()` to retrieve the full column specification for this data.
-ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+&gt; yields &lt;- read_csv(
++   "practice/data/rm_yields_2015_2024.csv",
++   show_col_types = FALSE
++ ) |&gt; clean_names()
+&gt; rms &lt;- read_csv(
++   "practice/data/rm_lookup.csv",
++   show_col_types = FALSE
++ ) |&gt; clean_names()
+&gt; rain &lt;- read_csv(
++   "practice/data/station_precip.csv",
++   show_col_types = FALSE
++ ) |&gt; clean_names()
 &gt; 
 &gt; glimpse(yields)
 Rows: 2,950
@@ -738,7 +722,7 @@ $ days_missing      &lt;dbl&gt; 1, 2, 1, 2, 2, 2, 1, 5, 0, 1, 0, 0, 0, 0, 0, 0, 
 </div>
 </div>
 </div>
-<p><code>left_join()</code> takes two data frames and a <code>by</code> argument that identifies the key. If the key has different names in the two tables, write <code>by = c("left_name" = "right_name")</code>.</p>
+<p><code>left_join()</code> takes two data frames and a <code>by</code> argument that identifies the key. If a key has different names in the two tables, write <code>join_by(left_name == right_name)</code>; a column with the same name on both sides is written once. The older <code>by = c("left_name" = "right_name")</code> form still appears in other people’s code.</p>
 <section id="four-joins" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="four-joins">Four joins</h3>
 <p>The join functions differ in which rows they keep:</p>
@@ -749,29 +733,55 @@ $ days_missing      &lt;dbl&gt; 1, 2, 1, 2, 2, 2, 1, 5, 0, 1, 0, 0, 0, 0, 0, 0, 
 <li><strong><code>anti_join(a, b)</code></strong> returns the rows of <code>a</code> that have no match in <code>b</code>. It is useful for finding failed matches before a join.</li>
 </ul>
 <p>We will use <code>left_join()</code> because the yield rows are the observations we want to keep.</p>
+<p>Before joining, check that the columns expected to identify one row are actually unique:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>rms <span class="sc">|&gt;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(rm_number) <span class="sc">|&gt;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(n <span class="sc">&gt;</span> <span class="dv">1</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>rain <span class="sc">|&gt;</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(station, year) <span class="sc">|&gt;</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(n <span class="sc">&gt;</span> <span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; rms |&gt;
++   count(rm_number) |&gt;
++   filter(n &gt; 1)
+# A tibble: 0 × 2
+# ℹ 2 variables: rm_number &lt;dbl&gt;, n &lt;int&gt;
+&gt; 
+&gt; rain |&gt;
++   count(station, year) |&gt;
++   filter(n &gt; 1)
+# A tibble: 0 × 3
+# ℹ 3 variables: station &lt;chr&gt;, year &lt;dbl&gt;, n &lt;int&gt;</code></pre>
+</div>
+</div>
+</div>
+<p>Both checks return empty tibbles. A key is only a key if each combination occurs no more than once on the side where uniqueness is expected.</p>
 </section>
 <section id="first-join-yields-and-the-rm-lookup" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="first-join-yields-and-the-rm-lookup">First join: yields and the RM lookup</h3>
 <p>The RM column is called <code>rm</code> in the yields table and <code>rm_number</code> in the lookup. Check for unmatched RMs, perform the join and compare the row counts:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># List RM numbers that have no lookup row</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(rms, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"rm"</span> <span class="ot">=</span> <span class="st">"rm_number"</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(rm)</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Add the RM information and nearest station</span></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>with_station <span class="ot">&lt;-</span> yields <span class="sc">|&gt;</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(rms,</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>            <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"rm"</span> <span class="ot">=</span> <span class="st">"rm_number"</span>),</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>            <span class="at">relationship =</span> <span class="st">"many-to-one"</span>)</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(yields)</span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(with_station)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># List RM numbers that have no lookup row</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>yields <span class="sc">|&gt;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(rms, <span class="at">by =</span> <span class="fu">join_by</span>(rm <span class="sc">==</span> rm_number)) <span class="sc">|&gt;</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(rm)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Add the RM information and nearest station</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>with_station <span class="ot">&lt;-</span> yields <span class="sc">|&gt;</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(rms,</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>            <span class="at">by =</span> <span class="fu">join_by</span>(rm <span class="sc">==</span> rm_number),</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>            <span class="at">relationship =</span> <span class="st">"many-to-one"</span>)</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(yields)</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(with_station)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; # List RM numbers that have no lookup row
 &gt; yields |&gt;
-+   anti_join(rms, by = c("rm" = "rm_number")) |&gt;
++   anti_join(rms, by = join_by(rm == rm_number)) |&gt;
 +   distinct(rm)
 # A tibble: 0 × 1
 # ℹ 1 variable: rm &lt;dbl&gt;
@@ -779,7 +789,7 @@ $ days_missing      &lt;dbl&gt; 1, 2, 1, 2, 2, 2, 1, 5, 0, 1, 0, 0, 0, 0, 0, 0, 
 &gt; # Add the RM information and nearest station
 &gt; with_station &lt;- yields |&gt;
 +   left_join(rms,
-+             by = c("rm" = "rm_number"),
++             by = join_by(rm == rm_number),
 +             relationship = "many-to-one")
 &gt; 
 &gt; nrow(yields)
@@ -789,32 +799,160 @@ $ days_missing      &lt;dbl&gt; 1, 2, 1, 2, 2, 2, 1, 5, 0, 1, 0, 0, 0, 0, 0, 0, 
 </div>
 </div>
 </div>
-<p>The <code>anti_join()</code> returns no rows, so every RM has a match. Both tables have 2,950 rows after the join. The <code>relationship = "many-to-one"</code> argument records what we expect and makes <code>left_join()</code> stop if the lookup contains more than one row for an RM.</p>
-<p>Text keys must match exactly. For example, <code>"Canola/Rapeseed"</code> does not match <code>"Canola"</code>, and <code>"Soybean"</code> does not match <code>"Soybeans"</code>. These differences have to be reconciled before the join (<a href="module03c.html#sec-categories" class="quarto-xref"><span>Section 9.3.6</span></a>).</p>
+<p>The <code>anti_join()</code> returns an empty tibble, so every RM has a match. <code>yields</code> has 2,950 rows and so does <code>with_station</code>, which is what a many-to-one join should give. The <code>relationship = "many-to-one"</code> argument records what we expect and makes <code>left_join()</code> stop if the lookup contains more than one row for an RM.</p>
+<p>In R, text keys are sensitive to both case and spaces. For example, <code>"canola"</code>, <code>"Canola"</code> and <code>"Canola "</code> are three different keys. These differences have to be reconciled before the join (<a href="module03c.html#sec-categories" class="quarto-xref"><span>Section 9.3.6</span></a>).</p>
+</section>
+<section id="a-failed-match-on-purpose" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="a-failed-match-on-purpose">A failed match on purpose</h3>
+<p>The complete rain table matches every station-year. To see how the joins differ when data are missing, temporarily remove 2021:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>rain_short <span class="ot">&lt;-</span> rain <span class="sc">|&gt;</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(year <span class="sc">!=</span> <span class="dv">2021</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Which yield rows no longer have rain?</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>with_station <span class="sc">|&gt;</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    rain_short,</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="fu">join_by</span>(weather_station <span class="sc">==</span> station, year)</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(weather_station)</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="co"># A left join keeps all 2,950 yield rows,</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="co"># including 295 rows with missing rain.</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>with_station <span class="sc">|&gt;</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>    rain_short,</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="fu">join_by</span>(weather_station <span class="sc">==</span> station, year)</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">is.na</span>(precip_may_aug_mm)) <span class="sc">|&gt;</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nrow</span>()</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a><span class="co"># An inner join drops those 295 rows.</span></span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>with_station <span class="sc">|&gt;</span></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>    rain_short,</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="fu">join_by</span>(weather_station <span class="sc">==</span> station, year)</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nrow</span>()</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a><span class="co"># A full join also keeps a right-side row</span></span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a><span class="co"># that has no yield-side match.</span></span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>rain_extra <span class="ot">&lt;-</span> rain_short <span class="sc">|&gt;</span></span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_row</span>(</span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">station =</span> <span class="st">"Course example"</span>,</span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>    <span class="at">year =</span> <span class="dv">2025</span>,</span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>    <span class="at">precip_may_aug_mm =</span> <span class="dv">200</span>,</span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>    <span class="at">days_missing =</span> <span class="dv">0</span></span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>with_station <span class="sc">|&gt;</span></span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">full_join</span>(</span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>    rain_extra,</span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="fu">join_by</span>(weather_station <span class="sc">==</span> station, year)</span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(weather_station <span class="sc">==</span> <span class="st">"Course example"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(year, weather_station, rm, canola)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; rain_short &lt;- rain |&gt;
++   filter(year != 2021)
+&gt; 
+&gt; # Which yield rows no longer have rain?
+&gt; with_station |&gt;
++   anti_join(
++     rain_short,
++     by = join_by(weather_station == station, year)
++   ) |&gt;
++   count(weather_station)
+# A tibble: 16 × 2
+   weather_station          n
+   &lt;chr&gt;                &lt;int&gt;
+ 1 Indian Head CDA          8
+ 2 Kelliher                29
+ 3 Kipling                 30
+ 4 Leader Airport          11
+ 5 Maple Creek             11
+ 6 Meadow Lake              7
+ 7 Melfort                 26
+ 8 Nipawin                  7
+ 9 North Battleford RCS    21
+10 Outlook PFRA            17
+11 Regina RCS              24
+12 Rosetown East            9
+13 Scott CDA               18
+14 Swift Current CDA       31
+15 Watrous East            22
+16 Weyburn                 24
+&gt; 
+&gt; # A left join keeps all 2,950 yield rows,
+&gt; # including 295 rows with missing rain.
+&gt; with_station |&gt;
++   left_join(
++     rain_short,
++     by = join_by(weather_station == station, year)
++   ) |&gt;
++   filter(is.na(precip_may_aug_mm)) |&gt;
++   nrow()
+[1] 295
+&gt; 
+&gt; # An inner join drops those 295 rows.
+&gt; with_station |&gt;
++   inner_join(
++     rain_short,
++     by = join_by(weather_station == station, year)
++   ) |&gt;
++   nrow()
+[1] 2655
+&gt; 
+&gt; # A full join also keeps a right-side row
+&gt; # that has no yield-side match.
+&gt; rain_extra &lt;- rain_short |&gt;
++   add_row(
++     station = "Course example",
++     year = 2025,
++     precip_may_aug_mm = 200,
++     days_missing = 0
++   )
+&gt; 
+&gt; with_station |&gt;
++   full_join(
++     rain_extra,
++     by = join_by(weather_station == station, year)
++   ) |&gt;
++   filter(weather_station == "Course example") |&gt;
++   select(year, weather_station, rm, canola)
+# A tibble: 1 × 4
+   year weather_station    rm canola
+  &lt;dbl&gt; &lt;chr&gt;           &lt;dbl&gt;  &lt;dbl&gt;
+1  2025 Course example     NA     NA</code></pre>
+</div>
+</div>
+</div>
+<p><code>anti_join()</code> identifies the failed keys, <code>left_join()</code> makes the missing matches visible as <code>NA</code>, and <code>inner_join()</code> silently removes them. The final <code>full_join()</code> also retains the deliberately added rain row that has no yield-side match, filling its yield columns with <code>NA</code>.</p>
 </section>
 <section id="second-join-add-the-rain" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="second-join-add-the-rain">Second join: add the rain</h3>
 <p>The second key has two parts. The station column is called <code>weather_station</code> on the left and <code>station</code> on the right; <code>year</code> has the same name in both tables.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Find station-years with no precipitation row</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>with_station <span class="sc">|&gt;</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(rain,</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"weather_station"</span> <span class="ot">=</span> <span class="st">"station"</span>, <span class="st">"year"</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(weather_station, year)</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Add precipitation for the matching station and year</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>merged <span class="ot">&lt;-</span> with_station <span class="sc">|&gt;</span></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(rain,</span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>            <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"weather_station"</span> <span class="ot">=</span> <span class="st">"station"</span>, <span class="st">"year"</span>),</span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>            <span class="at">relationship =</span> <span class="st">"many-to-one"</span>)</span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(merged)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Find station-years with no precipitation row</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>with_station <span class="sc">|&gt;</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(rain,</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">by =</span> <span class="fu">join_by</span>(weather_station <span class="sc">==</span> station, year)) <span class="sc">|&gt;</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(weather_station, year)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Add precipitation for the matching station and year</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>merged <span class="ot">&lt;-</span> with_station <span class="sc">|&gt;</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(rain,</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>            <span class="at">by =</span> <span class="fu">join_by</span>(weather_station <span class="sc">==</span> station, year),</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>            <span class="at">relationship =</span> <span class="st">"many-to-one"</span>)</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(merged)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; # Find station-years with no precipitation row
 &gt; with_station |&gt;
 +   anti_join(rain,
-+             by = c("weather_station" = "station", "year")) |&gt;
++             by = join_by(weather_station == station, year)) |&gt;
 +   distinct(weather_station, year)
 # A tibble: 0 × 2
 # ℹ 2 variables: weather_station &lt;chr&gt;, year &lt;dbl&gt;
@@ -822,7 +960,7 @@ $ days_missing      &lt;dbl&gt; 1, 2, 1, 2, 2, 2, 1, 5, 0, 1, 0, 0, 0, 0, 0, 0, 
 &gt; # Add precipitation for the matching station and year
 &gt; merged &lt;- with_station |&gt;
 +   left_join(rain,
-+             by = c("weather_station" = "station", "year"),
++             by = join_by(weather_station == station, year),
 +             relationship = "many-to-one")
 &gt; 
 &gt; nrow(merged)
@@ -836,28 +974,55 @@ $ days_missing      &lt;dbl&gt; 1, 2, 1, 2, 2, 2, 1, 5, 0, 1, 0, 0, 0, 0, 0, 0, 
 <h3 class="unnumbered anchored" data-anchor-id="the-row-count-trap">The row-count trap</h3>
 <p>Now leave <code>year</code> out of the key:</p>
 <div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>Error in left_join(with_station, rain, by = join_by(weather_station ==  : 
+  Each row in `x` must match at most 1 row in `y`.
+ℹ Row 1 of `x` matches multiple rows in `y`.</code></pre>
+</div>
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># This key is incomplete: every row matches ten years of rain</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>with_station <span class="sc">|&gt;</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(rain,</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"weather_station"</span> <span class="ot">=</span> <span class="st">"station"</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nrow</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># This key is incomplete: every row matches ten years of rain</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>with_station <span class="sc">|&gt;</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(rain,</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">by =</span> <span class="fu">join_by</span>(weather_station <span class="sc">==</span> station)) <span class="sc">|&gt;</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nrow</span>()</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="co"># State the expected relationship to turn</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="co"># the warning into an error.</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="fu">try</span>(</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>  with_station <span class="sc">|&gt;</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">left_join</span>(</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>      rain,</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>      <span class="at">by =</span> <span class="fu">join_by</span>(weather_station <span class="sc">==</span> station),</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>      <span class="at">relationship =</span> <span class="st">"many-to-one"</span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; # This key is incomplete: every row matches ten years of rain
 &gt; with_station |&gt;
 +   left_join(rain,
-+             by = c("weather_station" = "station")) |&gt;
++             by = join_by(weather_station == station)) |&gt;
 +   nrow()
 Warning: Detected an unexpected many-to-many relationship between `x` and `y`.
 ℹ Row 1 of `x` matches multiple rows in `y`.
 ℹ Row 21 of `y` matches multiple rows in `x`.
 ℹ If a many-to-many relationship is expected, set `relationship =
   "many-to-many"` to silence this warning.
-[1] 29500</code></pre>
+[1] 29500
+&gt; 
+&gt; # State the expected relationship to turn
+&gt; # the warning into an error.
+&gt; try(
++   with_station |&gt;
++     left_join(
++       rain,
++       by = join_by(weather_station == station),
++       relationship = "many-to-one"
++     )
++ )</code></pre>
 </div>
 </div>
 </div>
-<p>Each yield row matches all ten years for its station, so 2,950 rows become 29,500. <code>dplyr</code> warns about the unexpected many-to-many relationship. Excel’s station-only <code>XLOOKUP</code> makes the same mistake differently: it returns only the first matching year and gives no warning.</p>
+<p>Each yield row matches all ten years for its station, so 2,950 rows become 29,500. By default, <code>dplyr</code> warns about the unexpected many-to-many relationship. When <code>relationship = "many-to-one"</code> states what was intended, the same mistake becomes an error and the analysis stops. Excel’s station-only <code>XLOOKUP</code> makes the mistake differently: it returns only the first matching year and gives no warning.</p>
 </section>
 </section>
 <section id="sec-merge-result" class="level2" data-number="8.4">
@@ -865,17 +1030,34 @@ Warning: Detected an unexpected many-to-many relationship between `x` and `y`.
 <p>The merged table has one row per RM-year, with yield and precipitation beside one another:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Display the columns used in the analysis</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>merged <span class="sc">|&gt;</span></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(year, rm, rm_name, canola,</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>         weather_station, precip_may_aug_mm)</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate annual mean yield and precipitation</span></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>merged <span class="sc">|&gt;</span></span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(canola)) <span class="sc">|&gt;</span></span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(year) <span class="sc">|&gt;</span></span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">canola_bu_ac =</span> <span class="fu">mean</span>(canola),</span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>            <span class="at">rain_mm =</span> <span class="fu">mean</span>(precip_may_aug_mm))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Display the columns used in the analysis</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>merged <span class="sc">|&gt;</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(year, rm, rm_name, canola,</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>         weather_station, precip_may_aug_mm)</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate annual mean yield and precipitation</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>merged <span class="sc">|&gt;</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(canola)) <span class="sc">|&gt;</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">canola_bu_ac =</span> <span class="fu">mean</span>(canola),</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">rain_mm =</span> <span class="fu">mean</span>(precip_may_aug_mm),</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">max_days_missing =</span> <span class="fu">max</span>(days_missing),</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">.by =</span> year</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Count yield values excluded from those means</span></span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>merged <span class="sc">|&gt;</span></span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">missing_canola =</span> <span class="fu">sum</span>(<span class="fu">is.na</span>(canola)))</span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Describe association, not causation</span></span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>merged <span class="sc">|&gt;</span></span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">yield_rain_correlation =</span> <span class="fu">cor</span>(</span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>      canola,</span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>      precip_may_aug_mm,</span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>      <span class="at">use =</span> <span class="st">"complete.obs"</span></span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; # Display the columns used in the analysis
 &gt; merged |&gt;
@@ -899,27 +1081,52 @@ Warning: Detected an unexpected many-to-many relationship between `x` and `y`.
 &gt; # Calculate annual mean yield and precipitation
 &gt; merged |&gt;
 +   filter(!is.na(canola)) |&gt;
-+   group_by(year) |&gt;
-+   summarise(canola_bu_ac = mean(canola),
-+             rain_mm = mean(precip_may_aug_mm))
-# A tibble: 10 × 3
-    year canola_bu_ac rain_mm
-   &lt;dbl&gt;        &lt;dbl&gt;   &lt;dbl&gt;
- 1  2015         36.1    191.
- 2  2016         42.2    300.
- 3  2017         33.8    125.
- 4  2018         36.8    170.
- 5  2019         40.8    228.
- 6  2020         38.2    193.
- 7  2021         21.9    173.
- 8  2022         35.4    244.
- 9  2023         33.9    160.
-10  2024         31.5    229.</code></pre>
++   summarise(
++     canola_bu_ac = mean(canola),
++     rain_mm = mean(precip_may_aug_mm),
++     max_days_missing = max(days_missing),
++     .by = year
++   )
+# A tibble: 10 × 4
+    year canola_bu_ac rain_mm max_days_missing
+   &lt;dbl&gt;        &lt;dbl&gt;   &lt;dbl&gt;            &lt;dbl&gt;
+ 1  2015         36.1    191.               11
+ 2  2016         42.2    300.                9
+ 3  2017         33.8    125.                5
+ 4  2018         36.8    170.               11
+ 5  2019         40.8    228.                3
+ 6  2020         38.2    193.                6
+ 7  2021         21.9    173.               10
+ 8  2022         35.4    244.               21
+ 9  2023         33.9    160.               25
+10  2024         31.5    229.               24
+&gt; 
+&gt; # Count yield values excluded from those means
+&gt; merged |&gt;
++   summarise(missing_canola = sum(is.na(canola)))
+# A tibble: 1 × 1
+  missing_canola
+           &lt;int&gt;
+1             46
+&gt; 
+&gt; # Describe association, not causation
+&gt; merged |&gt;
++   summarise(
++     yield_rain_correlation = cor(
++       canola,
++       precip_may_aug_mm,
++       use = "complete.obs"
++     )
++   )
+# A tibble: 1 × 1
+  yield_rain_correlation
+                   &lt;dbl&gt;
+1                  0.413</code></pre>
 </div>
 </div>
 </div>
-<p>Canola yield is highest in wet 2016 and among its lowest values in dry 2017. The pattern is not exact. In 2021 rainfall was ordinary but yields fell sharply, because heat also mattered.</p>
-<p>The merge also has limits that should be recorded in the project’s README. Some RMs are far from the nearest station in this small set. RM 1, Argyle, is matched to Kipling, 145 km away. Some station-years are missing several weeks of daily readings, which is why the rain table includes <code>days_missing</code>.</p>
+<p>Across RM-years, wetter observations tend to have higher canola yield, but the relationship is loose: the correlation is about 0.41. The annual table also resists a simple rainfall story. Both 2021 and 2024 have low average yields despite ordinary or above-average rainfall. These data cannot say why. Testing whether heat contributed would require temperature data; explaining the remaining differences would require other variables as well.</p>
+<p>The annual means exclude 46 RM-years with no published canola yield. They also average rainfall over RM rows, so a station serving more RMs receives more weight than a station serving fewer RMs. The merge has further limits that should be recorded in the project’s README. The median RM is 62 km from its assigned station, one quarter are more than 85 km away, and the maximum is 161 km, so station rainfall is a coarse proxy for rainfall across an RM. Some station-years also have many missing daily observations—up to 25 days in this file—and their seasonal totals sum only the available days, which biases those totals downward.</p>
 
 
 </section>
