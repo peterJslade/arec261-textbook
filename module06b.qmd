@@ -1,5 +1,22 @@
 # Writing a Report {#sec-writing-reports}
 
+```{r}
+#| label: setup
+#| include: false
+#| eval: true
+library(tidyverse)
+
+wheat <- read_csv("practice/data/sask_wheat_2025.csv", show_col_types = FALSE)
+wheat_summary <- wheat |>
+  group_by(soil_zone) |>
+  summarise(
+    Records = n(),
+    `Missing yield` = sum(is.na(yield_bu_ac)),
+    `Mean yield (bu/ac)` = mean(yield_bu_ac, na.rm = TRUE),
+    .groups = "drop"
+  )
+```
+
 Analysis becomes useful when someone can understand the finding and use it. A report should make the answer easy to find, show enough evidence to support it and state the limits that matter for the decision.
 
 The course project, a memo for a farm manager and a client report differ in length. Their basic structure is the same.
@@ -22,7 +39,9 @@ A common report follows the order in which the work was done: data, cleaning, me
 
 Open with the finding:
 
-> Canola yields in the black soil zone averaged 42 bushels per acre over the last five years, about 15% higher than in the brown zone. The gap appears in every year in the data, including the drought year, so it is not explained by one unusual season.
+::: {.callout-tip title="Model opening"}
+Black-zone wheat fields in the [2025 Saskatchewan wheat data](practice/data/sask_wheat_2025.csv) averaged 53.0 bu/ac, compared with 38.6 bu/ac in the brown zone. The difference was 14.4 bu/ac, or 37% of the brown-zone mean. These descriptive averages exclude four fields with no reported yield and do not establish why yields differed between zones.
+:::
 
 The paragraph states the value, the comparison and the evidence behind the interpretation. A reader with thirty seconds can stop there. The rest of the report shows how the conclusion was reached.
 
@@ -48,29 +67,65 @@ A calculation result is not automatically a useful reported number. `42.3851` st
 
 ### Round to the measurement {.unnumbered}
 
-Report only the precision the data can support. Yield measured to the nearest tenth of a bushel does not justify four decimal places. Write 42.4 bu/ac, or 42 when the extra decimal would not affect the decision.
+Report only the precision the data can support. Yield measured to the nearest tenth of a bushel does not justify four decimal places. Write 53.0 bu/ac, or 53 when the extra decimal would not affect the decision. Round only after the calculation is complete.
+
+In R, `round(x, 1)` prepares a value for reporting. In Excel, a number format changes only the display, while `=ROUND(A2, 1)` returns a rounded value. Keep full precision during intermediate calculations.
 
 ### Supply a comparison {.unnumbered}
 
-"Average yield was 42 bu/ac" reports a level. "Average yield was 42 bu/ac, about 15% above the provincial average" gives the reader a reference point.
+"Black-zone yield averaged 53.0 bu/ac" reports a level. "Black-zone yield averaged 14.4 bu/ac, or 37%, more than the brown-zone mean" supplies both an absolute and a relative comparison. When reporting a percentage difference, name its base.
 
 Useful comparisons include another region, an earlier year, a budget target or an established benchmark. Choose one that matches the decision.
 
 ### State the units {.unnumbered}
 
-Put units in the sentence, table header or axis label. Bushels per acre, kilograms per hectare and dollars per tonne are not interchangeable even when a column is simply named `Yield` or `Price`.
+Put units in the sentence, table header or axis label. Bushels per acre, kilograms per hectare and dollars per tonne are not interchangeable even when a column is simply named `Yield` or `Price`. In Excel, put the unit in the header, such as `Yield (bu/ac)`, or use a custom format such as `0.0 "bu/ac"`; typing the unit into each value turns numbers into text.
 
 ### Report fewer numbers {.unnumbered}
 
-Keep the figures that advance the argument. A forty-row table is not a summary when the text discusses only three values. Move supporting detail to an appendix or provide the data file separately.
+Keep the figures that advance the argument. A forty-row table is not a summary when the text discusses only three values. Move supporting detail to an appendix or provide the data file separately. In a handoff workbook, the report should draw from a compact Output sheet while the Raw and Cleaned sheets preserve the detailed record (@sec-workbook-separation).
 
 ## Tables and Charts {#sec-charts-in-reports}
 
 Use a table when the reader needs exact values. Use a chart when the comparison, pattern or change matters more than individual numbers.
 
+Table @tbl-wheat-summary reports the exact values behind the opening paragraph.
+
+```{r}
+#| label: tbl-wheat-summary
+#| tbl-cap: "Wheat yield records and mean yield by soil zone, Saskatchewan synthetic field data, 2025."
+#| echo: false
+#| eval: true
+#| results: asis
+print(wheat_summary |>
+  mutate(`Mean yield (bu/ac)` = round(`Mean yield (bu/ac)`, 1)) |>
+  knitr::kable(align = c("l", "r", "r", "r")))
+```
+
 Introduce each table or chart before it appears. Name what it displays, then state the feature that supports the argument:
 
-> Figure 3 compares average yield across soil zones from 2021 to 2025. The black zone is higher in every year, and the gap remains after the 2021 drought.
+Figure @fig-report-example compares mean 2025 wheat yield across the three soil zones. The black-zone mean is highest, and the brown-zone mean is lowest.
+
+```{r}
+#| label: fig-report-example
+#| fig-cap: "Mean wheat yield by soil zone, Saskatchewan synthetic field data, 2025. Yields are in bushels per acre; four records with missing yield are excluded."
+#| fig-alt: "Bar chart of mean wheat yield: Black 53.0, Dark Brown 45.2 and Brown 38.6 bushels per acre."
+#| echo: false
+#| eval: true
+#| fig-width: 7
+#| fig-height: 4.2
+print(wheat_summary |>
+  ggplot(aes(x = reorder(soil_zone, `Mean yield (bu/ac)`),
+             y = `Mean yield (bu/ac)`)) +
+  geom_col(fill = "#2f6b4f", width = 0.65) +
+  geom_text(aes(label = sprintf("%.1f", `Mean yield (bu/ac)`)),
+            hjust = -0.2, size = 4) +
+  coord_flip(clip = "off") +
+  scale_y_continuous(limits = c(0, 60), expand = expansion(mult = c(0, 0.02))) +
+  labs(x = NULL, y = "Mean yield (bu/ac)") +
+  theme_minimal(base_size = 13) +
+  theme(panel.grid.major.y = element_blank()))
+```
 
 This tells the reader where to look and why the figure is present. A chart without an introduction leaves the reader to decide what matters.
 
@@ -84,9 +139,17 @@ The method section should let a knowledgeable reader understand and reproduce th
 
 Write:
 
-> We calculated average yield for each soil zone from 2021 to 2025, weighting each observation by reported acres so that larger plantings contributed more to the provincial comparison.
+::: {.callout-tip title="Write"}
+We calculated the mean 2025 wheat yield for each soil zone. Four of the 150 fields had no reported yield and were excluded from the averages.
+:::
 
-Do not list each menu choice or function call unless the implementation itself matters. Keep the script or workbook as the detailed record.
+::: {.callout-warning title="Do not write"}
+We clicked **Data**, made a PivotTable, dragged `yield_bu_ac` to Values and changed the calculation to Average.
+:::
+
+Do not list each menu choice or function call unless the implementation itself matters. Keep the script or workbook as the detailed record. A usable workbook record leaves formulas in place, labels the summary cells that feed the report and documents sources or Power Query steps on a README sheet.
+
+For a fixed Word or PDF report, format a small summary range in Excel and paste it using **Keep Source Formatting** or **Paste as Picture**. A picture will not update when the workbook changes. For charts, see the export choices in @sec-excel-chart-export. Do not retype calculated values into the report.
 
 ## Saying What You Do Not Know {#sec-caveats}
 
@@ -104,6 +167,6 @@ Do not bury the answer beneath qualifications, and do not omit a limitation that
 
 ## The Course Project {#sec-project-report}
 
-The course project asks a question about agricultural data, carries out a reproducible analysis and explains the finding in a short report. Use the structure in this chapter.
+The course project asks a question about agricultural data, carries out a reproducible analysis and explains the finding in a short report. Use the structure in this chapter. Submit the report together with the script or workbook that produced its numbers and figures, following the detailed submission instructions provided for the project.
 
 Complexity is not the goal. A direct comparison with a clear chart, traceable calculations and honest limits is stronger than an elaborate method the reader cannot follow.
