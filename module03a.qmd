@@ -34,7 +34,7 @@ When you find a candidate, read its documentation before you read the data. What
 
 ## Where Agricultural Data Comes From {#sec-data-sources}
 
-Some data you make yourself: a field trial, a survey, a sensor, the records from your own farm or business. Some is sent to you, usually as a spreadsheet. The rest has to be found, and for agriculture a lot of it sits in public. A short list of the places I go back to:
+Some data you make yourself: a field trial, a survey, a sensor, the records from your own farm or business. Some is sent to you, usually as a spreadsheet. The rest has to be found, and for agriculture a lot of it is in the public domain. A short list of the places you can find data:
 
 - **[Statistics Canada](https://www.statcan.gc.ca/en/subjects-start/agriculture_and_food).** Crop area, production and yield, livestock, prices, farm income, trade, the Census of Agriculture. The starting point for almost any Canadian question.
 - **Saskatchewan Agriculture.** The weekly [crop report](https://www.saskatchewan.ca/business/agriculture-natural-resources-and-industry/agribusiness-farmers-and-ranchers/market-and-trade-statistics/crops-statistics/crop-report), the [crop planning guide](https://www.saskatchewan.ca/business/agriculture-natural-resources-and-industry/agribusiness-farmers-and-ranchers/farm-business-management/crop-planning-guide-and-crop-planner), and the [provincial dashboard](https://dashboard.saskatchewan.ca/agriculture), which is where the RM yields used in this module come from. The [Saskatchewan Crop Insurance Corporation](https://www.scic.ca/) publishes yields and premiums by risk zone.
@@ -44,11 +44,11 @@ Some data you make yourself: a field trial, a survey, a sensor, the records from
 - **Drought.** The [Canadian Drought Monitor](https://agriculture.canada.ca/en/agricultural-production/weather/canadian-drought-monitor), monthly maps and data.
 - **Outside Canada.** USDA's [QuickStats](https://quickstats.nass.usda.gov/) for the US, [FAOSTAT](https://www.fao.org/faostat/en/) for the world, the [World Bank](https://data.worldbank.org/) for anything macroeconomic.
 
-Go to the agency that produces the data. A chart in a news story is a good way to discover that a dataset exists; the agency's table is the thing to download.
+It is best practice to obtain data directly from the agency that produces it.  A chart in a news story is a good way to discover that a dataset exists; the agency's table is the thing to download.
 
-### Four Ways to Get It
+## Downloading data
 
-A provider exposes files, an API, or both. Everything else is a different way of using those.
+In this course, we will obtain data in four ways.
 
 | Route | What you do | What you get | Good for |
 |---|---|---|---|
@@ -57,13 +57,20 @@ A provider exposes files, an API, or both. Everything else is a different way of
 | API | Send a structured request to a server | Usually JSON, sometimes CSV | Selecting exactly what you want; anything automated |
 | Package | Call an R function that builds the request and tidies the answer | A data frame | Providers with a maintained package |
 
-The Saskatchewan RM yields are a direct file link: one CSV at <https://dashboard.saskatchewan.ca/export/rm-yields-data/4950.csv>. Statistics Canada offers all four: a website with a download button, direct links to each table, an API, and the **cansim** package, which is not the API but a wrapper that uses it on your behalf.
+Manual downloads and direct file links are fairly self-explanatory.  For example, if we want to download data on seeded acres in each province we can visit this link <https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=3210035901>, customize the table, and click "Download options".
 
-## What an API Does {#sec-apis}
+![Statistics Canada table 32-10-0359-01. **Customize table** chooses the harvest disposition and years; **Download options** saves the result as a CSV.](images/statcan_download_options.png){#fig-statcan-download}
 
+If we want to download yields for each RM in Saskatchewan, we can get that from the provincial Ministry of Agriculture.  You can get the data directly from this link: <https://dashboard.saskatchewan.ca/export/rm-yields-data/4950.csv> (see this website for more details on the data: <https://dashboard.saskatchewan.ca/business-economy/business-industry-trade/crop-production>).  
+
+You may not yet have encountered the latter two options: APIs and software packages.
+
+### APIs {.unnumbered}
 An **API** (application programming interface) is a documented way for one program to ask another for data. Your program sends a request that says what it wants, and the server sends back a response containing just that. The request is a line of text, so it is recorded, repeatable, and easy to change.
 
-For a simple data API the request is a URL with the choices written into it. This one asks Open-Meteo for daily precipitation near Saskatoon for the first five days of May 2024:
+For a simple data API the request is a URL with the choices written into it. For example, to obtain precipitation data for May 1 to May 5, 2024 we can use this url: <https://archive-api.open-meteo.com/v1/archive?latitude=52.13&longitude=-106.67&start_date=2024-05-01&end_date=2024-05-05&daily=precipitation_sum&timezone=America/Regina>.  
+
+This url might originally appear somewhat complex but if we break it down into its components, it becomes easy to parse.  With some linebreaks it is:
 
 ```
 https://archive-api.open-meteo.com/v1/archive
@@ -75,29 +82,71 @@ https://archive-api.open-meteo.com/v1/archive
     &timezone=America/Regina
 ```
 
-The line breaks are for reading; in a browser it is one address, and you can [open it](https://archive-api.open-meteo.com/v1/archive?latitude=52.13&longitude=-106.67&start_date=2024-05-01&end_date=2024-05-05&daily=precipitation_sum&timezone=America%2FRegina). The parts are the **endpoint**, `https://archive-api.open-meteo.com/v1/archive`, which names the service, and the **query parameters** after the `?`, which are the choices: where, when, which variable, which time zone. Change a parameter and you have a different request.
+The first line is the **endpoint** for Open-Meteo.  All of the lines after the question mark are query parameters. The second and third line contain the longitude and latitude, the fourth and fifth lines contain the start and end date, the sixth line contains the type of data that we want -- in this case daily precipitation, and the seventh line contains the timezone.  You can change any of these query parameters to get a different set of data.  This website explains the type of parameters you can employ: 
 
-If the request succeeds the server answers with a status code, `200`, and a body. Data APIs mostly answer in **JSON**, a text format that nests values under labels rather than laying them out as rows and columns. Cut down, the answer to the request above is:
+If the request succeeds the server answers with a status code, `200`, and a body. Data APIs mostly answer in **JSON**, a text format that nests values under labels rather than laying them out as rows and columns. The answer to our above request is:
 
 ```json
-{
-  "daily_units": {"time": "iso8601", "precipitation_sum": "mm"},
-  "daily": {
-    "time": ["2024-05-01", "2024-05-02", "2024-05-03", "2024-05-04", "2024-05-05"],
-    "precipitation_sum": [7.5, 4.1, 2.8, 3.0, 0.0]
-  }
-}
+{"latitude":52.126537,"longitude":-106.74034,
+  "generationtime_ms":3.182649612426758,
+  "utc_offset_seconds":-21600,
+  "timezone":"America/Regina",
+  "timezone_abbreviation":"GMT-6",
+  "elevation":486.0,
+  "daily_units":{
+    "time":"iso8601",
+    "precipitation_sum":"mm"},
+  "daily":{
+    "time":["2024-05-01","2024-05-02","2024-05-03","2024-05-04","2024-05-05"],
+    "precipitation_sum":[7.50,4.10,2.80,3.00,0.00]}}
 ```
 
-The values are there, and the units, but Excel or R has to turn the two lists under `daily` into a two-column table. The sections below do that.
+Again, I've added line breaks to make this parsable.  The important output is the last line that tells us that daily precipitation was 7.50mm on May 1, 4.10 on May 2 and so on. 
 
 If the request fails the status code says roughly why: `400` is a malformed request, `401` or `403` a permissions problem, `404` nothing at that address, `500` the server's fault. Leave `longitude` out of the request above and Open-Meteo answers `400`.
 
 Many APIs ask for a **key**, a free password that identifies who is asking, which you request once from the provider and send with every request. USDA's QuickStats needs one; Open-Meteo does not. A key identifies *you*, so keep it out of any workbook or script you share. The usual habit is to put it in an environment variable or a separate file that you do not share, and have the script read it from there.
 
-Two other things you will meet. Some APIs return only the first page of a large result and expect you to ask for the rest. Most limit how many requests you can make in a minute. And rerunning the same request later can return different numbers, because the provider revised them, which is why the raw copy in @sec-raw-copy matters as much for an API as for a file.
+Two other API issues you may encounter. Some APIs return only the first page of a large result and expect you to ask for the rest. Most limit how many requests you can make in a minute. And rerunning the same request later can return different numbers, because the provider revised them, which is why the raw copy in @sec-raw-copy matters as much for an API as for a file.
 
-All of this is why wrapper packages exist. `get_cansim("32-10-0359-01")` builds the request, handles the paging, downloads the table and its metadata, and hands back a data frame. It hides the mechanics, which is what you want when getting the data is the point, and not what you want when learning how an API works.
+### Using R packages
+
+Directly using APIs can be challenging for the issues listed above.  Also, it returns data in a not so easy to parse JSON file. Converting the output from Open Meteo above into R is a bit challenging, and putting it into Excel is even more so.  
+
+Fortunately, for many APIs an R package exists.  These packages act as a wrapper for the API.  Typically, they provide a simple function in which you specify the query parameters, and it returns a data.frame for you.  For example, we can use the openmeteo R package to obtain the same data that we found above.
+
+The package is not on CRAN, so it is installed from GitHub once:
+
+```r
+install.packages("remotes")
+remotes::install_github("tpisel/openmeteo")
+```
+
+Then one function call does what the URL did:
+
+```r
+library(openmeteo)
+
+saskatoon_rain <- weather_history(c(52.13, -106.67),
+                                  start    = "2024-05-01",
+                                  end      = "2024-05-05",
+                                  daily    = "precipitation_sum",
+                                  timezone = "America/Regina")
+saskatoon_rain
+```
+
+```
+# A tibble: 5 × 2
+  date       daily_precipitation_sum
+  <date>                       <dbl>
+1 2024-05-01                     7.5
+2 2024-05-02                     4.1
+3 2024-05-03                     2.8
+4 2024-05-04                     3
+5 2024-05-05                     0
+```
+
+The latitude and longitude, the dates and the variable are the same query parameters as before; the package builds the URL, sends the request and turns the JSON into a data frame.
 
 ## Getting Data Into Excel {#sec-excel-getting}
 
