@@ -41,9 +41,11 @@ fig_join_loss <- function() {
   s <- j |>
     group_by(Crop) |>
     summarise(rows = n(), priced = !all(is.na(Price_per_bu)), .groups = "drop") |>
-    mutate(short = recode(Crop,
-             "Wheat - Hard Red Spring" = "Spring wheat",
-             "Canola/Rapeseed" = "Canola"),
+    mutate(short = case_match(
+             Crop,
+             "Wheat - Hard Red Spring" ~ "Spring wheat",
+             "Canola/Rapeseed" ~ "Canola",
+             .default = Crop),
            label = ifelse(priced, "matched a price", "silently dropped"))
   s$short <- factor(s$short, levels = s$short[order(s$rows)])
 

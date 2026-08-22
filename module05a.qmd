@@ -37,6 +37,8 @@ This is why an answer should be judged from its code, sources and results rather
 
 **An in-editor assistant** can use the open script and other selected project context. It offers completions while you type and answers questions about the code. This removes some copying, but it also makes suggestions easier to accept without reading.
 
+**Copilot in Excel** is an in-editor assistant available only with an eligible Copilot licence. It works best when the data are formatted as an Excel Table and can add formula columns, summaries and charts. Prefer an added formula you can inspect over an unexplained “insight,” and verify its result with a PivotTable or a calculation of your own. Access through the university may vary by account.
+
 **A coding agent** can inspect files, edit them, run code, read errors and try again. The user's job shifts toward specifying the task and reviewing the changes. An agent can test whether code runs; it cannot decide on its own whether the result answers the intended agricultural question.
 
 This course uses chat and inline help first. Agentic tools are easier to review after you can read the scripts they produce.
@@ -55,21 +57,23 @@ The same standard applies here. The model may have written a line, but you need 
 
 A model may suggest a plausible function such as `summarise_by()` or `read_excel_sheet()` even when it does not exist. R stops with an error, so this is usually easy to find. Search the package's official reference before installing a package or changing the script around an unfamiliar function.
 
+In Excel, an invented or unavailable function produces `#NAME?`. The same error can mean that a real Microsoft 365 function is unavailable in an older Excel version, so check the function's Microsoft support page and its version list.
+
 ### Assumed column names {.unnumbered}
 
-If the model has not seen the data, it may write code for columns named `yield`, `crop` and `year`. The file may use `Yield`, `Crop_Name` and `Harvest_Year`. Supply `glimpse()` output or a short description of the columns before asking for code.
+If the model has not seen the data, it may write code for columns named `yield`, `crop` and `year`. The file may use `Yield`, `Crop_Name` and `Harvest_Year`. Supply `glimpse()` output or a short description of the columns before asking for code. For Excel, supply the exact header row, two or three made-up example rows, the sheet and range, and whether the range is an Excel Table.
 
 ### Out-of-date syntax {.unnumbered}
 
-Packages change. An old function or argument may have been replaced since the model's training data was collected. Warnings and package documentation are the checks.
+Packages change. An old function or argument may have been replaced since the model's training data was collected. For example, `gather()` still appears in older code, while current tidyr uses `pivot_longer()`. “Superseded” means an older function still works but is no longer recommended; “deprecated” normally warns; “defunct” errors. Package documentation is the check.
 
 ### Numbers produced without a reproducible calculation {.unnumbered}
 
-Do not ask a chatbot to calculate a reported statistic from pasted rows and then trust the number. Ask for code, run it in R and keep the calculation in the script.
+Do not ask a chatbot to calculate a reported statistic from pasted rows and then trust the number. Ask for code, run it in R and keep the calculation in the script. In Excel, every reported number should come from a visible formula rather than a typed constant; use `FORMULATEXT` when the calculation needs to be audited.
 
 ### Assumptions from another place {.unnumbered}
 
-Answers about agriculture often default to US crops, agencies and geography. Saskatchewan data may use rural municipalities rather than counties, SCIC definitions rather than a US crop-insurance program, and bushels per acre rather than another yield unit.
+Answers about agriculture may default to US crops, agencies and geography. Saskatchewan data may use rural municipalities rather than counties, SCIC definitions rather than a US crop-insurance program, and bushels per acre rather than another yield unit.
 
 @fig-units shows the same 2025 canola yield in three units. A conversion error can change the numerical scale without causing an R error.
 
@@ -81,7 +85,7 @@ Answers about agriculture often default to US crops, agencies and geography. Sas
 #| warning: false
 #| fig-width: 5.0
 #| fig-height: 2.0
-#| fig-cap: "The same 2025 canola yield reported in three units."
+#| fig-cap: "The acreage-weighted mean 2025 canola yield in the teaching variety file, reported in three units."
 source("R/ai_failures.R")
 fig_units()
 ```
@@ -102,7 +106,7 @@ fig_failure_spectrum()
 
 ## A Silent Failure {#sec-ai-silent-failure}
 
-The yield file and price file supplied with the book make a useful example. The question is the average 2025 revenue per acre for spring wheat, canola, barley and oats, weighted by acres.
+The yield file is synthetic teaching data, and the five round crop prices are illustrative placeholders rather than observed 2025 market prices. The question is the average 2025 revenue per acre for spring wheat, canola, barley and oats, weighted by acres; the resulting dollars demonstrate a join and are not a Saskatchewan revenue estimate.
 
 The following code looks reasonable. It filters the yield data, joins prices by crop, calculates revenue and then uses `na.rm = TRUE` in the weighted mean.
 
@@ -111,10 +115,16 @@ The following code looks reasonable. It filters the yield data, joins prices by 
 #| echo: false
 console('
 # Load the two files
-library(tidyverse)
+suppressPackageStartupMessages(library(tidyverse))
 
-d <- read_csv("practice/data/sask_variety_yields.csv")
-p <- read_csv("practice/data/crop_prices.csv")
+d <- read_csv(
+  "practice/data/sask_variety_yields.csv",
+  show_col_types = FALSE
+)
+p <- read_csv(
+  "practice/data/crop_prices.csv",
+  show_col_types = FALSE
+)
 
 # Keep recorded yields for four crops in 2025
 d25 <- d |>
@@ -127,6 +137,7 @@ d25 <- d |>
       "Oats"
     ),
     !is.na(Yield),
+    !is.na(Acres),
     Acres > 0
   )
 
@@ -147,15 +158,23 @@ Count the failed matches before calculating anything:
 #| eval: true
 #| echo: false
 console('
+nrow(d25)
 nrow(j)
+
+d25 |>
+  anti_join(p, by = "Crop") |>
+  distinct(Crop)
+
 sum(is.na(j$Price_per_bu))
+
+sum(j$Acres[is.na(j$Price_per_bu)]) / sum(j$Acres)
 
 j |>
   count(Crop, price_missing = is.na(Price_per_bu))
 ')
 ```
 
-Of 1,416 rows, 1,051 have no price. `na.rm = TRUE` removes them from the weighted mean, so the reported value describes barley and oats rather than all four crops.
+The join preserves all 1,416 rows, but 1,051 rows—and about 87% of the acres—have no price. `na.rm = TRUE` removes them from the weighted mean, so the reported value describes barley and oats rather than all four crops. Use `na.rm = TRUE` only after counting the missing values and explaining their source.
 
 ```{r}
 #| label: fig-join-loss
@@ -177,10 +196,11 @@ Reconcile the two known names, repeat the join and check again:
 console('
 # Reconcile crop names with the price table
 d25_fixed <- d25 |>
-  mutate(Crop = recode(
+  mutate(Crop = case_match(
     Crop,
-    "Canola/Rapeseed" = "Canola",
-    "Wheat - Hard Red Spring" = "Spring wheat"
+    "Canola/Rapeseed" ~ "Canola",
+    "Wheat - Hard Red Spring" ~ "Spring wheat",
+    .default = Crop
   ))
 
 # Repeat the join and state the expected relationship
@@ -193,11 +213,14 @@ j_fixed <- d25_fixed |>
   mutate(Revenue = Yield * Price_per_bu)
 
 sum(is.na(j_fixed$Price_per_bu))
+stopifnot(!anyNA(j_fixed$Price_per_bu))
 weighted.mean(j_fixed$Revenue, j_fixed$Acres)
 ')
 ```
 
-The corrected result is $571.17 per acre. The main protection was not a better prompt. It was checking the join with a row count and a missing-value count.
+The corrected result is $571.17 per acre. In Excel, `XLOOKUP` would expose unmatched names as `#N/A`; do not let an AI hide them with `IFERROR(...,0)`, and avoid `VLOOKUP` without an explicit exact-match argument. Count missing results with `=SUMPRODUCT(--ISNA(price_range))` before calculating revenue.
+
+Supplying the price table's exact crop names in the prompt could have prevented this case. The checks that catch it regardless of the prompt are `anti_join()`, before-and-after row counts, a missing-value count, and the `stopifnot()` guard.
 
 ## Tasks That Are Easy to Check {#sec-ai-good-uses}
 
@@ -208,6 +231,8 @@ AI assistance is useful when the result can be tested quickly:
 - Draft repetitive syntax such as a `case_when()` block.
 - Explain an unfamiliar line of code.
 - Produce a first draft of a plot whose labels, groups and values can be inspected.
+- Explain an Excel error such as `#SPILL!`, `#VALUE!` or `#REF!`, followed by checking the referenced cells.
+- Draft a `SUMIFS` or `XLOOKUP`, followed by filtering the source table and checking matching rows.
 
 In each case, R or the user provides a separate check.
 
@@ -231,23 +256,25 @@ The datasets in this course are public or synthetic. A producer's field records,
 
 An in-editor assistant may use the current file or other project context. Check what context has been selected and close or exclude files that should not be sent (@sec-copilot-context).
 
+Copilot in Excel sends Table content to Microsoft's service; it is not a local calculation. An organization-managed Microsoft 365 account may operate within that organization's data protections, while a consumer chatbot account does not inherit them. Follow the data owner's policy and use headers plus made-up rows when approval is uncertain.
+
 ## Course Policy {#sec-ai-policy}
 
 AI tools may be used for module practice and the course project. They may not be used on tests.
 
 Tests check whether you can read the data, choose an analysis and recognize an implausible answer without the tool doing those jobs for you. For submitted work, you must be able to explain every line of code and account for every reported number.
 
-A 2026 study followed 26,811 Chinese secondary students before and after they began using generative AI [@stromberg2026]. The study reported higher homework scores and shorter completion times after adoption, together with lower exam scores. The largest losses were concentrated among students whose homework became unusually fast while their homework marks rose.
+A 2026 working paper reports an observational comparison involving 26,811 Chinese secondary students who self-selected into using generative AI [@stromberg2026]. After adoption, homework scores rose and completion times fell, while exam scores fell.
 
 ![Changes in homework scores, completion time and exam scores after students began using AI, compared with students who had not. Source: Strömberg, Lei and Wu (2026).](images/ai_learning_penalty.png){#fig-ai-penalty}
 
-The result does not imply that every use of AI reduces learning. In the study, students who continued spending about as much time on their homework showed much smaller losses. Using a tool to understand an error and using it to replace the practice are different activities.
+The paper argues that students substituted the tool for practice. That is a plausible interpretation, but its subgroup comparison contrasts students who chose to change their work differently; it is not a clean experimental test of the mechanism. The result therefore does not imply that every use of AI reduces learning.
 
 Other courses have their own rules. Check the syllabus for each course before using AI on assessed work.
 
 ## The Rest of This Module {#sec-ai-module-plan}
 
-The next chapter sets up GitHub Copilot as a provider for Positron Assistant and develops a checking routine. The final chapter uses graphing exercises because a visible figure makes many coding errors easier to inspect.
+The next chapter sets up GitHub Copilot as a provider for Positron Assistant and develops a checking routine. The final chapter uses graphing exercises because a visible figure makes many coding errors easier to inspect. This module practises AI assistance mainly in Positron because scripts make the generated work visible; the same checking habits apply to formulas and charts produced by Copilot in Excel.
 
 ::: {.callout-tip collapse="true"}
 ## Other resources -- AI-assisted coding
