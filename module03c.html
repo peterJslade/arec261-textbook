@@ -562,19 +562,20 @@ div.csl-indent {
   </ul></li>
   <li><a href="#sec-cleaning-r" id="toc-sec-cleaning-r" class="nav-link" data-scroll-target="#sec-cleaning-r"><span class="header-section-number">9.3</span> Tidying and Cleaning in R</a>
   <ul>
-  <li><a href="#sec-reshaping" id="toc-sec-reshaping" class="nav-link" data-scroll-target="#sec-reshaping"><span class="header-section-number">9.3.1</span> Reshaping: <code>pivot_longer</code> and <code>pivot_wider</code></a></li>
+  <li><a href="#sec-reshaping" id="toc-sec-reshaping" class="nav-link" data-scroll-target="#sec-reshaping"><span class="header-section-number">9.3.1</span> Reshaping with <code>pivot_longer()</code> and <code>pivot_wider()</code></a></li>
   <li><a href="#sec-clean-names" id="toc-sec-clean-names" class="nav-link" data-scroll-target="#sec-clean-names"><span class="header-section-number">9.3.2</span> Awkward Column Names</a></li>
-  <li><a href="#sec-duplicates" id="toc-sec-duplicates" class="nav-link" data-scroll-target="#sec-duplicates"><span class="header-section-number">9.3.3</span> Duplicates</a></li>
-  <li><a href="#sec-impossible-values" id="toc-sec-impossible-values" class="nav-link" data-scroll-target="#sec-impossible-values"><span class="header-section-number">9.3.4</span> Impossible Values</a></li>
-  <li><a href="#sec-categories" id="toc-sec-categories" class="nav-link" data-scroll-target="#sec-categories"><span class="header-section-number">9.3.5</span> Inconsistent Categories</a></li>
-  <li><a href="#sec-mixed-units" id="toc-sec-mixed-units" class="nav-link" data-scroll-target="#sec-mixed-units"><span class="header-section-number">9.3.6</span> Mixed Units</a></li>
-  <li><a href="#sec-missing-values" id="toc-sec-missing-values" class="nav-link" data-scroll-target="#sec-missing-values"><span class="header-section-number">9.3.7</span> Missing Values</a>
+  <li><a href="#sec-text-numbers" id="toc-sec-text-numbers" class="nav-link" data-scroll-target="#sec-text-numbers"><span class="header-section-number">9.3.3</span> Text in a Numeric Column</a></li>
+  <li><a href="#sec-duplicates" id="toc-sec-duplicates" class="nav-link" data-scroll-target="#sec-duplicates"><span class="header-section-number">9.3.4</span> Duplicates</a></li>
+  <li><a href="#sec-impossible-values" id="toc-sec-impossible-values" class="nav-link" data-scroll-target="#sec-impossible-values"><span class="header-section-number">9.3.5</span> Impossible Values</a></li>
+  <li><a href="#sec-categories" id="toc-sec-categories" class="nav-link" data-scroll-target="#sec-categories"><span class="header-section-number">9.3.6</span> Inconsistent Categories</a></li>
+  <li><a href="#sec-mixed-units" id="toc-sec-mixed-units" class="nav-link" data-scroll-target="#sec-mixed-units"><span class="header-section-number">9.3.7</span> Mixed Units</a></li>
+  <li><a href="#sec-missing-values" id="toc-sec-missing-values" class="nav-link" data-scroll-target="#sec-missing-values"><span class="header-section-number">9.3.8</span> Missing Values</a>
   <ul class="collapse">
   <li><a href="#missing-values-in-disguise" id="toc-missing-values-in-disguise" class="nav-link" data-scroll-target="#missing-values-in-disguise">Missing values in disguise</a></li>
   <li><a href="#working-with-missing-values" id="toc-working-with-missing-values" class="nav-link" data-scroll-target="#working-with-missing-values">Working with missing values</a></li>
   <li><a href="#when-is-dropping-safe" id="toc-when-is-dropping-safe" class="nav-link" data-scroll-target="#when-is-dropping-safe">When is dropping safe?</a></li>
   </ul></li>
-  <li><a href="#sec-dates-text" id="toc-sec-dates-text" class="nav-link" data-scroll-target="#sec-dates-text"><span class="header-section-number">9.3.8</span> Dates Stored as Text</a></li>
+  <li><a href="#sec-dates-text" id="toc-sec-dates-text" class="nav-link" data-scroll-target="#sec-dates-text"><span class="header-section-number">9.3.9</span> Dates Stored as Text</a></li>
   </ul></li>
   <li><a href="#sec-cleaning-checklist" id="toc-sec-cleaning-checklist" class="nav-link" data-scroll-target="#sec-cleaning-checklist"><span class="header-section-number">9.4</span> A Checklist</a></li>
   </ul>
@@ -602,72 +603,118 @@ div.csl-indent {
 </header>
 
 
-<p>Assume a new file is broken until you have checked. It was typed by someone in a hurry and exported by software that had its own ideas about formatting. This chapter starts with the shape a table should have, then tours the defects that show up most often in the values, how to find them, and what to do about them, first in Excel and then in R.</p>
-<p>The examples below use <code>grain_deliveries_messy.csv</code>, a small file of grain deliveries carrying every defect in this chapter.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/grain_deliveries_messy.csv"</span>)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(deliveries)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>A file that opens without an error may still contain duplicate rows, inconsistent names, mixed units and missing values recorded as ordinary text. Cleaning starts by finding these problems. The decisions that follow depend on what the values mean and where the file came from.</p>
+<p>The examples use <a href="practice/data/grain_deliveries_messy.csv"><code>grain_deliveries_messy.csv</code></a>, a small file of grain delivery tickets. Read it without letting <code>read_csv()</code> trim spaces so that we can see the spaces in some crop names:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the packages used in this chapter</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(janitor)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the file and identify common missing-value codes</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">"data/grain_deliveries_messy.csv"</span>,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">na =</span> <span class="fu">c</span>(<span class="st">""</span>, <span class="st">"NA"</span>, <span class="st">"N/A"</span>, <span class="st">"-"</span>, <span class="st">"."</span>),</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">trim_ws =</span> <span class="cn">FALSE</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(deliveries)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; # Load the packages used in this chapter
+&gt; library(tidyverse)
+── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.2.1     ✔ readr     2.2.0
+✔ forcats   1.0.1     ✔ stringr   1.6.0
+✔ ggplot2   4.0.3     ✔ tibble    3.3.1
+✔ lubridate 1.9.5     ✔ tidyr     1.3.2
+✔ purrr     1.2.2     
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors
+&gt; library(janitor)
+
+Attaching package: 'janitor'
+The following objects are masked from 'package:stats':
+
+    chisq.test, fisher.test
+&gt; 
+&gt; # Read the file and identify common missing-value codes
+&gt; deliveries &lt;- read_csv(
++   "data/grain_deliveries_messy.csv",
++   na = c("", "NA", "N/A", "-", "."),
++   trim_ws = FALSE
++ )
+Rows: 62 Columns: 6
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: ","
+chr (4): ticket_id, delivery_date, crop, weight_tonnes
+dbl (2): moisture_pct, grade
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+&gt; 
+&gt; glimpse(deliveries)
+Rows: 62
+Columns: 6
+$ ticket_id     &lt;chr&gt; "T0001", "T0002", "T0003", "T0004", "T0005", "T0006", "T…
+$ delivery_date &lt;chr&gt; "2025-09-07", "2025-11-25", "2025-09-23", "15/10/2025", …
+$ crop          &lt;chr&gt; "barley", "Peas", "barley", "canola", "Peas", "Spring wh…
+$ weight_tonnes &lt;chr&gt; "44.0", "44.8", "38.0", "34.7", "42.2", "-12.4", "29.5",…
+$ moisture_pct  &lt;dbl&gt; 10.400, 7.500, 10.200, 7.000, 9.000, 9.700, 9.300, NA, 8…
+$ grade         &lt;dbl&gt; 3, 3, 2, 3, 1, 2, 3, 3, 2, 3, 2, 2, 2, 2, 1, 2, 3, 2, 2,…</code></pre>
+</div>
+</div>
+</div>
+<p>The output already shows two problems. <code>weight_tonnes</code> was read as text because one value contains a unit, and <code>delivery_date</code> is text because the file mixes date formats.</p>
 <section id="learning-objectives" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="learning-objectives">Learning Objectives</h2>
 <div class="objectives">
 <p>By the end of this chapter you should be able to:</p>
 <ol type="1">
-<li>Explain what tidy data means, and reshape a dataset between wide and long with <code>pivot_longer</code> and <code>pivot_wider</code>.</li>
-<li>Clean up awkward column names with <code>rename()</code> and <code>janitor::clean_names()</code>.</li>
-<li>Find duplicates, impossible values, inconsistent categories and mixed units in a new file.</li>
-<li>Recognize the disguises missing values wear, and count them properly.</li>
-<li>Decide – and justify – when dropping missing values is safe.</li>
-<li>Spot dates that imported as text, and say why it matters.</li>
-<li>Reshape and clean a table in Excel with Power Query, and say why its recorded steps matter.</li>
+<li>Explain what tidy data means and reshape a dataset with <code>pivot_longer()</code> and <code>pivot_wider()</code>.</li>
+<li>Clean column names with <code>rename()</code> and <code>janitor::clean_names()</code>.</li>
+<li>Find exact and conflicting duplicates.</li>
+<li>Find impossible values, inconsistent categories and mixed units.</li>
+<li>Recognize common codes for missing values and decide when observations can be dropped.</li>
+<li>Identify dates that were imported as text.</li>
+<li>Reshape and clean a table in Excel with Power Query.</li>
 </ol>
 </div>
 </section>
 <section id="sec-tidy-data" class="level2" data-number="9.1">
 <h2 data-number="9.1" class="anchored" data-anchor-id="sec-tidy-data"><span class="header-section-number">9.1</span> Tidy Data</h2>
-<p>Before the defects in individual values, the shape of the whole table. The tidyverse is built around an idea called <strong>tidy data</strong> <span class="citation" data-cites="r4ds">(<a href="references.html#ref-r4ds" role="doc-biblioref">Wickham et al. 2023</a>)</span>. A dataset is tidy when:</p>
+<p>The tidyverse is organized around <strong>tidy data</strong> <span class="citation" data-cites="r4ds">(<a href="references.html#ref-r4ds" role="doc-biblioref">Wickham et al. 2023</a>)</span>. A dataset is tidy when:</p>
 <ol type="1">
-<li>Every variable has its own <strong>column</strong>.</li>
-<li>Every observation has its own <strong>row</strong>.</li>
-<li>Every value has its own <strong>cell</strong>.</li>
+<li>Every variable has its own column.</li>
+<li>Every observation has its own row.</li>
+<li>Every value has its own cell.</li>
 </ol>
-<p>For example, this dataset is tidy:</p>
-<pre><code>  region  crop   yield
-  South   Canola    41
-  South   Wheat     52
-  South   Barley    64
-  Central Canola    44
-  Central Wheat     55
-  Central Barley    68</code></pre>
-<p>An observation here is a region-crop combination; the variables are <code>region</code>, <code>crop</code>, and <code>yield</code>. Each variable has a column and each observation has a row.</p>
-<p>Now compare this version of the same data:</p>
-<pre><code>  region  Canola Wheat Barley
-  South       41    52     64
-  Central     44    55     68</code></pre>
-<p>This table is easier for a person to read, but it is not tidy. Canola, Wheat, and Barley are not three different variables; they are three values of the variable <code>crop</code>. This is the wide-versus-long distinction from <a href="module01b.html#sec-wide-long" class="quarto-xref"><span>Section 2.4</span></a>, where a PivotTable needed the long form. For analysis in R, the long form is usually the more convenient one, because <code>crop</code> is an ordinary variable that R can filter by, group by, and compare.</p>
+<p>Suppose a table records yield for three crops in two regions. In a tidy version the columns are <code>region</code>, <code>crop</code> and <code>yield</code>, and each row is one region-crop combination. In a wide version the columns are <code>region</code>, <code>Canola</code>, <code>Wheat</code> and <code>Barley</code>. The crop names are values of the variable <code>crop</code>, but they have been stored as column names.</p>
+<p>The wide table may be easier to read. The long, tidy table is usually easier to analyze because <code>crop</code> is a column that can be filtered, grouped and plotted. This is the wide-versus-long distinction from <a href="module01b.html#sec-wide-long" class="quarto-xref"><span>Section 2.4</span></a>.</p>
 <section id="recognizing-untidy-data" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="recognizing-untidy-data">Recognizing untidy data</h3>
-<p>Some common warning signs:</p>
+<p>Common signs include:</p>
 <ul>
-<li><strong>Values stored in column names.</strong> A table with columns <code>region</code>, <code>2024</code>, <code>2025</code>, <code>2026</code>, where the year columns hold yields. The years are values of a variable called <code>year</code>; the tidy version has columns <code>region</code>, <code>year</code>, <code>yield</code>.</li>
-<li><strong>More than one variable in a column.</strong> A <code>region_variety</code> column containing <code>"South_InVigor"</code>. That is two variables, <code>region</code> and <code>variety</code>, in one column.</li>
-<li><strong>One observation spread over several rows.</strong> Price in one row and quantity in another row for the same market and year.</li>
+<li><strong>Values stored in column names.</strong> Columns named <code>2024</code>, <code>2025</code> and <code>2026</code> usually contain values of a variable called <code>year</code>.</li>
+<li><strong>Several variables stored in one column.</strong> A value such as <code>"South_InVigor"</code> combines a region and a variety.</li>
+<li><strong>One observation spread over several rows.</strong> Price in one row and quantity in another row for the same market and year prevents either row from describing the observation on its own.</li>
 </ul>
-<p>What counts as an observation depends on the dataset and the question, but the basic test is always the same: what does one row represent? You should be able to answer that. When you first open a dataset, ask what one row represents, what each column represents, whether any values are hiding in column names, and whether any column holds several variables at once.</p>
+<p>When you open a table, write down what one row represents and what each column represents. This usually makes the shape problem visible.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Tip</span>Other resources — tidy data
+<span class="screen-reader-only">Tip</span>Other resources – tidy data
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
 <div id="callout-1" class="callout-1-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <ul>
-<li><strong>R for Data Science (2nd ed.)</strong> – <a href="https://r4ds.hadley.nz/data-tidy">Chapter 5, “Data tidying”</a> develops the tidy-data idea and shows how datasets are reshaped between long and wide forms.</li>
+<li><strong>R for Data Science (2nd ed.)</strong> – <a href="https://r4ds.hadley.nz/data-tidy">Chapter 5, “Data tidying”</a> develops the tidy-data idea and shows how to reshape datasets between long and wide forms.</li>
 <li><strong>Video</strong> – Riffomonas Project, <a href="https://www.youtube.com/watch?v=ZVddiwrbrr4"><em>Reshaping data to be long or wide with pivot_longer and pivot_wider</em></a>.</li>
 </ul>
 </div>
@@ -677,65 +724,67 @@ div.csl-indent {
 </section>
 <section id="sec-cleaning-excel" class="level2" data-number="9.2">
 <h2 data-number="9.2" class="anchored" data-anchor-id="sec-cleaning-excel"><span class="header-section-number">9.2</span> Tidying and Cleaning in Excel</h2>
-<p>Excel has two ways to clean a table: formulas beside the data, and Power Query. Formulas are quicker for a file you will clean once. Power Query is the one to learn, because it does the reshaping too, and it records what it did.</p>
+<p>Excel offers three approaches. Formulas can clean a file once while leaving the raw columns visible. Power Query can reshape the table and records each cleaning step. Find &amp; Replace changes cells directly and leaves little evidence of what was changed.</p>
 <section id="sec-unpivot" class="level3" data-number="9.2.1">
 <h3 data-number="9.2.1" class="anchored" data-anchor-id="sec-unpivot"><span class="header-section-number">9.2.1</span> Reshaping with Power Query</h3>
-<p>The RM yields file (<a href="module03a.html#sec-direct-download" class="quarto-xref"><span>Section 7.5.5</span></a>) is wide, one column per crop, and Power Query’s <strong>Unpivot</strong> turns it long. Import the file with <strong>Data &gt; Get Data &gt; From Text/CSV</strong> and press <strong>Transform Data</strong> to open the editor. Select the columns that identify a row, <code>Year</code> and <code>RM</code>, and choose <strong>Transform &gt; Unpivot Columns &gt; Unpivot Other Columns</strong>. Every crop column collapses into two: <code>Attribute</code>, holding the crop name that was in the header, and <code>Value</code>, holding the yield. Double-click the headers to rename them <code>crop</code> and <code>yield_bu_ac</code>, then <strong>Close &amp; Load</strong>. 2,950 rows become 17,700, one per RM-year-crop.</p>
-<!-- Screenshot: Power Query editor with Year and RM selected and the Unpivot Other
-Columns menu open, or the result after unpivoting.
-![Unpivot Other Columns in the Power Query editor.  The crop headers become values in a `crop` column.](images/pq_unpivot.png){#fig-pq-unpivot}
--->
-<p>The other direction, long to wide, is a PivotTable (<a href="module01b.html#sec-wide-long" class="quarto-xref"><span>Section 2.4</span></a>), or <strong>Transform &gt; Pivot Column</strong> in the same editor.</p>
+<p>The RM yields file (<a href="module03a.html#sec-direct-download" class="quarto-xref"><span>Section 7.5.5</span></a>) is wide, with one column for each crop. Power Query calls the wide-to-long operation <strong>Unpivot</strong>. Import the CSV with <strong>Data &gt; Get Data &gt; From Text/CSV</strong>, choose <strong>Transform Data</strong>, select <code>Year</code> and <code>RM</code>, and then choose <strong>Transform &gt; Unpivot Columns &gt; Unpivot Other Columns</strong>. Rename the two new columns <code>crop</code> and <code>yield_bu_ac</code> before loading the result.</p>
+<p>The original 2,950 RM-year rows become 17,700 RM-year-crop rows. The reverse operation is <strong>Pivot Column</strong> in Power Query or a PivotTable on a worksheet.</p>
 </section>
 <section id="cleaning-with-formulas" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="cleaning-with-formulas">Cleaning with formulas</h3>
-<p>The workbook below holds the grain delivery tickets with the cleaning done in formula columns beside the raw data, so the original is still there to check against.</p>
-<ul>
-<li><strong>Categories.</strong> The filter dropdown on a column lists every distinct value in it, which is Excel’s <code>count()</code>. Open it on <code>crop</code> and the three spellings of canola are all visible at once. <code>=PROPER(TRIM(C5))</code> fixes case and stray spaces; <strong>Find &amp; Replace</strong> handles synonyms like Canola/Rapeseed.</li>
-<li><strong>Impossible values and mixed units.</strong> <code>MIN</code> and <code>MAX</code> at the foot of a column do what <code>summary()</code> does. An <code>IF</code> that rescales moisture readings under 1 is the <code>if_else()</code> from <a href="#sec-mixed-units" class="quarto-xref"><span>Section 9.3.6</span></a>.</li>
-<li><strong>Duplicates.</strong> <strong>Data &gt; Remove Duplicates</strong> drops exact duplicates, and says how many it removed. It does nothing about the same ticket number with two different weights; <code>=COUNTIF($A$5:$A$23, A5)</code> beside each row finds those.</li>
-<li><strong>Text that should be numbers.</strong> A number stored as text shows a green triangle in the corner of the cell and sorts in the wrong place. <code>VALUE()</code> converts it, and <strong>Text to Columns</strong> (<a href="module03a.html#sec-csv-excel" class="quarto-xref"><span>Section 7.4.1</span></a>) converts a whole column at once if you click through with the type set to General.</li>
-<li><strong>Missing values.</strong> <code>COUNTBLANK</code> counts empty cells. Excel’s <code>AVERAGE</code> skips blanks without telling you, which is the difference from R’s <code>NA</code> (<a href="#sec-missing-values" class="quarto-xref"><span>Section 9.3.7</span></a>), so count them before you trust an average.</li>
-</ul>
+<p>The workbook below keeps the raw delivery data in columns A through F and places cleaning formulas beside it. The formulas standardize crop names, rescale moisture values entered as decimals, count repeated ticket numbers and flag impossible weights. <code>FORMULATEXT</code> cells show the formulas, and summary checks appear below the table.</p>
 <div class="workbook-callout">
-<!-- iframe embed goes here once the workbook is uploaded to SharePoint; follow the
-mod01_sum.xlsx block in module01a.qmd -->
-<p><a href="textbook_examples/mod03_cleaning_excel.xlsx">Download this workbook</a></p>
+<!-- Public view-only link expires 2026-11-20 under the University of Saskatchewan 90-day policy. -->
+<div class="excel-embed">
+<iframe width="402" height="700" frameborder="0" scrolling="no" src="https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7B6F136BC8-96DB-499F-AE4B-A04CFDF86DED%7D&amp;action=embedview&amp;wdAllowInteractivity=False&amp;wdDownloadButton=True&amp;wdInConfigurator=True&amp;ActiveCell=%27Cleaning%27!A1">
+</iframe>
 </div>
+<p><a href="textbook_examples/mod03_cleaning_excel.xlsx">Download this workbook</a> · <a href="https://usaskca1-my.sharepoint.com/:x:/g/personal/pjs998_usask_ca/IQDIaxNv25afSa5LoEz9-G3tAXoBxYJcoWjP4fMOie4JVrQ?e=PsWLYM">Open online</a> (File → Save a Copy to view formulas and edit)</p>
+</div>
+<p>The filter dropdown is useful when checking categories because it lists each distinct value. <code>MIN</code>, <code>MAX</code>, <code>COUNTBLANK</code> and a count of repeated identifiers cover many of the numerical checks. Keep the raw columns beside the cleaned ones so that a changed value can be traced back.</p>
 </section>
 <section id="cleaning-with-power-query" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="cleaning-with-power-query">Cleaning with Power Query</h3>
-<p>Each of those has a Power Query equivalent, applied as a step in the editor rather than a formula in a cell. With the deliveries file open in the editor:</p>
+<p>Power Query has recorded steps for the same work:</p>
 <ul>
-<li><strong>Remove Top Rows</strong> (Home &gt; Remove Rows) drops a title and notes above the header, and <strong>Use First Row as Headers</strong> then promotes the real header.</li>
-<li><strong>Change Type</strong>, by clicking the icon in a column header, sets a column to Text, Whole Number, Decimal or Date. Rows that fail to convert show <code>Error</code>, which is how you find a <code>38.2 t</code> in a numeric column.</li>
-<li><strong>Transform &gt; Format &gt; Trim</strong> and <strong>Capitalize Each Word</strong> fix spacing and case in <code>crop</code>.</li>
-<li><strong>Replace Values</strong> handles synonyms and disguised missing values: replace <code>Canola/Rapeseed</code> with <code>Canola</code>, or <code>N/A</code> with nothing, which Power Query stores as <code>null</code>, its <code>NA</code>.</li>
-<li><strong>Remove Duplicates</strong> (Home &gt; Remove Rows) drops exact duplicates. Conflicting duplicates still need a count: <strong>Group By</strong> <code>ticket_id</code> with a row count, then filter to counts above 1.</li>
-<li><strong>Split Column &gt; By Delimiter</strong> is Text to Columns inside the editor.</li>
-<li><strong>Fill &gt; Down</strong> fills blanks from the cell above, for spreadsheets where a category was typed once and left blank for the rows beneath it.</li>
+<li><strong>Remove Top Rows</strong> and <strong>Use First Row as Headers</strong> deal with files that begin with a title or notes.</li>
+<li>The type icon in a column header sets a column to Text, Whole Number, Decimal or Date. A value that cannot be converted becomes an error that can be inspected.</li>
+<li><strong>Transform &gt; Format &gt; Trim</strong> removes extra spaces, and <strong>Capitalize Each Word</strong> standardizes capitalization.</li>
+<li><strong>Replace Values</strong> handles synonyms and missing-value codes. Power Query stores a missing value as <code>null</code>.</li>
+<li><strong>Remove Duplicates</strong> drops exact duplicates. To find a repeated identifier with different values, use <strong>Group By</strong> to count rows for each identifier and filter to counts above one.</li>
+<li><strong>Split Column &gt; By Delimiter</strong> separates values that were stored together.</li>
+<li><strong>Fill &gt; Down</strong> copies a category into blank cells below it when a spreadsheet records the label only once for a group of rows.</li>
 </ul>
-<p>The difference from formulas and from Find &amp; Replace is that every step lands in the <strong>Applied Steps</strong> list on the right of the editor. You can click any step to see the table as it was at that point, delete one, or change its settings. When a new version of the file arrives, <strong>Refresh</strong> runs the whole list again. Formulas beside the data leave the original visible; a retyped cell or a Find &amp; Replace on the sheet leaves nothing, and a month later there is no way to tell what was changed.</p>
+<p>Each operation appears in the <strong>Applied Steps</strong> list. Clicking a step shows the table at that point. When a new version of the source file arrives, <strong>Refresh</strong> runs the steps again.</p>
 </section>
 </section>
 <section id="sec-cleaning-r" class="level2" data-number="9.3">
 <h2 data-number="9.3" class="anchored" data-anchor-id="sec-cleaning-r"><span class="header-section-number">9.3</span> Tidying and Cleaning in R</h2>
 <section id="sec-reshaping" class="level3" data-number="9.3.1">
-<h3 data-number="9.3.1" class="anchored" data-anchor-id="sec-reshaping"><span class="header-section-number">9.3.1</span> Reshaping: <code>pivot_longer</code> and <code>pivot_wider</code></h3>
-<p>Fixing the shape is the job of a pair of <code>tidyr</code> functions, which do what Unpivot and Pivot Column do in Power Query.</p>
-<p><code>pivot_longer</code> is Unpivot. You tell it which columns to gather, what to call the column that will hold their <em>names</em>, and what to call the column that will hold their <em>values</em>. The Saskatchewan RM yields again:</p>
+<h3 data-number="9.3.1" class="anchored" data-anchor-id="sec-reshaping"><span class="header-section-number">9.3.1</span> Reshaping with <code>pivot_longer()</code> and <code>pivot_wider()</code></h3>
+<p><code>pivot_longer()</code> does the same job as Unpivot. It takes several columns, puts their names in one column and puts their values in another. Here is the RM yields table:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>yields_wide <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/rm_yields_2015_2024.csv"</span>) <span class="sc">|&gt;</span> <span class="fu">clean_names</span>()</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>yields_wide</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>yields_long <span class="ot">&lt;-</span> yields_wide <span class="sc">|&gt;</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> spring_wheat<span class="sc">:</span>peas,</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">"crop"</span>,</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>               <span class="at">values_to =</span> <span class="st">"yield_bu_ac"</span>)</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>yields_long</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the wide table and clean its column names</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>yields_wide <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/rm_yields_2015_2024.csv"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">clean_names</span>()</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>yields_wide</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Put crop names and crop yields into columns</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>yields_long <span class="ot">&lt;-</span> yields_wide <span class="sc">|&gt;</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">cols =</span> spring_wheat<span class="sc">:</span>peas,</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_to =</span> <span class="st">"crop"</span>,</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_to =</span> <span class="st">"yield_bu_ac"</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>yields_long</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(yields_long)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
-<pre><code>&gt; yields_wide &lt;- read_csv("data/rm_yields_2015_2024.csv") |&gt; clean_names()
+<pre><code>&gt; # Read the wide table and clean its column names
+&gt; yields_wide &lt;- read_csv("data/rm_yields_2015_2024.csv") |&gt;
++   clean_names()
 Rows: 2950 Columns: 8
 ── Column specification ────────────────────────────────────────────────────────
 Delimiter: ","
@@ -743,6 +792,7 @@ dbl (8): Year, RM, Spring Wheat, Durum, Canola, Barley, Oats, Peas
 
 ℹ Use `spec()` to retrieve the full column specification for this data.
 ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+&gt; 
 &gt; yields_wide
 # A tibble: 2,950 × 8
     year    rm spring_wheat durum canola barley  oats  peas
@@ -759,10 +809,14 @@ dbl (8): Year, RM, Spring Wheat, Durum, Canola, Barley, Oats, Peas
 10  2024     1         46.7  NA     36.4   77.1  99.4  40.1
 # ℹ 2,940 more rows
 &gt; 
+&gt; # Put crop names and crop yields into columns
 &gt; yields_long &lt;- yields_wide |&gt;
-+   pivot_longer(cols = spring_wheat:peas,
-+                names_to = "crop",
-+                values_to = "yield_bu_ac")
++   pivot_longer(
++     cols = spring_wheat:peas,
++     names_to = "crop",
++     values_to = "yield_bu_ac"
++   )
+&gt; 
 &gt; yields_long
 # A tibble: 17,700 × 4
     year    rm crop         yield_bu_ac
@@ -777,19 +831,29 @@ dbl (8): Year, RM, Spring Wheat, Durum, Canola, Barley, Oats, Peas
  8  2016     1 durum               38.4
  9  2016     1 canola              32.1
 10  2016     1 barley              68.1
-# ℹ 17,690 more rows</code></pre>
+# ℹ 17,690 more rows
+&gt; nrow(yields_long)
+[1] 17700</code></pre>
 </div>
 </div>
 </div>
-<p>Six times as many rows, 17,700: one per RM-year-crop, with <code>crop</code> and <code>yield_bu_ac</code> as ordinary columns that <code>filter()</code> and <code>group_by()</code> can use. <code>spring_wheat:peas</code> means every column from <code>spring_wheat</code> through <code>peas</code>; listing them with <code>c()</code> works too.</p>
-<p><code>pivot_wider</code> goes the other way. Tell it which column holds the names and which holds the values:</p>
+<p>The column selection <code>spring_wheat:peas</code> means every column from <code>spring_wheat</code> through <code>peas</code>. The result has one row per RM-year-crop and six times as many rows as the wide table.</p>
+<p><code>pivot_wider()</code> goes in the other direction. <code>names_from</code> supplies the new column names and <code>values_from</code> supplies the values placed under them:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>yields_long <span class="sc">|&gt;</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> crop, <span class="at">values_from =</span> yield_bu_ac)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Return the crop column to six separate crop columns</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>yields_long <span class="sc">|&gt;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_from =</span> crop,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_from =</span> yield_bu_ac</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
-<pre><code>&gt; yields_long |&gt;
-+   pivot_wider(names_from = crop, values_from = yield_bu_ac)
+<pre><code>&gt; # Return the crop column to six separate crop columns
+&gt; yields_long |&gt;
++   pivot_wider(
++     names_from = crop,
++     values_from = yield_bu_ac
++   )
 # A tibble: 2,950 × 8
     year    rm spring_wheat durum canola barley  oats  peas
    &lt;dbl&gt; &lt;dbl&gt;        &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
@@ -807,152 +871,521 @@ dbl (8): Year, RM, Spring Wheat, Durum, Canola, Barley, Oats, Peas
 </div>
 </div>
 </div>
-<p>Long is usually what analysis wants; wide is often what people want to read. Expect to pivot in both directions.</p>
+<p>Analysis often uses the long form, while a report may use the wide form.</p>
 </section>
 <section id="sec-clean-names" class="level3" data-number="9.3.2">
 <h3 data-number="9.3.2" class="anchored" data-anchor-id="sec-clean-names"><span class="header-section-number">9.3.2</span> Awkward Column Names</h3>
-<p>The first thing to fix is often the names. Real files arrive with columns like <code>Yield (bu/ac)</code>, <code>REGION_NAME</code>, or <code>Field ID Number</code> – readable to a person, but annoying to type and easy to mistype in code. This book prefers <strong>snake_case</strong>: lowercase, words separated by underscores, short but descriptive – <code>yield_bu_ac</code>, <code>region</code>, <code>field_id</code>.</p>
-<p>For individual columns, <code>rename()</code> does it:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> deliveries <span class="sc">|&gt;</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">weight_tonnes =</span> <span class="st">"Weight (t)"</span>,</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">crop =</span> CROP_NAME)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>For wholesale renaming, <code>janitor::clean_names()</code> converts every column to snake_case in one call – lowercase, underscores, special characters stripped. (It comes from the <code>janitor</code> package, not the tidyverse. Install it once with <code>install.packages("janitor")</code>.)</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(janitor)</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/grain_deliveries_messy.csv"</span>) <span class="sc">|&gt;</span> <span class="fu">clean_names</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Run it on almost anything you read in.</p>
-</section>
-<section id="sec-duplicates" class="level3" data-number="9.3.3">
-<h3 data-number="9.3.3" class="anchored" data-anchor-id="sec-duplicates"><span class="header-section-number">9.3.3</span> Duplicates</h3>
-<p>There are two kinds, and the second is the harder one.</p>
-<p>An <strong>exact duplicate</strong> is the same row entered twice:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span> <span class="fu">filter</span>(<span class="fu">duplicated</span>(deliveries))     <span class="co"># show them</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span> <span class="fu">distinct</span>()                          <span class="co"># drop them</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>A <strong>conflicting duplicate</strong> is the same identifier with different values: ticket <code>T0030</code> appearing twice with two different weights. <code>distinct()</code> leaves these alone, because the rows are not identical. Count to find them:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(ticket_id) <span class="sc">|&gt;</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(n <span class="sc">&gt;</span> <span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>No code fixes this one. Somebody entered the delivery twice, or corrected it and left both rows, and you have to find out which is right. If you cannot, say so in the write-up and explain what you did.</p>
-</section>
-<section id="sec-impossible-values" class="level3" data-number="9.3.4">
-<h3 data-number="9.3.4" class="anchored" data-anchor-id="sec-impossible-values"><span class="header-section-number">9.3.4</span> Impossible Values</h3>
-<p>Every variable has values it cannot take. A weight cannot be negative, a moisture percentage cannot be 250, and a delivery of exactly zero tonnes is possible but odd.</p>
-<p><code>summary()</code> catches most of this in one line, because impossible values turn up in the minimum and maximum:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(deliveries)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Then look at the offending rows:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span> <span class="fu">filter</span>(weight_tonnes <span class="sc">&lt;=</span> <span class="dv">0</span> <span class="sc">|</span> moisture_pct <span class="sc">&gt;</span> <span class="dv">100</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>A negative weight is probably a sign error or a reversed transaction. A moisture of 250 is probably 25.0 with a lost decimal point. Both of those are guesses, so record them as guesses. Dropping the rows without saying anything is the thing to avoid.</p>
-<p>An impossible value is easy to rule on. A merely <em>implausible</em> one – a canola yield of 95 bu/ac, twice the provincial average – is a judgement call: it might be an error, or the best field in the province. Do not delete a value just because it is extreme. Check it against the source if you can, and if you cannot, analyze the data with and without it and report whether it changes the answer.</p>
-</section>
-<section id="sec-categories" class="level3" data-number="9.3.5">
-<h3 data-number="9.3.5" class="anchored" data-anchor-id="sec-categories"><span class="header-section-number">9.3.5</span> Inconsistent Categories</h3>
-<p>The same thing spelled several ways is the most common defect I run into, and it is easy to miss because every individual value looks fine. Count the categories:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span> <span class="fu">count</span>(crop)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<pre><code>  crop            n
-  "CANOLA"        2
-  "Canola"        6
-  "canola"        4
-  "Spring Wheat"  2
-  "Spring wheat"  8
-  "spring wheat"  5
-  ...</code></pre>
-<p>Three spellings of canola and three of spring wheat, which <code>group_by(crop)</code> reads as six different crops.</p>
-<p>Fix the mechanical cases first:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> deliveries <span class="sc">|&gt;</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">crop =</span> <span class="fu">str_trim</span>(crop),        <span class="co"># strip stray spaces</span></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">crop =</span> <span class="fu">str_to_title</span>(crop))    <span class="co"># "CANOLA" and "canola" -&gt; "Canola"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p><code>str_to_title</code> handles capitalisation. <code>read_csv</code> already strips surrounding spaces, so <code>str_trim</code> is belt-and-braces here, but other readers do not, and a space you cannot see is a match you cannot explain.</p>
-<p>Genuine synonyms like <code>"Canola"</code> and <code>"Canola/Rapeseed"</code> are a judgement call, so put them in an explicit recode where a reader can see the decision:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> deliveries <span class="sc">|&gt;</span></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">crop =</span> <span class="fu">case_when</span>(</span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    crop <span class="sc">==</span> <span class="st">"Canola/Rapeseed"</span> <span class="sc">~</span> <span class="st">"Canola"</span>,</span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    crop <span class="sc">==</span> <span class="st">"Soybean"</span>         <span class="sc">~</span> <span class="st">"Soybeans"</span>,</span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    <span class="cn">TRUE</span>                      <span class="sc">~</span> crop</span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  ))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</section>
-<section id="sec-mixed-units" class="level3" data-number="9.3.6">
-<h3 data-number="9.3.6" class="anchored" data-anchor-id="sec-mixed-units"><span class="header-section-number">9.3.6</span> Mixed Units</h3>
-<p>A right value in the wrong unit is harder to catch than a wrong value, because nothing looks broken. In the deliveries file most moisture readings are percentages around 9.5, but a few were entered as decimals: 0.094 rather than 9.4. No error, no warning, and the mean comes out too low.</p>
-<p>Knowing what range the variable should occupy is what catches it:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span> <span class="fu">filter</span>(moisture_pct <span class="sc">&lt;</span> <span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Grain moisture is normally 8 to 16 percent, so anything under 1 is in the wrong unit. Convert rather than drop:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> deliveries <span class="sc">|&gt;</span></span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">moisture_pct =</span> <span class="fu">if_else</span>(moisture_pct <span class="sc">&lt;</span> <span class="dv">1</span>, moisture_pct <span class="sc">*</span> <span class="dv">100</span>, moisture_pct))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>A file that records its own units in a column lets you convert with a <code>case_when</code> – one condition per unit, as in the crop-name recode above – instead of inferring from magnitude.</p>
-</section>
-<section id="sec-missing-values" class="level3" data-number="9.3.7">
-<h3 data-number="9.3.7" class="anchored" data-anchor-id="sec-missing-values"><span class="header-section-number">9.3.7</span> Missing Values</h3>
-<p>In R, a missing value is <code>NA</code>, and most operations <em>propagate</em> it: any calculation involving <code>NA</code> returns <code>NA</code>. The canola trial data has three fields with no rainfall reading – a rain gauge fails, or a value never gets recorded – so:</p>
+<p>Column names such as <code>Yield (bu/ac)</code>, <code>REGION_NAME</code> and <code>Field ID Number</code> are cumbersome in code. This book uses <strong>snake case</strong>: lower-case words separated by underscores, such as <code>yield_bu_ac</code>, <code>region_name</code> and <code>field_id</code>.</p>
+<p>Use <code>rename()</code> when only a few names need changing. The new name goes on the left and the old name on the right:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(trial_data<span class="sc">$</span>rainfall_mm)</span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(trial_data<span class="sc">$</span>rainfall_mm, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Make a small table with awkward names</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>awkward_names <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Weight (t)</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="fl">42.1</span>, <span class="fl">37.8</span>),</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">CROP_NAME =</span> <span class="fu">c</span>(<span class="st">"Canola"</span>, <span class="st">"Wheat"</span>)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>awkward_names <span class="sc">|&gt;</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">weight_tonnes =</span> <span class="st">`</span><span class="at">Weight (t)</span><span class="st">`</span>,</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">crop =</span> CROP_NAME</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
-<pre><code>&gt; mean(trial_data$rainfall_mm)
-[1] NA
+<pre><code>&gt; # Make a small table with awkward names
+&gt; awkward_names &lt;- tibble(
++   `Weight (t)` = c(42.1, 37.8),
++   CROP_NAME = c("Canola", "Wheat")
++ )
 &gt; 
+&gt; awkward_names |&gt;
++   rename(
++     weight_tonnes = `Weight (t)`,
++     crop = CROP_NAME
++   )
+# A tibble: 2 × 2
+  weight_tonnes crop  
+          &lt;dbl&gt; &lt;chr&gt; 
+1          42.1 Canola
+2          37.8 Wheat </code></pre>
+</div>
+</div>
+</div>
+<p><code>janitor::clean_names()</code> converts every name in a data frame to snake case. The package is installed once with <code>install.packages("janitor")</code>, then loaded in each new R session with <code>library(janitor)</code>.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Clean every column name in one call</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>awkward_names <span class="sc">|&gt;</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">clean_names</span>() <span class="sc">|&gt;</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">names</span>()</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> deliveries <span class="sc">|&gt;</span> <span class="fu">clean_names</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; # Clean every column name in one call
+&gt; awkward_names |&gt;
++   clean_names() |&gt;
++   names()
+[1] "weight_t"  "crop_name"
+&gt; 
+&gt; deliveries &lt;- deliveries |&gt; clean_names()</code></pre>
+</div>
+</div>
+</div>
+</section>
+<section id="sec-text-numbers" class="level3" data-number="9.3.3">
+<h3 data-number="9.3.3" class="anchored" data-anchor-id="sec-text-numbers"><span class="header-section-number">9.3.3</span> Text in a Numeric Column</h3>
+<p>The first <code>glimpse()</code> reported <code>weight_tonnes</code> as <code>&lt;chr&gt;</code>, or character text. One row contains <code>"38.2 t"</code>, so <code>read_csv()</code> could not treat the whole column as numeric. Find the values containing something other than a number, decimal point or minus sign:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Find weights containing a unit or other text</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">str_detect</span>(weight_tonnes, <span class="st">"[^0-9.-]"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(ticket_id, weight_tonnes)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; # Find weights containing a unit or other text
+&gt; deliveries |&gt;
++   filter(str_detect(weight_tonnes, "[^0-9.-]")) |&gt;
++   select(ticket_id, weight_tonnes)
+# A tibble: 1 × 2
+  ticket_id weight_tonnes
+  &lt;chr&gt;     &lt;chr&gt;        
+1 T0039     38.2 t       </code></pre>
+</div>
+</div>
+</div>
+<p>The file documentation says every weight is in tonnes, so the suffix can be removed. <code>parse_number()</code> keeps the numeric part:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert the weight column after checking its units</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> deliveries <span class="sc">|&gt;</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">weight_tonnes =</span> <span class="fu">parse_number</span>(weight_tonnes))</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(deliveries)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; # Convert the weight column after checking its units
+&gt; deliveries &lt;- deliveries |&gt;
++   mutate(weight_tonnes = parse_number(weight_tonnes))
+&gt; 
+&gt; glimpse(deliveries)
+Rows: 62
+Columns: 6
+$ ticket_id     &lt;chr&gt; "T0001", "T0002", "T0003", "T0004", "T0005", "T0006", "T…
+$ delivery_date &lt;chr&gt; "2025-09-07", "2025-11-25", "2025-09-23", "15/10/2025", …
+$ crop          &lt;chr&gt; "barley", "Peas", "barley", "canola", "Peas", "Spring wh…
+$ weight_tonnes &lt;dbl&gt; 44.0, 44.8, 38.0, 34.7, 42.2, -12.4, 29.5, 48.1, 39.2, 4…
+$ moisture_pct  &lt;dbl&gt; 10.400, 7.500, 10.200, 7.000, 9.000, 9.700, 9.300, NA, 8…
+$ grade         &lt;dbl&gt; 3, 3, 2, 3, 1, 2, 3, 3, 2, 3, 2, 2, 2, 2, 1, 2, 3, 2, 2,…</code></pre>
+</div>
+</div>
+</div>
+<p>If the suffix indicated a different unit, removing it would give the wrong answer. Convert the value to the common unit before discarding the label.</p>
+</section>
+<section id="sec-duplicates" class="level3" data-number="9.3.4">
+<h3 data-number="9.3.4" class="anchored" data-anchor-id="sec-duplicates"><span class="header-section-number">9.3.4</span> Duplicates</h3>
+<p>An <strong>exact duplicate</strong> repeats the entire row. <code>duplicated()</code> finds the later copy, while <code>distinct()</code> keeps one copy of every unique row:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Show exact duplicates</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">duplicated</span>(deliveries))</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(deliveries)</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Keep one copy of each unique row</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> deliveries <span class="sc">|&gt;</span> <span class="fu">distinct</span>()</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(deliveries)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; # Show exact duplicates
+&gt; deliveries |&gt;
++   filter(duplicated(deliveries))
+# A tibble: 1 × 6
+  ticket_id delivery_date crop  weight_tonnes moisture_pct grade
+  &lt;chr&gt;     &lt;chr&gt;         &lt;chr&gt;         &lt;dbl&gt;        &lt;dbl&gt; &lt;dbl&gt;
+1 T0012     2025-09-24    Peas           28.9          7.8     2
+&gt; 
+&gt; nrow(deliveries)
+[1] 62
+&gt; 
+&gt; # Keep one copy of each unique row
+&gt; deliveries &lt;- deliveries |&gt; distinct()
+&gt; nrow(deliveries)
+[1] 61</code></pre>
+</div>
+</div>
+</div>
+<p>A <strong>conflicting duplicate</strong> repeats an identifier but not the whole row. Ticket <code>T0030</code> appears with two different weights, so <code>distinct()</code> keeps both. Count the identifier to find it:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Find ticket numbers that still occur more than once</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(ticket_id) <span class="sc">|&gt;</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(n <span class="sc">&gt;</span> <span class="dv">1</span>)</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Inspect every version of the repeated ticket</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(ticket_id <span class="sc">==</span> <span class="st">"T0030"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; # Find ticket numbers that still occur more than once
+&gt; deliveries |&gt;
++   count(ticket_id) |&gt;
++   filter(n &gt; 1)
+# A tibble: 1 × 2
+  ticket_id     n
+  &lt;chr&gt;     &lt;int&gt;
+1 T0030         2
+&gt; 
+&gt; # Inspect every version of the repeated ticket
+&gt; deliveries |&gt;
++   filter(ticket_id == "T0030")
+# A tibble: 2 × 6
+  ticket_id delivery_date crop   weight_tonnes moisture_pct grade
+  &lt;chr&gt;     &lt;chr&gt;         &lt;chr&gt;          &lt;dbl&gt;        &lt;dbl&gt; &lt;dbl&gt;
+1 T0030     2025-10-23    Barley          38.8          9.6     1
+2 T0030     2025-10-23    Barley          43            9.6     1</code></pre>
+</div>
+</div>
+</div>
+<p>The data alone does not say which row is correct. Check the source record. If that is impossible, report how the conflict was handled.</p>
+</section>
+<section id="sec-impossible-values" class="level3" data-number="9.3.5">
+<h3 data-number="9.3.5" class="anchored" data-anchor-id="sec-impossible-values"><span class="header-section-number">9.3.5</span> Impossible Values</h3>
+<p>Every numeric variable has a possible range. A delivery weight cannot be negative and a moisture percentage cannot be 250. <code>summary()</code> is a quick way to inspect the minimum and maximum:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Inspect the ranges of the numeric measurements</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(weight_tonnes, moisture_pct) <span class="sc">|&gt;</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summary</span>()</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Display values outside their possible ranges</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(weight_tonnes <span class="sc">&lt;=</span> <span class="dv">0</span> <span class="sc">|</span> moisture_pct <span class="sc">&gt;</span> <span class="dv">100</span>) <span class="sc">|&gt;</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(ticket_id, weight_tonnes, moisture_pct)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; # Inspect the ranges of the numeric measurements
+&gt; deliveries |&gt;
++   select(weight_tonnes, moisture_pct) |&gt;
++   summary()
+ weight_tonnes     moisture_pct    
+ Min.   :-12.40   Min.   :  0.086  
+ 1st Qu.: 32.90   1st Qu.:  8.150  
+ Median : 38.80   Median :  9.500  
+ Mean   : 36.58   Mean   : 13.220  
+ 3rd Qu.: 42.90   3rd Qu.: 10.500  
+ Max.   : 49.80   Max.   :250.000  
+                  NAs    :2        
+&gt; 
+&gt; # Display values outside their possible ranges
+&gt; deliveries |&gt;
++   filter(weight_tonnes &lt;= 0 | moisture_pct &gt; 100) |&gt;
++   select(ticket_id, weight_tonnes, moisture_pct)
+# A tibble: 3 × 3
+  ticket_id weight_tonnes moisture_pct
+  &lt;chr&gt;             &lt;dbl&gt;        &lt;dbl&gt;
+1 T0006             -12.4          9.7
+2 T0018              41.6        250  
+3 T0043               0           10.2</code></pre>
+</div>
+</div>
+</div>
+<p>A negative weight may be a sign error or a reversed transaction. A moisture value of 250 may have lost its decimal point. Those are possible explanations, not facts. Correct a value only when the source supports the correction.</p>
+<p>An extreme value can still be valid. A canola yield of 95 bu/ac is unusual, but it may belong to a very good field. Check it against the source and, if uncertainty remains, compare the analysis with and without it.</p>
+</section>
+<section id="sec-categories" class="level3" data-number="9.3.6">
+<h3 data-number="9.3.6" class="anchored" data-anchor-id="sec-categories"><span class="header-section-number">9.3.6</span> Inconsistent Categories</h3>
+<p>Several spellings of the same category produce separate groups. Count each categorical column before using it in <code>group_by()</code>:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Count the crop names as they arrived</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(crop, <span class="at">sort =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; # Count the crop names as they arrived
+&gt; deliveries |&gt;
++   count(crop, sort = TRUE)
+# A tibble: 11 × 2
+   crop               n
+   &lt;chr&gt;          &lt;int&gt;
+ 1 "Peas"            12
+ 2 "barley"           9
+ 3 "Spring wheat"     8
+ 4 "peas"             7
+ 5 "Barley"           6
+ 6 "spring wheat"     5
+ 7 "canola"           4
+ 8 "Canola"           3
+ 9 "Canola "          3
+10 "CANOLA"           2
+11 "Spring Wheat"     2</code></pre>
+</div>
+</div>
+</div>
+<p>Capitalization and spaces can be standardized with string functions:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove extra spaces and use consistent capitalization</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> deliveries <span class="sc">|&gt;</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">crop =</span> <span class="fu">str_squish</span>(crop),</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">crop =</span> <span class="fu">str_to_title</span>(crop))</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(crop, <span class="at">sort =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; # Remove extra spaces and use consistent capitalization
+&gt; deliveries &lt;- deliveries |&gt;
++   mutate(crop = str_squish(crop),
++          crop = str_to_title(crop))
+&gt; 
+&gt; deliveries |&gt;
++   count(crop, sort = TRUE)
+# A tibble: 4 × 2
+  crop             n
+  &lt;chr&gt;        &lt;int&gt;
+1 Peas            19
+2 Barley          15
+3 Spring Wheat    15
+4 Canola          12</code></pre>
+</div>
+</div>
+</div>
+<p>Synonyms require an explicit decision. Put that decision in the script:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Reconcile known synonyms while leaving other values unchanged</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> deliveries <span class="sc">|&gt;</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">crop =</span> <span class="fu">case_when</span>(</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>    crop <span class="sc">==</span> <span class="st">"Canola/Rapeseed"</span> <span class="sc">~</span> <span class="st">"Canola"</span>,</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>    crop <span class="sc">==</span> <span class="st">"Soybean"</span> <span class="sc">~</span> <span class="st">"Soybeans"</span>,</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>    <span class="cn">TRUE</span> <span class="sc">~</span> crop</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>  ))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; # Reconcile known synonyms while leaving other values unchanged
+&gt; deliveries &lt;- deliveries |&gt;
++   mutate(crop = case_when(
++     crop == "Canola/Rapeseed" ~ "Canola",
++     crop == "Soybean" ~ "Soybeans",
++     TRUE ~ crop
++   ))</code></pre>
+</div>
+</div>
+</div>
+</section>
+<section id="sec-mixed-units" class="level3" data-number="9.3.7">
+<h3 data-number="9.3.7" class="anchored" data-anchor-id="sec-mixed-units"><span class="header-section-number">9.3.7</span> Mixed Units</h3>
+<p>Most moisture readings in the file are percentages near 8 to 15. Three were entered as decimal proportions, such as <code>0.099</code> rather than <code>9.9</code>. The values are numeric, so they produce no parsing error.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Find moisture readings recorded as decimal proportions</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(moisture_pct <span class="sc">&lt;</span> <span class="dv">1</span>) <span class="sc">|&gt;</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(ticket_id, moisture_pct)</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert decimal proportions to percentages</span></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> deliveries <span class="sc">|&gt;</span></span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">moisture_pct =</span> <span class="fu">if_else</span>(</span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>      moisture_pct <span class="sc">&lt;</span> <span class="dv">1</span>,</span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>      moisture_pct <span class="sc">*</span> <span class="dv">100</span>,</span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>      moisture_pct</span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; # Find moisture readings recorded as decimal proportions
+&gt; deliveries |&gt;
++   filter(moisture_pct &lt; 1) |&gt;
++   select(ticket_id, moisture_pct)
+# A tibble: 3 × 2
+  ticket_id moisture_pct
+  &lt;chr&gt;            &lt;dbl&gt;
+1 T0010            0.099
+2 T0027            0.086
+3 T0050            0.09 
+&gt; 
+&gt; # Convert decimal proportions to percentages
+&gt; deliveries &lt;- deliveries |&gt;
++   mutate(
++     moisture_pct = if_else(
++       moisture_pct &lt; 1,
++       moisture_pct * 100,
++       moisture_pct
++     )
++   )</code></pre>
+</div>
+</div>
+</div>
+<p>This rule depends on subject knowledge: a grain moisture value below 1 percent is not plausible here. If the file contains a unit column, use that column in <code>case_when()</code> instead of inferring the unit from the size of the value.</p>
+</section>
+<section id="sec-missing-values" class="level3" data-number="9.3.8">
+<h3 data-number="9.3.8" class="anchored" data-anchor-id="sec-missing-values"><span class="header-section-number">9.3.8</span> Missing Values</h3>
+<p>R represents a missing value as <code>NA</code>. Most calculations involving <code>NA</code> return <code>NA</code>. The canola trial data has three fields with no rainfall reading:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Read a file containing three missing rainfall values</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>trial_data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/canola_trial.csv"</span>)</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(trial_data<span class="sc">$</span>rainfall_mm)</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(trial_data<span class="sc">$</span>rainfall_mm, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; # Read a file containing three missing rainfall values
+&gt; trial_data &lt;- read_csv("data/canola_trial.csv")
+Rows: 120 Columns: 5
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: ","
+chr (2): field_id, variety
+dbl (3): fertilizer_kg_ha, rainfall_mm, yield_bu_acre
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+&gt; 
+&gt; mean(trial_data$rainfall_mm)
+[1] NA
 &gt; mean(trial_data$rainfall_mm, na.rm = TRUE)
 [1] 229.1017</code></pre>
 </div>
 </div>
 </div>
-<p>The first call says: calculate the mean of these observations. Three of them are unknown, so R cannot calculate the mean, and it returns <code>NA</code> rather than silently discarding information. The second call, with <code>na.rm = TRUE</code> (“remove NAs”), says: calculate the mean using the observations that are not missing. That may be exactly what we want – but now the decision is visible in the code.</p>
-<p>This is an important difference from Excel, where many functions skip blank cells automatically. Real files complicate it further in two ways: missing values arrive in disguise, and deciding what to do with them takes some thought.</p>
+<p>The first call returns <code>NA</code> because three rainfall values are unknown. The second calculates the mean from the observed values. The argument <code>na.rm = TRUE</code> makes that decision visible. Many Excel functions skip blank cells automatically, so the missing values need to be counted separately there.</p>
 <section id="missing-values-in-disguise" class="level4 unnumbered">
 <h4 class="unnumbered anchored" data-anchor-id="missing-values-in-disguise">Missing values in disguise</h4>
-<p>Missing data shows up in real files in several forms: an empty cell, the text <code>"NA"</code>, <code>"N/A"</code>, <code>"-"</code>, <code>"."</code>, or <code>-999</code>. R recognises the blank and <code>NA</code>. The rest come in as ordinary text and turn their column into <code>&lt;chr&gt;</code>.</p>
-<p>Tell <code>read_csv</code> what counts as missing:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/grain_deliveries_messy.csv"</span>,</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>                       <span class="at">na =</span> <span class="fu">c</span>(<span class="st">""</span>, <span class="st">"NA"</span>, <span class="st">"N/A"</span>, <span class="st">"-"</span>, <span class="st">"."</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Then count what you have before deciding anything:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span> <span class="fu">summarise</span>(<span class="fu">across</span>(<span class="fu">everything</span>(), <span class="sc">~</span> <span class="fu">sum</span>(<span class="fu">is.na</span>(.))))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>A numeric code like <code>-999</code> is the dangerous one. It will not turn the column to text; it will just be included in the mean as a number, which is another reason to run <code>summary()</code> on arrival and look at the minimum.</p>
+<p>A blank cell, <code>"NA"</code>, <code>"N/A"</code>, <code>"-"</code>, <code>"."</code> and <code>-999</code> may all mean that no value was recorded. The <code>na</code> argument in the first <code>read_csv()</code> call told R which text codes to treat as missing.</p>
+<p>Count missing values in every column before deciding what to do with them:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Count missing values in each column</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="fu">across</span>(<span class="fu">everything</span>(), <span class="sc">~</span> <span class="fu">sum</span>(<span class="fu">is.na</span>(.))))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; # Count missing values in each column
+&gt; deliveries |&gt;
++   summarise(across(everything(), ~ sum(is.na(.))))
+# A tibble: 1 × 6
+  ticket_id delivery_date  crop weight_tonnes moisture_pct grade
+      &lt;int&gt;         &lt;int&gt; &lt;int&gt;         &lt;int&gt;        &lt;int&gt; &lt;int&gt;
+1         0             0     0             0            2     1</code></pre>
+</div>
+</div>
+</div>
+<p>A numeric code such as <code>-999</code> is more dangerous. R reads it as a number and includes it in calculations. <code>summary()</code> exposes it as an implausible minimum unless it is converted to <code>NA</code> when the file is read.</p>
 </section>
 <section id="working-with-missing-values" class="level4 unnumbered">
 <h4 class="unnumbered anchored" data-anchor-id="working-with-missing-values">Working with missing values</h4>
-<p>A few patterns:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check for missing values</span></span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="fu">is.na</span>(deliveries<span class="sc">$</span>weight_tonnes)              <span class="co"># logical vector</span></span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(<span class="fu">is.na</span>(deliveries<span class="sc">$</span>weight_tonnes))          <span class="co"># count of NAs</span></span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove rows with any missing values</span></span>
-<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>deliveries_clean <span class="ot">&lt;-</span> deliveries <span class="sc">|&gt;</span> <span class="fu">drop_na</span>()</span>
-<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove rows with missing values in specific columns</span></span>
-<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>deliveries_clean <span class="ot">&lt;-</span> deliveries <span class="sc">|&gt;</span> <span class="fu">drop_na</span>(weight_tonnes)</span>
-<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute a statistic ignoring NAs</span></span>
-<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(deliveries<span class="sc">$</span>weight_tonnes, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Replace NAs with a value</span></span>
-<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">weight_tonnes =</span> <span class="fu">replace_na</span>(weight_tonnes, <span class="dv">0</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><code>is.na()</code> identifies missing values and <code>drop_na()</code> removes rows that contain them:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Count missing weights</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(<span class="fu">is.na</span>(deliveries<span class="sc">$</span>weight_tonnes))</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove rows missing any variable</span></span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span> <span class="fu">drop_na</span>()</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove rows missing selected variables</span></span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span> <span class="fu">drop_na</span>(weight_tonnes, moisture_pct)</span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate a mean from the observed moisture readings</span></span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(deliveries<span class="sc">$</span>moisture_pct, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; # Count missing weights
+&gt; sum(is.na(deliveries$weight_tonnes))
+[1] 0
+&gt; 
+&gt; # Remove rows missing any variable
+&gt; deliveries |&gt; drop_na()
+# A tibble: 58 × 6
+   ticket_id delivery_date crop         weight_tonnes moisture_pct grade
+   &lt;chr&gt;     &lt;chr&gt;         &lt;chr&gt;                &lt;dbl&gt;        &lt;dbl&gt; &lt;dbl&gt;
+ 1 T0001     2025-09-07    Barley                44           10.4     3
+ 2 T0002     2025-11-25    Peas                  44.8          7.5     3
+ 3 T0003     2025-09-23    Barley                38           10.2     2
+ 4 T0004     15/10/2025    Canola                34.7          7       3
+ 5 T0005     2025-10-16    Peas                  42.2          9       1
+ 6 T0006     2025-09-11    Spring Wheat         -12.4          9.7     2
+ 7 T0007     2025-11-20    Barley                29.5          9.3     3
+ 8 T0009     2025-09-21    Spring Wheat          39.2          8.2     2
+ 9 T0010     2025-10-28    Canola                42.9          9.9     3
+10 T0011     2025-09-17    Peas                  37.9          9.2     2
+# ℹ 48 more rows
+&gt; 
+&gt; # Remove rows missing selected variables
+&gt; deliveries |&gt; drop_na(weight_tonnes, moisture_pct)
+# A tibble: 59 × 6
+   ticket_id delivery_date crop         weight_tonnes moisture_pct grade
+   &lt;chr&gt;     &lt;chr&gt;         &lt;chr&gt;                &lt;dbl&gt;        &lt;dbl&gt; &lt;dbl&gt;
+ 1 T0001     2025-09-07    Barley                44           10.4     3
+ 2 T0002     2025-11-25    Peas                  44.8          7.5     3
+ 3 T0003     2025-09-23    Barley                38           10.2     2
+ 4 T0004     15/10/2025    Canola                34.7          7       3
+ 5 T0005     2025-10-16    Peas                  42.2          9       1
+ 6 T0006     2025-09-11    Spring Wheat         -12.4          9.7     2
+ 7 T0007     2025-11-20    Barley                29.5          9.3     3
+ 8 T0009     2025-09-21    Spring Wheat          39.2          8.2     2
+ 9 T0010     2025-10-28    Canola                42.9          9.9     3
+10 T0011     2025-09-17    Peas                  37.9          9.2     2
+# ℹ 49 more rows
+&gt; 
+&gt; # Calculate a mean from the observed moisture readings
+&gt; mean(deliveries$moisture_pct, na.rm = TRUE)
+[1] 13.68136</code></pre>
+</div>
+</div>
+</div>
+<p>Dropping every incomplete row can remove far more data than dropping rows missing the variables used in a particular calculation.</p>
 </section>
 <section id="when-is-dropping-safe" class="level4 unnumbered">
 <h4 class="unnumbered anchored" data-anchor-id="when-is-dropping-safe">When is dropping safe?</h4>
-<p>It depends on <em>why</em> the values are missing. If data is missing completely at random (a sensor failed arbitrarily), dropping missing values gives you unbiased estimates, just with less data. If data is missing for a reason related to the value itself (only high-yielding fields were reported), dropping them can bias your results – you will systematically overestimate yields.</p>
-<p>The honest answer to “what should I do with missing values” is almost always: <em>think about why they are missing</em>, and <em>document what you decided to do</em>. There is no universal fix.</p>
+<p>The answer depends on why the values are missing. If a rain gauge failed at arbitrary times, the observed days may still represent the season, although there are fewer of them. If low-yielding farms were less likely to report, the remaining records will overstate average yield. Record how many values were missing, which observations were excluded and why the exclusion seemed reasonable.</p>
 </section>
 </section>
-<section id="sec-dates-text" class="level3" data-number="9.3.8">
-<h3 data-number="9.3.8" class="anchored" data-anchor-id="sec-dates-text"><span class="header-section-number">9.3.8</span> Dates Stored as Text</h3>
-<p>A date column that imported as <code>&lt;chr&gt;</code> cannot be sorted chronologically or used in arithmetic. It happens when the file mixes formats (<code>2025-09-15</code> in some rows, <code>Sept 15, 2025</code> in others), and it is worth catching early because <code>arrange()</code> on a text date sorts alphabetically without complaint.</p>
-<p><code>glimpse()</code> shows the problem (<code>&lt;chr&gt;</code> where you expected <code>&lt;date&gt;</code>). If the format is consistent, tell the reader what it is with <code>col_types</code> (<a href="module03a.html#sec-col-types" class="quarto-xref"><span>Section 7.5.2</span></a>); if it is mixed, the rows that failed to parse are found the same way as any other type problem:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>deliveries <span class="sc">|&gt;</span></span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">is.na</span>(<span class="fu">as.Date</span>(delivery_date))) <span class="sc">|&gt;</span></span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(ticket_id, delivery_date)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Fixing messy dates properly uses tools we have not covered (the <code>lubridate</code> package is the standard one); for this course, it is enough to notice the problem and state the format explicitly when you read the file.</p>
+<section id="sec-dates-text" class="level3" data-number="9.3.9">
+<h3 data-number="9.3.9" class="anchored" data-anchor-id="sec-dates-text"><span class="header-section-number">9.3.9</span> Dates Stored as Text</h3>
+<p><code>glimpse()</code> reported <code>delivery_date</code> as <code>&lt;chr&gt;</code> because most rows use <code>2025-09-07</code> while two use day/month/year. Text dates sort alphabetically and cannot be used in date arithmetic.</p>
+<p>Parse the expected format and inspect the rows that fail:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Parse dates written as year-month-day</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>deliveries_with_dates <span class="ot">&lt;-</span> deliveries <span class="sc">|&gt;</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">date_parsed =</span> <span class="fu">as.Date</span>(</span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>    delivery_date,</span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">format =</span> <span class="st">"%Y-%m-%d"</span></span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>  ))</span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Display dates written in a different format</span></span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>deliveries_with_dates <span class="sc">|&gt;</span></span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">is.na</span>(date_parsed)) <span class="sc">|&gt;</span></span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(ticket_id, delivery_date)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; # Parse dates written as year-month-day
+&gt; deliveries_with_dates &lt;- deliveries |&gt;
++   mutate(date_parsed = as.Date(
++     delivery_date,
++     format = "%Y-%m-%d"
++   ))
+&gt; 
+&gt; # Display dates written in a different format
+&gt; deliveries_with_dates |&gt;
++   filter(is.na(date_parsed)) |&gt;
++   select(ticket_id, delivery_date)
+# A tibble: 2 × 2
+  ticket_id delivery_date
+  &lt;chr&gt;     &lt;chr&gt;        
+1 T0004     15/10/2025   
+2 T0047     03/11/2025   </code></pre>
+</div>
+</div>
+</div>
+<p>Those rows need a second stated format or a date parser that accepts several formats. For this course, the main check is in <code>glimpse()</code>: a date column should be <code>&lt;date&gt;</code>, not <code>&lt;chr&gt;</code> (<a href="module03a.html#sec-col-types" class="quarto-xref"><span>Section 7.5.2</span></a>).</p>
 </section>
 </section>
 <section id="sec-cleaning-checklist" class="level2" data-number="9.4">
 <h2 data-number="9.4" class="anchored" data-anchor-id="sec-cleaning-checklist"><span class="header-section-number">9.4</span> A Checklist</h2>
-<p>Run through this on every new file:</p>
+<p>Use these checks on a new file:</p>
 <ol type="1">
-<li><code>glimpse()</code> – are the column types what you expect?</li>
-<li><code>summary()</code> – are the minimums and maximums possible?</li>
-<li><code>count()</code> each categorical column – are the categories consistent?</li>
-<li>Count rows, and check for duplicated identifiers.</li>
-<li>Count <code>NA</code>s per column, and ask whether the missingness is random.</li>
-<li>Check the range of each numeric column against what the unit should be.</li>
+<li>Use <code>glimpse()</code> to check the dimensions, column names and types.</li>
+<li>Write down what one row represents and whether the table is tidy.</li>
+<li>Use <code>summary()</code> to inspect the ranges of numeric variables.</li>
+<li>Use <code>count()</code> on categorical variables and look for spelling and spacing differences.</li>
+<li>Check for exact duplicates and repeated identifiers.</li>
+<li>Count <code>NA</code>s in every column and look for other missing-value codes.</li>
+<li>Check that units are consistent and dates were read as dates.</li>
+<li>Record every correction, exclusion and assumption in the script or Power Query steps.</li>
 </ol>
 
 
