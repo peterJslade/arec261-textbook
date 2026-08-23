@@ -159,25 +159,31 @@ A **CSV** (comma-separated values) file is plain text. Each line is a row and co
 
 ### What double-clicking a CSV does {#sec-csv-excel}
 
-Download [`elevator_tickets.csv`](practice/data/elevator_tickets.csv), twenty grain delivery tickets, and open it twice: once in a text editor, once by double-clicking it in Excel. Excel guesses a type for every column on the way in, and these guesses can go wrong. The exact conversions depend on the computer's region and language settings; on a computer set to English (Canada), common failures include:
+Download [`elevator_tickets.csv`](practice/data/elevator_tickets.csv), twenty grain delivery tickets.  Try opening in Excel directly.  When you do this Excel will try to be helful and assign formatting to the columns.  You should get a pop up that looks like Figure XX
+
+INSERT SCREENSHOT
+
+By clicking OK you are consenting to two operations:
 
 - Leading zeros disappear. `00451` becomes `451`, and an RM number or a postal code loses its shape.
 - Long numbers turn into scientific notation. A 16-digit account number displays as `1.23E+15`, and the last digits are rounded away for good.
-- Anything that looks like a date becomes one. A code such as `3-4` becomes a date, and the gene name `MARCH1` became a date often enough that geneticists renamed the gene.
-- Dates in day-month order are read as month-day when the day is 12 or less, and left as text when it is not.
-- On a computer set to a European locale, a semicolon-separated file lands entirely in column A, and `1.5` is read as text because the decimal mark is expected to be a comma.
 
-In the tickets file, `ticket_id` loses its zeros, `permit_book` becomes `4.52E+15`, and every lot code is liable to become a date. Which date Excel displays depends on the computer's date order.
+After doing this we can see that the IDs become quite different.   Also, note that Excel interpreted our lot codes as dates.
 
-Current versions of Excel may show a warning that leading zeros or long numbers were converted, and Windows Excel has **File > Options > Data > Automatic Data Conversion** settings that can disable some conversions. Those machine-level settings are useful, but they are not a reproducible import recipe: another person may have different settings, and dates still need to be checked. Power Query records the choices with the workbook.
+<!-- Public view-only link expires 2026-11-20 under the USask 90-day policy. -->
+::: {.workbook-callout}
+::: {.callout-tip collapse="false" title="Workbook: elevator_tickets.xlsx after Excel's automatic conversions"}
 
-<!-- Screenshot: elevator_tickets.csv opened by double-clicking. Show columns A-C.
-![The tickets file opened by double-clicking. Ticket `00001` has become `1`, the permit book number is in scientific notation, and lot `3-2` is now a date.](images/csv_doubleclick.png){#fig-csv-doubleclick .screenshot}
--->
+::: {.excel-embed}
+<iframe width="402" height="346" frameborder="0" scrolling="no" src="https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc={9d996bbe-a578-4e19-982e-7f603d73faea}&action=embedview&wdAllowInteractivity=False&wdHideGridlines=True&wdHideHeaders=True&wdDownloadButton=True&wdInConfigurator=True&waccluster=CA3&edaebp="></iframe>
+:::
 
-The general rule is that a column is not a quantity because it contains digits. Ticket numbers, permit numbers, RM numbers, postal codes and product codes are identifiers, and identifiers want the **Text** type.
+[Download this workbook](textbook_examples/elevator_tickets.xlsx) · [Open online](https://usaskca1-my.sharepoint.com/:x:/g/personal/pjs998_usask_ca/IQC-a5mdeKUZTpguf2A9c_rqAXCA1uhiQ8ATsYUFTgp_60U?e=ODC9XU) (view only)
+:::
+:::
 
-None of this matters if you only look. It matters when you save, because Excel writes its guesses back over the original file and the text that was there is gone.
+There are two issues here.  First, these formatting decisions are wrong, and we would need to correct them.  Second, even if we correct them we have no record of doing so.  If we are doing a quick calculation maybe this is fine -- we can just save the result as a .xlsx file.  But best practice is to log how we inputted the data.  We can do this through a Power Query/.
+
 
 ### Power Query {#sec-power-query}
 
@@ -190,55 +196,18 @@ For the tickets file:
 3. Press **Transform Data** rather than **Load**. In the editor, use each column header's type icon to set `ticket_id`, `permit_book` and `lot_code` to Text, `delivery_date` to Date, and `weight_tonnes` to Decimal Number.
 4. Choose **Close & Load**. Save the workbook as `.xlsx`, which keeps the query; saving as CSV throws it away.
 
+Insert three screenshots
+
 <!-- Screenshot: the Power Query editor for elevator_tickets.csv, with the ticket_id column type menu open showing Text.
 ![The Power Query editor. Set `ticket_id`, `permit_book` and `lot_code` to Text before loading.](images/csv_getdata.png){#fig-csv-getdata .screenshot}
 -->
 
 After loading, check it. The number of rows and columns is what you expected; the identifiers kept their zeros and all their digits; the dates cover the right period; the numbers are numbers; blanks did not become zeros.
 
-The same menu reaches other sources with the same recipe idea:
+INSERT EMEBED embed of elevetor_tickets.correct.xslx
 
-- **From Workbook** for an `.xlsx`, with a choice of sheet.
-- **From Folder** for a folder of monthly files with the same layout. One recipe is applied to every file, and the result is one table. Keep the source filename as a column so each row can be traced back. Availability on a Mac depends on the Excel version.
-- **From Web** with the address of a file. Paste the RM yields URL and Power Query fetches the CSV and shows the same preview; the address is stored with the query, so Refresh fetches the current file.
-- **From Web** with an API request. Paste the Open-Meteo URL and the response comes in as JSON.
+Note that we can download directly from the web through a direct download or API using the **From Web** option in the Power Query initial menu on a PC -- this option isn't available on Apple machines.  I find the whole interfact pretty clunky even on a PC.  We won't explore this functionality in this course -- it will prove much easier to access APIs through R -- particularly when there is a package.
 
-Excel for Mac does not currently offer a **From Web** button. Use **Get Data (Power Query) > Blank Query**, open **Advanced Editor**, and paste an M query instead. The M example below works the same way on Windows and Mac.
-
-For the API case, the most direct route is **Blank Query > Advanced Editor**. Replace the starter text with the query below. It selects the `daily` record, places its two lists side by side as columns, and sets their types. This is also more reliable than trying to reshape the two lists through the editor's menus.
-
-Every step in the editor is also a line of code in Power Query's own language, M, visible under **Advanced Editor**. You do not need to write M, but seeing it shows what "recorded steps" means. The Open-Meteo import, written out, is:
-
-```
-let
-    Source = Json.Document(Web.Contents(
-        "https://archive-api.open-meteo.com",
-        [RelativePath = "v1/archive",
-         Query = [latitude = "52.13", longitude = "-106.67",
-                  start_date = "2024-05-01", end_date = "2024-05-05",
-                  daily = "precipitation_sum", timezone = "America/Regina"]])),
-    Daily = Source[daily],
-    AsTable = Table.FromColumns({Daily[time], Daily[precipitation_sum]},
-                                {"date", "precipitation_mm"}),
-    Typed = Table.TransformColumnTypes(AsTable,
-                {{"date", type date}, {"precipitation_mm", type number}})
-in
-    Typed
-```
-
-Endpoint, parameters, the `daily` record, two lists into two columns, then types. It is the same sequence the R code in @sec-api-r follows.
-
-Power Query is a good way to see a simple public API work. When a service needs a key, returns pages, or has to be called hundreds of times, R is the easier place to do it.
-
-### Text to Columns Is for Repairs
-
-If a delimited file is already open with everything in column A, **Data > Text to Columns** splits it after the fact. [`elevator_tickets_semicolon.csv`](practice/data/elevator_tickets_semicolon.csv) is the tickets as a European-style file, semicolons between fields and commas for decimals, and it lands in column A when double-clicked. Select the column, choose **Delimited**, tick Semicolon, and on the last step set each column's type: Text for the identifiers, and under **Advanced** a comma as the decimal separator, so `27,4` becomes 27.4 rather than 274. The same tool splits a column holding two values, like `"Swift Current, SK"`, into town and province.
-
-<!-- Screenshot: Text to Columns step 3 with ticket_id selected and Text chosen; or the Advanced dialog showing decimal separator set to comma.
-![Step 3 of Text to Columns: each column gets a type, and **Advanced** sets the decimal mark.](images/csv_text_to_columns.png){#fig-csv-text-to-columns .screenshot}
--->
-
-This fixes the sheet in front of you and records nothing. For a file you will open again, import it through Power Query instead. In the preview choose Semicolon as the delimiter. In the editor, select `weight_tonnes`, then **Change Type > Using Locale** and choose Decimal Number with a comma-decimal locale such as French (Canada). That is Power Query's counterpart to R's `locale()` below.
 
 ## Getting Data Into R {#sec-r-getting}
 
