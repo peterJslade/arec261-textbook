@@ -274,9 +274,7 @@ problems(deliveries)
 
 ### Excel files {#sec-readxl}
 
-We can also reade
-
-The package is **readxl**. It installs with the tidyverse but is not loaded by `library(tidyverse)`, so load it separately. Check the sheets before reading, because `read_excel()` takes the first one unless told otherwise:
+We can also read Excel files directly in R using the package **readxl**. It installs with the tidyverse but is not loaded by `library(tidyverse)`, so load it separately.  Excel workbooks can have many sheets -- but defauly `readxl` will reade the first one, but we can direct it to read a different sheet using the sheet argument, which takes either the name of the sheet or an integer equal to the position of the sheet in the workbook (e.g., 2 for second sheet).
 
 ```{r}
 #| eval: true
@@ -294,10 +292,30 @@ The first sheet is a page of notes. Ask for the one you want, by name or number:
 #| eval: true
 #| echo: false
 console('
-barley <- read_excel(
+
+## Read in the first sheet of sask_barley_20205
+barley_first_sheet <- read_excel(
+  "practice/data/sask_barley_2025.xlsx"
+)
+
+head(barley_first_sheet)
+
+## Read in the sheet "Barley_20205" from sask_barley_20205
+barley_no_skip <- read_excel(
   "practice/data/sask_barley_2025.xlsx",
   sheet = "Barley_2025"
 )
+
+head(barley_no_skip)
+
+## Read in the sheet "Barley_20205" from sask_barley_2025, skipping the first three rows
+barley_no_skip <- read_excel(
+  "practice/data/sask_barley_2025.xlsx",
+  sheet = "Barley_2025"
+)
+
+##Print first few rows
+head(barley_no_skip)
 ')
 ```
 
@@ -305,7 +323,7 @@ barley <- read_excel(
 
 ### When the header is not on row 1 {#sec-skip-rows}
 
-Spreadsheets built by people usually have something above the table: a title, a note about units, a blank row. R takes the first row as column names regardless, and what comes back looks like this:
+Spreadsheets built by people often have something above the table: a title, a note about units, a blank row. R takes the first row as column names regardless, and what comes back looks like this:
 
 ```{r}
 #| eval: true
