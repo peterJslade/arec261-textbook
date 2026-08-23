@@ -352,33 +352,18 @@ There are some issues with these data. For example, `Winter Wheat` contains a sp
 
 ### Keep a raw copy {#sec-raw-copy}
 
-Reading from the URL is fine for a look. It is not fine for a project because the file at that address can be revised or replaced; in this case, the RM data are updated at least once a year. Download the file into a raw-data folder, include the retrieval date in its filename and record where it came from.
+The file at a URL can be revised or replaced; in this case, the RM data are updated at least once a year. After reading the data, save a dated copy so that you retain the version used in your analysis.
 
 ```{r}
 #| eval: true
 #| echo: false
 console('
-# Create the raw-data directory if it does not exist
-dir.create("data/raw", recursive = TRUE, showWarnings = FALSE)
-
-# Record the retrieval date in the file name
-raw_file <- "data/raw/rm_yields_2026-08-22.csv"
-
-# Download the file only when the dated copy is absent
-if (!file.exists(raw_file)) {
-  # Save the web response without opening or changing it
-  download.file(rm_yields_url, destfile = raw_file, mode = "wb")
-}
-
-# Read the saved raw file
-rm_yields <- read_csv(raw_file)
-
-# Print the first six rows
-head(rm_yields)
+# Save a dated snapshot of the data in the project data folder
+write_csv(rm_yields, "data/rm_yields_2026-08-22.csv")
 ')
 ```
 
-The script records how the data were obtained. The `if` statement downloads the file only on the first run; subsequent runs read the dated copy already on disk.
+The URL above records where the data came from, and the date in the filename records when this copy was obtained. If the online file changes later, this dated snapshot preserves the data used for the analysis. Strictly speaking, `write_csv()` saves the values after R has read them rather than preserving the exact original file, but it captures the important practice at this stage: keep the version you actually used.
 
 ### Calling an API {#sec-api-r}
 
@@ -444,9 +429,17 @@ Every API's JSON is shaped differently. The first time you use one, run `str(wea
 
 ### Packages that wrap an API {#sec-data-packages}
 
-Where a package exists for the provider, it can build the request and unpack the JSON for us. The **openmeteo** package provides `weather_history()`, which accepts the same location, dates, variable and time zone used in the request above.
+Getting data from an API (as above) is a bit of work.  We need to get the JSON data and then parse it ourselves.  For many APIs a developer has created a package that allows you to call the API and obtain the data directly in a data frame.  
 
-The package is not on CRAN, so install it from GitHub once. Installation code is not evaluated when the book renders:
+As mentioned above, the **openmeteo** package is one example.  When you load this package you can use the function `weather_history()` to directly download data.  As with all functions, if you want to understand the arguments that you need to supply to weather history type `?weather_history` in your console.  In this case you will see that you need to supply at least three arguments, start, end and either hourly or daily:
+
+- start, end: Required. Start and end dates in ISO 8601 (e.g. "2020-12-31").
+
+- hourly, daily: At least one required. A weather variable accepted by the API, or list thereof. Details provided in the help description.
+
+Additionally, you can supply the units you want the data in (e.g., "mm" or "cm") and the timezone the hours/days refer to.
+
+Once again we can install the package using the following code:
 
 ```r
 # Install remotes from CRAN
@@ -456,7 +449,7 @@ install.packages("remotes")
 remotes::install_github("tpisel/openmeteo")
 ```
 
-After installation, one function call returns a data frame:
+After installation, one function call returns a data frame with the Saskatoon precipitaiton data for May 2024:
 
 ```{r}
 #| eval: true
@@ -479,39 +472,10 @@ saskatoon_rain_package
 ')
 ```
 
-The package hides the request-building and JSON-unpacking steps, but it does not freeze the data. Running the same call later may return revised values, so save a dated raw copy when the exact version matters (@sec-raw-copy).
 
-## Check It Arrived {#sec-validate-import}
+## A final note on saving data {#sec-readme}
 
-A successful import means the software read something. Before using it, look at whether it read the right thing. In R:
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-# Show the ticket table dimensions, types and example values
-glimpse(tickets)
-
-# List any values that failed to parse
-problems(tickets)
-
-# Summarize each ticket column
-summary(tickets)
-
-# Count repeated ticket identifiers
-tickets |>
-  count(ticket_id) |>
-  filter(n > 1)
-')
-```
-
-That covers the dimensions and types, the values that failed to parse, the minimums and maximums, and whether the column that should identify a row does. Add to it: do the dates and the geography cover what you expected, are the units explicit, and do a handful of rows agree with what the provider's website shows?
-
-In Power Query, turn on **View > Column quality**, **Column distribution**, and **Column profile**. Failed type conversions appear as Error; empty, distinct, and unique counts help find missing values and duplicate identifiers. After loading, the same basic checks are the row count, a filter on the identifier, `MIN`, `MAX`, and `COUNTBLANK`. The full tour of what goes wrong in the values is @sec-cleaning.
-
-## Say Where It Came From {#sec-readme}
-
-Keep raw data apart from anything derived from it:
+When building your project folder it is best practice to keep data seperate from code.  It is also best to store raw data seperately from cleaned and processed data.  The raw data is never edited by you.  
 
 ```
 project/
@@ -522,40 +486,8 @@ project/
   README.md
 ```
 
-Never edit the only copy of a raw file. If a value must be corrected, correct it in code, or in a recorded Power Query step, where the change is visible.
+Then in the README.md you can log the provenance of each dataset.
 
-Every project gets a `README.md` at the top, saying what the project is and where each dataset came from. It does not need to be long, but it needs the provider, the page the data was found on, the direct link or endpoint and its parameters, the unit of observation, the units, the retrieval date, and the name of the raw file.
-
-```
-# Canola yields and growing-season rain
-
-Question: do Saskatchewan canola yields move with May-August rainfall?
-
-## Data
-
-data/raw/rm_yields_2026-08-21.csv
-  Government of Saskatchewan dashboard, https://dashboard.saskatchewan.ca/agriculture
-  Direct file: https://dashboard.saskatchewan.ca/export/rm-yields-data/4950.csv
-  Retrieved 2026-08-21. One row per RM per year. Annual estimates produced
-  from Ministry crop-report and Saskatchewan Crop Insurance Corporation data.
-  Bushels per acre (from the dashboard page; not in the file). Values are
-  published only where there are no confidentiality concerns; blanks are not
-  identified more specifically in the download.
-
-data/raw/saskatoon_weather_2026-08-21.json
-  Open-Meteo historical weather API, endpoint
-  https://archive-api.open-meteo.com/v1/archive
-  Parameters: latitude 52.13, longitude -106.67, daily precipitation_sum,
-  2024-05-01 to 2024-08-31, timezone America/Regina
-  Retrieved 2026-08-21. Millimetres. Modelled, not a station observation.
-
-## Scripts
-
-R/01_get_data.R   fetches both sources and writes data/raw/
-R/02_prepare.R    checks, reshapes and merges them
-```
-
-The retrieval date is doing real work. Agencies revise estimates, dashboards replace files, APIs change. A file called `yields_final.csv` with no provenance is close to useless a year later: you cannot tell which release it is, whether you already cleaned it, or whether the numbers were revised after you downloaded them.
 
 ::: {.callout-tip collapse="true"}
 ## Other resources — getting data

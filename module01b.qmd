@@ -123,55 +123,6 @@ Without the `&`, Excel reads `">AVERAGE(E2:E1068)"` as literal text and finds no
 :::
 
 
-## Lookup Functions {#sec-lookup}
-
-Data often arrives split across tables. You might have yields by field in one table and crop prices in another, but need both pieces of information for your analysis. A lookup lets us use information in one table to bring a corresponding value into another.
-
-`XLOOKUP` is a function that allows us to look up a value. It takes three main arguments: the value to find, the range to search, and the range containing the value to return. For example:
-
-```
-=XLOOKUP(B11, $A$5:$A$7, $B$5:$B$7)
-```
-
-Excel searches `$A$5:$A$7` for whatever crop is named in `B11`, finds the matching position, and returns the value from the same position in `$B$5:$B$7`. Note the `$` signs: the crop being looked up changes from row to row, but the price table stays put, so its ranges are locked.
-
-If there are multiple matches -- if Canola appeared twice in the price list -- `XLOOKUP` returns the value associated with the first match. This means that the value you are looking up should ideally identify a unique observation in the lookup table.
-
-The workbook below has two tables: a short crop price list at the top, and the field data underneath. Column E uses `XLOOKUP` to find the price for each field's crop and bring it across, with the formula shown in column F.
-
-::: {.workbook-callout}
-::: {.excel-embed}
-<iframe width="402" height="700" frameborder="0" scrolling="no" src="https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7B1dc1b36e-393e-462b-b395-b6bd1fe4eae0%7D&action=embedview&wdAllowInteractivity=False&wdDownloadButton=True&wdInConfigurator=True"></iframe>
-:::
-
-[Download this workbook](textbook_examples/mod01_lookup.xlsx) · [blank version to fill in yourself](textbook_examples/mod01_lookup_practice.xlsx) · [Open online](https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7B1dc1b36e-393e-462b-b395-b6bd1fe4eae0%7D&action=default) (File → Save a Copy to view formulas and edit)
-:::
-
-Sometimes one column is not enough to uniquely identify a row. Suppose each row represents one rural municipality in one year. RM 1 appears once for every year in the dataset, so looking up RM 1 alone will return whichever match appears first. To identify a particular observation, we need both the RM and the year.
-
-One way to do this in Excel is to combine the two values into a single key and use that key for the lookup:
-
-```
-=XLOOKUP(1 & "|" & 2023, B2:B10650 & "|" & A2:A10650, E2:E10650)
-```
-
-Here, Excel effectively creates identifiers such as `1|2023`, `1|2024`, and `2|2023`, and then looks for the one we requested. The `|` is simply a separator between the two pieces of information.
-
-The separator is important. Without one, different combinations can accidentally produce the same identifier. For example, 1 and 2023 would become `12023`, but so would 12 and 023.
-
-A lookup needs enough information to uniquely identify the observation you want. Sometimes one variable is enough; sometimes you need a combination of variables. We will return to this idea when we learn how to join datasets later in the course.
-
-::: {.callout-tip collapse="true"}
-## Other resources — lookup functions (VLOOKUP, XLOOKUP, INDEX/MATCH)
-
-- **Excel for Dummies** -- *Microsoft 365 Excel for Dummies*, the chapter on lookup and reference functions.
-- **Microsoft Support** -- [VLOOKUP](https://support.microsoft.com/en-us/office/vlookup-function-0bbc8083-26fe-4963-8ab8-93a18ad188a1), [XLOOKUP](https://support.microsoft.com/en-us/office/xlookup-function-b7fd680e-6d10-43e6-84f9-8818e00d0651), [INDEX](https://support.microsoft.com/en-us/office/index-function-a5dcf0dd-996d-40a4-a822-b56b061328bd), [MATCH](https://support.microsoft.com/en-us/office/match-function-e8dffd45-c762-47d6-bf89-533f4a37673a).
-- **Video (XLOOKUP)** -- Leila Gharani, [*How an Excel pro uses XLOOKUP*](https://www.youtube.com/watch?v=xnLvEhXWSas) (XLOOKUP vs VLOOKUP and INDEX/MATCH).
-- **Video (VLOOKUP for beginners)** -- Kevin Stratvert, [*VLOOKUP in Excel -- step-by-step tutorial*](https://www.youtube.com/watch?v=xIynD1gFOLo).
-- **Video (INDEX/MATCH)** -- Leila Gharani, [*The definitive guide to INDEX and MATCH*](https://www.youtube.com/watch?v=lCKglBM2jyk).
-:::
-
-
 ## Sorting and Filtering {#sec-sort-filter}
 
 Sorting and filtering are different from the functions we have used so far. Rather than calculating a new value, they change how the data in a worksheet is displayed and organized. The examples below use the same eight fields as before.
@@ -371,4 +322,3 @@ useful -- an unexpected stop may alert you to a blank in your data.
 - **Paste values when you need the result rather than the formula.** Copy the cells and use
   **Paste Special → Values**. The pasted cells contain the resulting values rather than the
   formulas that produced them.
-

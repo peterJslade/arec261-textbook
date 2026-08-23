@@ -6,9 +6,18 @@
 source("_console.R")
 ```
 
-Data for one question often arrives in several tables. The Saskatchewan yield data from @sec-direct-download identifies rural municipalities and years. The weather data identifies stations and years. A third table says which weather station is closest to each RM.
+The data you need to answer one question often arrive in several tables. For example, suppose we wanted to understand the relationship between RM yields and precipitation. The yield data would come in one table, and the precipitation data would likely come in another. To answer our question, we would need to **merge** or **join** these tables.
 
-A **merge**, also called a **join**, matches rows that refer to the same thing and puts their columns together. In this chapter we will merge the three tables so that every RM-year has its crop yields and May to August precipitation in one row.
+Throughout this section, we will work with three datasets:
+
+- [`rm_yields_2015_2024.csv`](practice/data/rm_yields_2015_2024.csv), with one row per RM per year. It contains 2,950 rows for ten years and six crops. Yields are measured in bushels per acre.
+- [`station_precip.csv`](practice/data/station_precip.csv), with one row per weather station per year. It contains May to August precipitation for sixteen stations and a count of days with no reading.
+- [`rm_lookup.csv`](practice/data/rm_lookup.csv), with one row per RM. It contains the RM name, census division, 2021 population and the closest of the sixteen weather stations.
+
+We will do two merges:
+
+1. Merge the RM yields with the RM lookup. This will give us a dataset containing the closest weather station for each yield observation.
+2. Merge the dataset from step 1 with the weather station data. This will give us the growing-season precipitation for each observation.
 
 ## Learning Objectives {.unnumbered}
 
@@ -22,43 +31,86 @@ By the end of this chapter you should be able to:
 5. Check for unmatched rows and unexpected changes in the row count.
 :::
 
-## The Three Tables {#sec-three-tables}
-
-The files are:
-
-- [`rm_yields_2015_2024.csv`](practice/data/rm_yields_2015_2024.csv), with one row per RM per year. It contains 2,950 rows for ten years and six crops. Yields are measured in bushels per acre.
-- [`station_precip.csv`](practice/data/station_precip.csv), with one row per weather station per year. It contains May to August precipitation for sixteen stations and a count of days with no reading.
-- [`rm_lookup.csv`](practice/data/rm_lookup.csv), with one row per RM. It contains the RM name, census division, 2021 population and the closest of the sixteen weather stations.
-
-The yields table and rain table have no column in common. The lookup table connects them. We first attach a weather station to each yield row, then attach the rain recorded at that station in that year.
-
-The yields are the Government of Saskatchewan data described in @sec-direct-download, restricted to 2015–2024. The other two files were assembled for this course from public sources. `station_precip.csv` sums Environment and Climate Change Canada daily station observations from May 1 through August 31; `days_missing` records dates with no observation, and the total sums the days that were available. `rm_lookup.csv` combines RM names and 2021 population from Statistics Canada with the nearest station among the sixteen selected for the course. `station_km` records the resulting distance. These construction choices are part of the data's provenance, not facts supplied by either original file.
 
 ### Keys {.unnumbered}
 
-A **key** is a column, or a set of columns, used to identify and match rows. The key follows from what one row represents:
+A key is a column, or set of columns, used to identify and match rows across datasets. When we merge, we say that we merge on the key. The key must be present in both datasets.
 
-- A row in the yields table is one RM in one year, so its key is `RM` and `Year` together.
-- A row in the lookup table is one RM, so its key is `RM_Number`.
-- A row in the rain table is one station in one year, so its key is `Station` and `Year` together.
 
-The first merge uses RM number. The second uses station and year. Station alone is not enough because each station appears once in every year.
+In the three tables above, the keys for the two merges are:
+
+1. RM yields to RM lookup: RM.
+2. The resulting dataset to weather-station data: weather station and year.
 
 ### One-to-one, many-to-one and many-to-many {.unnumbered}
 
-The number of rows sharing a key determines what a join returns. @fig-join-types uses a table of student grades to show the three cases.
+There are three types of merges:
+
 
 ![Three kinds of merge. Each line connects a grades row to the row it matches.](images/join_types.svg){#fig-join-types}
 
-- **One-to-one (1:1).** Each key appears once in both tables. Grades and attendance both have one row per student-class, so the merged table has the same number of rows as either input.
-- **Many-to-one (n:1).** The key repeats in one table and is unique in the other. Several grade rows can share one professor. In our data, each RM has ten yield rows but only one lookup row. A many-to-one join should have the same number of rows as the table on the many side.
-- **Many-to-many (n:n).** The key repeats in both tables. Each row on one side matches every row with the same key on the other. If a class has two TAs, each grade row appears twice. If we join yields to rain by station but leave out year, each yield row matches ten years of rain.
+- **One-to-one (1:1).** Each key value appears once in both tables. Grades and attendance both have one row per student-class, so the merged table has the same number of rows as either input.
+- **Many-to-one (n:1).** Values in the key column may repeat in one dataset but are unique in the other. In this example, students take many classes, so each student appears multiple times in the table on the left. Each class has a single professor, however, so each class appears only once in the table on the right.
+- **Many-to-many (n:n).** Values in the key column repeat in both datasets. In the figure, students take multiple classes (the table on the left), and each class can have multiple teaching assistants (the table on the right).
 
 Before joining, decide which relationship you expect. Then compare the row counts before and after.
 
+Both of our merges will be many-to-one:
+
+1. The RM yields dataset contains many observations for the same RM, but the RM lookup contains only one row for each RM.
+2. The merged dataset from step 1 contains many observations with the same closest weather station and year, but the weather-station dataset contains only one observation for each station and year.
+
 ## Merging in Excel {#sec-merge-excel}
 
-In Excel, `XLOOKUP` can bring a column from one table into another (@sec-lookup). The **Merge** sheet in the workbook below contains thirty yield rows and the two lookup columns beside them. The `FORMULATEXT` column shows the precipitation formula, and the checks below the data count `#N/A` results.
+### A simple lookup {#sec-lookup .unnumbered}
+
+Data often arrive split across tables. You might have yields by field in one table and crop prices in another but need both pieces of information for your analysis. A lookup lets us use information in one table to bring a corresponding value into another.
+
+`XLOOKUP` lets us look up a value. It takes three main arguments: the value to find, the range to search and the range containing the value to return. For example:
+
+```
+=XLOOKUP(B11, $A$5:$A$7, $B$5:$B$7)
+```
+
+Excel searches `$A$5:$A$7` for the crop named in `B11`, finds its position and returns the value from the same position in `$B$5:$B$7`. Note the `$` signs: the crop being looked up changes from row to row, but the price table stays in place, so its ranges are locked.
+
+If there are multiple matches—for example, if Canola appears twice in the price list—`XLOOKUP` returns the value associated with the first match. The value you look up should therefore identify a unique observation in the lookup table.
+
+The workbook below has two tables: a short crop-price list at the top and the field data underneath. Column E uses `XLOOKUP` to find the price for each field's crop and bring it across, with the formula shown in column F.
+
+::: {.workbook-callout}
+::: {.excel-embed}
+<iframe width="402" height="700" frameborder="0" scrolling="no" src="https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7B1dc1b36e-393e-462b-b395-b6bd1fe4eae0%7D&action=embedview&wdAllowInteractivity=False&wdDownloadButton=True&wdInConfigurator=True"></iframe>
+:::
+
+[Download this workbook](textbook_examples/mod01_lookup.xlsx) · [blank version to fill in yourself](textbook_examples/mod01_lookup_practice.xlsx) · [Open online](https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7B1dc1b36e-393e-462b-b395-b6bd1fe4eae0%7D&action=default) (File → Save a Copy to view formulas and edit)
+:::
+
+::: {.callout-tip collapse="true"}
+## Other resources—lookup functions (VLOOKUP, XLOOKUP, INDEX/MATCH)
+
+- **Excel for Dummies** -- *Microsoft 365 Excel for Dummies*, the chapter on lookup and reference functions.
+- **Microsoft Support** -- [VLOOKUP](https://support.microsoft.com/en-us/office/vlookup-function-0bbc8083-26fe-4963-8ab8-93a18ad188a1), [XLOOKUP](https://support.microsoft.com/en-us/office/xlookup-function-b7fd680e-6d10-43e6-84f9-8818e00d0651), [INDEX](https://support.microsoft.com/en-us/office/index-function-a5dcf0dd-996d-40a4-a822-b56b061328bd), [MATCH](https://support.microsoft.com/en-us/office/match-function-e8dffd45-c762-47d6-bf89-533f4a37673a).
+- **Video (XLOOKUP)** -- Leila Gharani, [*How an Excel pro uses XLOOKUP*](https://www.youtube.com/watch?v=xnLvEhXWSas) (XLOOKUP vs VLOOKUP and INDEX/MATCH).
+- **Video (VLOOKUP for beginners)** -- Kevin Stratvert, [*VLOOKUP in Excel -- step-by-step tutorial*](https://www.youtube.com/watch?v=xIynD1gFOLo).
+- **Video (INDEX/MATCH)** -- Leila Gharani, [*The definitive guide to INDEX and MATCH*](https://www.youtube.com/watch?v=lCKglBM2jyk).
+:::
+
+### Looking up values with two keys {.unnumbered}
+
+Sometimes one column is not enough to identify a row uniquely. Suppose each row represents one rural municipality in one year. RM 1 appears once for every year in the dataset, so looking up RM 1 alone will return the first match. To identify a particular observation, we need both the RM and the year.
+
+One way to do this in Excel is to combine the two values into a single key and use that key for the lookup:
+
+```
+=XLOOKUP(1 & "|" & 2023, B2:B10650 & "|" & A2:A10650, E2:E10650)
+```
+
+Excel effectively creates identifiers such as `1|2023`, `1|2024` and `2|2023`, then looks for the one we requested. The `|` is a separator between the two pieces of information. Without a separator, different combinations can accidentally produce the same identifier. For example, 1 and 2023 would become `12023`, but so would 12 and 023.
+
+A lookup needs enough information to identify the observation you want uniquely. Sometimes one variable is enough; sometimes you need a combination of variables.
+
+The **Merge** sheet in the workbook below contains thirty yield rows and the two lookup columns beside them. The `FORMULATEXT` column shows the precipitation formula, and the checks below the data count `#N/A` results.
 
 The first lookup matches the RM number and returns its station. The second lookup needs station and year, so it joins the two values on each side with `& "|" &` to make a composite key. The shaded column deliberately leaves out year. It returns the first rain value for that station in the rain sheet—2015 here—for every year, without producing an error. These formulas require Microsoft 365's `XLOOKUP`, which University of Saskatchewan students can use through the university.
 
