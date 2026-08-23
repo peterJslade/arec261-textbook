@@ -555,8 +555,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#sec-api-r" id="toc-sec-api-r" class="nav-link" data-scroll-target="#sec-api-r"><span class="header-section-number">7.5.5</span> Calling an API</a></li>
   <li><a href="#sec-data-packages" id="toc-sec-data-packages" class="nav-link" data-scroll-target="#sec-data-packages"><span class="header-section-number">7.5.6</span> Packages that wrap an API</a></li>
   </ul></li>
-  <li><a href="#sec-validate-import" id="toc-sec-validate-import" class="nav-link" data-scroll-target="#sec-validate-import"><span class="header-section-number">7.6</span> Check It Arrived</a></li>
-  <li><a href="#sec-readme" id="toc-sec-readme" class="nav-link" data-scroll-target="#sec-readme"><span class="header-section-number">7.7</span> Say Where It Came From</a></li>
+  <li><a href="#sec-readme" id="toc-sec-readme" class="nav-link" data-scroll-target="#sec-readme"><span class="header-section-number">7.6</span> A final note on saving data</a></li>
   </ul>
 </nav>
     </div>
@@ -1167,67 +1166,18 @@ dbl (18): Year, RM, Winter Wheat, Canola, Spring Wheat, Mustard, Durum, Sunf...
 </section>
 <section id="sec-raw-copy" class="level3" data-number="7.5.4">
 <h3 data-number="7.5.4" class="anchored" data-anchor-id="sec-raw-copy"><span class="header-section-number">7.5.4</span> Keep a raw copy</h3>
-<p>Reading from the URL is fine for a look. It is not fine for a project because the file at that address can be revised or replaced; in this case, the RM data are updated at least once a year. Download the file into a raw-data folder, include the retrieval date in its filename and record where it came from.</p>
+<p>The file at a URL can be revised or replaced; in this case, the RM data are updated at least once a year. After reading the data, save a dated copy so that you retain the version used in your analysis.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the raw-data directory if it does not exist</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">dir.create</span>(<span class="st">"data/raw"</span>, <span class="at">recursive =</span> <span class="cn">TRUE</span>, <span class="at">showWarnings =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Record the retrieval date in the file name</span></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>raw_file <span class="ot">&lt;-</span> <span class="st">"data/raw/rm_yields_2026-08-22.csv"</span></span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Download the file only when the dated copy is absent</span></span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">file.exists</span>(raw_file)) {</span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Save the web response without opening or changing it</span></span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">download.file</span>(rm_yields_url, <span class="at">destfile =</span> raw_file, <span class="at">mode =</span> <span class="st">"wb"</span>)</span>
-<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the saved raw file</span></span>
-<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>rm_yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(raw_file)</span>
-<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the first six rows</span></span>
-<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(rm_yields)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Save a dated snapshot of the data in the project data folder</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">write_csv</span>(rm_yields, <span class="st">"data/rm_yields_2026-08-22.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
-<pre><code>&gt; # Create the raw-data directory if it does not exist
-&gt; dir.create("data/raw", recursive = TRUE, showWarnings = FALSE)
-&gt; 
-&gt; # Record the retrieval date in the file name
-&gt; raw_file &lt;- "data/raw/rm_yields_2026-08-22.csv"
-&gt; 
-&gt; # Download the file only when the dated copy is absent
-&gt; if (!file.exists(raw_file)) {
-+   # Save the web response without opening or changing it
-+   download.file(rm_yields_url, destfile = raw_file, mode = "wb")
-+ }
-&gt; 
-&gt; # Read the saved raw file
-&gt; rm_yields &lt;- read_csv(raw_file)
-Rows: 26197 Columns: 18
-── Column specification ────────────────────────────────────────────────────────
-Delimiter: ","
-dbl (18): Year, RM, Winter Wheat, Canola, Spring Wheat, Mustard, Durum, Sunf...
-
-ℹ Use `spec()` to retrieve the full column specification for this data.
-ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
-&gt; 
-&gt; # Print the first six rows
-&gt; head(rm_yields)
-# A tibble: 6 × 18
-   Year    RM `Winter Wheat` Canola `Spring Wheat` Mustard Durum Sunflowers
-  &lt;dbl&gt; &lt;dbl&gt;          &lt;dbl&gt;  &lt;dbl&gt;          &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;      &lt;dbl&gt;
-1  1938     1             NA     NA              4      NA    NA         NA
-2  1939     1             NA     NA              9      NA    NA         NA
-3  1940     1             NA     NA             12      NA    NA         NA
-4  1941     1             NA     NA             18      NA    NA         NA
-5  1942     1             NA     NA             20      NA    NA         NA
-6  1943     1             NA     NA             21      NA    NA         NA
-# ℹ 10 more variables: Oats &lt;dbl&gt;, Lentils &lt;dbl&gt;, Peas &lt;dbl&gt;, Barley &lt;dbl&gt;,
-#   `Fall Rye` &lt;dbl&gt;, `Canary Seed` &lt;dbl&gt;, `Spring Rye` &lt;dbl&gt;,
-#   `Tame Hay` &lt;dbl&gt;, Flax &lt;dbl&gt;, Chickpeas &lt;dbl&gt;</code></pre>
+<pre><code>&gt; # Save a dated snapshot of the data in the project data folder
+&gt; write_csv(rm_yields, "data/rm_yields_2026-08-22.csv")</code></pre>
 </div>
 </div>
 </div>
-<p>The script records how the data were obtained. The <code>if</code> statement downloads the file only on the first run; subsequent runs read the dated copy already on disk.</p>
+<p>The URL above records where the data came from, and the date in the filename records when this copy was obtained. If the online file changes later, this dated snapshot preserves the data used for the analysis. Strictly speaking, <code>write_csv()</code> saves the values after R has read them rather than preserving the exact original file, but it captures the important practice at this stage: keep the version you actually used.</p>
 </section>
 <section id="sec-api-r" class="level3" data-number="7.5.5">
 <h3 data-number="7.5.5" class="anchored" data-anchor-id="sec-api-r"><span class="header-section-number">7.5.5</span> Calling an API</h3>
@@ -1342,14 +1292,20 @@ user-agent: httr2/1.3.0 r-curl/7.1.0 libcurl/8.5.0
 </section>
 <section id="sec-data-packages" class="level3" data-number="7.5.6">
 <h3 data-number="7.5.6" class="anchored" data-anchor-id="sec-data-packages"><span class="header-section-number">7.5.6</span> Packages that wrap an API</h3>
-<p>Where a package exists for the provider, it can build the request and unpack the JSON for us. The <strong>openmeteo</strong> package provides <code>weather_history()</code>, which accepts the same location, dates, variable and time zone used in the request above.</p>
-<p>The package is not on CRAN, so install it from GitHub once. Installation code is not evaluated when the book renders:</p>
+<p>Getting data from an API (as above) is a bit of work. We need to get the JSON data and then parse it ourselves. For many APIs a developer has created a package that allows you to call the API and obtain the data directly in a data frame.</p>
+<p>As mentioned above, the <strong>openmeteo</strong> package is one example. When you load this package you can use the function <code>weather_history()</code> to directly download data. As with all functions, if you want to understand the arguments that you need to supply to weather history type <code>?weather_history</code> in your console. In this case you will see that you need to supply at least three arguments, start, end and either hourly or daily:</p>
+<ul>
+<li><p>start, end: Required. Start and end dates in ISO 8601 (e.g.&nbsp;“2020-12-31”).</p></li>
+<li><p>hourly, daily: At least one required. A weather variable accepted by the API, or list thereof. Details provided in the help description.</p></li>
+</ul>
+<p>Additionally, you can supply the units you want the data in (e.g., “mm” or “cm”) and the timezone the hours/days refer to.</p>
+<p>Once again we can install the package using the following code:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Install remotes from CRAN</span></span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">"remotes"</span>)</span>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Install openmeteo from GitHub</span></span>
 <span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"tpisel/openmeteo"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>After installation, one function call returns a data frame:</p>
+<p>After installation, one function call returns a data frame with the Saskatoon precipitaiton data for May 2024:</p>
 <div class="cell">
 <div class="cell-output-display">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the Open-Meteo API wrapper</span></span>
@@ -1392,112 +1348,18 @@ user-agent: httr2/1.3.0 r-curl/7.1.0 libcurl/8.5.0
 </div>
 </div>
 </div>
-<p>The package hides the request-building and JSON-unpacking steps, but it does not freeze the data. Running the same call later may return revised values, so save a dated raw copy when the exact version matters (<a href="#sec-raw-copy" class="quarto-xref"><span>Section 7.5.4</span></a>).</p>
 </section>
 </section>
-<section id="sec-validate-import" class="level2" data-number="7.6">
-<h2 data-number="7.6" class="anchored" data-anchor-id="sec-validate-import"><span class="header-section-number">7.6</span> Check It Arrived</h2>
-<p>A successful import means the software read something. Before using it, look at whether it read the right thing. In R:</p>
-<div class="cell">
-<div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Show the ticket table dimensions, types and example values</span></span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(tickets)</span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a><span class="co"># List any values that failed to parse</span></span>
-<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a><span class="fu">problems</span>(tickets)</span>
-<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Summarize each ticket column</span></span>
-<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(tickets)</span>
-<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Count repeated ticket identifiers</span></span>
-<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>tickets <span class="sc">|&gt;</span></span>
-<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(ticket_id) <span class="sc">|&gt;</span></span>
-<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(n <span class="sc">&gt;</span> <span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="console-transcript">
-<pre><code>&gt; # Show the ticket table dimensions, types and example values
-&gt; glimpse(tickets)
-Rows: 20
-Columns: 7
-$ ticket_id     &lt;chr&gt; "00001", "00002", "00003", "00004", "00005", "00006", "0…
-$ permit_book   &lt;chr&gt; "4520134343304084", "4520833436837604", "452023500946908…
-$ lot_code      &lt;chr&gt; "3-2", "5-13", "2-10", "9-27", "8-24", "6-24", "2-21", "…
-$ delivery_date &lt;date&gt; 2025-10-27, 2025-09-14, 2025-08-23, 2025-10-15, 2025-10…
-$ crop          &lt;chr&gt; "Barley", "Spring Wheat", "Canola", "Canola", "Durum", "…
-$ weight_tonnes &lt;dbl&gt; 24.3, 24.0, 28.4, 18.9, 21.6, 30.2, 38.9, 37.8, 28.3, 23…
-$ postal_code   &lt;chr&gt; "S0H 0A0", "S9H 4K5", "S0H 0A0", "S9H 4K5", "S0H 0A0", "…
-&gt; 
-&gt; # List any values that failed to parse
-&gt; problems(tickets)
-# A tibble: 0 × 5
-# ℹ 5 variables: row &lt;int&gt;, col &lt;int&gt;, expected &lt;chr&gt;, actual &lt;chr&gt;, file &lt;chr&gt;
-&gt; 
-&gt; # Summarize each ticket column
-&gt; summary(tickets)
-     ticket_id     permit_book      lot_code  delivery_date       
- Length   :20   Length   :20   Length   :20   Min.   :2025-08-11  
- N.unique :20   N.unique :20   N.unique :19   1st Qu.:2025-08-22  
- N.blank  : 0   N.blank  : 0   N.blank  : 0   Median :2025-09-17  
- Min.nchar: 5   Min.nchar:16   Min.nchar: 3   Mean   :2025-09-16  
- Max.nchar: 5   Max.nchar:16   Max.nchar: 5   3rd Qu.:2025-10-09  
-                                              Max.   :2025-10-27  
-        crop    weight_tonnes      postal_code
- Length   :20   Min.   :18.90   Length   :20  
- N.unique : 5   1st Qu.:24.23   N.unique : 3  
- N.blank  : 0   Median :28.70   N.blank  : 0  
- Min.nchar: 5   Mean   :28.96   Min.nchar: 7  
- Max.nchar:12   3rd Qu.:32.30   Max.nchar: 7  
-                Max.   :40.50                 
-&gt; 
-&gt; # Count repeated ticket identifiers
-&gt; tickets |&gt;
-+   count(ticket_id) |&gt;
-+   filter(n &gt; 1)
-# A tibble: 0 × 2
-# ℹ 2 variables: ticket_id &lt;chr&gt;, n &lt;int&gt;</code></pre>
-</div>
-</div>
-</div>
-<p>That covers the dimensions and types, the values that failed to parse, the minimums and maximums, and whether the column that should identify a row does. Add to it: do the dates and the geography cover what you expected, are the units explicit, and do a handful of rows agree with what the provider’s website shows?</p>
-<p>In Power Query, turn on <strong>View &gt; Column quality</strong>, <strong>Column distribution</strong>, and <strong>Column profile</strong>. Failed type conversions appear as Error; empty, distinct, and unique counts help find missing values and duplicate identifiers. After loading, the same basic checks are the row count, a filter on the identifier, <code>MIN</code>, <code>MAX</code>, and <code>COUNTBLANK</code>. The full tour of what goes wrong in the values is <a href="module03c.html" class="quarto-xref"><span>Chapter 9</span></a>.</p>
-</section>
-<section id="sec-readme" class="level2" data-number="7.7">
-<h2 data-number="7.7" class="anchored" data-anchor-id="sec-readme"><span class="header-section-number">7.7</span> Say Where It Came From</h2>
-<p>Keep raw data apart from anything derived from it:</p>
+<section id="sec-readme" class="level2" data-number="7.6">
+<h2 data-number="7.6" class="anchored" data-anchor-id="sec-readme"><span class="header-section-number">7.6</span> A final note on saving data</h2>
+<p>When building your project folder it is best practice to keep data seperate from code. It is also best to store raw data seperately from cleaned and processed data. The raw data is never edited by you.</p>
 <pre><code>project/
   data/
     raw/          files exactly as retrieved, never edited
     processed/    written by scripts
   R/
   README.md</code></pre>
-<p>Never edit the only copy of a raw file. If a value must be corrected, correct it in code, or in a recorded Power Query step, where the change is visible.</p>
-<p>Every project gets a <code>README.md</code> at the top, saying what the project is and where each dataset came from. It does not need to be long, but it needs the provider, the page the data was found on, the direct link or endpoint and its parameters, the unit of observation, the units, the retrieval date, and the name of the raw file.</p>
-<pre><code># Canola yields and growing-season rain
-
-Question: do Saskatchewan canola yields move with May-August rainfall?
-
-## Data
-
-data/raw/rm_yields_2026-08-21.csv
-  Government of Saskatchewan dashboard, https://dashboard.saskatchewan.ca/agriculture
-  Direct file: https://dashboard.saskatchewan.ca/export/rm-yields-data/4950.csv
-  Retrieved 2026-08-21. One row per RM per year. Annual estimates produced
-  from Ministry crop-report and Saskatchewan Crop Insurance Corporation data.
-  Bushels per acre (from the dashboard page; not in the file). Values are
-  published only where there are no confidentiality concerns; blanks are not
-  identified more specifically in the download.
-
-data/raw/saskatoon_weather_2026-08-21.json
-  Open-Meteo historical weather API, endpoint
-  https://archive-api.open-meteo.com/v1/archive
-  Parameters: latitude 52.13, longitude -106.67, daily precipitation_sum,
-  2024-05-01 to 2024-08-31, timezone America/Regina
-  Retrieved 2026-08-21. Millimetres. Modelled, not a station observation.
-
-## Scripts
-
-R/01_get_data.R   fetches both sources and writes data/raw/
-R/02_prepare.R    checks, reshapes and merges them</code></pre>
-<p>The retrieval date is doing real work. Agencies revise estimates, dashboards replace files, APIs change. A file called <code>yields_final.csv</code> with no provenance is close to useless a year later: you cannot tell which release it is, whether you already cleaned it, or whether the numbers were revised after you downloaded them.</p>
+<p>Then in the README.md you can log the provenance of each dataset.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
