@@ -217,7 +217,10 @@ In R the whole acquisition is a script: the path or address, the parameters, the
 
 The tidyverse functions come from **readr**. The two files used here are the same ones used in the Excel examples above:
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
 library(tidyverse)
 
 tickets <- read_csv(
@@ -233,6 +236,7 @@ tickets_eu <- read_delim(
 tickets_eu |>
   select(ticket_id, weight_tonnes) |>
   slice_head(n = 3)
+')
 ```
 
 `locale()` is how R is told about a European file: the decimal mark, and if needed the date format and the encoding.
@@ -252,7 +256,10 @@ date (1): delivery_date
 
 R did better than a double-click: `ticket_id` kept its zeros and `lot_code` stayed text. It still read `permit_book` as a number, prints it as `4.52e15`, and has already lost its last digits. The same rule applies as in Excel: identifiers are text, and the way to say so is `col_types`.
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
 tickets <- read_csv(
   "practice/data/elevator_tickets.csv",
   col_types = cols(
@@ -262,13 +269,17 @@ tickets <- read_csv(
     delivery_date = col_date("%Y-%m-%d")
   )
 )
+')
 ```
 
 Columns not named in `cols()` are still guessed. For a file you read repeatedly, stating the important types is worth doing: it documents what you expect, and when the file changes, the mismatch shows up at the read rather than three steps later when a summary comes back wrong. After checking all seven types, the compact equivalent is `col_types = "cccDcdc"`. Add `show_col_types = FALSE` only after you have made those choices explicit.
 
 A value that does not fit the stated type does not stop the script. R puts in `NA`, warns, and records the problem, and `problems()` lists what it recorded. `grain_deliveries_messy.csv`, the file @sec-cleaning works through, has one weight typed with its unit:
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
 deliveries <- read_csv(
   "practice/data/grain_deliveries_messy.csv",
   col_types = cols(
@@ -276,31 +287,33 @@ deliveries <- read_csv(
   )
 )
 problems(deliveries)
-```
-
-```
-# A tibble: 1 × 5
-    row   col expected actual file
-  <int> <int> <chr>    <chr>  <chr>
-1    42     4 a double 38.2 t practice/data/grain_deliveries_messy.csv
+')
 ```
 
 Without the stated type that one cell would have turned the whole column into text. With it, the column is numeric and the read told you where parsing failed. The `row` reported by `problems()` is the line in the file, including the header; filter the imported data to find the affected record:
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
 deliveries |>
   filter(is.na(weight_tonnes))
+')
 ```
 
 Fixing the value is @sec-cleaning.
 
 The guess goes wrong the other way too. A numeric column with one `"N/A"` in it comes in as text, and `mean()` fails on it. If the file has known missing-value codes, say so:
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
 deliveries <- read_csv(
   "practice/data/grain_deliveries_messy.csv",
   na = c("", "NA", "N/A", "..")
 )
+')
 ```
 
 Check what the codes mean in the documentation first. In [Statistics Canada's symbol legend](https://www.statcan.gc.ca/en/concepts/definitions/guide-symbol), `..` means not available for a reference period, `x` means suppressed for confidentiality, `E` marks a published estimate that should be used with caution, and `F` means too unreliable to publish. They are not all the same kind of missing.
@@ -311,23 +324,27 @@ Check what the codes mean in the documentation first. In [Statistics Canada's sy
 
 The package is **readxl**. It installs with the tidyverse but is not loaded by `library(tidyverse)`, so load it separately. Check the sheets before reading, because `read_excel()` takes the first one unless told otherwise:
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
 library(readxl)
 
 excel_sheets("practice/data/sask_barley_2025.xlsx")
-```
-
-```
-[1] "README"      "Barley_2025"
+')
 ```
 
 The first sheet is a page of notes. Ask for the one you want, by name or number:
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
 barley <- read_excel(
   "practice/data/sask_barley_2025.xlsx",
   sheet = "Barley_2025"
 )
+')
 ```
 
 `read_excel()` guesses column types the same way `read_csv()` does, takes `col_types` the same way, and the same checks apply.
@@ -336,18 +353,26 @@ barley <- read_excel(
 
 Spreadsheets built by people usually have something above the table: a title, a note about units, a blank row. R takes the first row as column names regardless, and what comes back looks like this:
 
-```
-# A tibble: 42 × 3
-  `Saskatchewan Barley Varieties — 2025 (provincial)` ...2  ...3
-  <chr>                                                   <chr> <chr>
-1 Acres = total across all risk zones · Yield = ...       NA    NA
-2 NA                                                      NA    NA
-3 Variety                                                 Acres Yield (bu/ac)
+```{r}
+#| eval: true
+#| echo: false
+console('
+barley_unskipped <- read_excel(
+  "practice/data/sask_barley_2025.xlsx",
+  sheet = "Barley_2025"
+)
+
+barley_unskipped |>
+  slice_head(n = 3)
+')
 ```
 
 Column names like `...2` and a first row of `NA` mean the real header is further down. Count the rows above it and skip them, or, for a layout that does not change, name the range:
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
 barley <- read_excel(
   "practice/data/sask_barley_2025.xlsx",
   sheet = "Barley_2025",
@@ -358,6 +383,7 @@ barley <- read_excel(
   "practice/data/sask_barley_2025.xlsx",
   range = "Barley_2025!A4:C36"
 )
+')
 ```
 
 `read_csv()` takes `skip` too. Print the object after reading it either way; the shape of what comes back is the quickest check that you read the right thing.
@@ -366,22 +392,15 @@ barley <- read_excel(
 
 `read_csv()` accepts a URL in place of a path, so the RM yields can be read straight from the dashboard:
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
 rm_yields_url <- "https://dashboard.saskatchewan.ca/export/rm-yields-data/4950.csv"
 
 rm_yields <- read_csv(rm_yields_url)
 glimpse(rm_yields)
-```
-
-```
-Rows: 26,197
-Columns: 18
-$ Year           <dbl> 1938, 1939, 1940, 1941, 1942, 1943, 1944, 1945, …
-$ RM             <dbl> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, …
-$ `Winter Wheat` <dbl> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-$ Canola         <dbl> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-$ `Spring Wheat` <dbl> 4, 9, 12, 18, 20, 21, 20, 16, 13, 15, 16, 18, 18, …
-...
+')
 ```
 
 One row per RM per year, one column per crop. The column names have spaces, which is why `Winter Wheat` prints in backticks; `clean_names()` (@sec-clean-names) deals with that. The table is wide where most of what we do later wants it long, one row per RM-year-crop, which is @sec-reshaping.
@@ -392,7 +411,10 @@ The [dashboard's RM-yields page](https://dashboard.saskatchewan.ca/agriculture/r
 
 Reading from the URL is fine for a look. It is not fine for a project, because the file at that address can be revised or replaced, and then the script gives different answers or stops working. The habit is to download once, into a folder for raw data, with the date in the filename, and read from the copy:
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
 dir.create("data/raw", recursive = TRUE, showWarnings = FALSE)
 
 raw_file <- file.path("data", "raw", "rm_yields_2026-08-21.csv")
@@ -402,6 +424,7 @@ if (!file.exists(raw_file)) {
 }
 
 rm_yields <- read_csv(raw_file)
+')
 ```
 
 The script records how the data was obtained. The fixed, dated filename records what was obtained, and the guard prevents a later run from silently replacing it. When intentionally retrieving a new release, choose a new retrieval date and filename. A preparation script should read the named file used for the analysis rather than whichever file happens to be newest.
@@ -410,7 +433,10 @@ The script records how the data was obtained. The fixed, dated filename records 
 
 The **httr2** package builds a request one part at a time, which makes the parts visible. The Open-Meteo request from @sec-apis:
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
 library(httr2)
 
 weather_request <- request("https://archive-api.open-meteo.com/v1/archive") |>
@@ -428,17 +454,17 @@ req_dry_run(weather_request)
 weather_response <- req_perform(weather_request)
 
 resp_status(weather_response)
-```
-
-```
-[1] 200
+')
 ```
 
 `request()` names the endpoint, `req_url_query()` adds and encodes the parameters, and `req_dry_run()` lets you inspect the request before sending it. `req_perform()` sends it and already stops on an HTTP error such as `400` or `404`; `resp_status()` reports the successful response's code.
 
 The body is JSON. `resp_body_json()` turns it into nested R lists, and `tibble()` picks out the two lists we want:
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
 weather_json <- resp_body_json(weather_response, simplifyVector = TRUE)
 
 saskatoon_rain <- tibble(
@@ -447,17 +473,7 @@ saskatoon_rain <- tibble(
 )
 
 saskatoon_rain
-```
-
-```
-# A tibble: 5 × 2
-  date       precipitation_mm
-  <date>                <dbl>
-1 2024-05-01              7.5
-2 2024-05-02              4.1
-3 2024-05-03              2.8
-4 2024-05-04              3
-5 2024-05-05              0
+')
 ```
 
 Every API's JSON is shaped differently. The first time you use one, run `str(weather_json)` and read the provider's documentation rather than guessing field names. Save the raw response too, with `writeLines(resp_body_string(weather_response), "data/raw/saskatoon_2024-05.json")`, for the same reason as the raw CSV.
@@ -466,11 +482,15 @@ Every API's JSON is shaped differently. The first time you use one, run `str(wea
 
 Where a package exists for the provider, it does the request-building and the JSON-unpacking for you. Most Canadian agricultural data starts at Statistics Canada, and the package is **cansim**. Table 32-10-0359-01 is the principal field crops table, and this fetches it:
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
 library(cansim)
 
 field_crops <- get_cansim("32-10-0359-01")
 glimpse(field_crops)
+')
 ```
 
 If you do not know the table number, `search_cansim_cubes("field crop yield")` searches the catalogue, and `get_cansim_table_overview("32-10-0359")` prints what a table contains before you download it.
@@ -479,13 +499,17 @@ The website route is to find the table, use **Add/Remove data** to choose years,
 
 What comes back still needs the usual work. The column names have spaces and capitals, so `clean_names()`. The data is long, one row per year-geography-commodity, so filter:
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
 library(janitor)
 
 sask_wheat <- field_crops |>
   clean_names() |>
   filter(geo == "Saskatchewan",
          harvest_disposition == "Average yield (kilograms per hectare)")
+')
 ```
 
 The category names differ by table; `count()` on the columns shows what a new one holds.
@@ -511,7 +535,10 @@ The parameter names take some finding. Build the query on the [QuickStats websit
 
 A successful import means the software read something. Before using it, look at whether it read the right thing. In R:
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
 glimpse(tickets)
 problems(tickets)
 summary(tickets)
@@ -519,6 +546,7 @@ summary(tickets)
 tickets |>
   count(ticket_id) |>
   filter(n > 1)
+')
 ```
 
 That covers the dimensions and types, the values that failed to parse, the minimums and maximums, and whether the column that should identify a row does. Add to it: do the dates and the geography cover what you expected, are the units explicit, and do a handful of rows agree with what the provider's website shows?
