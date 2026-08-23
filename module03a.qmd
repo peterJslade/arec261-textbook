@@ -276,17 +276,11 @@ problems(deliveries)
 
 We can also read Excel files directly in R using the package **readxl**. It installs with the tidyverse but is not loaded by `library(tidyverse)`, so load it separately.  Excel workbooks can have many sheets -- but defauly `readxl` will reade the first one, but we can direct it to read a different sheet using the sheet argument, which takes either the name of the sheet or an integer equal to the position of the sheet in the workbook (e.g., 2 for second sheet).
 
-```{r}
-#| eval: true
-#| echo: false
-console('
-library(readxl)
+Spreadsheets built by people often have something above the table: a title, a note about units, a blank row. R takes the first row as column names regardless.  We can tell R to skip a certain number of lines using the `skip` argument.
 
-excel_sheets("practice/data/sask_barley_2025.xlsx")
-')
-```
+The code below shows how to read in the barley data.  The first  attempts to read in the data return nonesense because the first reads the first sheet of the worksheet, not the data data table, the seonc ddoe't skip the first three rows. The third row gives us the data that we want.
 
-The first sheet is a page of notes. Ask for the one you want, by name or number:
+
 
 ```{r}
 #| eval: true
@@ -298,6 +292,7 @@ barley_first_sheet <- read_excel(
   "practice/data/sask_barley_2025.xlsx"
 )
 
+##Print first few rows
 head(barley_first_sheet)
 
 ## Read in the sheet "Barley_20205" from sask_barley_20205
@@ -306,55 +301,32 @@ barley_no_skip <- read_excel(
   sheet = "Barley_2025"
 )
 
+##Print first few rows
 head(barley_no_skip)
 
 ## Read in the sheet "Barley_20205" from sask_barley_2025, skipping the first three rows
-barley_no_skip <- read_excel(
-  "practice/data/sask_barley_2025.xlsx",
-  sheet = "Barley_2025"
-)
-
-##Print first few rows
-head(barley_no_skip)
-')
-```
-
-`read_excel()` guesses column types the same way `read_csv()` does, takes `col_types` the same way, and the same checks apply.
-
-### When the header is not on row 1 {#sec-skip-rows}
-
-Spreadsheets built by people often have something above the table: a title, a note about units, a blank row. R takes the first row as column names regardless, and what comes back looks like this:
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-barley_unskipped <- read_excel(
-  "practice/data/sask_barley_2025.xlsx",
-  sheet = "Barley_2025"
-)
-
-barley_unskipped |>
-  slice_head(n = 3)
-')
-```
-
-Column names like `...2` and a first row of `NA` mean the real header is further down. Count the rows above it and skip them, or, for a layout that does not change, name the range:
-
-```{r}
-#| eval: true
-#| echo: false
-console('
 barley <- read_excel(
   "practice/data/sask_barley_2025.xlsx",
   sheet = "Barley_2025",
-  skip = 3
+  skip=3
 )
 
+##Print first few rows
+head(barley)
+')
+```
+
+An alternative to skip is to specify the range of cells that we want to import.  This can be handy for ignoring both rows and columns.
+```{r}
+#| eval: true
+#| echo: false
+console('
 barley <- read_excel(
   "practice/data/sask_barley_2025.xlsx",
   range = "Barley_2025!A4:C36"
 )
+
+head(barley)
 ')
 ```
 
