@@ -3,6 +3,7 @@
 ```{r}
 #| include: false
 #| eval: true
+# Load the helper that prints executed code as a console transcript
 source("_console.R")
 ```
 
@@ -50,9 +51,9 @@ Some data you make yourself: a field trial, a survey, a sensor, the records from
 - **Drought.** The [Canadian Drought Monitor](https://agriculture.canada.ca/en/agricultural-production/weather/canadian-drought-monitor), monthly maps and data.
 - **Outside Canada.** USDA's [QuickStats](https://quickstats.nass.usda.gov/) for the US, [FAOSTAT](https://www.fao.org/faostat/en/) for the world, the [World Bank](https://data.worldbank.org/) for anything macroeconomic.
 
-It is best practice to obtain data directly from the agency that produces it.  A chart in a news story is a good way to discover that a dataset exists; the agency's table is the thing to download.
+It is best practice to obtain data directly from the agency that produces it. A chart in a news story is a good way to discover that a dataset exists; the agency's table is the thing to download.
 
-## Downloading data
+## Downloading Data
 
 In this course, we will obtain data in four ways.
 
@@ -63,20 +64,20 @@ In this course, we will obtain data in four ways.
 | API | Send a structured request to a server | Usually JSON, sometimes CSV | Selecting exactly what you want; anything automated |
 | Package | Call an R function that builds the request and tidies the answer | A data frame | Providers with a maintained package |
 
-Manual downloads and direct file links are fairly self-explanatory.  For example, if we want to download data on seeded acres in each province we can visit this link <https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=3210035901>, customize the table, and click "Download options".
+Manual downloads and direct file links are fairly self-explanatory. For example, if we want data on seeded acres in each province, we can visit [Statistics Canada table 32-10-0359-01](https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=3210035901), customize the table and click **Download options**.
 
 ![Statistics Canada table 32-10-0359-01. **Customize table** chooses the harvest disposition and years; **Download options** saves the result as a CSV.](images/statcan_download_options.png){#fig-statcan-download .screenshot}
 
-If we want to download yields for each RM in Saskatchewan, we can get that from the provincial Ministry of Agriculture.  You can get the data directly from this link: <https://dashboard.saskatchewan.ca/export/rm-yields-data/4950.csv> (see this website for more details on the data: <https://dashboard.saskatchewan.ca/business-economy/business-industry-trade/crop-production>).  
+If we want yields for each RM in Saskatchewan, we can get them from the provincial Ministry of Agriculture. The [direct link downloads the CSV](https://dashboard.saskatchewan.ca/export/rm-yields-data/4950.csv); the [crop production dashboard](https://dashboard.saskatchewan.ca/business-economy/business-industry-trade/crop-production) provides more information about the data.
 
 You may not yet have encountered the latter two options: APIs and software packages.
 
 ### APIs {#sec-apis}
 An **API** (application programming interface) is a documented way for one program to ask another for data. Your program sends a request that says what it wants, and the server sends back a response containing just that. The request is a line of text, so it is recorded, repeatable, and easy to change.
 
-For a simple data API the request is a URL with the choices written into it. For example, to obtain precipitation data for May 1 to May 5, 2024 we can use this url: <https://archive-api.open-meteo.com/v1/archive?latitude=52.13&longitude=-106.67&start_date=2024-05-01&end_date=2024-05-05&daily=precipitation_sum&timezone=America/Regina>.  
+For a simple data API, the request is a URL with the choices written into it. For example, to obtain precipitation data for May 1 to May 5, 2024, we can use this URL: <https://archive-api.open-meteo.com/v1/archive?latitude=52.13&longitude=-106.67&start_date=2024-05-01&end_date=2024-05-05&daily=precipitation_sum&timezone=America/Regina>.
 
-This url might originally appear somewhat complex but if we break it down into its components, it becomes easy to parse.  With some linebreaks it is:
+The URL looks complex, but it is easier to parse when broken into its components:
 
 ```
 https://archive-api.open-meteo.com/v1/archive
@@ -88,7 +89,7 @@ https://archive-api.open-meteo.com/v1/archive
     &timezone=America/Regina
 ```
 
-The first line is the **endpoint** for Open-Meteo.  All of the lines after the question mark are query parameters. The second and third line contain the longitude and latitude, the fourth and fifth lines contain the start and end date, the sixth line contains the type of data that we want -- in this case daily precipitation, and the seventh line contains the timezone.  You can change any of these query parameters to get a different set of data.  This website explains the type of parameters you can employ: 
+The first line is the **endpoint** for Open-Meteo. Everything after the question mark consists of query parameters. The first two parameters contain the latitude and longitude, the next two contain the start and end dates, the sixth line requests daily precipitation, and the final line sets the time zone. Changing these parameters requests different data. The [Open-Meteo documentation](https://open-meteo.com/en/docs/historical-weather-api) lists the available parameters.
 
 If the request succeeds the server answers with a status code, `200`, and a body. Data APIs mostly answer in **JSON**, a text format that nests values under labels rather than laying them out as rows and columns. The answer to our above request is:
 
@@ -107,7 +108,7 @@ If the request succeeds the server answers with a status code, `200`, and a body
     "precipitation_sum":[7.50,4.10,2.80,3.00,0.00]}}
 ```
 
-Again, I've added line breaks to make this parsable.  The important output is the last line that tells us that daily precipitation was 7.50mm on May 1, 4.10 on May 2 and so on. 
+The line breaks are only for readability. The final line tells us that daily precipitation was 7.5 mm on May 1, 4.1 mm on May 2 and so on.
 
 If the request fails the status code says roughly why: `400` is a malformed request, `401` or `403` a permissions problem, `404` nothing at that address, `500` the server's fault. Leave `longitude` out of the request above and Open-Meteo answers `400`.
 
@@ -115,37 +116,7 @@ Many APIs ask for a **key**, a free password that identifies who is asking, whic
 
 Two other API issues you may encounter. Some APIs return only the first page of a large result and expect you to ask for the rest. Most limit how many requests you can make in a minute. And rerunning the same request later can return different numbers, because the provider revised them, which is why the raw copy in @sec-raw-copy matters as much for an API as for a file.
 
-### Using R packages
-
-Directly using APIs can be challenging for the issues listed above.  Also, it returns data in a not so easy to parse JSON file. Converting the output from Open Meteo above into R is a bit challenging, and putting it into Excel is even more so.  
-
-Fortunately, for many APIs an R package exists.  These packages act as a wrapper for the API.  Typically, they provide a simple function in which you specify the query parameters, and it returns a data.frame for you.  For example, we can use the openmeteo R package to obtain the same data that we found above.
-
-The package is not on CRAN, so it is installed from GitHub once:
-
-```r
-install.packages("remotes")
-remotes::install_github("tpisel/openmeteo")
-```
-
-Then one function call does what the URL did:
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-library(openmeteo)
-
-saskatoon_rain <- weather_history(c(52.13, -106.67),
-                                  start    = "2024-05-01",
-                                  end      = "2024-05-05",
-                                  daily    = "precipitation_sum",
-                                  timezone = "America/Regina")
-saskatoon_rain
-')
-```
-
-The latitude and longitude, the dates and the variable are the same query parameters as before; the package builds the URL, sends the request and turns the JSON into a data frame.
+Direct API requests can be difficult because the response is often nested JSON. An R package can wrap the request and return a data frame; the `openmeteo` example in @sec-data-packages uses the same parameters as this URL.
 
 ## Getting Data Into Excel {#sec-excel-getting}
 
@@ -159,16 +130,16 @@ A **CSV** (comma-separated values) file is plain text. Each line is a row and co
 
 ### What double-clicking a CSV does {#sec-csv-excel}
 
-Download [`elevator_tickets.csv`](practice/data/elevator_tickets.csv), twenty grain delivery tickets.  Try opening in Excel directly.  When you do this Excel will try to be helful and assign formatting to the columns.  You should get a pop up that looks like Figure XX
+Download [`elevator_tickets.csv`](practice/data/elevator_tickets.csv), which contains twenty grain-delivery tickets, and open it directly in Excel. Excel tries to be helpful by assigning types to the columns. On current versions of Excel for Mac, you should see the warning in Figure @fig-csv-doubleclick.
 
-INSERT SCREENSHOT
+![Excel warns that it will remove leading zeros and convert large numbers to scientific notation.](images/csv_doubleclick.png){#fig-csv-doubleclick .screenshot}
 
-By clicking OK you are consenting to two operations:
+By clicking **Convert**, you are accepting two operations:
 
 - Leading zeros disappear. `00451` becomes `451`, and an RM number or a postal code loses its shape.
 - Long numbers turn into scientific notation. A 16-digit account number displays as `1.23E+15`, and the last digits are rounded away for good.
 
-After doing this we can see that the IDs become quite different.   Also, note that Excel interpreted our lot codes as dates.
+After the conversion, the identifiers look quite different. Excel also interpreted the lot codes as dates.
 
 <!-- Public view-only link expires 2026-11-20 under the USask 90-day policy. -->
 ::: {.workbook-callout}
@@ -182,7 +153,7 @@ After doing this we can see that the IDs become quite different.   Also, note th
 :::
 :::
 
-There are two issues here.  First, these formatting decisions are wrong, and we would need to correct them.  Second, even if we correct them we have no record of doing so.  If we are doing a quick calculation maybe this is fine -- we can just save the result as a .xlsx file.  But best practice is to log how we inputted the data.  We can do this through a Power Query/.
+There are two issues. First, the conversions are wrong and have to be corrected. Second, correcting them by hand leaves no record of what we did. For a quick calculation we could save the result as an `.xlsx` file, but Power Query records the import steps and can repeat them.
 
 
 ### Power Query {#sec-power-query}
@@ -196,17 +167,27 @@ For the tickets file:
 3. Press **Transform Data** rather than **Load**. In the editor, use each column header's type icon to set `ticket_id`, `permit_book` and `lot_code` to Text, `delivery_date` to Date, and `weight_tonnes` to Decimal Number.
 4. Choose **Close & Load**. Save the workbook as `.xlsx`, which keeps the query; saving as CSV throws it away.
 
-Insert three screenshots
+![On Excel for Mac, the Power Query import starts under **Data > Get Data (Power Query)**.](images/csv_getdata_menu.png){#fig-csv-getdata-menu .screenshot}
 
-<!-- Screenshot: the Power Query editor for elevator_tickets.csv, with the ticket_id column type menu open showing Text.
-![The Power Query editor. Set `ticket_id`, `permit_book` and `lot_code` to Text before loading.](images/csv_getdata.png){#fig-csv-getdata .screenshot}
--->
+![Set **Data type detection** to **Do not detect data types** before transforming the file.](images/csv_type_detection.png){#fig-csv-type-detection .screenshot}
+
+![In the Power Query editor, change identifier columns such as `ticket_id` to Text.](images/csv_type_text.png){#fig-csv-type-text .screenshot}
 
 After loading, check it. The number of rows and columns is what you expected; the identifiers kept their zeros and all their digits; the dates cover the right period; the numbers are numbers; blanks did not become zeros.
 
-INSERT EMEBED embed of elevetor_tickets.correct.xslx
+<!-- Public view-only link expires 2026-11-20 under the USask 90-day policy. -->
+::: {.workbook-callout}
+::: {.callout-tip collapse="false" title="Workbook: elevator_tickets_correct.xlsx after importing with Power Query"}
 
-Note that we can download directly from the web through a direct download or API using the **From Web** option in the Power Query initial menu on a PC -- this option isn't available on Apple machines.  I find the whole interfact pretty clunky even on a PC.  We won't explore this functionality in this course -- it will prove much easier to access APIs through R -- particularly when there is a package.
+::: {.excel-embed}
+<iframe width="402" height="346" frameborder="0" scrolling="no" src="https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc={7b90e7fd-5317-49ea-a2f9-0c5c25f6087b}&action=embedview&wdAllowInteractivity=False&wdHideGridlines=True&wdHideHeaders=True&wdDownloadButton=True&wdInConfigurator=True&waccluster=CA3&edaebp="></iframe>
+:::
+
+[Download this workbook](textbook_examples/elevator_tickets_correct.xlsx) · [Open online](https://usaskca1-my.sharepoint.com/:x:/g/personal/pjs998_usask_ca/IQD955B7F1PqSaL5DFwl9gh7AQZwjKYJIwzw-xZ0Kcw0_54?e=99d1Ua) (view only)
+:::
+:::
+
+On Windows, Power Query can also retrieve a direct download or API response through **From Web**. That option is not available in the same form on a Mac. I find the interface clunky even on Windows, so this course uses R for APIs, particularly when a package is available.
 
 
 ## Getting Data Into R {#sec-r-getting}
@@ -221,34 +202,43 @@ The tidyverse functions come from **readr**. The two files used here are the sam
 #| eval: true
 #| echo: false
 console('
+# Load the tidyverse packages
 library(tidyverse)
 
+# Read the comma-delimited ticket file
 tickets <- read_csv(
   "practice/data/elevator_tickets.csv"
 )
 
+# Print the first six rows
 head(tickets)
 ')
 ```
 
-Note that in a csv file a comma delimits fields, in other files there might be a different **delimiter**.  To read these files you can use `read_delim()` and specifuy the delimiter with the delim argument.  
+In a CSV file, a comma delimits fields. Other text files may use a different **delimiter**. Use `read_delim()` for these files and specify the delimiter with its `delim` argument.
 
-Much like Ecel, `read_csv()` guesses each column's type from the first thousand values.  In the console above, we can see that `ticket_id` kept its zeros and `lot_code` stayed text. However, it still read `permit_book` as a number, prints it as `4.52e15`, and has already lost its last digits. We can force types in the `read_csv()` command by using the col_types argument.  This argument is a named list (EXPLAIN A BIT MORE)
+Much like Excel, `read_csv()` guesses each column's type from the first thousand values. In the console above, `ticket_id` kept its zeros and `lot_code` stayed as text. However, `permit_book` was read as a number, printed as `4.52e15`, and has already lost its last digits. We can state the types in `read_csv()` using the `col_types` argument. `cols()` creates a named list in which each column name is paired with the type that column should have.
 
 ```{r}
 #| eval: true
 #| echo: false
 console('
+# Read the ticket file and state the important column types
 tickets <- read_csv(
   "practice/data/elevator_tickets.csv",
   col_types = cols(
+    # Keep ticket identifiers as text
     ticket_id = col_character(),
+    # Keep permit-book identifiers as text
     permit_book = col_character(),
+    # Keep lot codes as text
     lot_code = col_character(),
+    # Read dates in year-month-day order
     delivery_date = col_date("%Y-%m-%d")
   )
 )
 
+# Print the first six rows
 head(tickets)
 ')
 ```
@@ -261,12 +251,16 @@ A value that does not fit the stated type does not stop the script. R puts in `N
 #| eval: true
 #| echo: false
 console('
+# Read the messy deliveries file and require a numeric weight
 deliveries <- read_csv(
   "practice/data/grain_deliveries_messy.csv",
   col_types = cols(
+    # Parse weight as a double
     weight_tonnes = col_double()
   )
 )
+
+# List values that failed to parse
 problems(deliveries)
 ')
 ```
@@ -274,58 +268,61 @@ problems(deliveries)
 
 ### Excel files {#sec-readxl}
 
-We can also read Excel files directly in R using the package **readxl**. It installs with the tidyverse but is not loaded by `library(tidyverse)`, so load it separately.  Excel workbooks can have many sheets -- but defauly `readxl` will reade the first one, but we can direct it to read a different sheet using the sheet argument, which takes either the name of the sheet or an integer equal to the position of the sheet in the workbook (e.g., 2 for second sheet).
+We can read Excel files directly in R using the **readxl** package. It installs with the tidyverse but is not loaded by `library(tidyverse)`, so load it separately. Excel workbooks can contain many sheets. By default, `read_excel()` reads the first sheet, but the `sheet` argument can identify another sheet by name or position, such as `2` for the second sheet.
 
-Spreadsheets built by people often have something above the table: a title, a note about units, a blank row. R takes the first row as column names regardless.  We can tell R to skip a certain number of lines using the `skip` argument.
+Spreadsheets built by people often have something above the table: a title, a note about units or a blank row. R takes the first row as column names regardless. The `skip` argument tells R to ignore a stated number of rows at the top.
 
-The code below shows how to read in the barley data.  The first  attempts to read in the data return nonesense because the first reads the first sheet of the worksheet, not the data data table, the seonc ddoe't skip the first three rows. The third row gives us the data that we want.
-
-
+The code below shows three attempts to read the barley workbook. The first reads the README sheet instead of the data. The second reads the correct sheet but treats its title as the header. The third reads the correct sheet and skips the three rows above the table.
 
 ```{r}
 #| eval: true
 #| echo: false
 console('
+# Load the package for reading Excel workbooks
+library(readxl)
 
-## Read in the first sheet of sask_barley_20205
+# Read the first sheet in the workbook
 barley_first_sheet <- read_excel(
   "practice/data/sask_barley_2025.xlsx"
 )
 
-##Print first few rows
+# Print the first six rows of the README sheet
 head(barley_first_sheet)
 
-## Read in the sheet "Barley_20205" from sask_barley_20205
+# Read the Barley_2025 sheet without skipping its title rows
 barley_no_skip <- read_excel(
   "practice/data/sask_barley_2025.xlsx",
   sheet = "Barley_2025"
 )
 
-##Print first few rows
+# Print the first six rows of the incorrectly imported table
 head(barley_no_skip)
 
-## Read in the sheet "Barley_20205" from sask_barley_2025, skipping the first three rows
+# Read the Barley_2025 sheet and skip the three title rows
 barley <- read_excel(
   "practice/data/sask_barley_2025.xlsx",
   sheet = "Barley_2025",
-  skip=3
+  skip = 3
 )
 
-##Print first few rows
+# Print the first six rows of the correctly imported table
 head(barley)
 ')
 ```
 
-An alternative to skip is to specify the range of cells that we want to import.  This can be handy for ignoring both rows and columns.
+An alternative to `skip` is to specify the range of cells to import. This can exclude both rows and columns.
+
 ```{r}
 #| eval: true
 #| echo: false
 console('
+# Read only cells A4 through C36 on the Barley_2025 sheet
 barley <- read_excel(
   "practice/data/sask_barley_2025.xlsx",
   range = "Barley_2025!A4:C36"
 )
 
+# Print the first six rows
 head(barley)
 ')
 ```
@@ -340,38 +337,48 @@ head(barley)
 #| eval: true
 #| echo: false
 console('
+# Store the direct download URL
 rm_yields_url <- "https://dashboard.saskatchewan.ca/export/rm-yields-data/4950.csv"
 
+# Read the CSV directly from the web
 rm_yields <- read_csv(rm_yields_url)
-glimpse(rm_yields)
+
+# Print the first six rows
+head(rm_yields)
 ')
 ```
 
-One row per RM per year, one column per crop. The column names have spaces, which is why `Winter Wheat` prints in backticks; `clean_names()` (@sec-clean-names) deals with that. The table is wide where most of what we do later wants it long, one row per RM-year-crop, which is @sec-reshaping.
-
-The [dashboard's RM-yields page](https://dashboard.saskatchewan.ca/agriculture/rm-yields/rm-yields-data) says the Government of Saskatchewan produces these annual RM estimates using Ministry crop-report and Saskatchewan Crop Insurance Corporation data. Values are published only where there are no confidentiality concerns. The page does not explain the weighting rule or distinguish a crop not grown from a value withheld for confidentiality, so a blank value should not be interpreted more narrowly than “not published.” The units and these caveats are absent from the CSV; record the dashboard page, not only the direct file link.
+There are some issues with these data. For example, `Winter Wheat` contains a space, so R prints the name in backticks. We will standardize names in @sec-clean-names.
 
 ### Keep a raw copy {#sec-raw-copy}
 
-Reading from the URL is fine for a look. It is not fine for a project, because the file at that address can be revised or replaced, and then the script gives different answers or stops working. The habit is to download once, into a folder for raw data, with the date in the filename, and read from the copy:
+Reading from the URL is fine for a look. It is not fine for a project because the file at that address can be revised or replaced; in this case, the RM data are updated at least once a year. Download the file into a raw-data folder, include the retrieval date in its filename and record where it came from.
 
 ```{r}
 #| eval: true
 #| echo: false
 console('
+# Create the raw-data directory if it does not exist
 dir.create("data/raw", recursive = TRUE, showWarnings = FALSE)
 
-raw_file <- file.path("data", "raw", "rm_yields_2026-08-21.csv")
+# Record the retrieval date in the file name
+raw_file <- "data/raw/rm_yields_2026-08-22.csv"
 
+# Download the file only when the dated copy is absent
 if (!file.exists(raw_file)) {
+  # Save the web response without opening or changing it
   download.file(rm_yields_url, destfile = raw_file, mode = "wb")
 }
 
+# Read the saved raw file
 rm_yields <- read_csv(raw_file)
+
+# Print the first six rows
+head(rm_yields)
 ')
 ```
 
-The script records how the data was obtained. The fixed, dated filename records what was obtained, and the guard prevents a later run from silently replacing it. When intentionally retrieving a new release, choose a new retrieval date and filename. A preparation script should read the named file used for the analysis rather than whichever file happens to be newest.
+The script records how the data were obtained. The `if` statement downloads the file only on the first run; subsequent runs read the dated copy already on disk.
 
 ### Calling an API {#sec-api-r}
 
@@ -381,8 +388,10 @@ The **httr2** package builds a request one part at a time, which makes the parts
 #| eval: true
 #| echo: false
 console('
+# Load the package for making HTTP requests
 library(httr2)
 
+# Start a request and add the location, dates, variable and time zone
 weather_request <- request("https://archive-api.open-meteo.com/v1/archive") |>
   req_url_query(
     latitude = 52.13,
@@ -393,10 +402,16 @@ weather_request <- request("https://archive-api.open-meteo.com/v1/archive") |>
     timezone = "America/Regina"
   )
 
+# Print the request object
+weather_request
+
+# Show the request without sending it
 req_dry_run(weather_request)
 
+# Send the request and store the response
 weather_response <- req_perform(weather_request)
 
+# Print the HTTP status code
 resp_status(weather_response)
 ')
 ```
@@ -409,13 +424,18 @@ The body is JSON. `resp_body_json()` turns it into nested R lists, and `tibble()
 #| eval: true
 #| echo: false
 console('
+# Convert the JSON response to nested R objects
 weather_json <- resp_body_json(weather_response, simplifyVector = TRUE)
 
-saskatoon_rain <- tibble(
+# Put the date and precipitation vectors into a data frame
+saskatoon_rain <- data.frame(
+  # Convert the date strings to Date values
   date = as.Date(weather_json$daily$time),
+  # Extract daily precipitation in millimetres
   precipitation_mm = weather_json$daily$precipitation_sum
 )
 
+# Print the resulting data frame
 saskatoon_rain
 ')
 ```
@@ -424,56 +444,42 @@ Every API's JSON is shaped differently. The first time you use one, run `str(wea
 
 ### Packages that wrap an API {#sec-data-packages}
 
-Where a package exists for the provider, it does the request-building and the JSON-unpacking for you. Most Canadian agricultural data starts at Statistics Canada, and the package is **cansim**. Table 32-10-0359-01 is the principal field crops table, and this fetches it:
+Where a package exists for the provider, it can build the request and unpack the JSON for us. The **openmeteo** package provides `weather_history()`, which accepts the same location, dates, variable and time zone used in the request above.
 
-```{r}
-#| eval: true
-#| echo: false
-console('
-library(cansim)
-
-field_crops <- get_cansim("32-10-0359-01")
-glimpse(field_crops)
-')
-```
-
-If you do not know the table number, `search_cansim_cubes("field crop yield")` searches the catalogue, and `get_cansim_table_overview("32-10-0359")` prints what a table contains before you download it.
-
-The website route is to find the table, use **Add/Remove data** to choose years, geographies and commodities, and **Download** as CSV. The package is better for two reasons. The table number is in the script, so the analysis is re-runnable. And there are no clicks to forget; a selection made on the website lives in a series of choices you will not remember next month. If you do download from the website, take the whole table and filter in R.
-
-What comes back still needs the usual work. The column names have spaces and capitals, so `clean_names()`. The data is long, one row per year-geography-commodity, so filter:
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-library(janitor)
-
-sask_wheat <- field_crops |>
-  clean_names() |>
-  filter(geo == "Saskatchewan",
-         harvest_disposition == "Average yield (kilograms per hectare)")
-')
-```
-
-The category names differ by table; `count()` on the columns shows what a new one holds.
-
-A package does not freeze the data. Statistics Canada revises past figures, and `get_cansim()` run next year returns next year's version of the table. When the exact version matters, write it out to `data/raw/` with the date, as in @sec-raw-copy.
-
-The USDA's **rnassqs** does the same job for QuickStats, with a key. Put `NASSQS_TOKEN=yourkey` in `.Renviron`; `usethis::edit_r_environ()` opens that file, and `Sys.getenv("NASSQS_TOKEN")` checks that R can see it after a restart. Do not commit `.Renviron` or write the key into the script. The example below requires a key and is not run when this book is rendered.
+The package is not on CRAN, so install it from GitHub once. Installation code is not evaluated when the book renders:
 
 ```r
-library(rnassqs)
+# Install remotes from CRAN
+install.packages("remotes")
 
-us_canola <- nassqs(
-  commodity_desc = "CANOLA",
-  statisticcat_desc = "YIELD",
-  agg_level_desc = "NATIONAL",
-  year = 2015:2025
-)
+# Install openmeteo from GitHub
+remotes::install_github("tpisel/openmeteo")
 ```
 
-The parameter names take some finding. Build the query on the [QuickStats website](https://quickstats.nass.usda.gov/) first, whose dropdowns use the same field names, then mirror the choices in code.
+After installation, one function call returns a data frame:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the Open-Meteo API wrapper
+library(openmeteo)
+
+# Request historical precipitation for Saskatoon
+saskatoon_rain_package <- weather_history(
+  c(52.13, -106.67),
+  start = "2024-05-01",
+  end = "2024-05-05",
+  daily = "precipitation_sum",
+  timezone = "America/Regina"
+)
+
+# Print the returned data frame
+saskatoon_rain_package
+')
+```
+
+The package hides the request-building and JSON-unpacking steps, but it does not freeze the data. Running the same call later may return revised values, so save a dated raw copy when the exact version matters (@sec-raw-copy).
 
 ## Check It Arrived {#sec-validate-import}
 
@@ -483,10 +489,16 @@ A successful import means the software read something. Before using it, look at 
 #| eval: true
 #| echo: false
 console('
+# Show the ticket table dimensions, types and example values
 glimpse(tickets)
+
+# List any values that failed to parse
 problems(tickets)
+
+# Summarize each ticket column
 summary(tickets)
 
+# Count repeated ticket identifiers
 tickets |>
   count(ticket_id) |>
   filter(n > 1)
@@ -551,5 +563,5 @@ The retrieval date is doing real work. Agencies revise estimates, dashboards rep
 - **Microsoft** -- [What is Power Query?](https://learn.microsoft.com/en-us/power-query/power-query-what-is-power-query) and the [Web connector](https://learn.microsoft.com/en-us/power-query/connectors/web/web).
 - **readr** -- [column types](https://readr.tidyverse.org/articles/column-types.html); **readxl** -- [`read_excel()`](https://readxl.tidyverse.org/reference/read_excel.html).
 - **httr2** -- [package documentation](https://httr2.r-lib.org/).
-- **cansim** -- [package documentation](https://mountainmath.github.io/cansim/); **rnassqs** -- [package documentation](https://docs.ropensci.org/rnassqs/).
+- **openmeteo** -- [package documentation and source code](https://github.com/tpisel/openmeteo).
 :::
