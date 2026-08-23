@@ -231,20 +231,9 @@ head(tickets)
 ')
 ```
 
-Note that in a csv file a comma delimits fields, in other files there might be a different **delimiter**.  To read these files you can use `read_delim()` and specifuy the delimiter with the delim argument.
+Note that in a csv file a comma delimits fields, in other files there might be a different **delimiter**.  To read these files you can use `read_delim()` and specifuy the delimiter with the delim argument.  
 
-Much like Ecel, `read_csv()` guesses each column's type from the first thousand values and prints what it decided. For the tickets file:
-
-```
-Rows: 20 Columns: 7
-── Column specification ────────────────────────────────
-Delimiter: ","
-chr  (4): ticket_id, lot_code, crop, postal_code
-dbl  (2): permit_book, weight_tonnes
-date (1): delivery_date
-```
-
-R did better than a double-click: `ticket_id` kept its zeros and `lot_code` stayed text. It still read `permit_book` as a number, prints it as `4.52e15`, and has already lost its last digits. The same rule applies as in Excel: identifiers are text, and the way to say so is `col_types`.
+Much like Ecel, `read_csv()` guesses each column's type from the first thousand values.  In the console above, we can see that `ticket_id` kept its zeros and `lot_code` stayed text. However, it still read `permit_book` as a number, prints it as `4.52e15`, and has already lost its last digits. We can force types in the `read_csv()` command by using the col_types argument.  This argument is a named list (EXPLAIN A BIT MORE)
 
 ```{r}
 #| eval: true
@@ -259,6 +248,8 @@ tickets <- read_csv(
     delivery_date = col_date("%Y-%m-%d")
   )
 )
+
+head(tickets)
 ')
 ```
 
@@ -280,37 +271,10 @@ problems(deliveries)
 ')
 ```
 
-Without the stated type that one cell would have turned the whole column into text. With it, the column is numeric and the read told you where parsing failed. The `row` reported by `problems()` is the line in the file, including the header; filter the imported data to find the affected record:
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-deliveries |>
-  filter(is.na(weight_tonnes))
-')
-```
-
-Fixing the value is @sec-cleaning.
-
-The guess goes wrong the other way too. A numeric column with one `"N/A"` in it comes in as text, and `mean()` fails on it. If the file has known missing-value codes, say so:
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-deliveries <- read_csv(
-  "practice/data/grain_deliveries_messy.csv",
-  na = c("", "NA", "N/A", "..")
-)
-')
-```
-
-Check what the codes mean in the documentation first. In [Statistics Canada's symbol legend](https://www.statcan.gc.ca/en/concepts/definitions/guide-symbol), `..` means not available for a reference period, `x` means suppressed for confidentiality, `E` marks a published estimate that should be used with caution, and `F` means too unreliable to publish. They are not all the same kind of missing.
-
-`glimpse()` shows the types with a few values of each column alongside, and `spec()` prints the full column specification R used, in a form you can paste into `col_types` and edit.
 
 ### Excel files {#sec-readxl}
+
+We can also reade
 
 The package is **readxl**. It installs with the tidyverse but is not loaded by `library(tidyverse)`, so load it separately. Check the sheets before reading, because `read_excel()` takes the first one unless told otherwise:
 
