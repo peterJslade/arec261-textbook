@@ -1,4 +1,4 @@
-# Merging Data {#sec-merging-data}
+# Cleaning Data {#sec-cleaning}
 
 ```{r}
 #| include: false
@@ -6,341 +6,641 @@
 source("_console.R")
 ```
 
-The data you need to answer one question often arrive in several tables. For example, suppose we wanted to understand the relationship between RM yields and precipitation. The yield data would come in one table, and the precipitation data would likely come in another. To answer our question, we would need to **merge** or **join** these tables.
-
-Throughout this section, we will work with three datasets:
-
-- [`rm_yields_2015_2024.csv`](practice/data/rm_yields_2015_2024.csv), with one row per RM per year. It contains 2,950 rows for ten years and six crops. Yields are measured in bushels per acre.
-- [`station_precip.csv`](practice/data/station_precip.csv), with one row per weather station per year. It contains May to August precipitation for sixteen stations and a count of days with no reading.
-- [`rm_lookup.csv`](practice/data/rm_lookup.csv), with one row per RM. It contains the RM name, census division, 2021 population and the closest of the sixteen weather stations.
-
-We will do two merges:
-
-1. Merge the RM yields with the RM lookup. This will give us a dataset containing the closest weather station for each yield observation.
-2. Merge the dataset from step 1 with the weather station data. This will give us the growing-season precipitation for each observation.
+A file that opens without an error may still contain duplicate rows, inconsistent names, mixed units and missing values recorded as ordinary text. Data cleaning is a large part of any data analysis project -- for many projects it takes the majority of the time. Unfortuantely, it is also the dullest part of the project.  Hopeflly, this chapter helps us be more efficient and transparent in our data cleaning.  
 
 ## Learning Objectives {.unnumbered}
 
 ::: {.objectives}
 By the end of this chapter you should be able to:
 
-1. Identify the key that connects two tables.
-2. Distinguish one-to-one, many-to-one and many-to-many relationships.
-3. Merge tables in Excel with Power Query, including a merge that uses two key columns.
-4. Merge tables in R with `left_join()` and related functions.
-5. Check for unmatched rows and unexpected changes in the row count.
+1. Explain what tidy data means and compare long and wide forms of the same data.
+2. Reshape data in Excel with Power Query and in R with `pivot_longer()` and `pivot_wider()`.
+3. Conduct an initial data-quality check using summaries, visualizations and relationships among variables.
+4. Clean column names with `rename()` and `janitor::clean_names()`.
+5. Find exact and conflicting duplicates.
+6. Find impossible values, inconsistent categories and mixed units.
+7. Recognize common codes for missing values and decide when observations can be dropped.
+8. Identify dates that were imported as text.
 :::
 
+## Data shape {#sec-tidy-data}
 
-### Keys {.unnumbered}
+The group of R pacakges we are using for data cleaning is called the tidyverse, becasue they are centered on the idea of tidy data.  The concept of tidy data is also relevant for Excel and any other data analysis project.  A dataset is considered tidy when:
 
-A key is a column, or set of columns, used to identify and match rows across datasets. When we merge, we say that we merge on the key. The key must be present in both datasets.
+1. Every variable has its own column.
+2. Every observation has its own row.
+3. Every value has its own cell.
 
+This begs a kind of philosophical question about what a vairable is.  Consider the RM yield data set that we have worked with.  The raw data comes in the form below, where an observation refers to a RM and year, and the yields of each crop are a column.  
 
-In the three tables above, the keys for the two merges are:
+INSERT DATA
 
-1. RM yields to RM lookup: RM.
-2. The resulting dataset to weather-station data: weather station and year.
+We could alternatively make this a wider dataset where every row is an RM and every column is the yield of a crop in a year.
 
-### One-to-one, many-to-one and many-to-many {.unnumbered}
+INSERT DATA
 
-There are three types of merges:
+Or we could make this a longer dataset where every observation is a RM-year-crop combination 
 
+INSERT DATA
 
-![Three kinds of merge. Each line connects a grades row to the row it matches.](images/join_types.svg){#fig-join-types}
+None of these are definitively right or wrong.  However, data analysts generally prefer the final option which is the longer version of the data.  In Excel this allows us to create PivotTables that ... . In R it allows us to more easily filter by crop when doing analysis.  For example,...  
 
-- **One-to-one (1:1).** Each key value appears once in both tables. Grades and attendance both have one row per student-class, so the merged table has the same number of rows as either input.
-- **Many-to-one (n:1).** Values in the key column may repeat in one dataset but are unique in the other. In this example, students take many classes, so each student appears multiple times in the table on the left. Each class has a single professor, however, so each class appears only once in the table on the right.
-- **Many-to-many (n:n).** Values in the key column repeat in both datasets. In the figure, students take multiple classes (the table on the left), and each class can have multiple teaching assistants (the table on the right).
+When you open a table, write down what one row represents and what each column represents. This usually makes the shape problem visible.
 
-Before joining, decide which relationship you expect. Then compare the row counts before and after.
+::: {.callout-tip collapse="true"}
+## Other resources -- tidy data
 
-Both of our merges will be many-to-one:
+- **R for Data Science (2nd ed.)** -- [Chapter 5, "Data tidying"](https://r4ds.hadley.nz/data-tidy) develops the tidy-data idea and shows how to reshape datasets between long and wide forms.
+- **Video** -- Riffomonas Project, [*Reshaping data to be long or wide with pivot_longer and pivot_wider*](https://www.youtube.com/watch?v=ZVddiwrbrr4).
+:::
 
-1. The RM yields dataset contains many observations for the same RM, but the RM lookup contains only one row for each RM.
-2. The merged dataset from step 1 contains many observations with the same closest weather station and year, but the weather-station dataset contains only one observation for each station and year.
+### Data shape in Excel {#sec-unpivot}
 
-## Merging in Excel {#sec-merge-excel}
+The RM yields file (@sec-direct-download) is wide, with one column for each crop. Power Query calls the wide-to-long operation **Unpivot**. Import the CSV with **Data > Get Data > From Text/CSV**, choose **Transform Data**, select `Year` and `RM`, and then choose **Transform > Unpivot Columns > Unpivot Other Columns**. Rename the two new columns `crop` and `yield_bu_ac` before loading the result.
 
-In Chapter 2, we used `XLOOKUP` to bring values from one table into another (@sec-lookup). That approach is useful for a quick lookup. Here, we will use Power Query because it records the merge as a repeatable series of steps and can match on several columns directly.
+Power Query returns 15,478 rows because **Unpivot Other Columns** drops source cells containing `null`. The R example below keeps those cells as `NA` and therefore returns 17,700 rows; add `values_drop_na = TRUE` to `pivot_longer()` when you want the two results to agree. The reverse operation is **Pivot Column** in Power Query or a PivotTable on a worksheet.
 
-### First merge: yields and the RM lookup {.unnumbered}
+INSERT SCREENSHOTS HERE
 
-Begin by importing `rm_yields_2015_2024.csv` and `rm_lookup.csv` with **Data > Get Data > From Text/CSV > Transform Data**. In the Power Query editor:
+### Data shape in R {#sec-reshaping}
 
-1. Select the RM yields query.
-2. Choose **Home > Merge Queries**.
-3. Select the RM lookup as the second table.
-4. Select `rm` in the yields table and `rm_number` in the lookup table.
-5. Keep **Left Outer** as the join kind. This keeps every yield observation and adds information wherever the lookup contains a matching RM.
-6. Check the number of matching rows reported in the dialog, then choose **OK**.
-7. Expand the new table column using the double-arrow icon in its header. Select the RM name, census division, population and closest weather station.
-
-This is a many-to-one merge: the yields table contains many rows for each RM, while the lookup contains one row for each RM. The number of yield rows should not change.
-
-### Second merge: matching on station and year {.unnumbered}
-
-Next, import `station_precip.csv`. Each yield observation must match precipitation from both the correct weather station and the correct year. Unlike the helper-column method used with `XLOOKUP` in Chapter 2, Power Query can select both keys directly:
-
-1. Choose **Home > Merge Queries** from the merged yields query.
-2. Select the closest-weather-station column, then hold Ctrl (Command on a Mac) and select `year`.
-3. In the precipitation table, select `station` first and `year` second. The numbered labels beside the column headings confirm the key order.
-4. Keep **Left Outer** as the join kind and check the number of matches reported in the dialog.
-5. Choose **OK**, then expand the new table column and select the precipitation variables you need.
-
-The column order matters: the first selected column in one table is matched to the first selected column in the other, and the second is matched to the second. Selecting station and year prevents Power Query from returning the first year it finds for a station.
-
-### Checking the merge {.unnumbered}
-
-After each merge, compare the number of rows with the original yields table. A many-to-one left merge should retain the same number of rows. Filter the expanded columns for `null` to find observations that did not match, and check several rows against the source tables.
-
-Power Query also offers **Inner**, **Full Outer** and **Left Anti** joins. These correspond to the R joins introduced below. A Left Anti join is particularly useful for listing rows that have no match before completing the merge.
-
-## Merging in R {#sec-merge-r}
-
-In tidyverse we merge data with join functions.  There are four different types of joins depending on which data we want to keep in the merged file.  Suppose we have two datasets `y` and `x`:
-
-
-- **`left_join(x, y, by)`** keeps every row of `x` whether it has a match in `y` or not.  But does not keep rows in `y` that don't have a match. 
-- **`inner_join(x, y, by)`** keeps only rows that matched in both tables.
-- **`full_join(x, y, by)`** keeps every row from both tables, regardless of whether there is a match.
-- **`anti_join(x, y, by)`** returns the rows of `x` that have no match in `y`. It is useful for finding failed matches before a join.
-
-The `by` argument specifies the keys we merge on.  It can be a single column name or a vector of names.
-
-
-Read the three files and inspect their columns:
+`pivot_longer()` does the same job as Unpivot. It takes several columns, puts their names in one column and puts their values in another. Here is the RM yields table:
 
 ```{r}
 #| eval: true
 #| echo: false
 console('
-
-## Load pacakges
+# Load packages
 library(tidyverse)
 
-# Read the three tables
-yields <- read_csv(
+# Read the wide table
+yields_wide <- read_csv(
   "practice/data/rm_yields_2015_2024.csv",
   show_col_types = FALSE
 )
 
-rms <- read_csv(
-  "practice/data/rm_lookup.csv",
+# Print the wide data
+yields_wide
+
+# Put the crop names and yields into columns
+yields_long <- yields_wide |>
+  pivot_longer(
+    cols = -c(Year, RM),
+    names_to = "crop",
+    values_to = "yield_bu_ac"
+  )
+
+# Print the long data
+yields_long
+
+nrow(yields_long)
+')
+```
+
+The column selection `-c(Year, RM)` means every column except `Year` and `RM`. Those two columns continue to identify the observation, while the six crop columns become values in the new `crop` column. The result has one row per RM-year-crop and six times as many rows as the wide table.
+
+`pivot_wider()` goes in the other direction. `names_from` supplies the new column names and `values_from` supplies the values placed under them:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Return the crop column to six separate crop columns
+yields_long |>
+  pivot_wider(
+    names_from = crop,
+    values_from = yield_bu_ac
+  )
+')
+```
+
+Again, these is no one correct shape for the data.  Typically, analysis is easier on long data.  However, wider data is often better for presentation.
+
+## Data cleaning {#sec-data-cleaning}
+
+### Checking data quality {#sec-data-quality .unnumbered}
+
+Before analysing a new dataset, check what arrived. A file can open without an error and still contain the wrong units, missing records, duplicate observations or values that do not mean what their column names suggest. A short inspection at the beginning can save a great deal of confusion later.
+
+These checks can find problems, but they cannot prove that every value is correct. A yield of 55 bu/ac may be perfectly plausible and still belong to the wrong field. We need to understand the source as well as inspect the values.
+
+#### Start with what you expect {.unnumbered}
+
+Use the source documentation, data dictionary or README to answer:
+
+- What does one row represent?
+- What population and time period does the file cover?
+- What units are used?
+- Which columns should identify a unique observation?
+- How are missing values and categories coded?
+- Has the file already been filtered, cleaned or aggregated?
+
+Without this information, it can be difficult to decide whether an unusual value is a problem.
+
+#### Take a first look {.unnumbered}
+
+Before calculating anything, check the basic structure:
+
+- Count the rows and columns.
+- Inspect the column names and data types.
+- Look at several rows from the beginning and end of the file.
+- Check whether numbers or dates were imported as text.
+- Count repeated values of any column, or combination of columns, that should identify one row.
+
+An unexpected row count or repeated identifier may mean that records are missing, duplicated or stored at a different level than you expected.
+
+#### Check each variable {.unnumbered}
+
+For a **numeric variable**:
+
+- Count the observed and missing values.
+- Examine the minimum, quartiles, median, mean and maximum.
+- Plot a histogram or box plot.
+- Look for impossible values, extreme observations, several clusters and suspicious concentrations at zero.
+
+The useful limits depend on the subject. A negative crop yield is impossible, while a yield of 100 bu/ac may be unusual but real. An extreme value should be investigated, not automatically deleted.
+
+For a **categorical variable**:
+
+- Count the distinct values and their frequencies.
+- Look for inconsistent capitalization, spelling and extra spaces, such as `Canola`, `canola` and `Canola `.
+- Check whether blank strings or codes such as `-99`, `N/A` and `unknown` represent missing values.
+- Investigate rare categories rather than assuming that they are mistakes.
+
+For a **date variable**:
+
+- Check the earliest and latest dates.
+- Look for dates outside the period covered by the data.
+- Check for gaps, repeated dates and dates stored as text.
+
+#### Check variables together {.unnumbered}
+
+Some problems only appear when two or more variables are compared:
+
+- Seeding should occur before harvest.
+- Percentages should normally fall between 0 and 100.
+- Reported production should be consistent with acres and yield.
+- Category and location codes should agree with their documentation.
+
+A scatter plot can reveal an odd relationship between two numeric variables. A line plot can expose gaps or abrupt changes over time. Summaries grouped by year, region or source can show that missing values or unusual measurements are concentrated in one part of the dataset.
+
+#### Investigate before changing {.unnumbered}
+
+When something looks wrong:
+
+1. Return to the source record or documentation if possible.
+2. Flag the observation rather than immediately deleting it.
+3. Keep the raw file unchanged.
+4. Record any correction, conversion or exclusion in a reproducible cleaning step.
+5. If the correct treatment remains uncertain, report that uncertainty and compare the results with and without the questionable observations.
+
+### Data cleaning in Excel {#sec-cleaning-excel}
+
+Excel offers three approaches. Formulas can clean a file once while leaving the raw columns visible. Power Query can reshape the table and records each cleaning step. Find & Replace changes cells directly and leaves little evidence of what was changed.
+
+#### Cleaning with formulas {.unnumbered}
+
+The workbook below keeps the raw delivery data in columns A through F and places cleaning formulas beside it. The formulas standardize crop names, rescale moisture values entered as decimals, count repeated ticket numbers and flag impossible weights. `FORMULATEXT` cells show the formulas, and summary checks appear below the table.
+
+::: {.workbook-callout}
+<!-- Public view-only link expires 2026-11-20 under the University of Saskatchewan 90-day policy. -->
+
+::: {.excel-embed}
+<iframe width="402" height="700" frameborder="0" scrolling="no" src="https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7B6F136BC8-96DB-499F-AE4B-A04CFDF86DED%7D&action=embedview&wdAllowInteractivity=False&wdDownloadButton=True&wdInConfigurator=True&ActiveCell=%27Cleaning%27!A1"></iframe>
+:::
+
+[Download this workbook](textbook_examples/mod03_cleaning_excel.xlsx) · [Open online](https://usaskca1-my.sharepoint.com/:x:/g/personal/pjs998_usask_ca/IQDIaxNv25afSa5LoEz9-G3tAXoBxYJcoWjP4fMOie4JVrQ?e=PsWLYM) (File → Save a Copy to view formulas and edit)
+:::
+
+The filter dropdown is useful when checking categories because it lists each distinct value. `MIN`, `MAX`, `COUNTBLANK` and a count of repeated identifiers cover many numerical checks. Excel's summary functions silently ignore text in a numeric range, so add a separate text check such as `=SUMPRODUCT(--ISTEXT(D5:D23))`; a weight written as `38.2 t` otherwise disappears from the summary without an error. Keep the raw columns beside the cleaned ones so that a changed value can be traced back.
+
+#### Cleaning with Power Query {.unnumbered}
+
+Power Query has recorded steps for the same work:
+
+- **Remove Top Rows** and **Use First Row as Headers** deal with files that begin with a title or notes.
+- The type icon in a column header sets a column to Text, Whole Number, Decimal or Date. A value that cannot be converted becomes an error that can be inspected.
+- **Transform > Format > Trim** removes extra spaces, and **Capitalize Each Word** standardizes capitalization.
+- **Replace Values** handles synonyms and missing-value codes. Power Query stores a missing value as `null`.
+- **Remove Duplicates** drops exact duplicates. To find a repeated identifier with different values, use **Group By** to count rows for each identifier and filter to counts above one.
+- **Split Column > By Delimiter** separates values that were stored together.
+- **Fill > Down** copies a category into blank cells below it when a spreadsheet records the label only once for a group of rows.
+
+For dates, set `delivery_date` to Date and inspect conversion errors. If the whole source uses another convention, choose **Change Type > Using Locale** and state that convention. Opening the CSV directly lets Excel guess each cell: an ambiguous value such as `03/11/2025` can become the wrong date without an error. Power Query Editor requires a current desktop version of Excel 365 and is not available in Excel for the web.
+
+Each operation appears in the **Applied Steps** list. Clicking a step shows the table at that point. When a new version of the source file arrives, **Refresh** runs the steps again.
+
+### Data cleaning in R {#sec-cleaning-r}
+
+The R examples use [`grain_deliveries_messy.csv`](practice/data/grain_deliveries_messy.csv), a synthetic file constructed for this chapter to contain the problems discussed below. Read it without letting `read_csv()` trim spaces so that we can see the spaces in some crop names:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(janitor)
+})
+
+# Read the file and identify common missing-value codes
+deliveries <- read_csv(
+  "practice/data/grain_deliveries_messy.csv",
+  na = c("", "NA", "N/A", "-", "."),
+  trim_ws = FALSE
+)
+
+glimpse(deliveries)
+')
+```
+
+The output already shows two problems. `weight_tonnes` was read as text because one value contains a unit, and `delivery_date` is text because the file mixes date formats. `read_csv()` normally removes leading and trailing spaces; `trim_ws = FALSE` is used here only to keep that problem visible. `str_squish()` remains useful for doubled internal spaces and for text imported through other routes.
+
+#### Awkward Column Names {#sec-clean-names}
+
+Column names such as `Yield (bu/ac)`, `REGION_NAME` and `Field ID Number` are cumbersome in code. When columns name have spaces, you need to use back ticks when referring to them (e.g. `data$`Yield (bu/ac)`` [CORRECT BY BACK TICKS TO BE VISIBLE]).  It is almost always best to use only lower cases, as R (and other software programs) are case-sensitive. 
+
+This book uses **snake case**: lower-case words separated by underscores, such as `yield_bu_ac`, `region_name` and `field_id`.   Some people prefer using dots intead of underscores (e.g. `yield.bu.ac`). Personally, I find that underscores look a bit nicer.
+
+Use `rename()` when only a few names need changing. The new name goes on the left and the old name on the right:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Make a small table with awkward names
+awkward_names <- tibble(
+  `Weight (t)` = c(42.1, 37.8),
+  CROP_NAME = c("Canola", "Wheat")
+)
+
+awkward_names |>
+  rename(
+    weight_tonnes = `Weight (t)`,
+    crop = CROP_NAME
+  )
+')
+```
+
+Another option is to use the `clean_names()` function from the `janitor` package, which converts every column name in a data frame to snake case. 
+
+```r
+# Install janitor package (if not installed already)
+install.packages("janitor")
+
+```
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+library(janitor)
+
+# Clean every column name in one call
+awkward_names |>
+  clean_names() |>
+  names()
+
+deliveries <- deliveries |> clean_names()
+')
+```
+
+
+
+
+
+
+#### Text in a Numeric Column {#sec-text-numbers}
+
+The first `glimpse()` reported `weight_tonnes` as `<chr>`, or character text. One row contains `"38.2 t"`, so `read_csv()` could not treat the whole column as numeric. Find the values containing something other than a number, decimal point or minus sign:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Find weights containing a unit or other text
+deliveries |>
+  filter(str_detect(weight_tonnes, "[^0-9.-]")) |>
+  select(ticket_id, weight_tonnes)
+')
+```
+
+The file was constructed with every weight in tonnes, so the suffix can be removed. In real work, that fact must come from a data dictionary or the person who made the file. `parse_number()` keeps the numeric part:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Convert the weight column after checking its units
+deliveries <- deliveries |>
+  mutate(weight_tonnes = parse_number(weight_tonnes))
+
+glimpse(deliveries)
+')
+```
+
+If the suffix indicated a different unit, removing it would give the wrong answer. Convert the value to the common unit before discarding the label.
+
+#### Duplicates {#sec-duplicates}
+
+An **exact duplicate** repeats the entire row. `duplicated()` finds the later copy, while `distinct()` keeps one copy of every unique row:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Show exact duplicates
+deliveries |>
+  get_dupes()
+
+nrow(deliveries)
+
+# Keep one copy of each unique row
+deliveries <- deliveries |> distinct()
+nrow(deliveries)
+')
+```
+
+A **conflicting duplicate** repeats an identifier but not the whole row. Ticket `T0030` appears with two different weights, so `distinct()` keeps both. Count the identifier to find it:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Find and inspect repeated ticket numbers
+deliveries |>
+  get_dupes(ticket_id)
+')
+```
+
+The data alone does not say which row is correct. Check the source record. If that is impossible, report how the conflict was handled.
+
+#### Impossible Values {#sec-impossible-values}
+
+Every numeric variable has a possible range. A delivery weight cannot be negative and a moisture percentage cannot be 250. `summary()` is a quick way to inspect the minimum and maximum:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Inspect the ranges of the numeric measurements
+deliveries |>
+  select(weight_tonnes, moisture_pct) |>
+  summary()
+
+# Display values outside their possible ranges
+deliveries |>
+  filter(weight_tonnes <= 0 | moisture_pct > 100) |>
+  select(ticket_id, weight_tonnes, moisture_pct)
+')
+```
+
+A negative weight may be a sign error or a reversed transaction. A moisture value of 250 may have lost its decimal point. Those are possible explanations, not facts. Correct a value only when the source supports the correction.
+
+Here the synthetic file provides no defensible replacement values. Record that decision by treating the three impossible measurements as missing rather than silently carrying them into later summaries:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Mark values outside the possible range as missing.
+# This records a decision; it does not invent a correction.
+deliveries <- deliveries |>
+  mutate(
+    weight_tonnes = if_else(
+      weight_tonnes <= 0,
+      NA,
+      weight_tonnes
+    ),
+    moisture_pct = if_else(
+      moisture_pct > 100,
+      NA,
+      moisture_pct
+    )
+  )
+')
+```
+
+An extreme value can still be valid. A canola yield of 95 bu/ac is unusual, but it may belong to a very good field. Check it against the source and, if uncertainty remains, compare the analysis with and without it.
+
+#### Inconsistent Categories {#sec-categories}
+
+Several spellings of the same category produce separate groups. Count each categorical column before using it in `group_by()`:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Count the crop names as they arrived
+deliveries |>
+  count(crop, sort = TRUE)
+')
+```
+
+Capitalization and spaces can be standardized with string functions:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Remove extra spaces and use consistent capitalization
+deliveries <- deliveries |>
+  mutate(crop = str_squish(crop),
+         crop = str_to_title(crop))
+
+deliveries |>
+  count(crop, sort = TRUE)
+')
+```
+
+Synonyms require an explicit decision. This file contains none after spacing and capitalization are standardized. When documentation says that two labels mean the same thing, put that mapping in the script; for example:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Reconcile known synonyms while leaving other values unchanged
+deliveries <- deliveries |>
+  mutate(crop = case_when(
+    crop == "Canola/Rapeseed" ~ "Canola",
+    crop == "Soybean" ~ "Soybeans",
+    TRUE ~ crop
+  ))
+
+deliveries |>
+  count(crop, sort = TRUE)
+')
+```
+
+The output is unchanged because those two labels are illustrative and do not occur in this file. A mapping should change data only when the documented source labels are present.
+
+#### Mixed Units {#sec-mixed-units}
+
+Most moisture readings in the file are percentages near 8 to 15. Three values are below 1, which is not a plausible moisture percentage here; the intended construction of this teaching file confirms that they are proportions such as `0.099` rather than `9.9`. The values are numeric, so they produce no parsing error.
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Find moisture readings recorded as decimal proportions
+sum(deliveries$moisture_pct < 1, na.rm = TRUE)
+
+deliveries |>
+  filter(moisture_pct < 1) |>
+  select(ticket_id, moisture_pct)
+
+# Convert decimal proportions to percentages
+deliveries <- deliveries |>
+  mutate(
+    moisture_pct = if_else(
+      moisture_pct < 1,
+      moisture_pct * 100,
+      moisture_pct
+    )
+  )
+')
+```
+
+This rule depends on subject knowledge: a grain moisture value below 1 percent is not plausible here. If the file contains a unit column, use that column in `case_when()` instead of inferring the unit from the size of the value.
+
+#### Missing Values {#sec-missing-values}
+
+R represents a missing value as `NA`. Most calculations involving `NA` return `NA`. The canola trial data has three fields with no rainfall reading:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Read a file containing three missing rainfall values
+trial_data <- read_csv(
+  "practice/data/canola_trial.csv",
   show_col_types = FALSE
 )
 
-rain <- read_csv(
-  "practice/data/station_precip.csv",
-  show_col_types = FALSE
-)
-
+mean(trial_data$rainfall_mm)
+mean(trial_data$rainfall_mm, na.rm = TRUE)
 ')
 ```
 
-We can now use `left_join()` takes two data frames and a `by` argument that identifies the key. If a key has different names in the two tables, write `join_by(left_name == right_name)`; a column with the same name on both sides is written once. The older `by = c("left_name" = "right_name")` form still appears in other people's code.
+The first call returns `NA` because three rainfall values are unknown. The second calculates the mean from the observed values. The argument `na.rm = TRUE` makes that decision visible. Many Excel functions skip blank cells automatically, so the missing values need to be counted separately there.
 
+##### Missing values in disguise {.unnumbered}
 
+A blank cell, `"NA"`, `"N/A"`, `"-"`, `"."` and `-999` may all mean that no value was recorded. The `na` argument in the first `read_csv()` call told R which text codes to treat as missing.
 
-Before joining, check that the columns expected to identify one row are actually unique:
+Count missing values in every column before deciding what to do with them:
 
 ```{r}
 #| eval: true
 #| echo: false
 console('
-rms |>
-  count(rm_number) |>
-  filter(n > 1)
-
-rain |>
-  count(station, year) |>
-  filter(n > 1)
-')
-```
-
-Both checks return empty tibbles. A key is only a key if each combination occurs no more than once on the side where uniqueness is expected.
-
-### First join: yields and the RM lookup {.unnumbered}
-
-The RM column is called `rm` in the yields table and `rm_number` in the lookup. Check for unmatched RMs, perform the join and compare the row counts:
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-# List RM numbers that have no lookup row
-yields |>
-  anti_join(rms, by = join_by(rm == rm_number)) |>
-  distinct(rm)
-
-# Add the RM information and nearest station
-with_station <- yields |>
-  left_join(rms,
-            by = join_by(rm == rm_number),
-            relationship = "many-to-one")
-
-nrow(yields)
-nrow(with_station)
-')
-```
-
-The `anti_join()` returns an empty tibble, so every RM has a match. `yields` has 2,950 rows and so does `with_station`, which is what a many-to-one join should give. The `relationship = "many-to-one"` argument records what we expect and makes `left_join()` stop if the lookup contains more than one row for an RM.
-
-In R, text keys are sensitive to both case and spaces. For example, `"canola"`, `"Canola"` and `"Canola "` are three different keys. These differences have to be reconciled before the join (@sec-categories).
-
-### A failed match on purpose {.unnumbered}
-
-The complete rain table matches every station-year. To see how the joins differ when data are missing, temporarily remove 2021:
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-rain_short <- rain |>
-  filter(year != 2021)
-
-# Which yield rows no longer have rain?
-with_station |>
-  anti_join(
-    rain_short,
-    by = join_by(weather_station == station, year)
-  ) |>
-  count(weather_station)
-
-# A left join keeps all 2,950 yield rows,
-# including 295 rows with missing rain.
-with_station |>
-  left_join(
-    rain_short,
-    by = join_by(weather_station == station, year)
-  ) |>
-  filter(is.na(precip_may_aug_mm)) |>
-  nrow()
-
-# An inner join drops those 295 rows.
-with_station |>
-  inner_join(
-    rain_short,
-    by = join_by(weather_station == station, year)
-  ) |>
-  nrow()
-
-# A full join also keeps a right-side row
-# that has no yield-side match.
-rain_extra <- rain_short |>
-  add_row(
-    station = "Course example",
-    year = 2025,
-    precip_may_aug_mm = 200,
-    days_missing = 0
-  )
-
-with_station |>
-  full_join(
-    rain_extra,
-    by = join_by(weather_station == station, year)
-  ) |>
-  filter(weather_station == "Course example") |>
-  select(year, weather_station, rm, canola)
-')
-```
-
-`anti_join()` identifies the failed keys, `left_join()` makes the missing matches visible as `NA`, and `inner_join()` silently removes them. The final `full_join()` also retains the deliberately added rain row that has no yield-side match, filling its yield columns with `NA`.
-
-### Second join: add the rain {.unnumbered}
-
-The second key has two parts. The station column is called `weather_station` on the left and `station` on the right; `year` has the same name in both tables.
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-# Find station-years with no precipitation row
-with_station |>
-  anti_join(rain,
-            by = join_by(weather_station == station, year)) |>
-  distinct(weather_station, year)
-
-# Add precipitation for the matching station and year
-merged <- with_station |>
-  left_join(rain,
-            by = join_by(weather_station == station, year),
-            relationship = "many-to-one")
-
-nrow(merged)
-')
-```
-
-Again there are no unmatched keys and the row count remains 2,950.
-
-### The row-count trap {.unnumbered}
-
-Now leave `year` out of the key:
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-# This key is incomplete: every row matches ten years of rain
-with_station |>
-  left_join(rain,
-            by = join_by(weather_station == station)) |>
-  nrow()
-
-# State the expected relationship to turn
-# the warning into an error.
-try(
-  with_station |>
-    left_join(
-      rain,
-      by = join_by(weather_station == station),
-      relationship = "many-to-one"
-    )
-)
-')
-```
-
-Each yield row matches all ten years for its station, so 2,950 rows become 29,500. By default, `dplyr` warns about the unexpected many-to-many relationship. When `relationship = "many-to-one"` states what was intended, the same mistake becomes an error and the analysis stops. Excel's station-only `XLOOKUP` makes the mistake differently: it returns only the first matching year and gives no warning.
-
-## What the Merge Gives You {#sec-merge-result}
-
-The merged table has one row per RM-year, with yield and precipitation beside one another:
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-# Display the columns used in the analysis
-merged |>
-  select(year, rm, rm_name, canola,
-         weather_station, precip_may_aug_mm)
-
-# Calculate annual mean yield and precipitation
-merged |>
-  filter(!is.na(canola)) |>
+# Count missing values in each column
+deliveries |>
   summarise(
-    canola_bu_ac = mean(canola),
-    rain_mm = mean(precip_may_aug_mm),
-    max_days_missing = max(days_missing),
-    .by = year
+    across(everything(), \\(x) sum(is.na(x)))
   )
+')
+```
 
-# Count yield values excluded from those means
-merged |>
-  summarise(missing_canola = sum(is.na(canola)))
+A numeric code such as `-999` is more dangerous. R reads it as a number and includes it in calculations. `summary()` exposes it as an implausible minimum unless it is converted to `NA` when the file is read.
 
-# Describe association, not causation
-merged |>
-  summarise(
-    yield_rain_correlation = cor(
-      canola,
-      precip_may_aug_mm,
-      use = "complete.obs"
+##### Working with missing values {.unnumbered}
+
+`is.na()` identifies missing values and `drop_na()` removes rows that contain them:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Count missing weights
+sum(is.na(deliveries$weight_tonnes))
+
+# Count rows retained after dropping any missing value
+deliveries |>
+  drop_na() |>
+  nrow()
+
+# Count rows retained when only analysis variables matter
+deliveries |>
+  drop_na(weight_tonnes, moisture_pct) |>
+  nrow()
+
+# Calculate a mean from the observed moisture readings
+mean(deliveries$moisture_pct, na.rm = TRUE)
+')
+```
+
+The impossible-value decision above created missing values: there are now two missing weights and three missing moisture readings. The mean excludes the flagged moisture value of 250 rather than allowing it to distort the result. Dropping every incomplete row can remove far more data than dropping rows missing the variables used in a particular calculation.
+
+##### When is dropping safe? {.unnumbered}
+
+The answer depends on whether the chance a value is missing depends on the value itself. If a rain gauge failed at arbitrary times, the observed days may still represent the season, although there are fewer of them. If low-yielding farms were less likely to report, the remaining records will overstate average yield. In the deliveries file, omitting the three missing moisture readings would be less concerning if records were left blank for administrative reasons than if unusually wet loads were more likely to go unrecorded. Record how many values were missing, which observations were excluded and why the exclusion seemed reasonable.
+
+#### Dates Stored as Text {#sec-dates-text}
+
+`glimpse()` reported `delivery_date` as `<chr>` because most rows use `2025-09-07` while two use day/month/year. Text dates sort alphabetically and cannot be used in date arithmetic.
+
+Parse the expected format and inspect the rows that fail. `lubridate::ymd()` warns when a value does not follow year-month-day order:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Parse dates written as year-month-day
+deliveries_with_dates <- deliveries |>
+  mutate(date_parsed = lubridate::ymd(delivery_date))
+
+# Display dates written in a different format
+deliveries_with_dates |>
+  filter(is.na(date_parsed)) |>
+  select(ticket_id, delivery_date)
+')
+```
+
+The value `03/11/2025` is ambiguous on its own. The other exceptional value, `15/10/2025`, can only be day/month/year, and all deliveries occur from September through November, so the teaching file's intended convention is day/month/year for both exceptional rows. Parse each stated format and combine the results:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+deliveries <- deliveries |>
+  mutate(
+    delivery_date = coalesce(
+      lubridate::ymd(delivery_date, quiet = TRUE),
+      lubridate::dmy(delivery_date, quiet = TRUE)
     )
   )
+
+deliveries |>
+  select(ticket_id, delivery_date) |>
+  filter(ticket_id %in% c("T0004", "T0047"))
+
+glimpse(deliveries$delivery_date)
 ')
 ```
 
-Across RM-years, wetter observations tend to have higher canola yield, but the relationship is loose: the correlation is about 0.41. The annual table also resists a simple rainfall story. Both 2021 and 2024 have low average yields despite ordinary or above-average rainfall. These data cannot say why. Testing whether heat contributed would require temperature data; explaining the remaining differences would require other variables as well.
+The choice of day/month/year comes from the file's construction and context, not from the ambiguous value alone. The final check is that the column is `<date>`, not `<chr>` (@sec-csv-files).
 
-The annual means exclude 46 RM-years with no published canola yield. They also average rainfall over RM rows, so a station serving more RMs receives more weight than a station serving fewer RMs. The merge has further limits that should be recorded in the project's README. The median RM is 62 km from its assigned station, one quarter are more than 85 km away, and the maximum is 161 km, so station rainfall is a coarse proxy for rainfall across an RM. Some station-years also have many missing daily observations—up to 25 days in this file—and their seasonal totals sum only the available days, which biases those totals downward.
+Once the checks are complete, write a derived file rather than editing the raw input:
+
+```r
+write_csv(
+  deliveries,
+  "data/processed/grain_deliveries_clean.csv"
+)
+```
+
+The raw file remains unchanged, the script records every decision, and rerunning it regenerates the clean file—the same principle as **Refresh** in Power Query.
+
+### A Checklist {#sec-cleaning-checklist .unnumbered}
+
+Use these checks on a new file:
+
+1. Use `glimpse()` to check the dimensions, column names and types.
+2. Write down what one row represents and whether the table is tidy.
+3. Use `summary()` to inspect the ranges of numeric variables.
+4. Use `count()` on categorical variables and look for spelling and spacing differences.
+5. Check for exact duplicates and repeated identifiers.
+6. Count `NA`s in every column and look for other missing-value codes.
+7. Check that units are consistent and dates were read as dates.
+8. Record every correction, exclusion and assumption in the script or Power Query steps.
