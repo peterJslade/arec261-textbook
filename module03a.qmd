@@ -403,7 +403,7 @@ resp_status(weather_response)
 
 `request()` names the endpoint, `req_url_query()` adds and encodes the parameters, and `req_dry_run()` lets you inspect the request before sending it. `req_perform()` sends it and already stops on an HTTP error such as `400` or `404`; `resp_status()` reports the successful response's code.
 
-The body is JSON. `resp_body_json()` turns it into nested R lists, and `tibble()` picks out the two lists we want:
+The body is JSON. JSON can contain groups inside other groups, so `resp_body_json()` represents it as a nested R list (see the discussion of lists in @sec-r-basics). The outer `weather_json` list contains an element named `daily`, which is itself a list. Inside `daily`, the elements named `time` and `precipitation_sum` are equal-length vectors. We can extract those vectors with `$` and use them as columns in a data frame:
 
 ```{r}
 #| eval: true
@@ -412,7 +412,7 @@ console('
 # Convert the JSON response to nested R objects
 weather_json <- resp_body_json(weather_response, simplifyVector = TRUE)
 
-# Put the date and precipitation vectors into a data frame
+# Extract the vectors and put them into a data frame
 saskatoon_rain <- data.frame(
   # Convert the date strings to Date values
   date = as.Date(weather_json$daily$time),
@@ -425,7 +425,7 @@ saskatoon_rain
 ')
 ```
 
-Every API's JSON is shaped differently. The first time you use one, run `str(weather_json)` and read the provider's documentation rather than guessing field names. Save the raw response too, with `writeLines(resp_body_string(weather_response), "data/raw/saskatoon_2024-05.json")`, for the same reason as the raw CSV.
+Each `$` moves down one level of the list: `weather_json$daily` selects the daily list, and `$time` or `$precipitation_sum` selects a vector inside it. `data.frame()` then places those vectors in columns. Every API's JSON is shaped differently, so the first time you use one, run `str(weather_json)` and read the provider's documentation rather than guessing element names. Save the raw response too, with `writeLines(resp_body_string(weather_response), "data/raw/saskatoon_2024-05.json")`, for the same reason as the raw CSV.
 
 ### Packages that wrap an API {#sec-data-packages}
 

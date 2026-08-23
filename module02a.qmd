@@ -27,7 +27,7 @@ By the end of this chapter you should be able to:
 1. Explain why we use R alongside Excel.
 2. Install R and Positron and run R code.
 3. Save values as objects and use functions to work with them.
-4. Explain the difference between a vector and a data frame.
+4. Explain the difference between a vector, a data frame and a list.
 5. Write and save an R script that can be run again from scratch.
 :::
 
@@ -178,9 +178,9 @@ This will be the last screenshot of **Positron** that I will show in the textboo
 - **Video** -- Sam Burer, [*The Basics of Scripts in R*](https://www.youtube.com/watch?v=NVglx_rthuM) -- a short intro to what an R script is and how to run it.
 :::
 
-## R Basics: Types, Vectors, Data Frames, Functions {#sec-r-basics}
+## R Basics: Types, Vectors, Data Frames, Lists, and Functions {#sec-r-basics}
 
-R stores things as **objects**. An object might contain a single number, a sequence of numbers, a table of data, a statistical model, or even a graph. For now, we need two kinds of objects: **vectors**, which hold a sequence of values, and **data frames**, which hold data in rows and columns.
+R stores things as **objects**. An object might contain a single number, a sequence of numbers, a table of data, a statistical model, or even a graph. For now, we need three kinds of objects: **vectors**, which hold a sequence of values; **data frames**, which hold data in rows and columns; and **lists**, which can hold different kinds of objects together.
 
 Values in R also have a **type**. The three types you will meet most often are numeric (numbers such as `48` or `-2`), character (text such as `"wheat"`), and logical (the values `TRUE` and `FALSE`). A vector contains values of one type, while a data frame can contain several columns of different types. You do not need to memorize a taxonomy of R objects and types; the important thing is to recognize what kind of information you are working with.
 
@@ -255,6 +255,40 @@ mean(fields$yield)  # mean yield
 ')
 ```
 
+### Lists {#sec-r-lists .unnumbered}
+
+A vector contains values of one type, and a data frame is a rectangular collection of equal-length vectors. A **list** is more flexible: each element can contain a different kind or amount of information. One element might be a number, another a vector and another a list of its own. A list inside another list is called a **nested list**.
+
+Create a list with `list()`. Naming its elements makes them easier to find:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Create a list containing a number and another list
+weather <- list(
+  latitude = 52.13,
+  daily = list(
+    date = c("2024-05-01", "2024-05-02"),
+    precipitation = c(7.5, 4.1)
+  )
+)
+
+# Display the structure of the nested list
+str(weather)
+
+# Extract one element from the outer list
+weather$latitude
+
+# Extract the daily list, then its precipitation vector
+weather$daily$precipitation
+')
+```
+
+The `$` operator selects a named element, just as it selects a column from a data frame. Each `$` moves down one level: `weather$daily` selects the list named `daily`, and the second `$` in `weather$daily$precipitation` selects the precipitation vector inside it.
+
+Lists often appear when data do not fit naturally into one rectangular table. In @sec-api-r, for example, R converts a JSON response from a weather API into a nested list. We then extract equal-length vectors from that list and use them as columns in a data frame.
+
 
 ### Functions {.unnumbered}
 
@@ -301,7 +335,7 @@ You do not need to memorize every function or every argument. To get help on a f
 R will show you the documentation: what the function does, what its arguments mean, what it returns.  It is often terse, but it is the authoritative answer, and knowing how to find it matters more than memorizing the details.
 
 ::: {.callout-tip collapse="true"}
-## Other resources — vectors, data frames, and functions
+## Other resources — vectors, data frames, lists, and functions
 
 - **Hands-On Programming with R** -- [Chapter 2, "The Very Basics"](https://rstudio-education.github.io/hopr/basics.html) (objects, vectors, and writing/using functions) and [the "R Objects" chapter](https://rstudio-education.github.io/hopr/r-objects.html) (vectors, matrices, and data frames in depth).
 - **Video** -- R Programming 101, [*Using functions and objects in R*](https://www.youtube.com/watch?v=hvFBDmT4bdY) -- applying functions to objects, beginner-friendly.
