@@ -123,6 +123,63 @@ Without the `&`, Excel reads `">AVERAGE(E2:E1068)"` as literal text and finds no
 :::
 
 
+## Lookup Functions {#sec-lookup}
+
+Data often arrive split across tables. You might have yields by field in one table and crop prices in another but need both pieces of information for your analysis. A lookup lets us use information in one table to bring a corresponding value into another.
+
+`XLOOKUP` lets us look up a value. It takes three main arguments: the value to find, the range to search and the range containing the value to return. For example:
+
+```
+=XLOOKUP(B11, $A$5:$A$7, $B$5:$B$7)
+```
+
+Excel searches `$A$5:$A$7` for the crop named in `B11`, finds its position and returns the value from the same position in `$B$5:$B$7`. Note the `$` signs: the crop being looked up changes from row to row, but the price table stays in place, so its ranges are locked.
+
+If there are multiple matches—for example, if Canola appears twice in the price list—`XLOOKUP` returns the value associated with the first match. The value you look up should therefore identify a unique observation in the lookup table.
+
+The workbook below has two tables: a short crop-price list at the top and the field data underneath. Column E uses `XLOOKUP` to find the price for each field's crop and bring it across, with the formula shown in column F.
+
+::: {.workbook-callout}
+::: {.excel-embed}
+<iframe width="402" height="700" frameborder="0" scrolling="no" src="https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7B1dc1b36e-393e-462b-b395-b6bd1fe4eae0%7D&action=embedview&wdAllowInteractivity=False&wdDownloadButton=True&wdInConfigurator=True"></iframe>
+:::
+
+[Download this workbook](textbook_examples/mod01_lookup.xlsx) · [blank version to fill in yourself](textbook_examples/mod01_lookup_practice.xlsx) · [Open online](https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7B1dc1b36e-393e-462b-b395-b6bd1fe4eae0%7D&action=default) (File → Save a Copy to view formulas and edit)
+:::
+
+### Looking up values using multiple keys {.unnumbered}
+
+Sometimes one column is not enough to identify an observation. Suppose we have crop yields and crop prices for several years. Crop alone is not a unique key because Canola appears once in every year. To find the appropriate price, we have to match both crop and year.
+
+The clearest way to do this in Excel is to create a helper column in **each** dataset that combines the two keys. If crop is in `B2` and year is in `A2`, enter:
+
+```
+=B2 & "|" & A2
+```
+
+This creates values such as `Canola|2023` and `Wheat|2024`. The separator matters: without it, different pairs of values can sometimes produce the same combined key. Create the same helper column, using the same order and separator, in the price table. You can then use a regular `XLOOKUP` to match the combined key in the yield table to the combined key in the price table:
+
+```
+=XLOOKUP(F2, $H$2:$H$7, $I$2:$I$7)
+```
+
+Here, `F2` contains the combined crop-year key for a yield observation, column H contains the matching keys in the price table and column I contains the prices to return. Before using the lookup, confirm that each combined key appears only once in the price table. If a key is duplicated, `XLOOKUP` silently returns the first match.
+
+It is possible to combine the keys directly inside `XLOOKUP`, but explicit helper columns are easier to inspect. You can see whether both tables created the same keys and identify spelling, spacing or type problems before relying on the result.
+
+An unmatched `XLOOKUP` returns `#N/A`. If every row returns `#N/A`, check that the helper columns use the same order and separator, that text does not contain stray spaces and that the corresponding values have the same type.
+
+::: {.callout-tip collapse="true"}
+## Other resources—lookup functions (VLOOKUP, XLOOKUP, INDEX/MATCH)
+
+- **Excel for Dummies** -- *Microsoft 365 Excel for Dummies*, the chapter on lookup and reference functions.
+- **Microsoft Support** -- [VLOOKUP](https://support.microsoft.com/en-us/office/vlookup-function-0bbc8083-26fe-4963-8ab8-93a18ad188a1), [XLOOKUP](https://support.microsoft.com/en-us/office/xlookup-function-b7fd680e-6d10-43e6-84f9-8818e00d0651), [INDEX](https://support.microsoft.com/en-us/office/index-function-a5dcf0dd-996d-40a4-a822-b56b061328bd), [MATCH](https://support.microsoft.com/en-us/office/match-function-e8dffd45-c762-47d6-bf89-533f4a37673a).
+- **Video (XLOOKUP)** -- Leila Gharani, [*How an Excel pro uses XLOOKUP*](https://www.youtube.com/watch?v=xnLvEhXWSas) (XLOOKUP vs VLOOKUP and INDEX/MATCH).
+- **Video (VLOOKUP for beginners)** -- Kevin Stratvert, [*VLOOKUP in Excel -- step-by-step tutorial*](https://www.youtube.com/watch?v=xIynD1gFOLo).
+- **Video (INDEX/MATCH)** -- Leila Gharani, [*The definitive guide to INDEX and MATCH*](https://www.youtube.com/watch?v=lCKglBM2jyk).
+:::
+
+
 ## Sorting and Filtering {#sec-sort-filter}
 
 Sorting and filtering are different from the functions we have used so far. Rather than calculating a new value, they change how the data in a worksheet is displayed and organized. The examples below use the same eight fields as before.

@@ -26,7 +26,7 @@ By the end of this chapter you should be able to:
 
 1. Identify the key that connects two tables.
 2. Distinguish one-to-one, many-to-one and many-to-many relationships.
-3. Merge tables in Excel with `XLOOKUP`, including a lookup that uses two columns.
+3. Merge tables in Excel with Power Query, including a merge that uses two key columns.
 4. Merge tables in R with `left_join()` and related functions.
 5. Check for unmatched rows and unexpected changes in the row count.
 :::
@@ -62,73 +62,52 @@ Both of our merges will be many-to-one:
 
 ## Merging in Excel {#sec-merge-excel}
 
-### A simple lookup {#sec-lookup .unnumbered}
+In Chapter 2, we used `XLOOKUP` to bring values from one table into another (@sec-lookup). That approach is useful for a quick lookup. Here, we will use Power Query because it records the merge as a repeatable series of steps and can match on several columns directly.
 
-Data often arrive split across tables. You might have yields by field in one table and crop prices in another but need both pieces of information for your analysis. A lookup lets us use information in one table to bring a corresponding value into another.
+### First merge: yields and the RM lookup {.unnumbered}
 
-`XLOOKUP` lets us look up a value. It takes three main arguments: the value to find, the range to search and the range containing the value to return. For example:
+Begin by importing `rm_yields_2015_2024.csv` and `rm_lookup.csv` with **Data > Get Data > From Text/CSV > Transform Data**. In the Power Query editor:
 
-```
-=XLOOKUP(B11, $A$5:$A$7, $B$5:$B$7)
-```
+1. Select the RM yields query.
+2. Choose **Home > Merge Queries**.
+3. Select the RM lookup as the second table.
+4. Select `rm` in the yields table and `rm_number` in the lookup table.
+5. Keep **Left Outer** as the join kind. This keeps every yield observation and adds information wherever the lookup contains a matching RM.
+6. Check the number of matching rows reported in the dialog, then choose **OK**.
+7. Expand the new table column using the double-arrow icon in its header. Select the RM name, census division, population and closest weather station.
 
-Excel searches `$A$5:$A$7` for the crop named in `B11`, finds its position and returns the value from the same position in `$B$5:$B$7`. Note the `$` signs: the crop being looked up changes from row to row, but the price table stays in place, so its ranges are locked.
+This is a many-to-one merge: the yields table contains many rows for each RM, while the lookup contains one row for each RM. The number of yield rows should not change.
 
-If there are multiple matches—for example, if Canola appears twice in the price list—`XLOOKUP` returns the value associated with the first match. The value you look up should therefore identify a unique observation in the lookup table.
+### Second merge: matching on station and year {.unnumbered}
 
-The workbook below has two tables: a short crop-price list at the top and the field data underneath. Column E uses `XLOOKUP` to find the price for each field's crop and bring it across, with the formula shown in column F.
+Next, import `station_precip.csv`. Each yield observation must match precipitation from both the correct weather station and the correct year. Unlike the helper-column method used with `XLOOKUP` in Chapter 2, Power Query can select both keys directly:
 
-::: {.workbook-callout}
-::: {.excel-embed}
-<iframe width="402" height="700" frameborder="0" scrolling="no" src="https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7B1dc1b36e-393e-462b-b395-b6bd1fe4eae0%7D&action=embedview&wdAllowInteractivity=False&wdDownloadButton=True&wdInConfigurator=True"></iframe>
-:::
+1. Choose **Home > Merge Queries** from the merged yields query.
+2. Select the closest-weather-station column, then hold Ctrl (Command on a Mac) and select `year`.
+3. In the precipitation table, select `station` first and `year` second. The numbered labels beside the column headings confirm the key order.
+4. Keep **Left Outer** as the join kind and check the number of matches reported in the dialog.
+5. Choose **OK**, then expand the new table column and select the precipitation variables you need.
 
-[Download this workbook](textbook_examples/mod01_lookup.xlsx) · [blank version to fill in yourself](textbook_examples/mod01_lookup_practice.xlsx) · [Open online](https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7B1dc1b36e-393e-462b-b395-b6bd1fe4eae0%7D&action=default) (File → Save a Copy to view formulas and edit)
-:::
+The column order matters: the first selected column in one table is matched to the first selected column in the other, and the second is matched to the second. Selecting station and year prevents Power Query from returning the first year it finds for a station.
 
-::: {.callout-tip collapse="true"}
-## Other resources—lookup functions (VLOOKUP, XLOOKUP, INDEX/MATCH)
+### Checking the merge {.unnumbered}
 
-- **Excel for Dummies** -- *Microsoft 365 Excel for Dummies*, the chapter on lookup and reference functions.
-- **Microsoft Support** -- [VLOOKUP](https://support.microsoft.com/en-us/office/vlookup-function-0bbc8083-26fe-4963-8ab8-93a18ad188a1), [XLOOKUP](https://support.microsoft.com/en-us/office/xlookup-function-b7fd680e-6d10-43e6-84f9-8818e00d0651), [INDEX](https://support.microsoft.com/en-us/office/index-function-a5dcf0dd-996d-40a4-a822-b56b061328bd), [MATCH](https://support.microsoft.com/en-us/office/match-function-e8dffd45-c762-47d6-bf89-533f4a37673a).
-- **Video (XLOOKUP)** -- Leila Gharani, [*How an Excel pro uses XLOOKUP*](https://www.youtube.com/watch?v=xnLvEhXWSas) (XLOOKUP vs VLOOKUP and INDEX/MATCH).
-- **Video (VLOOKUP for beginners)** -- Kevin Stratvert, [*VLOOKUP in Excel -- step-by-step tutorial*](https://www.youtube.com/watch?v=xIynD1gFOLo).
-- **Video (INDEX/MATCH)** -- Leila Gharani, [*The definitive guide to INDEX and MATCH*](https://www.youtube.com/watch?v=lCKglBM2jyk).
-:::
+After each merge, compare the number of rows with the original yields table. A many-to-one left merge should retain the same number of rows. Filter the expanded columns for `null` to find observations that did not match, and check several rows against the source tables.
 
-### Looking up values with two keys {.unnumbered}
-
-Sometimes one column is not enough to identify a row uniquely. Suppose each row represents one rural municipality in one year. RM 1 appears once for every year in the dataset, so looking up RM 1 alone will return the first match. To identify a particular observation, we need both the RM and the year.
-
-One way to do this in Excel is to combine the two values into a single key and use that key for the lookup:
-
-```
-=XLOOKUP(1 & "|" & 2023, B2:B10650 & "|" & A2:A10650, E2:E10650)
-```
-
-Excel effectively creates identifiers such as `1|2023`, `1|2024` and `2|2023`, then looks for the one we requested. The `|` is a separator between the two pieces of information. Without a separator, different combinations can accidentally produce the same identifier. For example, 1 and 2023 would become `12023`, but so would 12 and 023.
-
-A lookup needs enough information to identify the observation you want uniquely. Sometimes one variable is enough; sometimes you need a combination of variables.
-
-The **Merge** sheet in the workbook below contains thirty yield rows and the two lookup columns beside them. The `FORMULATEXT` column shows the precipitation formula, and the checks below the data count `#N/A` results.
-
-The first lookup matches the RM number and returns its station. The second lookup needs station and year, so it joins the two values on each side with `& "|" &` to make a composite key. The shaded column deliberately leaves out year. It returns the first rain value for that station in the rain sheet—2015 here—for every year, without producing an error. These formulas require Microsoft 365's `XLOOKUP`, which University of Saskatchewan students can use through the university.
-
-::: {.workbook-callout}
-<!-- Public view-only link expires 2026-11-20 under the University of Saskatchewan 90-day policy. -->
-
-::: {.excel-embed}
-<iframe width="402" height="700" frameborder="0" scrolling="no" src="https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7BE4286D57-D90E-4E60-9E9A-C493B5099E8E%7D&action=embedview&wdAllowInteractivity=False&wdDownloadButton=True&wdInConfigurator=True&ActiveCell=%27Merge%27!A1"></iframe>
-:::
-
-[Download this workbook](textbook_examples/mod03_merge_excel.xlsx) · [Open online](https://usaskca1-my.sharepoint.com/:x:/g/personal/pjs998_usask_ca/IQBXbSjkDtlgTp6axJO1CZ6OAa9jBZn7UhVyZRjoYXeXy3Q?e=AcDC7T) (File → Save a Copy to view formulas and edit)
-:::
-
-An unmatched `XLOOKUP` returns `#N/A`, which is easy to count. An incomplete key can be harder to find because the formula returns a value. Before a lookup, confirm that the key on the lookup side is unique: `XLOOKUP` silently returns the first duplicate. Check a few rows against the source tables, especially where the year or another part of the key changes. Excel lookups ignore case but not stray spaces, and the number `1` does not match the text `"1"`; if an entire column returns `#N/A`, check the key types and use `TRIM()` to remove extra spaces.
-
-For a merge that must be repeated, Power Query records the source, key columns and join type. Import each table with **Data > Get Data > From Text/CSV > Transform Data**. In the editor choose **Home > Merge Queries**, select the key columns in the same order on both sides using Ctrl-click (Command-click on a Mac), and keep **Left Outer** as the join kind. The dialog reports how many rows match. After clicking **OK**, expand the new Table column with the double-arrow icon in its header. Power Query also offers Inner, Full Outer and Left Anti joins, corresponding to the R joins below.
+Power Query also offers **Inner**, **Full Outer** and **Left Anti** joins. These correspond to the R joins introduced below. A Left Anti join is particularly useful for listing rows that have no match before completing the merge.
 
 ## Merging in R {#sec-merge-r}
+
+In tidyverse we merge data with join functions.  There are four different types of joins depending on which data we want to keep in the merged file.  Suppose we have two datasets `y` and `x`:
+
+
+- **`left_join(x, y, by)`** keeps every row of `x` whether it has a match in `y` or not.  But does not keep rows in `y` that don't have a match. 
+- **`inner_join(x, y, by)`** keeps only rows that matched in both tables.
+- **`full_join(x, y, by)`** keeps every row from both tables, regardless of whether there is a match.
+- **`anti_join(x, y, by)`** returns the rows of `x` that have no match in `y`. It is useful for finding failed matches before a join.
+
+The `by` argument specifies the keys we merge on.  It can be a single column name or a vector of names.
+
 
 Read the three files and inspect their columns:
 
@@ -136,43 +115,32 @@ Read the three files and inspect their columns:
 #| eval: true
 #| echo: false
 console('
-suppressPackageStartupMessages({
-  library(tidyverse)
-  library(janitor)
-})
 
-# Read the three tables and clean their column names
+## Load pacakges
+library(tidyverse)
+
+# Read the three tables
 yields <- read_csv(
   "practice/data/rm_yields_2015_2024.csv",
   show_col_types = FALSE
-) |> clean_names()
+)
+
 rms <- read_csv(
   "practice/data/rm_lookup.csv",
   show_col_types = FALSE
-) |> clean_names()
+)
+
 rain <- read_csv(
   "practice/data/station_precip.csv",
   show_col_types = FALSE
-) |> clean_names()
+)
 
-glimpse(yields)
-glimpse(rms)
-glimpse(rain)
 ')
 ```
 
-`left_join()` takes two data frames and a `by` argument that identifies the key. If a key has different names in the two tables, write `join_by(left_name == right_name)`; a column with the same name on both sides is written once. The older `by = c("left_name" = "right_name")` form still appears in other people's code.
+We can now use `left_join()` takes two data frames and a `by` argument that identifies the key. If a key has different names in the two tables, write `join_by(left_name == right_name)`; a column with the same name on both sides is written once. The older `by = c("left_name" = "right_name")` form still appears in other people's code.
 
-### Four joins {.unnumbered}
 
-The join functions differ in which rows they keep:
-
-- **`left_join(a, b)`** keeps every row of `a`. New columns contain `NA` where `b` has no match.
-- **`inner_join(a, b)`** keeps only rows that matched in both tables.
-- **`full_join(a, b)`** keeps every row from both tables, with `NA` where either side has no match.
-- **`anti_join(a, b)`** returns the rows of `a` that have no match in `b`. It is useful for finding failed matches before a join.
-
-We will use `left_join()` because the yield rows are the observations we want to keep.
 
 Before joining, check that the columns expected to identify one row are actually unique:
 
