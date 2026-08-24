@@ -6,7 +6,7 @@
 source("_console.R")
 ```
 
-The AI codign assistant we will use for this course is GitHub Copilot.  This assistant works well within the Positron environment.  It can function at all three levels of AI assistance -- as a chat bot, an inline editor, and an agent.  Most importantly, it is free for students and faculty.  
+The AI coding assistant we will use for this course is GitHub Copilot.  This assistant works well within the Positron environment.  It can function at all three levels of AI assistance -- as a chatbot, an inline editor, and an agent.  Most importantly, it is free for students and faculty.
 
 Note that GitHub Copilot and Microsoft 365 Copilot are separate products. GitHub Copilot supplies coding help in Positron and is the product used here. Copilot in Excel requires separate Microsoft licensing; GitHub Education does not unlock it.
 
@@ -36,13 +36,21 @@ Apply early as verification can take several days.
 
 ## Connecting Copilot to Positron {#sec-copilot-positron}
 
-Recent versions of Positron include AI support directly. You do not need to install the GitHub Copilot extension from the Extensions pane.
+You can connect to Github Copilot directly through Positron using these steps:
 
 1. Update Positron before beginning.
 2. Open **View > Command Palette**, or use `Cmd+Shift+P` on macOS or `Ctrl+Shift+P` on Windows.
 3. Run **Authentication: Configure Language Model Providers**.
 4. Select **GitHub Copilot** and sign in through the browser window that opens.
 5. Return to Positron and open Posit Assistant chat. Copilot should appear as an available provider.
+
+::: {#fig-copilot-connect layout-ncol=2}
+![A. **View → Command Palette**.](images/positron_view_command_palette.png){.screenshot}
+
+![B. The **Authentication: Configure Language Model Providers** command.](images/positron_auth_providers.png){.screenshot}
+
+Connecting Copilot through the Command Palette.
+:::
 
 Copilot's grey inline completions become available after the same sign-in. If chat or completions do not appear, restart Positron. If the account was connected in an older Positron release, sign out of GitHub from the Accounts menu and sign in again.
 
@@ -56,131 +64,60 @@ These command names were checked in August 2026. If a later Positron release use
 
 Inline completions appear as grey text while you type. Press `Tab` to accept a suggestion, `Esc` to dismiss it or keep typing to replace it.
 
-A comment can provide a short instruction:
+In @fig-copilot-wrong-file the AI is trying to helpfully suggest how to complete my code to read in a file.  **Unfortunately, it is completing with the wrong file name!** This is because the inline completion is trying to guess what I want from just what is in the existing code -- since it knows from my comment that I want to load variety data, it makes the, not illogical, guess that the raw data is called `data/variety_data.csv`.
 
-```r
-# Read the yield data and count rows by crop
-```
+![An inline completion guessing the wrong file name. The grey text is the suggestion; the real file is `sask_variety_yields.csv`.](images/copilot_inline_wrong_file.png){#fig-copilot-wrong-file .screenshot}
 
-A plausible completion might invent both the file and column name:
+In @fig-copilot-summary, I want to summarize the columns in the data.  More helpfully, once I start typing `summa` it correctly guesses that I want to run `summary(variety_yields)`.
 
-```r
-yields <- read_csv("yields.csv")
-count(yields, crop)
-```
-
-Neither name was supplied by the comment. Grey text is a suggestion, not evidence that the assistant found the correct file.
+![After a few letters, the completion supplies the whole call.](images/copilot_inline_summary.png){#fig-copilot-summary .screenshot}
 
 Inline completion is useful for predictable syntax, repeated arguments and the next line of a pattern already present in the script. It is a poor place to ask for an explanation because the result arrives as code rather than a discussion.
 
 ### Posit Assistant chat {.unnumbered}
 
-Chat is useful for questions: why an error occurred, what a line does, how to reorganize a plot or what checks belong after a join. Select the relevant code or file before asking so the assistant receives the right context.
+More powerful is the Posit Assistant chat.  You can open it from the sidebar, as shown in @fig-assistant-open.
 
-Posit Assistant is the default chat interface in Positron. GitHub Copilot can supply its language model after you connect the provider. This distinction matters when following documentation: Copilot is the account and model provider; Posit Assistant is the chat interface you see in Positron.
+::: {#fig-assistant-open layout-ncol=2}
+![A. The Posit Assistant icon in the sidebar.](images/assistant_sidebar_icon.png){.screenshot}
 
-## Show the Shape of the Data {#sec-copilot-context}
+![B. The chat pane. Note the reminder at the bottom about which folder the assistant will work in.](images/assistant_pane.png){.screenshot}
 
-Copilot cannot infer a file's columns from its filename. If it has not seen `sask_variety_yields.csv`, code using an assumed column name is a guess.
+Opening Posit Assistant.
+:::
 
-Run `glimpse()` and inspect the categories rather than typing them from memory:
+By default, the assistant can access all the files in your project.  Make sure you want to give it this access before proceeding.  The assistant also has modes (@fig-assistant-modes) that control how much it does before asking: in Normal mode it asks for approval before most edits, while Auto mode approves more of its own actions.
 
-```{r}
-#| eval: true
-#| echo: false
-console('
-suppressPackageStartupMessages({
-  library(tidyverse)
-  library(janitor)
-})
+![The assistant's modes. Normal asks for approval before most edits.](images/assistant_modes.png){#fig-assistant-modes .screenshot}
 
-d <- read_csv(
-  "practice/data/sask_variety_yields.csv",
-  show_col_types = FALSE
-) |>
-  clean_names()
+Not only can the assistant answer questions about your code, but it can write code for you.  In @fig-assistant-task I ask it to summarize the yields of each variety.  It writes the code, asks permission to run it, and executes it, ensuring that it actually runs.
 
-glimpse(d)
-d |> distinct(crop)
-')
+::: {#fig-assistant-task layout-ncol=2}
+![A. The request.](images/assistant_ask_summary.png){.screenshot}
+
+![B. The assistant asks before executing code.](images/assistant_execute_permission.png){.screenshot}
+
+Asking the assistant to write a summary.
+:::
+
+![The result: the assistant edited the script, ran it, and reported what it found -- including a caveat about varieties with only one observation.](images/assistant_summary_result.png){#fig-assistant-result .screenshot}
+
+
+If this isn't mind blowing enough, it can do much more than that.  For example, you can ask it to write a report for you.  In the drop down below you can see my very short conversation asking the assistant to generate a report on the most common varieties planted to each crop in 2025.  The report it generated is embedded beneath.  The report is far from perfect -- it has a big table of crop acres that I didn't want; I just wanted the bar charts it produced.  But I can quite easily ask it to remove those tables, alter the graphs, and so on.  This is pretty amazing for about a minute of work on my part!  The code it wrote is right in the report file for me to validate.
+
+::: {.callout-note collapse="true"}
+## The full conversation
+
+![The whole exchange: one request, two answers from me to its clarifying questions, and a rendered report. Notice that it checks the data (the `executeCode` steps) before writing anything.](images/copilot_report_chat.png){#fig-copilot-report-chat .screenshot}
+:::
+
+```{=html}
+<iframe src="examples/variety_yield_report.html" width="100%" height="560" style="border: 1px solid #d5d9d6; border-radius: 6px;" title="The variety yield report generated by Posit Assistant"></iframe>
 ```
 
-Paste that output, then make the requested missing-value decision explicit:
+The report is also [available on its own page](examples/variety_yield_report.html).
 
-```r
-# d has columns: risk_zone, crop, variety, year, acres, yield
-# The complete crop list from distinct(crop) is pasted above.
-# Drop rows missing acres or yield and report how many were dropped.
-#
-# Compute mean 2025 yield by crop, weighted by acres
-```
 
-This supplies the exact names, category spellings, missing-value decision and intended calculation. A reasonable suggestion is:
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-d_2025 <- d |>
-  filter(
-    year == 2025,
-    !is.na(yield),
-    !is.na(acres),
-    acres > 0
-  )
-
-d_2025 |>
-  summarise(
-    mean_yield = weighted.mean(yield, acres),
-    rows = n(),
-    .by = crop
-  )
-')
-```
-
-Context also has a privacy cost. A file included in an AI request leaves your machine. Public course data is suitable; confidential farm, employee, client or research data may not be. Follow the data owner's rules and the restrictions in @sec-ai-privacy.
-
-## Accepting and Rejecting {#sec-copilot-accept}
-
-Accept code when you can explain what it does and can name the check that would reveal an error.
-
-- **Usually safe to accept after reading:** syntax you recognize, plotting boilerplate and repetitive argument lists.
-- **Read and test carefully:** joins, filters, grouped summaries, missing-value handling and any code that changes the number of rows.
-- **Stop and investigate:** unfamiliar functions or packages, an unexpectedly long solution or code whose result you cannot predict.
-- **For Excel, stop at `#NAME?`:** the function may require a newer Microsoft 365 build. Ask for a `SUMIFS` or `INDEX`/`MATCH` alternative when compatibility matters.
-
-Rejecting a suggestion costs almost nothing. Accepting code you do not understand leaves you responsible for a calculation you cannot defend or repair.
-
-## Checking the Work {#sec-copilot-verify}
-
-Use the same checks after every AI-assisted change:
-
-1. Read every line and identify which data it uses.
-2. Count rows before and after a filter, join or grouped operation.
-3. Test the code on a small case whose answer is known.
-4. Recalculate one result another way.
-5. Inspect the final table or chart against the question that was asked.
-
-The assistant can help write a check. It cannot replace the independent evidence supplied by that check.
-
-For the weighted-mean example, count the rows and independently recalculate one crop from its numerator and denominator:
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-nrow(d)
-nrow(d_2025)
-
-d_2025 |>
-  filter(crop == "Barley") |>
-  summarise(
-    checked_mean = sum(acres * yield) / sum(acres)
-  )
-')
-```
-
-In Excel, press F2 or use **Formulas > Evaluate Formula** to see which cells a formula reads, compare the result with a PivotTable, copy the formula down to test relative and absolute references, compare `COUNT` with `COUNTA` to find numbers stored as text, and require exact matching in every lookup.
 
 ::: {.callout-tip collapse="true"}
 ## Other resources -- Copilot and Positron
