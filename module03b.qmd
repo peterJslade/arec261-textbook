@@ -6,7 +6,7 @@
 source("_console.R")
 ```
 
-A file that opens without an error may still contain duplicate rows, inconsistent names, mixed units and missing values recorded as ordinary text. Data cleaning is a large part of any data analysis project -- for many projects it takes the majority of the time. Unfortuantely, it is also the dullest part of the project.  Hopeflly, this chapter helps us be more efficient and transparent in our data cleaning.  
+A file that opens without an error may still contain duplicate rows, inconsistent names, mixed units and missing values recorded as ordinary text. Data cleaning takes up a large part of most data analysis projects. Unfortunately, it is also the dullest part of the job. This chapter is about finding common problems and recording what you did about them.
 
 ## Learning Objectives {.unnumbered}
 
@@ -25,25 +25,30 @@ By the end of this chapter you should be able to:
 
 ## Data shape {#sec-tidy-data}
 
-The group of R pacakges we are using for data cleaning is called the tidyverse, becasue they are centered on the idea of tidy data.  The concept of tidy data is also relevant for Excel and any other data analysis project.  A dataset is considered tidy when:
+The R packages we use for data cleaning are part of the tidyverse, which is organized around the idea of **tidy data**. The same idea matters in Excel. A dataset is tidy when:
 
 1. Every variable has its own column.
 2. Every observation has its own row.
 3. Every value has its own cell.
 
-This begs a kind of philosophical question about what a vairable is.  Consider the RM yield data set that we have worked with.  The raw data comes in the form below, where an observation refers to a RM and year, and the yields of each crop are a column.  
+The definition is simple, but deciding what counts as a variable or an observation is not always obvious. Consider the RM yield data used in the previous chapter. In the original file, one row represents an RM in one year, while the yields for six crops occupy six columns.
 
-INSERT DATA
+| Year | RM | Spring Wheat | Durum | Canola | Barley | Oats | Peas |
+|-----:|---:|-------------:|------:|-------:|-------:|-----:|-----:|
+| 2015 |  1 |        34.32 | 29.18 |  28.65 |  50.96 | 56.36 | 37.7 |
+| 2016 |  1 |        40.50 | 38.40 |  32.10 |  68.10 | 75.70 | 26.2 |
+| 2017 |  1 |        45.97 |       |  39.19 |        | 85.82 | 43.4 |
+| 2018 |  1 |        50.00 |       |  39.20 |  76.00 | 96.00 | 42.0 |
 
-We could alternatively make this a wider dataset where every row is an RM and every column is the yield of a crop in a year.
+We could make the data even wider. One row could represent an RM, with a separate column for every crop-year combination: `Canola_2024`, `Canola_2025`, `Barley_2024` and so on.
 
-INSERT DATA
+<!-- TODO: Insert the RM table with one column per crop-year combination. -->
 
-Or we could make this a longer dataset where every observation is a RM-year-crop combination 
+Or we could make the data longer, with one row for each RM-year-crop combination and separate columns for `RM`, `year`, `crop` and `yield_bu_ac`.
 
-INSERT DATA
+<!-- TODO: Insert the long RM-year-crop table. -->
 
-None of these are definitively right or wrong.  However, data analysts generally prefer the final option which is the longer version of the data.  In Excel this allows us to create PivotTables that ... . In R it allows us to more easily filter by crop when doing analysis.  For example,...  
+None of these shapes is always right or wrong. The useful shape depends on what you want to do. The long version works well for PivotTables because `crop` can be placed in the Rows, Columns or Filters area. In R, the same `crop` column can be filtered, grouped or mapped to a graph. A wider table may be easier for a person to read or for presenting a small number of results.
 
 When you open a table, write down what one row represents and what each column represents. This usually makes the shape problem visible.
 
@@ -118,32 +123,34 @@ yields_long |>
 ')
 ```
 
-Again, these is no one correct shape for the data.  Typically, analysis is easier on long data.  However, wider data is often better for presentation.
+There is no single correct shape for every purpose. Analysis is often easier with long data, while a wider table can be useful for presenting results.
 
 ## Data cleaning {#sec-data-cleaning}
 
 ### Checking data quality {#sec-data-quality .unnumbered}
 
-Before analysing a new dataset, check what arrived. A file can open without an error and still contain the wrong units, missing records, duplicate observations or values that do not mean what their column names suggest. A short inspection at the beginning can save a great deal of confusion later.
+Before cleaning a new dataset, check what arrived. A file can contain the wrong units, missing records and duplicate observations without producing an error. A short inspection at the beginning can save a great deal of confusion later.
 
 These checks can find problems, but they cannot prove that every value is correct. A yield of 55 bu/ac may be perfectly plausible and still belong to the wrong field. We need to understand the source as well as inspect the values.
 
-#### Start with what you expect {.unnumbered}
+#### Know what the values mean {.unnumbered}
 
-Use the source documentation, data dictionary or README to answer:
+Data cleaning relies on your ability to spot values that do not make sense. This means you need some idea of what the data should look like. A crop yield between 0 and 100 may be plausible when it is measured in bushels per acre, while the same crop measured in tonnes per acre will have much smaller values. The number alone is not enough.
+
+Before looking for errors, answer a few questions:
 
 - What does one row represent?
 - What population and time period does the file cover?
 - What units are used?
-- Which columns should identify a unique observation?
+- Which column or columns should identify one observation?
 - How are missing values and categories coded?
 - Has the file already been filtered, cleaned or aggregated?
 
-Without this information, it can be difficult to decide whether an unusual value is a problem.
+This information may be in a data dictionary, a README file or the page from which the data were downloaded. If it is not documented, you may need to ask the person who created the file.
 
 #### Take a first look {.unnumbered}
 
-Before calculating anything, check the basic structure:
+Start with the basic structure:
 
 - Count the rows and columns.
 - Inspect the column names and data types.
@@ -151,7 +158,7 @@ Before calculating anything, check the basic structure:
 - Check whether numbers or dates were imported as text.
 - Count repeated values of any column, or combination of columns, that should identify one row.
 
-An unexpected row count or repeated identifier may mean that records are missing, duplicated or stored at a different level than you expected.
+An unexpected row count or repeated identifier may mean that records are missing, duplicated or stored at a different level than you expected. Looking at the first few rows is useful, but it will not reveal a problem near the bottom of a large file.
 
 #### Check each variable {.unnumbered}
 
@@ -162,7 +169,7 @@ For a **numeric variable**:
 - Plot a histogram or box plot.
 - Look for impossible values, extreme observations, several clusters and suspicious concentrations at zero.
 
-The useful limits depend on the subject. A negative crop yield is impossible, while a yield of 100 bu/ac may be unusual but real. An extreme value should be investigated, not automatically deleted.
+The useful limits depend on the subject. A negative crop yield is impossible, while a yield of 100 bu/ac may be unusual but real. Investigate an extreme value rather than automatically deleting it.
 
 For a **categorical variable**:
 
@@ -179,14 +186,14 @@ For a **date variable**:
 
 #### Check variables together {.unnumbered}
 
-Some problems only appear when two or more variables are compared:
+Some problems appear only when two or more variables are compared:
 
 - Seeding should occur before harvest.
 - Percentages should normally fall between 0 and 100.
 - Reported production should be consistent with acres and yield.
 - Category and location codes should agree with their documentation.
 
-A scatter plot can reveal an odd relationship between two numeric variables. A line plot can expose gaps or abrupt changes over time. Summaries grouped by year, region or source can show that missing values or unusual measurements are concentrated in one part of the dataset.
+A scatter plot can reveal an odd relationship between two numeric variables. A line plot can expose gaps or abrupt changes over time. Summaries grouped by year, region or source can show whether missing values or unusual measurements are concentrated in one part of the dataset.
 
 #### Investigate before changing {.unnumbered}
 
@@ -200,11 +207,28 @@ When something looks wrong:
 
 ### Data cleaning in Excel {#sec-cleaning-excel}
 
-Excel offers three approaches. Formulas can clean a file once while leaving the raw columns visible. Power Query can reshape the table and records each cleaning step. Find & Replace changes cells directly and leaves little evidence of what was changed.
+The first step in Excel is to inspect the raw data, not to start replacing values. Summaries and graphs help us find the rows that need attention. We can then use formulas or Power Query to record what we changed while keeping the original columns intact.
 
-#### Cleaning with formulas {.unnumbered}
+#### Summarize and visualize the raw data {.unnumbered}
 
-The workbook below keeps the raw delivery data in columns A through F and places cleaning formulas beside it. The formulas standardize crop names, rescale moisture values entered as decimals, count repeated ticket numbers and flag impossible weights. `FORMULATEXT` cells show the formulas, and summary checks appear below the table.
+The workbook below contains 19 grain-delivery tickets. Columns A through F hold the data as they arrived. We will begin with the two numeric measurements: `weight_tonnes` in `D5:D23` and `moisture_pct` in `E5:E23`.
+
+For the weight column, calculate:
+
+- the number of observations with `=COUNT(D5:D23)`;
+- the mean with `=AVERAGE(D5:D23)`;
+- the median with `=MEDIAN(D5:D23)`;
+- the minimum with `=MIN(D5:D23)`;
+- the maximum with `=MAX(D5:D23)`; and
+- the number of blanks with `=COUNTBLANK(D5:D23)`.
+
+There are 19 recorded weights. Their mean is 33.9 tonnes, their median is 36.5 tonnes, and they range from -12.4 to 48.1 tonnes. The negative minimum cannot be a delivery weight, but the summary does not tell us why it is negative or what value should replace it.
+
+Repeat the same calculations for `moisture_pct`. There are 18 recorded values and one blank. The mean is 9.17%, the median is 9.25%, and the values range from 0.099% to 14.6%. The minimum is suspicious because the other moisture readings are between 7% and 14.6%. It may have been entered as a proportion rather than a percentage.
+
+The summary statistics identify the extreme values, but a graph shows how those values relate to the rest of the data. Select the weight column and choose **Insert > Insert Statistic Chart > Histogram**. Repeat this for moisture. The weight histogram has one observation separated from the positive delivery weights. The moisture histogram has one observation close to zero and the remaining values between 7% and 14.6%.
+
+A histogram does not tell us that an unusual value is wrong. It tells us which observations to investigate. We still need the source record or a documented rule before changing a value.
 
 ::: {.workbook-callout}
 <!-- Public view-only link expires 2026-11-20 under the University of Saskatchewan 90-day policy. -->
@@ -216,7 +240,13 @@ The workbook below keeps the raw delivery data in columns A through F and places
 [Download this workbook](textbook_examples/mod03_cleaning_excel.xlsx) · [Open online](https://usaskca1-my.sharepoint.com/:x:/g/personal/pjs998_usask_ca/IQDIaxNv25afSa5LoEz9-G3tAXoBxYJcoWjP4fMOie4JVrQ?e=PsWLYM) (File → Save a Copy to view formulas and edit)
 :::
 
-The filter dropdown is useful when checking categories because it lists each distinct value. `MIN`, `MAX`, `COUNTBLANK` and a count of repeated identifiers cover many numerical checks. Excel's summary functions silently ignore text in a numeric range, so add a separate text check such as `=SUMPRODUCT(--ISTEXT(D5:D23))`; a weight written as `38.2 t` otherwise disappears from the summary without an error. Keep the raw columns beside the cleaned ones so that a changed value can be traced back.
+#### Cleaning with formulas {.unnumbered}
+
+Once we know where the problems are, formulas can create cleaned columns beside the raw data. In the workbook, column G standardizes crop names, column H converts the moisture value recorded as a proportion, column I counts repeated ticket numbers and column J flags the negative weight. The original values remain in columns A through F so that every change can be traced back.
+
+The filter dropdown is useful for checking categories because it lists each distinct value. It reveals that `barley`, `Barley` and other capitalization differences would be treated as separate groups. Excel's summary functions also ignore text in a numeric range, so add a separate check such as `=SUMPRODUCT(--ISTEXT(D5:D23))`. A value written as `38.2 t` would otherwise disappear from the mean, minimum and maximum without producing an error.
+
+Formulas work well when the cleaning rules are short and the raw and cleaned values need to remain visible together. Avoid using Find & Replace on the raw columns. It changes the values in place and leaves no record of what was replaced.
 
 #### Cleaning with Power Query {.unnumbered}
 
