@@ -560,7 +560,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul>
   <li><a href="#sec-data-quality" id="toc-sec-data-quality" class="nav-link" data-scroll-target="#sec-data-quality">Checking data quality</a>
   <ul class="collapse">
-  <li><a href="#start-with-what-you-expect" id="toc-start-with-what-you-expect" class="nav-link" data-scroll-target="#start-with-what-you-expect">Start with what you expect</a></li>
+  <li><a href="#know-what-the-values-mean" id="toc-know-what-the-values-mean" class="nav-link" data-scroll-target="#know-what-the-values-mean">Know what the values mean</a></li>
   <li><a href="#take-a-first-look" id="toc-take-a-first-look" class="nav-link" data-scroll-target="#take-a-first-look">Take a first look</a></li>
   <li><a href="#check-each-variable" id="toc-check-each-variable" class="nav-link" data-scroll-target="#check-each-variable">Check each variable</a></li>
   <li><a href="#check-variables-together" id="toc-check-variables-together" class="nav-link" data-scroll-target="#check-variables-together">Check variables together</a></li>
@@ -568,6 +568,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </ul></li>
   <li><a href="#sec-cleaning-excel" id="toc-sec-cleaning-excel" class="nav-link" data-scroll-target="#sec-cleaning-excel"><span class="header-section-number">8.2.1</span> Data cleaning in Excel</a>
   <ul class="collapse">
+  <li><a href="#summarize-and-visualize-the-raw-data" id="toc-summarize-and-visualize-the-raw-data" class="nav-link" data-scroll-target="#summarize-and-visualize-the-raw-data">Summarize and visualize the raw data</a></li>
   <li><a href="#cleaning-with-formulas" id="toc-cleaning-with-formulas" class="nav-link" data-scroll-target="#cleaning-with-formulas">Cleaning with formulas</a></li>
   <li><a href="#cleaning-with-power-query" id="toc-cleaning-with-power-query" class="nav-link" data-scroll-target="#cleaning-with-power-query">Cleaning with Power Query</a></li>
   </ul></li>
@@ -609,7 +610,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>A file that opens without an error may still contain duplicate rows, inconsistent names, mixed units and missing values recorded as ordinary text. Data cleaning is a large part of any data analysis project – for many projects it takes the majority of the time. Unfortuantely, it is also the dullest part of the project. Hopeflly, this chapter helps us be more efficient and transparent in our data cleaning.</p>
+<p>A file that opens without an error may still contain duplicate rows, inconsistent names, mixed units and missing values recorded as ordinary text. Data cleaning takes up a large part of most data analysis projects. Unfortunately, it is also the dullest part of the job. This chapter is about finding common problems and recording what you did about them.</p>
 <section id="learning-objectives" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="learning-objectives">Learning Objectives</h2>
 <div class="objectives">
@@ -628,19 +629,74 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="sec-tidy-data" class="level2" data-number="8.1">
 <h2 data-number="8.1" class="anchored" data-anchor-id="sec-tidy-data"><span class="header-section-number">8.1</span> Data shape</h2>
-<p>The group of R pacakges we are using for data cleaning is called the tidyverse, becasue they are centered on the idea of tidy data. The concept of tidy data is also relevant for Excel and any other data analysis project. A dataset is considered tidy when:</p>
+<p>The R packages we use for data cleaning are part of the tidyverse, which is organized around the idea of <strong>tidy data</strong>. The same idea matters in Excel. A dataset is tidy when:</p>
 <ol type="1">
 <li>Every variable has its own column.</li>
 <li>Every observation has its own row.</li>
 <li>Every value has its own cell.</li>
 </ol>
-<p>This begs a kind of philosophical question about what a vairable is. Consider the RM yield data set that we have worked with. The raw data comes in the form below, where an observation refers to a RM and year, and the yields of each crop are a column.</p>
-<p>INSERT DATA</p>
-<p>We could alternatively make this a wider dataset where every row is an RM and every column is the yield of a crop in a year.</p>
-<p>INSERT DATA</p>
-<p>Or we could make this a longer dataset where every observation is a RM-year-crop combination</p>
-<p>INSERT DATA</p>
-<p>None of these are definitively right or wrong. However, data analysts generally prefer the final option which is the longer version of the data. In Excel this allows us to create PivotTables that … . In R it allows us to more easily filter by crop when doing analysis. For example,…</p>
+<p>The definition is simple, but deciding what counts as a variable or an observation is not always obvious. Consider the RM yield data used in the previous chapter. In the original file, one row represents an RM in one year, while the yields for six crops occupy six columns.</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: right;">Year</th>
+<th style="text-align: right;">RM</th>
+<th style="text-align: right;">Spring Wheat</th>
+<th style="text-align: right;">Durum</th>
+<th style="text-align: right;">Canola</th>
+<th style="text-align: right;">Barley</th>
+<th style="text-align: right;">Oats</th>
+<th style="text-align: right;">Peas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">2015</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">34.32</td>
+<td style="text-align: right;">29.18</td>
+<td style="text-align: right;">28.65</td>
+<td style="text-align: right;">50.96</td>
+<td style="text-align: right;">56.36</td>
+<td style="text-align: right;">37.7</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">2016</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">40.50</td>
+<td style="text-align: right;">38.40</td>
+<td style="text-align: right;">32.10</td>
+<td style="text-align: right;">68.10</td>
+<td style="text-align: right;">75.70</td>
+<td style="text-align: right;">26.2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">2017</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">45.97</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">39.19</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">85.82</td>
+<td style="text-align: right;">43.4</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">2018</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">50.00</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">39.20</td>
+<td style="text-align: right;">76.00</td>
+<td style="text-align: right;">96.00</td>
+<td style="text-align: right;">42.0</td>
+</tr>
+</tbody>
+</table>
+<p>We could make the data even wider. One row could represent an RM, with a separate column for every crop-year combination: <code>Canola_2024</code>, <code>Canola_2025</code>, <code>Barley_2024</code> and so on.</p>
+<!-- TODO: Insert the RM table with one column per crop-year combination. -->
+<p>Or we could make the data longer, with one row for each RM-year-crop combination and separate columns for <code>RM</code>, <code>year</code>, <code>crop</code> and <code>yield_bu_ac</code>.</p>
+<!-- TODO: Insert the long RM-year-crop table. -->
+<p>None of these shapes is always right or wrong. The useful shape depends on what you want to do. The long version works well for PivotTables because <code>crop</code> can be placed in the Rows, Columns or Filters area. In R, the same <code>crop</code> column can be filtered, grouped or mapped to a graph. A wider table may be easier for a person to read or for presenting a small number of results.</p>
 <p>When you open a table, write down what one row represents and what each column represents. This usually makes the shape problem visible.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
@@ -814,31 +870,32 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<p>Again, these is no one correct shape for the data. Typically, analysis is easier on long data. However, wider data is often better for presentation.</p>
+<p>There is no single correct shape for every purpose. Analysis is often easier with long data, while a wider table can be useful for presenting results.</p>
 </section>
 </section>
 <section id="sec-data-cleaning" class="level2" data-number="8.2">
 <h2 data-number="8.2" class="anchored" data-anchor-id="sec-data-cleaning"><span class="header-section-number">8.2</span> Data cleaning</h2>
 <section id="sec-data-quality" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="sec-data-quality">Checking data quality</h3>
-<p>Before analysing a new dataset, check what arrived. A file can open without an error and still contain the wrong units, missing records, duplicate observations or values that do not mean what their column names suggest. A short inspection at the beginning can save a great deal of confusion later.</p>
+<p>Before cleaning a new dataset, check what arrived. A file can contain the wrong units, missing records and duplicate observations without producing an error. A short inspection at the beginning can save a great deal of confusion later.</p>
 <p>These checks can find problems, but they cannot prove that every value is correct. A yield of 55 bu/ac may be perfectly plausible and still belong to the wrong field. We need to understand the source as well as inspect the values.</p>
-<section id="start-with-what-you-expect" class="level4 unnumbered">
-<h4 class="unnumbered anchored" data-anchor-id="start-with-what-you-expect">Start with what you expect</h4>
-<p>Use the source documentation, data dictionary or README to answer:</p>
+<section id="know-what-the-values-mean" class="level4 unnumbered">
+<h4 class="unnumbered anchored" data-anchor-id="know-what-the-values-mean">Know what the values mean</h4>
+<p>Data cleaning relies on your ability to spot values that do not make sense. This means you need some idea of what the data should look like. A crop yield between 0 and 100 may be plausible when it is measured in bushels per acre, while the same crop measured in tonnes per acre will have much smaller values. The number alone is not enough.</p>
+<p>Before looking for errors, answer a few questions:</p>
 <ul>
 <li>What does one row represent?</li>
 <li>What population and time period does the file cover?</li>
 <li>What units are used?</li>
-<li>Which columns should identify a unique observation?</li>
+<li>Which column or columns should identify one observation?</li>
 <li>How are missing values and categories coded?</li>
 <li>Has the file already been filtered, cleaned or aggregated?</li>
 </ul>
-<p>Without this information, it can be difficult to decide whether an unusual value is a problem.</p>
+<p>This information may be in a data dictionary, a README file or the page from which the data were downloaded. If it is not documented, you may need to ask the person who created the file.</p>
 </section>
 <section id="take-a-first-look" class="level4 unnumbered">
 <h4 class="unnumbered anchored" data-anchor-id="take-a-first-look">Take a first look</h4>
-<p>Before calculating anything, check the basic structure:</p>
+<p>Start with the basic structure:</p>
 <ul>
 <li>Count the rows and columns.</li>
 <li>Inspect the column names and data types.</li>
@@ -846,7 +903,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>Check whether numbers or dates were imported as text.</li>
 <li>Count repeated values of any column, or combination of columns, that should identify one row.</li>
 </ul>
-<p>An unexpected row count or repeated identifier may mean that records are missing, duplicated or stored at a different level than you expected.</p>
+<p>An unexpected row count or repeated identifier may mean that records are missing, duplicated or stored at a different level than you expected. Looking at the first few rows is useful, but it will not reveal a problem near the bottom of a large file.</p>
 </section>
 <section id="check-each-variable" class="level4 unnumbered">
 <h4 class="unnumbered anchored" data-anchor-id="check-each-variable">Check each variable</h4>
@@ -857,7 +914,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>Plot a histogram or box plot.</li>
 <li>Look for impossible values, extreme observations, several clusters and suspicious concentrations at zero.</li>
 </ul>
-<p>The useful limits depend on the subject. A negative crop yield is impossible, while a yield of 100 bu/ac may be unusual but real. An extreme value should be investigated, not automatically deleted.</p>
+<p>The useful limits depend on the subject. A negative crop yield is impossible, while a yield of 100 bu/ac may be unusual but real. Investigate an extreme value rather than automatically deleting it.</p>
 <p>For a <strong>categorical variable</strong>:</p>
 <ul>
 <li>Count the distinct values and their frequencies.</li>
@@ -874,14 +931,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="check-variables-together" class="level4 unnumbered">
 <h4 class="unnumbered anchored" data-anchor-id="check-variables-together">Check variables together</h4>
-<p>Some problems only appear when two or more variables are compared:</p>
+<p>Some problems appear only when two or more variables are compared:</p>
 <ul>
 <li>Seeding should occur before harvest.</li>
 <li>Percentages should normally fall between 0 and 100.</li>
 <li>Reported production should be consistent with acres and yield.</li>
 <li>Category and location codes should agree with their documentation.</li>
 </ul>
-<p>A scatter plot can reveal an odd relationship between two numeric variables. A line plot can expose gaps or abrupt changes over time. Summaries grouped by year, region or source can show that missing values or unusual measurements are concentrated in one part of the dataset.</p>
+<p>A scatter plot can reveal an odd relationship between two numeric variables. A line plot can expose gaps or abrupt changes over time. Summaries grouped by year, region or source can show whether missing values or unusual measurements are concentrated in one part of the dataset.</p>
 </section>
 <section id="investigate-before-changing" class="level4 unnumbered">
 <h4 class="unnumbered anchored" data-anchor-id="investigate-before-changing">Investigate before changing</h4>
@@ -897,10 +954,23 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="sec-cleaning-excel" class="level3" data-number="8.2.1">
 <h3 data-number="8.2.1" class="anchored" data-anchor-id="sec-cleaning-excel"><span class="header-section-number">8.2.1</span> Data cleaning in Excel</h3>
-<p>Excel offers three approaches. Formulas can clean a file once while leaving the raw columns visible. Power Query can reshape the table and records each cleaning step. Find &amp; Replace changes cells directly and leaves little evidence of what was changed.</p>
-<section id="cleaning-with-formulas" class="level4 unnumbered">
-<h4 class="unnumbered anchored" data-anchor-id="cleaning-with-formulas">Cleaning with formulas</h4>
-<p>The workbook below keeps the raw delivery data in columns A through F and places cleaning formulas beside it. The formulas standardize crop names, rescale moisture values entered as decimals, count repeated ticket numbers and flag impossible weights. <code>FORMULATEXT</code> cells show the formulas, and summary checks appear below the table.</p>
+<p>The first step in Excel is to inspect the raw data, not to start replacing values. Summaries and graphs help us find the rows that need attention. We can then use formulas or Power Query to record what we changed while keeping the original columns intact.</p>
+<section id="summarize-and-visualize-the-raw-data" class="level4 unnumbered">
+<h4 class="unnumbered anchored" data-anchor-id="summarize-and-visualize-the-raw-data">Summarize and visualize the raw data</h4>
+<p>The workbook below contains 19 grain-delivery tickets. Columns A through F hold the data as they arrived. We will begin with the two numeric measurements: <code>weight_tonnes</code> in <code>D5:D23</code> and <code>moisture_pct</code> in <code>E5:E23</code>.</p>
+<p>For the weight column, calculate:</p>
+<ul>
+<li>the number of observations with <code>=COUNT(D5:D23)</code>;</li>
+<li>the mean with <code>=AVERAGE(D5:D23)</code>;</li>
+<li>the median with <code>=MEDIAN(D5:D23)</code>;</li>
+<li>the minimum with <code>=MIN(D5:D23)</code>;</li>
+<li>the maximum with <code>=MAX(D5:D23)</code>; and</li>
+<li>the number of blanks with <code>=COUNTBLANK(D5:D23)</code>.</li>
+</ul>
+<p>There are 19 recorded weights. Their mean is 33.9 tonnes, their median is 36.5 tonnes, and they range from -12.4 to 48.1 tonnes. The negative minimum cannot be a delivery weight, but the summary does not tell us why it is negative or what value should replace it.</p>
+<p>Repeat the same calculations for <code>moisture_pct</code>. There are 18 recorded values and one blank. The mean is 9.17%, the median is 9.25%, and the values range from 0.099% to 14.6%. The minimum is suspicious because the other moisture readings are between 7% and 14.6%. It may have been entered as a proportion rather than a percentage.</p>
+<p>The summary statistics identify the extreme values, but a graph shows how those values relate to the rest of the data. Select the weight column and choose <strong>Insert &gt; Insert Statistic Chart &gt; Histogram</strong>. Repeat this for moisture. The weight histogram has one observation separated from the positive delivery weights. The moisture histogram has one observation close to zero and the remaining values between 7% and 14.6%.</p>
+<p>A histogram does not tell us that an unusual value is wrong. It tells us which observations to investigate. We still need the source record or a documented rule before changing a value.</p>
 <div class="workbook-callout">
 <!-- Public view-only link expires 2026-11-20 under the University of Saskatchewan 90-day policy. -->
 <div class="excel-embed">
@@ -909,7 +979,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p><a href="textbook_examples/mod03_cleaning_excel.xlsx">Download this workbook</a> · <a href="https://usaskca1-my.sharepoint.com/:x:/g/personal/pjs998_usask_ca/IQDIaxNv25afSa5LoEz9-G3tAXoBxYJcoWjP4fMOie4JVrQ?e=PsWLYM">Open online</a> (File → Save a Copy to view formulas and edit)</p>
 </div>
-<p>The filter dropdown is useful when checking categories because it lists each distinct value. <code>MIN</code>, <code>MAX</code>, <code>COUNTBLANK</code> and a count of repeated identifiers cover many numerical checks. Excel’s summary functions silently ignore text in a numeric range, so add a separate text check such as <code>=SUMPRODUCT(--ISTEXT(D5:D23))</code>; a weight written as <code>38.2 t</code> otherwise disappears from the summary without an error. Keep the raw columns beside the cleaned ones so that a changed value can be traced back.</p>
+</section>
+<section id="cleaning-with-formulas" class="level4 unnumbered">
+<h4 class="unnumbered anchored" data-anchor-id="cleaning-with-formulas">Cleaning with formulas</h4>
+<p>Once we know where the problems are, formulas can create cleaned columns beside the raw data. In the workbook, column G standardizes crop names, column H converts the moisture value recorded as a proportion, column I counts repeated ticket numbers and column J flags the negative weight. The original values remain in columns A through F so that every change can be traced back.</p>
+<p>The filter dropdown is useful for checking categories because it lists each distinct value. It reveals that <code>barley</code>, <code>Barley</code> and other capitalization differences would be treated as separate groups. Excel’s summary functions also ignore text in a numeric range, so add a separate check such as <code>=SUMPRODUCT(--ISTEXT(D5:D23))</code>. A value written as <code>38.2 t</code> would otherwise disappear from the mean, minimum and maximum without producing an error.</p>
+<p>Formulas work well when the cleaning rules are short and the raw and cleaned values need to remain visible together. Avoid using Find &amp; Replace on the raw columns. It changes the values in place and leaves no record of what was replaced.</p>
 </section>
 <section id="cleaning-with-power-query" class="level4 unnumbered">
 <h4 class="unnumbered anchored" data-anchor-id="cleaning-with-power-query">Cleaning with Power Query</h4>
