@@ -77,10 +77,14 @@ fig_bar_horizontal <- function() {
   d$Variety <- factor(d$Variety, levels = d$Variety[order(d$Yield)])
   ggplot(d, aes(x = Yield, y = Variety)) +
     geom_col(fill = prairie, width = 0.68) +
-    scale_x_continuous(expand = expansion(mult = c(0, 0.08))) +
+    # same faint value gridlines as the vertical version, at round numbers
+    scale_x_continuous(breaks = seq(0, 100, 25),
+                       expand = expansion(mult = c(0, 0.08))) +
     labs(title = NULL, x = "Yield (bu/ac)", y = NULL) +
     theme_arec() +
     theme(panel.grid.major.y = element_blank(),
+          panel.grid.major.x = element_line(colour = "grey88",
+                                            linewidth = 0.3),
           axis.text.y = element_text(size = 8))
 }
 
@@ -97,7 +101,7 @@ fig_line <- function(d) {
                                    "Barley" = sky, "Oats" = clay)) +
     scale_x_continuous(breaks = sort(unique(a$Year)),
                        expand = expansion(mult = c(0.03, 0.22))) +
-    labs(title = "Average yield by year", x = NULL, y = "Yield (bu/ac)") +
+    labs(title = NULL, x = NULL, y = "Yield (bu/ac)") +
     theme_arec()
 }
 
@@ -142,8 +146,24 @@ fig_stacked <- function(d) {
 
 # --- encoding a third variable --------------------------------------------
 # Wheat yield against barley yield by risk zone (as fig_scatter), with acres
-# seeded encoded as the size of the point. Three variables, one plot, and the
-# third one is read from an aesthetic the eye handles well enough for ranking.
+# seeded encoded as the size of the point and the zone's soil zone as its
+# colour. Four variables, one plot, each read from a different aesthetic.
+#
+# Dominant soil zone of each SCIC grain risk zone, read off SCIC's grain
+# risk zone and soil zone maps (scic.ca/resources/maps). Several zones
+# straddle a soil boundary (1, 15, 16, 20 especially); each is assigned the
+# zone that covers most of its RMs. VERIFY against the maps before relying
+# on this for anything beyond the chart.
+risk_zone_soil <- c(
+  "3" = "Brown", "4" = "Brown", "6" = "Brown", "10" = "Brown", "13" = "Brown",
+  "2" = "Dark Brown", "8" = "Dark Brown", "9" = "Dark Brown",
+  "12" = "Dark Brown", "16" = "Dark Brown", "19" = "Dark Brown",
+  "1" = "Black/Grey", "5" = "Black/Grey", "7" = "Black/Grey",
+  "11" = "Black/Grey", "14" = "Black/Grey", "15" = "Black/Grey",
+  "17" = "Black/Grey", "18" = "Black/Grey", "20" = "Black/Grey",
+  "21" = "Black/Grey"
+)
+
 fig_bubble <- function(d) {
   yr <- max(d$Year)
   s  <- d[d$Year == yr & d$Crop %in% c("Spring wheat", "Barley"), ]
@@ -154,10 +174,18 @@ fig_bubble <- function(d) {
              z[z$Crop == "Barley",       c("Zone", "Yield")],
              by = "Zone", suffixes = c("_wheat", "_barley"))
   w$Acres <- w$den / 1e3
+  w$Soil  <- factor(risk_zone_soil[as.character(w$Zone)],
+                    levels = c("Brown", "Dark Brown", "Black/Grey"))
 
-  ggplot(w, aes(x = Yield_wheat, y = Yield_barley, size = Acres)) +
-    geom_point(colour = prairie, alpha = 0.5) +
+  ggplot(w, aes(x = Yield_wheat, y = Yield_barley,
+                size = Acres, colour = Soil)) +
+    geom_point(alpha = 0.65) +
     scale_size_area(max_size = 8, name = "Wheat acres\n(thousands)") +
+    scale_colour_manual(values = c("Brown" = "#bc9a5f",
+                                   "Dark Brown" = "#6f4a1e",
+                                   "Black/Grey" = "#3d3d3d"),
+                        name = "Soil zone") +
+    guides(colour = guide_legend(override.aes = list(size = 3.2))) +
     labs(x = "Spring wheat yield (bu/ac)", y = "Barley yield (bu/ac)") +
     theme_arec() +
     theme(panel.grid.major.x = element_line(colour = "grey92", linewidth = 0.3),
@@ -300,9 +328,13 @@ fig_fertilizer <- function(level = c("light", "heavy")) {
     labs(x = NULL, y = "Urea price (USD/tonne)") +
     theme_arec()
 
-  note <- function(p, x, y, lab, xend, yend, curv = 0.25, hj = 0, sz = 2.7) {
+  # Text at (x, y); the arrow leaves from (sx, sy) -- a point on the left,
+  # right or bottom edge of the text block, chosen per annotation so the
+  # curve never crosses the words -- and ends at (xend, yend) on the line.
+  note <- function(p, x, y, lab, sx, sy, xend, yend, curv = 0.25,
+                   hj = 0, sz = 2.7) {
     p +
-      annotate("curve", x = x, xend = xend, y = y, yend = yend,
+      annotate("curve", x = sx, xend = xend, y = sy, yend = yend,
                curvature = curv, linewidth = 0.25, colour = muted,
                arrow = arrow(length = unit(0.05, "in"), type = "closed")) +
       annotate("text", x = x, y = y, label = lab, hjust = hj, vjust = 0.5,
@@ -310,19 +342,19 @@ fig_fertilizer <- function(level = c("light", "heavy")) {
   }
 
   if (level == "heavy") {
-    p <- note(p, 2001.2, 330, "prices drift\nthrough the\nearly 2000s", 2002.6, 140, 0.3)
-    p <- note(p, 2004.4, 430, "steady climb\nbegins",            2005.4, 250, -0.3)
-    p <- note(p, 2006.0, 620, "2008: demand and\nenergy costs spike", 2007.9, 505, -0.3)
-    p <- note(p, 2009.6, 120, "crash after the\nfinancial crisis", 2009.2, 235, 0.3)
-    p <- note(p, 2012.4, 560, "second peak",                     2012.0, 428, -0.3)
-    p <- note(p, 2015.5, 105, "long slide as new\ncapacity comes on", 2016.4, 192, 0.3)
-    p <- note(p, 2018.6, 430, "gentle recovery",                 2018.2, 262, -0.3)
-    p <- note(p, 2020.0, 60,  "COVID low",                       2020.2, 200, 0.3)
-    p <- note(p, 2013.6, 800, "2022: gas prices and\nthe war in Ukraine", 2021.7, 715, -0.18)
-    p <- note(p, 2017.4, 610, "falls back, but not\nto 2020 levels", 2023.6, 395, 0.22)
+    p <- note(p, 2000.2, 330, "prices drift\nthrough the\nearly 2000s", 2001.4, 258, 2002.4, 145,  0.3)
+    p <- note(p, 2003.6, 430, "steady climb\nbegins",                   2004.7, 383, 2005.4, 250, -0.3)
+    p <- note(p, 2004.6, 620, "2008: demand and\nenergy costs spike",   2007.2, 573, 2007.9, 508, -0.3)
+    p <- note(p, 2009.8, 105, "crash after the\nfinancial crisis",      2010.4, 152, 2009.4, 232,  0.3)
+    p <- note(p, 2012.6, 560, "second peak",                            2012.5, 538, 2012.1, 432, -0.15)
+    p <- note(p, 2014.4, 100, "long slide as new\ncapacity comes on",   2016.2, 147, 2016.5, 192,  0.2)
+    p <- note(p, 2017.9, 430, "gentle recovery",                        2018.4, 408, 2018.2, 262, -0.2)
+    p <- note(p, 2020.7, 60,  "COVID low",                              2020.9, 82,  2020.3, 192,  0.25)
+    p <- note(p, 2013.2, 810, "2022: gas prices and\nthe war in Ukraine", 2018.6, 810, 2021.6, 720, -0.18)
+    p <- note(p, 2023.3, 200, "falls back, but not\nto 2020 levels",    2023.3, 248, 2023.5, 358, -0.15, hj = 0.5)
   } else {
-    p <- note(p, 2002.0, 640, "2022: European gas prices\nand the war in Ukraine push\nurea to a record",
-              2021.6, 700, -0.20, sz = 2.9)
+    p <- note(p, 2001.0, 640, "2022: European gas prices\nand the war in Ukraine push\nurea to a record",
+              2010.9, 640, 2021.4, 695, -0.20, sz = 2.9)
   }
   p
 }
@@ -382,33 +414,6 @@ fig_refline <- function(d) {
              colour = clay, size = 2.9) +
     labs(x = NULL, y = "Canola yield (bu/ac)") +
     theme_arec()
-}
-
-# Waterfall: how a starting figure becomes an ending one through gains and
-# losses. Built by hand -- ggplot has no waterfall geom, and Excel does.
-fig_waterfall <- function() {
-  d <- data.frame(
-    Item  = c("Gross revenue", "Seed", "Fertilizer", "Chemical",
-              "Machinery", "Land", "Other", "Net margin"),
-    Value = c(560, -55, -140, -60, -95, -120, -35, 55),
-    Kind  = c("total", rep("cost", 6), "total")
-  )
-  d$Item <- factor(d$Item, levels = d$Item)
-  # running position of each floating bar
-  end <- cumsum(ifelse(d$Kind == "total" & seq_len(nrow(d)) > 1, 0, d$Value))
-  d$ymax <- ifelse(d$Kind == "total" & seq_len(nrow(d)) > 1, d$Value, end)
-  d$ymin <- ifelse(d$Kind == "total", 0, end - d$Value)
-
-  ggplot(d, aes(x = Item, fill = Kind)) +
-    geom_rect(aes(xmin = as.numeric(Item) - 0.34,
-                  xmax = as.numeric(Item) + 0.34,
-                  ymin = ymin, ymax = ymax)) +
-    scale_fill_manual(values = c("total" = prairie, "cost" = clay)) +
-    scale_y_continuous(labels = function(x) paste0("$", x)) +
-    labs(x = NULL, y = "Per acre") +
-    theme_arec() +
-    theme(axis.text.x = element_text(angle = 40, hjust = 1, size = 7.6),
-          legend.position = "none")
 }
 
 # --- clutter vs clean -----------------------------------------------------
