@@ -563,8 +563,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </ul></li>
   <li><a href="#sec-merge-excel" id="toc-sec-merge-excel" class="nav-link" data-scroll-target="#sec-merge-excel"><span class="header-section-number">9.1</span> Merging in Excel</a>
   <ul>
-  <li><a href="#first-merge-yields-and-the-rm-lookup" id="toc-first-merge-yields-and-the-rm-lookup" class="nav-link" data-scroll-target="#first-merge-yields-and-the-rm-lookup">First merge: yields and the RM lookup</a></li>
-  <li><a href="#second-merge-matching-on-station-and-year" id="toc-second-merge-matching-on-station-and-year" class="nav-link" data-scroll-target="#second-merge-matching-on-station-and-year">Second merge: matching on station and year</a></li>
   <li><a href="#checking-the-merge" id="toc-checking-the-merge" class="nav-link" data-scroll-target="#checking-the-merge">Checking the merge</a></li>
   </ul></li>
   <li><a href="#sec-merge-r" id="toc-sec-merge-r" class="nav-link" data-scroll-target="#sec-merge-r"><span class="header-section-number">9.2</span> Merging in R</a>
@@ -662,32 +660,85 @@ Figure&nbsp;9.1: Three kinds of merge. Each line connects a grades row to the ro
 <section id="sec-merge-excel" class="level2" data-number="9.1">
 <h2 data-number="9.1" class="anchored" data-anchor-id="sec-merge-excel"><span class="header-section-number">9.1</span> Merging in Excel</h2>
 <p>In Chapter 2, we used <code>XLOOKUP</code> to bring values from one table into another (<a href="module01b.html#sec-lookup" class="quarto-xref"><span>Section 2.2</span></a>). That approach is useful for a quick lookup. Here, we will use Power Query because it records the merge as a repeatable series of steps and can match on several columns directly.</p>
-<section id="first-merge-yields-and-the-rm-lookup" class="level3 unnumbered">
-<h3 class="unnumbered anchored" data-anchor-id="first-merge-yields-and-the-rm-lookup">First merge: yields and the RM lookup</h3>
 <p>Begin by importing <code>rm_yields_2015_2024.csv</code> and <code>rm_lookup.csv</code> with <strong>Data &gt; Get Data &gt; From Text/CSV &gt; Transform Data</strong>. In the Power Query editor:</p>
 <ol type="1">
-<li>Select the RM yields query.</li>
-<li>Choose <strong>Home &gt; Merge Queries</strong>.</li>
-<li>Select the RM lookup as the second table.</li>
-<li>Select <code>rm</code> in the yields table and <code>rm_number</code> in the lookup table.</li>
+<li>Load the RM yield data using Power Query, transforming the data to longer format as we did before.</li>
+<li>Choose Power Query, select import csv, and select the RM lookup table.</li>
+<li>Select transform data. You will now see two queries on your left hand side (<a href="#fig-pq-merge-queries" class="quarto-xref">Figure&nbsp;<span>9.2</span></a>).</li>
+<li>Select the first query (rm_yields_2015_2024) and then click <strong>Home &gt; Merge Queries</strong>.</li>
+</ol>
+<div id="fig-pq-merge-queries" class="screenshot quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-pq-merge-queries-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="images/pq_merge_queries.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;9.2: The two queries loaded, with the yield data in long format and Merge queries on the ribbon."><img src="images/pq_merge_queries.png" class="screenshot img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-pq-merge-queries-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;9.2: The two queries loaded, with the yield data in long format and <strong>Merge queries</strong> on the ribbon.
+</figcaption>
+</figure>
+</div>
+<ol start="5" type="1">
+<li>In the pop up menu (<a href="#fig-pq-merge-dialog" class="quarto-xref">Figure&nbsp;<span>9.3</span></a>) select rm_lookup as the right table to merge.</li>
+<li>Select the key to merge on in each table by clicking its column heading: <code>RM</code> in the yields table and <code>RM_Number</code> in the lookup table.</li>
 <li>Keep <strong>Left Outer</strong> as the join kind. This keeps every yield observation and adds information wherever the lookup contains a matching RM.</li>
-<li>Check the number of matching rows reported in the dialog, then choose <strong>OK</strong>.</li>
-<li>Expand the new table column using the double-arrow icon in its header. Select the RM name, census division, population and closest weather station.</li>
+<li>Check the number of matching rows reported at the bottom of the dialog – here every one of the 15,478 yield observations finds a match – then choose <strong>OK</strong>.</li>
 </ol>
-<p>This is a many-to-one merge: the yields table contains many rows for each RM, while the lookup contains one row for each RM. The number of yield rows should not change.</p>
-</section>
-<section id="second-merge-matching-on-station-and-year" class="level3 unnumbered">
-<h3 class="unnumbered anchored" data-anchor-id="second-merge-matching-on-station-and-year">Second merge: matching on station and year</h3>
-<p>Next, import <code>station_precip.csv</code>. Each yield observation must match precipitation from both the correct weather station and the correct year. Unlike the helper-column method used with <code>XLOOKUP</code> in Chapter 2, Power Query can select both keys directly:</p>
-<ol type="1">
-<li>Choose <strong>Home &gt; Merge Queries</strong> from the merged yields query.</li>
-<li>Select the closest-weather-station column, then hold Ctrl (Command on a Mac) and select <code>year</code>.</li>
-<li>In the precipitation table, select <code>station</code> first and <code>year</code> second. The numbered labels beside the column headings confirm the key order.</li>
-<li>Keep <strong>Left Outer</strong> as the join kind and check the number of matches reported in the dialog.</li>
-<li>Choose <strong>OK</strong>, then expand the new table column and select the precipitation variables you need.</li>
+<div id="fig-pq-merge-dialog" class="screenshot quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-pq-merge-dialog-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="images/pq_merge_dialog.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;9.3: The Merge dialog: the two tables, the key selected in each, the join kind, and the match count along the bottom."><img src="images/pq_merge_dialog.png" class="screenshot img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-pq-merge-dialog-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;9.3: The Merge dialog: the two tables, the key selected in each, the join kind, and the match count along the bottom.
+</figcaption>
+</figure>
+</div>
+<ol start="9" type="1">
+<li>The merged data arrives packed into a single new column whose every entry reads <code>[Table]</code> (<a href="#fig-pq-merged-column" class="quarto-xref">Figure&nbsp;<span>9.4</span></a>). Expand it using the double-arrow icon in its header: tick the columns you want (the RM name, census division, population and closest weather station) and untick <strong>Use original column name as prefix</strong> so the columns keep their own names.</li>
 </ol>
-<p>The column order matters: the first selected column in one table is matched to the first selected column in the other, and the second is matched to the second. Selecting station and year prevents Power Query from returning the first year it finds for a station.</p>
-</section>
+<div id="fig-pq-merged-column" class="screenshot quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-pq-merged-column-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="images/pq_merged_table_column.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;9.4: After the merge, the lookup columns sit folded inside a [Table] column. The double-arrow icon in its header expands them. Do not click a [Table] link itself – that drills into that one row’s table and discards the rest."><img src="images/pq_merged_table_column.png" class="screenshot img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-pq-merged-column-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;9.4: After the merge, the lookup columns sit folded inside a <code>[Table]</code> column. The double-arrow icon in its header expands them. Do not click a <code>[Table]</code> link itself – that drills into that one row’s table and discards the rest.
+</figcaption>
+</figure>
+</div>
+<div id="fig-pq-merge-expanded" class="screenshot quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-pq-merge-expanded-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="images/pq_merge_expanded.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure&nbsp;9.5: After expanding: the lookup columns sit beside every yield observation, and the row count has not changed."><img src="images/pq_merge_expanded.png" class="screenshot img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-pq-merge-expanded-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;9.5: After expanding: the lookup columns sit beside every yield observation, and the row count has not changed.
+</figcaption>
+</figure>
+</div>
+<p>Now you should see the RM lookup data merged with the RM yield data. We can now repeat the same process to merge once again with the station data: import <code>station_precip.csv</code> the same way, so a third query appears (<a href="#fig-pq-station-added" class="quarto-xref">Figure&nbsp;<span>9.6</span></a>). The only difference is that we are now going to merge on both the station name and the year (<a href="#fig-pq-two-keys" class="quarto-xref">Figure&nbsp;<span>9.7</span></a>). Select <code>Weather_Station</code> and then Ctrl-click <code>Year</code> in the top table, and <code>Station</code> then Ctrl-click <code>Year</code> in the bottom one – the small 1 and 2 beside the headings show the matching order.</p>
+<div id="fig-pq-station-added" class="screenshot quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-pq-station-added-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="images/pq_station_added.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure&nbsp;9.6: The station precipitation data imported as a third query."><img src="images/pq_station_added.png" class="screenshot img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-pq-station-added-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;9.6: The station precipitation data imported as a third query.
+</figcaption>
+</figure>
+</div>
+<div id="fig-pq-two-keys" class="screenshot quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-pq-two-keys-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="images/pq_merge_two_keys.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="Figure&nbsp;9.7: The second Merge dialog, with the station column selected in each table; Ctrl-clicking Year in each adds it as the second key. Station and year together identify the right precipitation value."><img src="images/pq_merge_two_keys.png" class="screenshot img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-pq-two-keys-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;9.7: The second Merge dialog, with the station column selected in each table; Ctrl-clicking <code>Year</code> in each adds it as the second key. Station and year together identify the right precipitation value.
+</figcaption>
+</figure>
+</div>
+<p>After expanding the precipitation column and choosing <strong>Close &amp; load</strong>, every yield observation carries its RM’s name, closest station, and that station’s growing-season precipitation for the right year.</p>
+<!-- TODO: embed the finished mod03 merge workbook (OneDrive view-only iframe) here, following the mod04 pattern. -->
 <section id="checking-the-merge" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="checking-the-merge">Checking the merge</h3>
 <p>After each merge, compare the number of rows with the original yields table. A many-to-one left merge should retain the same number of rows. Filter the expanded columns for <code>null</code> to find observations that did not match, and check several rows against the source tables.</p>

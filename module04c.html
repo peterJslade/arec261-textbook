@@ -557,16 +557,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
    
   <ul>
   <li><a href="#learning-objectives" id="toc-learning-objectives" class="nav-link active" data-scroll-target="#learning-objectives">Learning Objectives</a></li>
-  <li><a href="#sec-grammar" id="toc-sec-grammar" class="nav-link" data-scroll-target="#sec-grammar"><span class="header-section-number">12.1</span> The grammar of graphics</a></li>
-  <li><a href="#sec-r-bar-example" id="toc-sec-r-bar-example" class="nav-link" data-scroll-target="#sec-r-bar-example"><span class="header-section-number">12.2</span> Compare regional means with bars</a></li>
-  <li><a href="#sec-r-line-example" id="toc-sec-r-line-example" class="nav-link" data-scroll-target="#sec-r-line-example"><span class="header-section-number">12.3</span> Show change through time with a line</a></li>
-  <li><a href="#sec-r-scatter-example" id="toc-sec-r-scatter-example" class="nav-link" data-scroll-target="#sec-r-scatter-example"><span class="header-section-number">12.4</span> Compare two numeric variables with points</a></li>
-  <li><a href="#sec-r-histogram-example" id="toc-sec-r-histogram-example" class="nav-link" data-scroll-target="#sec-r-histogram-example"><span class="header-section-number">12.5</span> Show a distribution with a histogram</a></li>
-  <li><a href="#sec-mapping-vs-setting" id="toc-sec-mapping-vs-setting" class="nav-link" data-scroll-target="#sec-mapping-vs-setting"><span class="header-section-number">12.6</span> Mapping and setting aesthetics</a></li>
-  <li><a href="#sec-r-direct-labels" id="toc-sec-r-direct-labels" class="nav-link" data-scroll-target="#sec-r-direct-labels"><span class="header-section-number">12.7</span> Add a fitted pattern and direct label</a></li>
-  <li><a href="#sec-r-annotations" id="toc-sec-r-annotations" class="nav-link" data-scroll-target="#sec-r-annotations"><span class="header-section-number">12.8</span> Put explanatory text inside a chart</a></li>
-  <li><a href="#sec-faceting" id="toc-sec-faceting" class="nav-link" data-scroll-target="#sec-faceting"><span class="header-section-number">12.9</span> Divide a comparison into facets</a></li>
-  <li><a href="#sec-saving-plots" id="toc-sec-saving-plots" class="nav-link" data-scroll-target="#sec-saving-plots"><span class="header-section-number">12.10</span> Save a plot</a></li>
+  <li><a href="#sec-grammar" id="toc-sec-grammar" class="nav-link" data-scroll-target="#sec-grammar"><span class="header-section-number">12.1</span> The parts of a ggplot</a></li>
+  <li><a href="#sec-r-bar-example" id="toc-sec-r-bar-example" class="nav-link" data-scroll-target="#sec-r-bar-example"><span class="header-section-number">12.2</span> Build the bar chart</a></li>
+  <li><a href="#sec-r-title-axes" id="toc-sec-r-title-axes" class="nav-link" data-scroll-target="#sec-r-title-axes"><span class="header-section-number">12.3</span> Change the title and axes</a></li>
+  <li><a href="#sec-r-mapping-vs-setting" id="toc-sec-r-mapping-vs-setting" class="nav-link" data-scroll-target="#sec-r-mapping-vs-setting"><span class="header-section-number">12.4</span> Map or set an aesthetic</a></li>
+  <li><a href="#sec-r-scatter-example" id="toc-sec-r-scatter-example" class="nav-link" data-scroll-target="#sec-r-scatter-example"><span class="header-section-number">12.5</span> Compare rainfall and yield</a></li>
+  <li><a href="#sec-r-histogram-example" id="toc-sec-r-histogram-example" class="nav-link" data-scroll-target="#sec-r-histogram-example"><span class="header-section-number">12.6</span> Show the yield distribution</a></li>
+  <li><a href="#sec-r-variety-distributions" id="toc-sec-r-variety-distributions" class="nav-link" data-scroll-target="#sec-r-variety-distributions"><span class="header-section-number">12.7</span> Show what the means hide</a></li>
+  <li><a href="#sec-saving-plots" id="toc-sec-saving-plots" class="nav-link" data-scroll-target="#sec-saving-plots"><span class="header-section-number">12.8</span> Save the finished chart</a></li>
   </ul>
 </nav>
     </div>
@@ -592,102 +590,59 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>The Excel chapter built four charts from worksheet ranges. In R we describe the same charts in code: the data, the variables assigned to visual properties and the marks to draw. The <code>ggplot2</code> package turns that description into a figure.</p>
-<p>The examples use <a href="practice/data/field_yields.csv"><code>field_yields.csv</code></a> and <a href="practice/data/rm_yields_2015_2024.csv"><code>rm_yields_2015_2024.csv</code></a>, the same files used in the Excel workbook. The field data are simulated; the RM yield series comes from the Saskatchewan Agriculture provincial dashboard.</p>
+<p>The Excel chapter built a bar chart, scatter plot and histogram from the canola variety trial. This chapter builds the same three charts with <code>ggplot2</code>, then adds value labels, a fitted line, a direct field label and a distribution comparison by variety.</p>
+<p>The examples use <a href="practice/data/canola_trial.csv"><code>canola_trial.csv</code></a>. The data are simulated for teaching and should not be interpreted as results from a real variety trial.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the tidyverse</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressPackageStartupMessages</span>(<span class="fu">library</span>(tidyverse))</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the simulated field data</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"practice/data/field_yields.csv"</span>,</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the canola variety trial</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>canola <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"practice/data/canola_trial.csv"</span>,</span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">show_col_types =</span> <span class="cn">FALSE</span></span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the published RM yield data</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>rm_yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  <span class="st">"practice/data/rm_yields_2015_2024.csv"</span>,</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">show_col_types =</span> <span class="cn">FALSE</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate one regional mean per row</span></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>region_means <span class="ot">&lt;-</span> yields <span class="sc">|&gt;</span></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(region) <span class="sc">|&gt;</span></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_yield =</span> <span class="fu">mean</span>(yield_bu_acre, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">fields =</span> <span class="fu">sum</span>(<span class="sc">!</span><span class="fu">is.na</span>(yield_bu_acre)),</span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate one annual mean per row</span></span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>annual_mean <span class="ot">&lt;-</span> rm_yields <span class="sc">|&gt;</span></span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Year) <span class="sc">|&gt;</span></span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
-<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_yield =</span> <span class="fu">mean</span>(Canola, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
-<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">year =</span> Year)</span>
-<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a><span class="co"># Inspect both chart-driving summaries</span></span>
-<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>region_means</span>
-<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>annual_mean</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate one mean and count per variety</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>variety_means <span class="ot">&lt;-</span> canola <span class="sc">|&gt;</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(variety) <span class="sc">|&gt;</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_yield =</span> <span class="fu">mean</span>(yield_bu_acre),</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">fields =</span> <span class="fu">n</span>(),</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(mean_yield))</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Inspect the table that will drive the bars</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>variety_means</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; # Load the tidyverse
 &gt; suppressPackageStartupMessages(library(tidyverse))
 &gt; 
-&gt; # Read the simulated field data
-&gt; yields &lt;- read_csv(
-+   "practice/data/field_yields.csv",
+&gt; # Read the canola variety trial
+&gt; canola &lt;- read_csv(
++   "practice/data/canola_trial.csv",
 +   show_col_types = FALSE
 + )
 &gt; 
-&gt; # Read the published RM yield data
-&gt; rm_yields &lt;- read_csv(
-+   "practice/data/rm_yields_2015_2024.csv",
-+   show_col_types = FALSE
-+ )
-&gt; 
-&gt; # Calculate one regional mean per row
-&gt; region_means &lt;- yields |&gt;
-+   group_by(region) |&gt;
+&gt; # Calculate one mean and count per variety
+&gt; variety_means &lt;- canola |&gt;
++   group_by(variety) |&gt;
 +   summarise(
-+     mean_yield = mean(yield_bu_acre, na.rm = TRUE),
-+     fields = sum(!is.na(yield_bu_acre)),
-+     .groups = "drop"
-+   )
-&gt; 
-&gt; # Calculate one annual mean per row
-&gt; annual_mean &lt;- rm_yields |&gt;
-+   group_by(Year) |&gt;
-+   summarise(
-+     mean_yield = mean(Canola, na.rm = TRUE),
++     mean_yield = mean(yield_bu_acre),
++     fields = n(),
 +     .groups = "drop"
 +   ) |&gt;
-+   rename(year = Year)
++   arrange(desc(mean_yield))
 &gt; 
-&gt; # Inspect both chart-driving summaries
-&gt; region_means
+&gt; # Inspect the table that will drive the bars
+&gt; variety_means
 # A tibble: 3 × 3
-  region  mean_yield fields
-  &lt;chr&gt;        &lt;dbl&gt;  &lt;int&gt;
-1 Central       47.6     19
-2 North         47.3     19
-3 South         42.7     19
-&gt; annual_mean
-# A tibble: 10 × 2
-    year mean_yield
-   &lt;dbl&gt;      &lt;dbl&gt;
- 1  2015       36.1
- 2  2016       42.2
- 3  2017       33.8
- 4  2018       36.8
- 5  2019       40.8
- 6  2020       38.2
- 7  2021       21.9
- 8  2022       35.4
- 9  2023       33.9
-10  2024       31.5</code></pre>
+  variety    mean_yield fields
+  &lt;chr&gt;           &lt;dbl&gt;  &lt;int&gt;
+1 InVigor          54.5     42
+2 Clearfield       53.5     39
+3 DEKALB           52.2     39</code></pre>
 </div>
 </div>
 </div>
@@ -697,453 +652,403 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>By the end of this chapter you should be able to:</p>
 <ol type="1">
 <li>Build a plot with <code>ggplot()</code>, <code>aes()</code> and a geom.</li>
-<li>Reproduce a bar, line, scatter and histogram chart from the Excel examples.</li>
+<li>Reproduce the Excel bar chart, scatter plot and histogram.</li>
+<li>Change a plot’s title, axis labels, limits and tick marks.</li>
 <li>Distinguish mapping an aesthetic to a variable from setting it to a constant.</li>
-<li>Add titles, axis labels, direct labels and annotations.</li>
-<li>Add a fitted pattern and divide a plot into facets.</li>
-<li>Save a plot with stated dimensions and resolution.</li>
+<li>Add value labels, a fitted line and a direct label.</li>
+<li>Compare field-level distributions and save a finished plot.</li>
 </ol>
 </div>
 </section>
 <section id="sec-grammar" class="level2" data-number="12.1">
-<h2 data-number="12.1" class="anchored" data-anchor-id="sec-grammar"><span class="header-section-number">12.1</span> The grammar of graphics</h2>
-<p><code>ggplot2</code> follows the <strong>grammar of graphics</strong>. A plot is assembled from a few parts:</p>
-<ul>
-<li><strong>Data:</strong> the data frame to plot.</li>
-<li><strong>Aesthetic mappings:</strong> columns assigned to position, colour, size or shape.</li>
-<li><strong>Geometries:</strong> points, lines, bars, boxes and other marks.</li>
-<li><strong>Scales:</strong> the rules connecting data values to axis positions or colours.</li>
-<li><strong>Facets:</strong> separate panels for groups.</li>
-</ul>
-<p>Some geoms also calculate a statistic. A histogram bins values before drawing bars, and a smooth fits a line or curve before drawing it.</p>
-<p>Layers are joined with <code>+</code>. A pipe passes a data object into a function; the <code>+</code> adds another layer to a ggplot object.</p>
+<h2 data-number="12.1" class="anchored" data-anchor-id="sec-grammar"><span class="header-section-number">12.1</span> The parts of a ggplot</h2>
+<p>A ggplot is assembled from a data frame, aesthetic mappings and one or more layers. <code>ggplot(variety_means, aes(x = variety, y = mean_yield))</code> names the data and maps columns to horizontal and vertical position. <code>geom_col()</code> draws the bars.</p>
+<p>Layers are joined with <code>+</code>. A pipe passes a data frame into a function; the <code>+</code> adds another layer or scale to the plot object.</p>
 </section>
 <section id="sec-r-bar-example" class="level2" data-number="12.2">
-<h2 data-number="12.2" class="anchored" data-anchor-id="sec-r-bar-example"><span class="header-section-number">12.2</span> Compare regional means with bars</h2>
-<p>The Excel chart used a three-row summary calculated with <code>AVERAGEIF</code>. The <code>region_means</code> data frame performs the same job in R. <code>geom_col()</code> draws values that have already been calculated.</p>
+<h2 data-number="12.2" class="anchored" data-anchor-id="sec-r-bar-example"><span class="header-section-number">12.2</span> Build the bar chart</h2>
+<p>The Excel chart used a three-row summary calculated with <code>AVERAGEIF</code>. The <code>variety_means</code> data frame performs the same calculation in R.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Put the highest mean first</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>region_means <span class="sc">|&gt;</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">region =</span> <span class="fu">fct_reorder</span>(region, mean_yield, <span class="at">.desc =</span> <span class="cn">TRUE</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> region, <span class="at">y =</span> mean_yield)) <span class="sc">+</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Draw the calculated means as bars</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">width =</span> <span class="fl">0.7</span>, <span class="at">fill =</span> <span class="st">"#3F6F52"</span>) <span class="sc">+</span></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Keep a zero baseline for bar length</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">55</span>),</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.04</span>))</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  <span class="co"># State the variables and unit</span></span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="cn">NULL</span>,</span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Mean yield (bu/ac)"</span></span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Remove unnecessary decoration</span></span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">11</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>variety_means <span class="sc">|&gt;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">variety =</span> <span class="fu">fct_reorder</span>(</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>      variety,</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>      mean_yield,</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>      <span class="at">.desc =</span> <span class="cn">TRUE</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Map variety and mean yield to position</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> variety, <span class="at">y =</span> mean_yield)) <span class="sc">+</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Draw values that were already calculated</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">fill =</span> <span class="st">"#3F6F52"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
-<div id="fig-r-region-bars" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Three green bars show Central at 47.6, North at 47.3 and South at 42.7 bushels per acre.">
+<div id="fig-r-variety-bars-basic" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Three green bars show InVigor at 54.5, Clearfield at 53.5 and DEKALB at 52.2 bushels per acre.">
 <figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-r-region-bars-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="module04c_files/figure-html/fig-r-region-bars-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;12.1: Mean simulated field yield by region."><img src="module04c_files/figure-html/fig-r-region-bars-1.png" class="img-fluid figure-img" alt="Three green bars show Central at 47.6, North at 47.3 and South at 42.7 bushels per acre." width="528"></a>
+<div aria-describedby="fig-r-variety-bars-basic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="module04c_files/figure-html/fig-r-variety-bars-basic-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;12.1: Mean simulated field yield by canola variety."><img src="module04c_files/figure-html/fig-r-variety-bars-basic-1.png" class="img-fluid figure-img" alt="Three green bars show InVigor at 54.5, Clearfield at 53.5 and DEKALB at 52.2 bushels per acre." width="537"></a>
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-r-region-bars-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;12.1: Mean simulated field yield by region.
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-r-variety-bars-basic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;12.1: Mean simulated field yield by canola variety.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>Central and North differ by 0.3 bu/ac. The bar chart shows the difference, but it does not show the variation among the nineteen recorded fields behind each mean.</p>
+<p><code>geom_col()</code> uses the numeric values supplied to <code>y</code>. <code>geom_bar()</code> would count rows instead, which answers a different question. The <code>fill</code> is outside <code>aes()</code> because every bar receives the same colour.</p>
+<p>InVigor has the highest mean at 54.5 bu/ac, followed by Clearfield at 53.5 and DEKALB at 52.2. The differences are small, and a bar of means does not show the variation among fields within each variety.</p>
 </section>
-<section id="sec-r-line-example" class="level2" data-number="12.3">
-<h2 data-number="12.3" class="anchored" data-anchor-id="sec-r-line-example"><span class="header-section-number">12.3</span> Show change through time with a line</h2>
-<p>The annual summary contains one mean for each year from 2015 to 2024. <code>geom_line()</code> connects those values in chronological order and <code>geom_point()</code> shows the observed annual means.</p>
+<section id="sec-r-title-axes" class="level2" data-number="12.3">
+<h2 data-number="12.3" class="anchored" data-anchor-id="sec-r-title-axes"><span class="header-section-number">12.3</span> Change the title and axes</h2>
+<p><code>labs()</code> supplies the title and axis text. <code>scale_y_continuous()</code> controls the displayed range and tick marks. These are separate parts of the plot, so changing the scale does not change the data or mean calculations.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Start with one row per year</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(annual_mean, <span class="fu">aes</span>(<span class="at">x =</span> year, <span class="at">y =</span> mean_yield)) <span class="sc">+</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Connect the years in time order</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">colour =</span> <span class="st">"#2878A5"</span>, <span class="at">linewidth =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Mark each annual mean</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">colour =</span> <span class="st">"#2878A5"</span>, <span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Show each integer year</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="dv">2015</span><span class="sc">:</span><span class="dv">2024</span>) <span class="sc">+</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Use the same displayed range as the Excel example</span></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">15</span>, <span class="dv">45</span>)) <span class="sc">+</span></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># State the unit</span></span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="cn">NULL</span>,</span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Mean yield (bu/ac)"</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Store the finished plot so it can be saved later</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>bar_plot <span class="ot">&lt;-</span> variety_means <span class="sc">|&gt;</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">variety =</span> <span class="fu">fct_reorder</span>(</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>      variety,</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>      mean_yield,</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>      <span class="at">.desc =</span> <span class="cn">TRUE</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> variety, <span class="at">y =</span> mean_yield)) <span class="sc">+</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Set one colour for the whole series</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">width =</span> <span class="fl">0.7</span>,</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"#3F6F52"</span></span>
 <span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Use a restrained theme</span></span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">11</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Map formatted values to text labels</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">sprintf</span>(<span class="st">"%.1f"</span>, mean_yield)),</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">vjust =</span> <span class="sc">-</span><span class="fl">0.35</span>,</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="fl">3.4</span></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Match the Excel bounds and tick spacing</span></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">60</span>),</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">60</span>, <span class="at">by =</span> <span class="dv">10</span>),</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.04</span>))</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Supply the title and axis text</span></span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Average canola yield by variety"</span>,</span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="cn">NULL</span>,</span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Mean yield (bu/ac)"</span></span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Use a restrained theme</span></span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">11</span>) <span class="sc">+</span></span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.title.position =</span> <span class="st">"plot"</span>,</span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>()</span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the stored plot</span></span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a>bar_plot</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
-<div id="fig-r-annual-line" class="quarto-float quarto-figure quarto-figure-center anchored" alt="A line chart of ten annual means reaches its lowest point, 21.9 bushels per acre, in 2021.">
+<div id="fig-r-variety-bars-polished" class="quarto-float quarto-figure quarto-figure-center anchored" alt="A labelled bar chart shows InVigor at 54.5, Clearfield at 53.5 and DEKALB at 52.2 bushels per acre on an axis from zero to sixty.">
 <figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-r-annual-line-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="module04c_files/figure-html/fig-r-annual-line-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;12.2: Mean published RM canola yield, 2015–2024."><img src="module04c_files/figure-html/fig-r-annual-line-1.png" class="img-fluid figure-img" alt="A line chart of ten annual means reaches its lowest point, 21.9 bushels per acre, in 2021." width="576"></a>
+<div aria-describedby="fig-r-variety-bars-polished-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="module04c_files/figure-html/fig-r-variety-bars-polished-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;12.2: A finished bar chart with a title, labelled axis and values above the bars."><img src="module04c_files/figure-html/fig-r-variety-bars-polished-1.png" class="img-fluid figure-img" alt="A labelled bar chart shows InVigor at 54.5, Clearfield at 53.5 and DEKALB at 52.2 bushels per acre on an axis from zero to sixty." width="556"></a>
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-r-annual-line-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;12.2: Mean published RM canola yield, 2015–2024.
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-r-variety-bars-polished-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;12.2: A finished bar chart with a title, labelled axis and values above the bars.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>The lowest annual mean is 21.9 bu/ac in 2021. As in Excel, blank RM yields are omitted from each annual mean rather than treated as zero.</p>
+<p><code>limits = c(0, 60)</code> gives the bars a zero baseline. <code>breaks = seq(0, 60, by = 10)</code> places the labelled ticks. <code>expand</code> removes unused space below zero and leaves a little room for the value labels.</p>
+<p>The category names already explain the horizontal position, so <code>x = NULL</code> removes an unnecessary axis title. The unit remains on the vertical axis. <code>geom_text()</code> is useful here because there are only three values; the same treatment would make a chart with dozens of bars harder to read.</p>
 </section>
-<section id="sec-r-scatter-example" class="level2" data-number="12.4">
-<h2 data-number="12.4" class="anchored" data-anchor-id="sec-r-scatter-example"><span class="header-section-number">12.4</span> Compare two numeric variables with points</h2>
-<p>A scatter plot assigns one numeric column to each position. Rows missing either value do not produce a point.</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Map field size and yield to position</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(yields, <span class="fu">aes</span>(<span class="at">x =</span> acres, <span class="at">y =</span> yield_bu_acre)) <span class="sc">+</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Draw one point for each complete row</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> <span class="st">"#2878A5"</span>,</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.65</span>,</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">na.rm =</span> <span class="cn">TRUE</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># State both units</span></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Field size (acres)"</span>,</span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Yield (bu/ac)"</span></span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Keep both horizontal and vertical guides</span></span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">11</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output-display">
-<div id="fig-r-field-scatter" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Fifty-seven points form a broad cloud with little upward or downward slope.">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-r-field-scatter-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="module04c_files/figure-html/fig-r-field-scatter-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;12.3: Field size and yield for sixty simulated fields."><img src="module04c_files/figure-html/fig-r-field-scatter-1.png" class="img-fluid figure-img" alt="Fifty-seven points form a broad cloud with little upward or downward slope." width="547"></a>
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-r-field-scatter-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;12.3: Field size and yield for sixty simulated fields.
-</figcaption>
-</figure>
-</div>
-</div>
-</div>
-<p>Three rows have missing yield, so the chart contains 57 points. The correlation is about -0.07, which agrees with the nearly flat cloud.</p>
-</section>
-<section id="sec-r-histogram-example" class="level2" data-number="12.5">
-<h2 data-number="12.5" class="anchored" data-anchor-id="sec-r-histogram-example"><span class="header-section-number">12.5</span> Show a distribution with a histogram</h2>
-<p><code>geom_histogram()</code> performs the binning that the Excel workbook displayed in a formula-driven table. The settings below match the Excel boundaries: bins are 3 bu/ac wide and begin at 30.</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Map the recorded yields to the horizontal axis</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(yields, <span class="fu">aes</span>(<span class="at">x =</span> yield_bu_acre)) <span class="sc">+</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Match the Excel bin width and boundary</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">binwidth =</span> <span class="dv">3</span>,</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">boundary =</span> <span class="dv">30</span>,</span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">closed =</span> <span class="st">"left"</span>,</span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"#D8A940"</span>,</span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> <span class="st">"white"</span>,</span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">na.rm =</span> <span class="cn">TRUE</span></span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Show the bin boundaries</span></span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">30</span>, <span class="dv">63</span>, <span class="at">by =</span> <span class="dv">3</span>)) <span class="sc">+</span></span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># State the unit and count</span></span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Yield (bu/ac)"</span>,</span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Fields"</span></span>
-<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Remove unnecessary decoration</span></span>
-<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">11</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output-display">
-<div id="fig-r-yield-histogram" class="quarto-float quarto-figure quarto-figure-center anchored" alt="A histogram of 57 yields has its tallest bin from 48 to 51 bushels per acre.">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-r-yield-histogram-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="module04c_files/figure-html/fig-r-yield-histogram-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;12.4: Distribution of recorded simulated field yields using 3 bu/ac bins."><img src="module04c_files/figure-html/fig-r-yield-histogram-1.png" class="img-fluid figure-img" alt="A histogram of 57 yields has its tallest bin from 48 to 51 bushels per acre." width="556"></a>
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-r-yield-histogram-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;12.4: Distribution of recorded simulated field yields using 3 bu/ac bins.
-</figcaption>
-</figure>
-</div>
-</div>
-</div>
-<p>With only 57 recorded yields, the apparent shape changes noticeably when the bin width changes. The bin definition is therefore part of the analysis rather than a formatting detail.</p>
-</section>
-<section id="sec-mapping-vs-setting" class="level2" data-number="12.6">
-<h2 data-number="12.6" class="anchored" data-anchor-id="sec-mapping-vs-setting"><span class="header-section-number">12.6</span> Mapping and setting aesthetics</h2>
+<section id="sec-r-mapping-vs-setting" class="level2" data-number="12.4">
+<h2 data-number="12.4" class="anchored" data-anchor-id="sec-r-mapping-vs-setting"><span class="header-section-number">12.4</span> Map or set an aesthetic</h2>
 <p>Put an aesthetic inside <code>aes()</code> when it should depend on a column. Put it outside <code>aes()</code> when every mark should receive the same value.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Map colour to the region column</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  yields,</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(<span class="at">x =</span> acres, <span class="at">y =</span> yield_bu_acre, <span class="at">colour =</span> region)</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.65</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">+</span></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Field size (acres)"</span>, <span class="at">y =</span> <span class="st">"Yield (bu/ac)"</span>) <span class="sc">+</span></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">10</span>)</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Set one colour for all points</span></span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(yields, <span class="fu">aes</span>(<span class="at">x =</span> acres, <span class="at">y =</span> yield_bu_acre)) <span class="sc">+</span></span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(</span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> <span class="st">"#2878A5"</span>,</span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.65</span>,</span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">na.rm =</span> <span class="cn">TRUE</span></span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Field size (acres)"</span>, <span class="at">y =</span> <span class="st">"Yield (bu/ac)"</span>) <span class="sc">+</span></span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">10</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Map fill to the variety column</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  variety_means,</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(<span class="at">x =</span> variety, <span class="at">y =</span> mean_yield, <span class="at">fill =</span> variety)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>() <span class="sc">+</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">60</span>)) <span class="sc">+</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="st">"Mean yield (bu/ac)"</span>) <span class="sc">+</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">10</span>)</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Set one fill for every bar</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  variety_means,</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(<span class="at">x =</span> variety, <span class="at">y =</span> mean_yield)</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">fill =</span> <span class="st">"#3F6F52"</span>) <span class="sc">+</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">60</span>)) <span class="sc">+</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="st">"Mean yield (bu/ac)"</span>) <span class="sc">+</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">10</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell quarto-layout-panel" data-layout-ncol="2">
 <div class="quarto-layout-row">
 <div class="cell-output-display quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
-<div id="fig-r-map-set-1" class="quarto-float quarto-figure quarto-figure-center anchored" alt="The left scatter plot uses three colours for regions; the right uses one blue colour for all fields.">
+<div id="fig-r-bar-map-set-1" class="quarto-float quarto-figure quarto-figure-center anchored" alt="The left chart uses three colours and a redundant variety legend; the right chart uses one green colour and no legend.">
 <figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-r-map-set-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="module04c_files/figure-html/fig-r-map-set-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure&nbsp;12.5: A. Colour mapped to region"><img src="module04c_files/figure-html/fig-r-map-set-1.png" class="img-fluid figure-img" alt="The left scatter plot uses three colours for regions; the right uses one blue colour for all fields." width="633"></a>
+<div aria-describedby="fig-r-bar-map-set-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="module04c_files/figure-html/fig-r-bar-map-set-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;12.3: A. Fill mapped to variety"><img src="module04c_files/figure-html/fig-r-bar-map-set-1.png" class="img-fluid figure-img" alt="The left chart uses three colours and a redundant variety legend; the right chart uses one green colour and no legend." width="633"></a>
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-r-map-set-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;12.5: A. Colour mapped to region
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-r-bar-map-set-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;12.3: A. Fill mapped to variety
 </figcaption>
 </figure>
 </div>
 </div>
 <div class="cell-output-display quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
-<div id="fig-r-map-set-2" class="quarto-float quarto-figure quarto-figure-center anchored" alt="The left scatter plot uses three colours for regions; the right uses one blue colour for all fields.">
+<div id="fig-r-bar-map-set-2" class="quarto-float quarto-figure quarto-figure-center anchored" alt="The left chart uses three colours and a redundant variety legend; the right chart uses one green colour and no legend.">
 <figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-r-map-set-2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="module04c_files/figure-html/fig-r-map-set-2.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure&nbsp;12.6: B. One colour set for every point"><img src="module04c_files/figure-html/fig-r-map-set-2.png" class="img-fluid figure-img" alt="The left scatter plot uses three colours for regions; the right uses one blue colour for all fields." width="633"></a>
+<div aria-describedby="fig-r-bar-map-set-2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="module04c_files/figure-html/fig-r-bar-map-set-2.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;12.4: B. One fill set for all bars"><img src="module04c_files/figure-html/fig-r-bar-map-set-2.png" class="img-fluid figure-img" alt="The left chart uses three colours and a redundant variety legend; the right chart uses one green colour and no legend." width="633"></a>
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-r-map-set-2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;12.6: B. One colour set for every point
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-r-bar-map-set-2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;12.4: B. One fill set for all bars
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
 </div>
-<p>Putting <code>colour = "#2878A5"</code> inside <code>aes()</code> would ask ggplot to treat the colour code as a data value and would create an unnecessary legend. In Excel, colouring points by region requires a separate series for each region.</p>
+<p>The mapped version creates a legend because colour now represents a column. That legend repeats the category labels already printed below the bars. The set version is closer to the Excel chart.</p>
 </section>
-<section id="sec-r-direct-labels" class="level2" data-number="12.7">
-<h2 data-number="12.7" class="anchored" data-anchor-id="sec-r-direct-labels"><span class="header-section-number">12.7</span> Add a fitted pattern and direct label</h2>
-<p>Text can identify a small number of observations without forcing the reader to search a legend or table. The highest recorded field yield belongs to field F044.</p>
+<section id="sec-r-scatter-example" class="level2" data-number="12.5">
+<h2 data-number="12.5" class="anchored" data-anchor-id="sec-r-scatter-example"><span class="header-section-number">12.5</span> Compare rainfall and yield</h2>
+<p>A scatter plot assigns one numeric column to each position. Three fields have missing rainfall, so 117 points are drawn.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Find the field with the highest recorded yield</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>highest_field <span class="ot">&lt;-</span> yields <span class="sc">|&gt;</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(yield_bu_acre)) <span class="sc">|&gt;</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_max</span>(yield_bu_acre, <span class="at">n =</span> <span class="dv">1</span>, <span class="at">with_ties =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Inspect the row that will receive a label</span></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>highest_field <span class="sc">|&gt;</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(field_id, acres, yield_bu_acre)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Select the field with the highest yield</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>highest_field <span class="ot">&lt;-</span> canola <span class="sc">|&gt;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_max</span>(</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    yield_bu_acre,</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">n =</span> <span class="dv">1</span>,</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">with_ties =</span> <span class="cn">FALSE</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Inspect the row that will receive a label</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>highest_field <span class="sc">|&gt;</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    field_id,</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    rainfall_mm,</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    yield_bu_acre,</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    variety</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
-<pre><code>&gt; # Find the field with the highest recorded yield
-&gt; highest_field &lt;- yields |&gt;
-+   filter(!is.na(yield_bu_acre)) |&gt;
-+   slice_max(yield_bu_acre, n = 1, with_ties = FALSE)
+<pre><code>&gt; # Select the field with the highest yield
+&gt; highest_field &lt;- canola |&gt;
++   slice_max(
++     yield_bu_acre,
++     n = 1,
++     with_ties = FALSE
++   )
 &gt; 
 &gt; # Inspect the row that will receive a label
 &gt; highest_field |&gt;
-+   select(field_id, acres, yield_bu_acre)
-# A tibble: 1 × 3
-  field_id acres yield_bu_acre
-  &lt;chr&gt;    &lt;dbl&gt;         &lt;dbl&gt;
-1 F044       268          60.7</code></pre>
++   select(
++     field_id,
++     rainfall_mm,
++     yield_bu_acre,
++     variety
++   )
+# A tibble: 1 × 4
+  field_id rainfall_mm yield_bu_acre variety
+  &lt;chr&gt;          &lt;dbl&gt;         &lt;dbl&gt; &lt;chr&gt;  
+1 C112            279.          70.4 InVigor</code></pre>
 </div>
 </div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Draw the complete field records</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(yields, <span class="fu">aes</span>(<span class="at">x =</span> acres, <span class="at">y =</span> yield_bu_acre)) <span class="sc">+</span></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.45</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">+</span></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Fit a straight line with its confidence band</span></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(</span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">"lm"</span>,</span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">formula =</span> y <span class="sc">~</span> x,</span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> <span class="st">"#2878A5"</span>,</span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">na.rm =</span> <span class="cn">TRUE</span></span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Label only the selected field</span></span>
-<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(</span>
-<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> highest_field,</span>
-<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">label =</span> field_id),</span>
-<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">nudge_x =</span> <span class="dv">12</span>,</span>
-<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">nudge_y =</span> <span class="fl">0.5</span>,</span>
-<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">hjust =</span> <span class="dv">0</span>,</span>
-<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="fl">3.2</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Map rainfall and yield to position</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  canola,</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(<span class="at">x =</span> rainfall_mm, <span class="at">y =</span> yield_bu_acre)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Draw one point for each complete row</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> <span class="st">"#2878A5"</span>,</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.6</span>,</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">na.rm =</span> <span class="cn">TRUE</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Add a fitted straight line and its interval</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">"lm"</span>,</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">formula =</span> y <span class="sc">~</span> x,</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> <span class="st">"#2F5940"</span>,</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">na.rm =</span> <span class="cn">TRUE</span></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Label only the highest-yield field</span></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> highest_field,</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">label =</span> field_id),</span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">nudge_x =</span> <span class="dv">8</span>,</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">nudge_y =</span> <span class="dv">1</span>,</span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="fl">3.2</span></span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Set readable displayed ranges</span></span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(</span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">120</span>, <span class="dv">335</span>),</span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">120</span>, <span class="dv">320</span>, <span class="at">by =</span> <span class="dv">40</span>)</span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(</span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">35</span>, <span class="dv">75</span>),</span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">40</span>, <span class="dv">70</span>, <span class="at">by =</span> <span class="dv">10</span>)</span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Supply title, labels and units</span></span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Canola yield by growing-season rainfall"</span>,</span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Growing-season rainfall (mm)"</span>,</span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Yield (bu/ac)"</span></span>
+<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">11</span>) <span class="sc">+</span></span>
+<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title.position =</span> <span class="st">"plot"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div id="fig-r-rainfall-scatter" class="quarto-float quarto-figure quarto-figure-center anchored" alt="A scatter plot of 117 fields slopes upward; field C112 is labelled near 70 bushels per acre.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-r-rainfall-scatter-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="module04c_files/figure-html/fig-r-rainfall-scatter-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure&nbsp;12.5: Canola yield and growing-season rainfall with a fitted straight line."><img src="module04c_files/figure-html/fig-r-rainfall-scatter-1.png" class="img-fluid figure-img" alt="A scatter plot of 117 fields slopes upward; field C112 is labelled near 70 bushels per acre." width="566"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-r-rainfall-scatter-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;12.5: Canola yield and growing-season rainfall with a fitted straight line.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The correlation is about 0.65, which agrees with the upward slope. The fitted line summarizes the pattern but does not replace the field-level points. <code>geom_text()</code> labels C112 directly without creating a legend.</p>
+</section>
+<section id="sec-r-histogram-example" class="level2" data-number="12.6">
+<h2 data-number="12.6" class="anchored" data-anchor-id="sec-r-histogram-example"><span class="header-section-number">12.6</span> Show the yield distribution</h2>
+<p><code>geom_histogram()</code> performs the binning shown in the Excel formula table. The settings below match the Excel boundaries: bins are 4 bu/ac wide and begin at 38.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Map field yield to the horizontal axis</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(canola, <span class="fu">aes</span>(<span class="at">x =</span> yield_bu_acre)) <span class="sc">+</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Match the Excel width and boundary</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">binwidth =</span> <span class="dv">4</span>,</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">boundary =</span> <span class="dv">38</span>,</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">closed =</span> <span class="st">"left"</span>,</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"#D8A940"</span>,</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> <span class="st">"white"</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Show the bin boundaries</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">38</span>, <span class="dv">74</span>, <span class="at">by =</span> <span class="dv">4</span>)</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Supply title, labels and units</span></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Canola trial yields (4 bu/ac bins)"</span>,</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Yield (bu/ac)"</span>,</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Fields"</span></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">11</span>) <span class="sc">+</span></span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.title.position =</span> <span class="st">"plot"</span>,</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>()</span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div id="fig-r-canola-histogram" class="quarto-float quarto-figure quarto-figure-center anchored" alt="A histogram of 120 yields has its tallest bar between 50 and 54 bushels per acre.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-r-canola-histogram-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="module04c_files/figure-html/fig-r-canola-histogram-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure&nbsp;12.6: Distribution of 120 simulated canola yields using 4 bu/ac bins."><img src="module04c_files/figure-html/fig-r-canola-histogram-1.png" class="img-fluid figure-img" alt="A histogram of 120 yields has its tallest bar between 50 and 54 bushels per acre." width="556"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-r-canola-histogram-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;12.6: Distribution of 120 simulated canola yields using 4 bu/ac bins.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The nine bin counts add to 120. With a small dataset, a different bin width can change the visible shape, so the width is part of the chart definition rather than a cosmetic setting.</p>
+</section>
+<section id="sec-r-variety-distributions" class="level2" data-number="12.7">
+<h2 data-number="12.7" class="anchored" data-anchor-id="sec-r-variety-distributions"><span class="header-section-number">12.7</span> Show what the means hide</h2>
+<p>The bar chart compares three means but hides the spread of the field yields. A box plot and jittered points show the observations behind each bar.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Map variety and field yield to position</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  canola,</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(<span class="at">x =</span> variety, <span class="at">y =</span> yield_bu_acre)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Summarize each distribution</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">width =</span> <span class="fl">0.55</span>,</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"#E4EEE7"</span>,</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> <span class="st">"#2F5940"</span>,</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">outlier.shape =</span> <span class="cn">NA</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Show the individual fields</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_jitter</span>(</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">width =</span> <span class="fl">0.12</span>,</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> <span class="st">"#2878A5"</span>,</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.55</span>,</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="fl">1.5</span></span>
 <span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Leave room for the direct label</span></span>
-<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">520</span>)) <span class="sc">+</span></span>
-<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Field size (acres)"</span>,</span>
-<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Yield (bu/ac)"</span></span>
-<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">11</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Yield variation within each canola variety"</span>,</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="cn">NULL</span>,</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Yield (bu/ac)"</span></span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">11</span>) <span class="sc">+</span></span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title.position =</span> <span class="st">"plot"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
-<div id="fig-r-labelled-smooth" class="quarto-float quarto-figure quarto-figure-center anchored" alt="A nearly flat fitted line crosses a scatter plot; field F044 is labelled near 61 bushels per acre.">
+<div id="fig-r-variety-box-jitter" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Three box plots with jittered field observations show substantial and similar spread within InVigor, Clearfield and DEKALB.">
 <figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-r-labelled-smooth-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="module04c_files/figure-html/fig-r-labelled-smooth-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="Figure&nbsp;12.7: Field size and yield with a fitted line and the highest-yield field labelled."><img src="module04c_files/figure-html/fig-r-labelled-smooth-1.png" class="img-fluid figure-img" alt="A nearly flat fitted line crosses a scatter plot; field F044 is labelled near 61 bushels per acre." width="556"></a>
+<div aria-describedby="fig-r-variety-box-jitter-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="module04c_files/figure-html/fig-r-variety-box-jitter-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="Figure&nbsp;12.7: Field-yield distributions by canola variety."><img src="module04c_files/figure-html/fig-r-variety-box-jitter-1.png" class="img-fluid figure-img" alt="Three box plots with jittered field observations show substantial and similar spread within InVigor, Clearfield and DEKALB." width="556"></a>
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-r-labelled-smooth-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;12.7: Field size and yield with a fitted line and the highest-yield field labelled.
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-r-variety-box-jitter-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;12.7: Field-yield distributions by canola variety.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>The fitted line is nearly flat and its interval is wide. <code>geom_smooth()</code> will draw a line whether or not the relationship is useful, so the points and uncertainty remain part of the interpretation.</p>
+<p>The within-variety ranges are much larger than the gaps among the three means. Use a bar chart when the intended comparison is the averages; use a box plot or field-level display when spread and consistency matter.</p>
 </section>
-<section id="sec-r-annotations" class="level2" data-number="12.8">
-<h2 data-number="12.8" class="anchored" data-anchor-id="sec-r-annotations"><span class="header-section-number">12.8</span> Put explanatory text inside a chart</h2>
-<p><code>geom_text()</code> attaches labels to rows in a data frame. <code>annotate()</code> places text at coordinates supplied in the plot code. The line chart below uses both.</p>
+<section id="sec-saving-plots" class="level2" data-number="12.8">
+<h2 data-number="12.8" class="anchored" data-anchor-id="sec-saving-plots"><span class="header-section-number">12.8</span> Save the finished chart</h2>
+<p>Assigning a plot to a name makes the object passed to <code>ggsave()</code> explicit. Width and height are in inches unless another unit is supplied.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Select the lowest annual mean for a data-driven label</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>lowest_year <span class="ot">&lt;-</span> annual_mean <span class="sc">|&gt;</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_min</span>(mean_yield, <span class="at">n =</span> <span class="dv">1</span>, <span class="at">with_ties =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">label =</span> <span class="fu">paste0</span>(year, <span class="st">": "</span>, <span class="fu">round</span>(mean_yield, <span class="dv">1</span>), <span class="st">" bu/ac"</span>))</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Inspect the selected label row</span></span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>lowest_year</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="console-transcript">
-<pre><code>&gt; # Select the lowest annual mean for a data-driven label
-&gt; lowest_year &lt;- annual_mean |&gt;
-+   slice_min(mean_yield, n = 1, with_ties = FALSE) |&gt;
-+   mutate(label = paste0(year, ": ", round(mean_yield, 1), " bu/ac"))
-&gt; 
-&gt; # Inspect the selected label row
-&gt; lowest_year
-# A tibble: 1 × 3
-   year mean_yield label           
-  &lt;dbl&gt;      &lt;dbl&gt; &lt;chr&gt;           
-1  2021       21.9 2021: 21.9 bu/ac</code></pre>
-</div>
-</div>
-</div>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Draw the annual series</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(annual_mean, <span class="fu">aes</span>(<span class="at">x =</span> year, <span class="at">y =</span> mean_yield)) <span class="sc">+</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">colour =</span> <span class="st">"#2878A5"</span>, <span class="at">linewidth =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">colour =</span> <span class="st">"#2878A5"</span>, <span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Attach the value to the selected row</span></span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(</span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> lowest_year,</span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">label =</span> label),</span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">nudge_y =</span> <span class="sc">-</span><span class="fl">1.6</span>,</span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="fl">3.2</span></span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Add a note that is not stored in the data</span></span>
-<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(</span>
-<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>    <span class="st">"text"</span>,</span>
-<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="dv">2015</span>,</span>
-<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="dv">44</span>,</span>
-<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">label =</span> <span class="st">"Blank RM yields omitted"</span>,</span>
-<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">hjust =</span> <span class="dv">0</span>,</span>
-<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="fl">3.2</span>,</span>
-<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> <span class="st">"#5F6E66"</span></span>
-<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="dv">2015</span><span class="sc">:</span><span class="dv">2024</span>) <span class="sc">+</span></span>
-<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">15</span>, <span class="dv">45</span>)) <span class="sc">+</span></span>
-<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="st">"Mean yield (bu/ac)"</span>) <span class="sc">+</span></span>
-<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">11</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output-display">
-<div id="fig-r-annotated-line" class="quarto-float quarto-figure quarto-figure-center anchored" alt="The 2021 low point is labelled 2021: 21.9 bu/ac, and a note states that blank RM yields were omitted.">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-r-annotated-line-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="module04c_files/figure-html/fig-r-annotated-line-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-8" title="Figure&nbsp;12.8: Annual mean canola yield with a direct label and a short note inside the plotting area."><img src="module04c_files/figure-html/fig-r-annotated-line-1.png" class="img-fluid figure-img" alt="The 2021 low point is labelled 2021: 21.9 bu/ac, and a note states that blank RM yields were omitted." width="576"></a>
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-r-annotated-line-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;12.8: Annual mean canola yield with a direct label and a short note inside the plotting area.
-</figcaption>
-</figure>
-</div>
-</div>
-</div>
-<p>Use text for a small number of points or one necessary qualification. Labelling every point would make this ten-year series harder to read.</p>
-</section>
-<section id="sec-faceting" class="level2" data-number="12.9">
-<h2 data-number="12.9" class="anchored" data-anchor-id="sec-faceting"><span class="header-section-number">12.9</span> Divide a comparison into facets</h2>
-<p>Faceting applies the same chart definition to subsets of the data. Each panel below uses the same 3 bu/ac bins and axis limits for a different region.</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Define one histogram</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(yields, <span class="fu">aes</span>(<span class="at">x =</span> yield_bu_acre)) <span class="sc">+</span></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">binwidth =</span> <span class="dv">3</span>,</span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">boundary =</span> <span class="dv">30</span>,</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">closed =</span> <span class="st">"left"</span>,</span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"#D8A940"</span>,</span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> <span class="st">"white"</span>,</span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">na.rm =</span> <span class="cn">TRUE</span></span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Repeat it for each region</span></span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> region, <span class="at">nrow =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">30</span>, <span class="dv">60</span>, <span class="at">by =</span> <span class="dv">10</span>)) <span class="sc">+</span></span>
-<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Yield (bu/ac)"</span>, <span class="at">y =</span> <span class="st">"Fields"</span>) <span class="sc">+</span></span>
-<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">10</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output-display">
-<div id="fig-r-facet" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Three small histograms use common bins and scales for Central, North and South.">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-r-facet-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="module04c_files/figure-html/fig-r-facet-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-9" title="Figure&nbsp;12.9: Recorded field-yield distributions shown separately by region."><img src="module04c_files/figure-html/fig-r-facet-1.png" class="img-fluid figure-img" alt="Three small histograms use common bins and scales for Central, North and South." width="672"></a>
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-r-facet-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;12.9: Recorded field-yield distributions shown separately by region.
-</figcaption>
-</figure>
-</div>
-</div>
-</div>
-<p>Excel has no direct faceting feature. Separate charts can make the same comparison, but their bin definitions and axis bounds must be kept identical.</p>
-</section>
-<section id="sec-saving-plots" class="level2" data-number="12.10">
-<h2 data-number="12.10" class="anchored" data-anchor-id="sec-saving-plots"><span class="header-section-number">12.10</span> Save a plot</h2>
-<p>Assigning a plot to a name before <code>ggsave()</code> makes the saved object explicit and lets it be reused. Create the destination folder first.</p>
-<div class="cell">
-<div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the output folder if needed</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">dir.create</span>(<span class="st">"output"</span>, <span class="at">showWarnings =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Store the finished plot in an object</span></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>regional_plot <span class="ot">&lt;-</span> region_means <span class="sc">|&gt;</span></span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">region =</span> <span class="fu">fct_reorder</span>(region, mean_yield, <span class="at">.desc =</span> <span class="cn">TRUE</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> region, <span class="at">y =</span> mean_yield)) <span class="sc">+</span></span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">width =</span> <span class="fl">0.7</span>, <span class="at">fill =</span> <span class="st">"#3F6F52"</span>) <span class="sc">+</span></span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(</span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">55</span>),</span>
-<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.04</span>))</span>
-<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="st">"Mean yield (bu/ac)"</span>) <span class="sc">+</span></span>
-<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">11</span>)</span>
-<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Save the stated object at a reproducible size</span></span>
-<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(</span>
-<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>  <span class="st">"output/region_yield_bar.png"</span>,</span>
-<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">plot =</span> regional_plot,</span>
-<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>  <span class="at">width =</span> <span class="dv">6</span>,</span>
-<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a>  <span class="at">height =</span> <span class="dv">4</span>,</span>
-<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a>  <span class="at">dpi =</span> <span class="dv">300</span></span>
-<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the output folder if needed</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">dir.create</span>(<span class="st">"output"</span>, <span class="at">showWarnings =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Save the finished bar chart</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"output/canola_variety_bar.png"</span>,</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">plot =</span> bar_plot,</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">width =</span> <span class="dv">6</span>,</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">height =</span> <span class="dv">4</span>,</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">dpi =</span> <span class="dv">300</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Confirm that the file was written</span></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a><span class="fu">file.info</span>(</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>  <span class="st">"output/canola_variety_bar.png"</span></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>)[<span class="st">"size"</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; # Create the output folder if needed
 &gt; dir.create("output", showWarnings = FALSE)
 &gt; 
-&gt; # Store the finished plot in an object
-&gt; regional_plot &lt;- region_means |&gt;
-+   mutate(region = fct_reorder(region, mean_yield, .desc = TRUE)) |&gt;
-+   ggplot(aes(x = region, y = mean_yield)) +
-+   geom_col(width = 0.7, fill = "#3F6F52") +
-+   scale_y_continuous(
-+     limits = c(0, 55),
-+     expand = expansion(mult = c(0, 0.04))
-+   ) +
-+   labs(x = NULL, y = "Mean yield (bu/ac)") +
-+   theme_minimal(base_size = 11)
-&gt; 
-&gt; # Save the stated object at a reproducible size
+&gt; # Save the finished bar chart
 &gt; ggsave(
-+   "output/region_yield_bar.png",
-+   plot = regional_plot,
++   "output/canola_variety_bar.png",
++   plot = bar_plot,
 +   width = 6,
 +   height = 4,
 +   dpi = 300
-+ )</code></pre>
++ )
+&gt; 
+&gt; # Confirm that the file was written
+&gt; file.info(
++   "output/canola_variety_bar.png"
++ )["size"]
+                               size
+output/canola_variety_bar.png 51342</code></pre>
 </div>
 </div>
 </div>
-<p>Width and height are in inches unless another unit is supplied. PNG works for slides and web pages; PDF preserves vector lines and text for publication. SVG output requires the <code>svglite</code> package.</p>
+<p>PNG works for slides and web pages. PDF preserves vector lines and text for publication. Stating the plot object, dimensions and resolution in code makes the export reproducible.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
@@ -1157,9 +1062,8 @@ Figure&nbsp;12.9: Recorded field-yield distributions shown separately by region.
 <div id="callout-1" class="callout-1-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <ul>
-<li><strong>R for Data Science (2nd ed.)</strong> – <a href="https://r4ds.hadley.nz/data-visualize">Chapter 1, “Data visualization”</a> introduces <code>ggplot()</code>, aesthetic mappings, geoms and facets.</li>
-<li><strong>ggplot2 documentation</strong> – the <a href="https://ggplot2.tidyverse.org/reference/">function reference</a> lists the arguments and examples for each geom.</li>
-<li><strong>RStudio cheatsheet</strong> – <a href="https://rstudio.github.io/cheatsheets/html/data-visualization.html">Data visualization with ggplot2</a>.</li>
+<li><a href="https://ggplot2.tidyverse.org/">ggplot2 documentation</a></li>
+<li><a href="https://r4ds.hadley.nz/data-visualize">Data Visualization chapter in R for Data Science</a></li>
 </ul>
 </div>
 </div>
