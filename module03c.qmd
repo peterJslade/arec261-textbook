@@ -64,31 +64,37 @@ Both of our merges will be many-to-one:
 
 In Chapter 2, we used `XLOOKUP` to bring values from one table into another (@sec-lookup). That approach is useful for a quick lookup. Here, we will use Power Query because it records the merge as a repeatable series of steps and can match on several columns directly.
 
-### First merge: yields and the RM lookup {.unnumbered}
-
 Begin by importing `rm_yields_2015_2024.csv` and `rm_lookup.csv` with **Data > Get Data > From Text/CSV > Transform Data**. In the Power Query editor:
 
-1. Select the RM yields query.
-2. Choose **Home > Merge Queries**.
-3. Select the RM lookup as the second table.
-4. Select `rm` in the yields table and `rm_number` in the lookup table.
-5. Keep **Left Outer** as the join kind. This keeps every yield observation and adds information wherever the lookup contains a matching RM.
-6. Check the number of matching rows reported in the dialog, then choose **OK**.
-7. Expand the new table column using the double-arrow icon in its header. Select the RM name, census division, population and closest weather station.
+1. Load the RM yield data using Power Query, transforming the data to longer format as we did before.
+2. Choose Power Query, select import csv, and select the RM lookup table.
+3. Select transform data.  You will now see two queries on your left hand side (@fig-pq-merge-queries).
+4. Select the first query (rm_yields_2015_2024) and then click **Home > Merge Queries**.
 
-This is a many-to-one merge: the yields table contains many rows for each RM, while the lookup contains one row for each RM. The number of yield rows should not change.
+![The two queries loaded, with the yield data in long format and **Merge queries** on the ribbon.](images/pq_merge_queries.png){#fig-pq-merge-queries .screenshot}
 
-### Second merge: matching on station and year {.unnumbered}
+5. In the pop up menu (@fig-pq-merge-dialog) select rm_lookup as the right table to merge.
+6. Select the key to merge on in each table by clicking its column heading: `RM` in the yields table and `RM_Number` in the lookup table.
+7. Keep **Left Outer** as the join kind. This keeps every yield observation and adds information wherever the lookup contains a matching RM.
+8. Check the number of matching rows reported at the bottom of the dialog -- here every one of the 15,478 yield observations finds a match -- then choose **OK**.
 
-Next, import `station_precip.csv`. Each yield observation must match precipitation from both the correct weather station and the correct year. Unlike the helper-column method used with `XLOOKUP` in Chapter 2, Power Query can select both keys directly:
+![The Merge dialog: the two tables, the key selected in each, the join kind, and the match count along the bottom.](images/pq_merge_dialog.png){#fig-pq-merge-dialog .screenshot}
 
-1. Choose **Home > Merge Queries** from the merged yields query.
-2. Select the closest-weather-station column, then hold Ctrl (Command on a Mac) and select `year`.
-3. In the precipitation table, select `station` first and `year` second. The numbered labels beside the column headings confirm the key order.
-4. Keep **Left Outer** as the join kind and check the number of matches reported in the dialog.
-5. Choose **OK**, then expand the new table column and select the precipitation variables you need.
+9. The merged data arrives packed into a single new column whose every entry reads `[Table]` (@fig-pq-merged-column). Expand it using the double-arrow icon in its header: tick the columns you want (the RM name, census division, population and closest weather station) and untick **Use original column name as prefix** so the columns keep their own names.
 
-The column order matters: the first selected column in one table is matched to the first selected column in the other, and the second is matched to the second. Selecting station and year prevents Power Query from returning the first year it finds for a station.
+![After the merge, the lookup columns sit folded inside a `[Table]` column. The double-arrow icon in its header expands them. Do not click a `[Table]` link itself -- that drills into that one row's table and discards the rest.](images/pq_merged_table_column.png){#fig-pq-merged-column .screenshot}
+
+![After expanding: the lookup columns sit beside every yield observation, and the row count has not changed.](images/pq_merge_expanded.png){#fig-pq-merge-expanded .screenshot}
+
+Now you should see the RM lookup data merged with the RM yield data.  We can now repeat the same process to merge once again with the station data: import `station_precip.csv` the same way, so a third query appears (@fig-pq-station-added).  The only difference is that we are now going to merge on both the station name and the year (@fig-pq-two-keys). Select `Weather_Station` and then Ctrl-click `Year` in the top table, and `Station` then Ctrl-click `Year` in the bottom one -- the small 1 and 2 beside the headings show the matching order.
+
+![The station precipitation data imported as a third query.](images/pq_station_added.png){#fig-pq-station-added .screenshot}
+
+![The second Merge dialog, with the station column selected in each table; Ctrl-clicking `Year` in each adds it as the second key. Station and year together identify the right precipitation value.](images/pq_merge_two_keys.png){#fig-pq-two-keys .screenshot}
+
+After expanding the precipitation column and choosing **Close & load**, every yield observation carries its RM's name, closest station, and that station's growing-season precipitation for the right year.
+
+<!-- TODO: embed the finished mod03 merge workbook (OneDrive view-only iframe) here, following the mod04 pattern. -->
 
 ### Checking the merge {.unnumbered}
 
