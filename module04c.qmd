@@ -6,26 +6,52 @@
 source("_console.R")
 ```
 
-Excel starts with a selected range and a chart menu. In R, we describe the chart in code: the data, the variables assigned to visual properties, and the marks to draw. The `ggplot2` package turns that description into a figure.
+The Excel chapter built four charts from worksheet ranges. In R we describe the same charts in code: the data, the variables assigned to visual properties and the marks to draw. The `ggplot2` package turns that description into a figure.
 
-The examples use [`field_yields.csv`](practice/data/field_yields.csv), with one row for each of sixty hypothetical canola fields.
+The examples use [`field_yields.csv`](practice/data/field_yields.csv) and [`rm_yields_2015_2024.csv`](practice/data/rm_yields_2015_2024.csv), the same files used in the Excel workbook. The field data are simulated; the RM yield series comes from the Saskatchewan Agriculture provincial dashboard.
 
 ```{r}
 #| eval: true
 #| echo: false
 console('
-# Load the tidyverse and read the field data
+# Load the tidyverse
 suppressPackageStartupMessages(library(tidyverse))
 
+# Read the simulated field data
 yields <- read_csv(
   "practice/data/field_yields.csv",
   show_col_types = FALSE
 )
-glimpse(yields)
+
+# Read the published RM yield data
+rm_yields <- read_csv(
+  "practice/data/rm_yields_2015_2024.csv",
+  show_col_types = FALSE
+)
+
+# Calculate one regional mean per row
+region_means <- yields |>
+  group_by(region) |>
+  summarise(
+    mean_yield = mean(yield_bu_acre, na.rm = TRUE),
+    fields = sum(!is.na(yield_bu_acre)),
+    .groups = "drop"
+  )
+
+# Calculate one annual mean per row
+annual_mean <- rm_yields |>
+  group_by(Year) |>
+  summarise(
+    mean_yield = mean(Canola, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  rename(year = Year)
+
+# Inspect both chart-driving summaries
+region_means
+annual_mean
 ')
 ```
-
-The file is simulated for teaching, so its patterns are not facts about canola. Three fields have no recorded yield.
 
 ## Learning Objectives {.unnumbered}
 
@@ -33,14 +59,14 @@ The file is simulated for teaching, so its patterns are not facts about canola. 
 By the end of this chapter you should be able to:
 
 1. Build a plot with `ggplot()`, `aes()` and a geom.
-2. Choose a geom for a comparison, trend, relationship or distribution.
+2. Reproduce a bar, line, scatter and histogram chart from the Excel examples.
 3. Distinguish mapping an aesthetic to a variable from setting it to a constant.
-4. Add titles, axis labels and a theme.
-5. Divide a plot into small multiples with facets.
-6. save a plot with `ggsave()`.
+4. Add titles, axis labels, direct labels and annotations.
+5. Add a fitted pattern and divide a plot into facets.
+6. Save a plot with stated dimensions and resolution.
 :::
 
-## The Grammar of Graphics {#sec-grammar}
+## The grammar of graphics {#sec-grammar}
 
 `ggplot2` follows the **grammar of graphics**. A plot is assembled from a few parts:
 
@@ -52,183 +78,153 @@ By the end of this chapter you should be able to:
 
 Some geoms also calculate a statistic. A histogram bins values before drawing bars, and a smooth fits a line or curve before drawing it.
 
-## A First Plot {#sec-first-ggplot}
+Layers are joined with `+`. A pipe passes a data object into a function; the `+` adds another layer to a ggplot object.
 
-This scatter plot places field size on the horizontal axis and yield on the vertical axis:
+## Compare regional means with bars {#sec-r-bar-example}
 
-```{r}
-#| label: fig-r-first-scatter
-#| eval: true
-#| echo: true
-#| message: false
-#| fig-width: 5.4
-#| fig-height: 3.2
-#| fig-cap: "Field size and canola yield for sixty hypothetical fields."
-ggplot(yields, aes(x = acres, y = yield_bu_acre)) +
-  geom_point()
-```
-
-Read the code in three parts:
-
-- `ggplot(yields, ...)` names the data frame.
-- `aes(x = acres, y = yield_bu_acre)` maps two columns to position.
-- `geom_point()` draws one point for each row with both values present.
-
-Layers are joined with `+`. A pipe passes a data object into a function; the `+` adds a layer to a ggplot object.
-
-The warning says that three rows were removed because their yields are missing. It is information, not an error. Once you have verified that the count is expected, `na.rm = TRUE` suppresses the message. Excel drops blank values from a chart without reporting how many it omitted.
-
-## Common Geoms {#sec-geoms}
-
-### `geom_point()`: scatter plots {.unnumbered}
-
-Use points for the relationship between two numeric variables. The `alpha` argument makes overlapping points partly transparent.
+The Excel chart used a three-row summary calculated with `AVERAGEIF`. The `region_means` data frame performs the same job in R. `geom_col()` draws values that have already been calculated.
 
 ```{r}
-#| label: fig-r-alpha
+#| label: fig-r-region-bars
 #| eval: true
 #| echo: true
 #| message: false
 #| warning: false
-#| fig-width: 5.4
+#| fig-width: 5.5
 #| fig-height: 3.2
-#| fig-cap: "Transparency makes overlapping observations easier to see."
-ggplot(yields, aes(x = acres, y = yield_bu_acre)) +
-  geom_point(alpha = 0.55, na.rm = TRUE)
+#| fig-cap: "Mean simulated field yield by region."
+#| fig-alt: "Three green bars show Central at 47.6, North at 47.3 and South at 42.7 bushels per acre."
+# Put the highest mean first
+region_means |>
+  mutate(region = fct_reorder(region, mean_yield, .desc = TRUE)) |>
+  ggplot(aes(x = region, y = mean_yield)) +
+  # Draw the calculated means as bars
+  geom_col(width = 0.7, fill = "#3F6F52") +
+  # Keep a zero baseline for bar length
+  scale_y_continuous(
+    limits = c(0, 55),
+    expand = expansion(mult = c(0, 0.04))
+  ) +
+  # State the variables and unit
+  labs(
+    x = NULL,
+    y = "Mean yield (bu/ac)"
+  ) +
+  # Remove unnecessary decoration
+  theme_minimal(base_size = 11)
 ```
 
-### `geom_line()`: change over time {.unnumbered}
+Central and North differ by 0.3 bu/ac. The bar chart shows the difference, but it does not show the variation among the nineteen recorded fields behind each mean.
 
-A line chart needs one value for each point along the horizontal axis. The field file has only two years, which is not enough to show a meaningful trend, so use the ten-year RM-yield series from Module 3:
+## Show change through time with a line {#sec-r-line-example}
+
+The annual summary contains one mean for each year from 2015 to 2024. `geom_line()` connects those values in chronological order and `geom_point()` shows the observed annual means.
 
 ```{r}
-#| label: fig-r-line
+#| label: fig-r-annual-line
 #| eval: true
 #| echo: true
 #| message: false
 #| warning: false
-#| fig-width: 5.4
-#| fig-height: 3.0
-#| fig-cap: "Mean published RM canola yield, 2015–2024."
-annual_mean <- read_csv(
-  "practice/data/rm_yields_2015_2024.csv",
-  show_col_types = FALSE
-) |>
-  group_by(Year) |>
-  summarise(mean_yield = mean(Canola, na.rm = TRUE)) |>
-  rename(year = Year)
-
+#| fig-width: 6.0
+#| fig-height: 3.2
+#| fig-cap: "Mean published RM canola yield, 2015--2024."
+#| fig-alt: "A line chart of ten annual means reaches its lowest point, 21.9 bushels per acre, in 2021."
+# Start with one row per year
 ggplot(annual_mean, aes(x = year, y = mean_yield)) +
-  geom_line() +
-  geom_point() +
-  scale_x_continuous(breaks = 2015:2024)
+  # Connect the years in time order
+  geom_line(colour = "#2878A5", linewidth = 0.7) +
+  # Mark each annual mean
+  geom_point(colour = "#2878A5", size = 2) +
+  # Show each integer year
+  scale_x_continuous(breaks = 2015:2024) +
+  # Use the same displayed range as the Excel example
+  scale_y_continuous(limits = c(15, 45)) +
+  # State the unit
+  labs(
+    x = NULL,
+    y = "Mean yield (bu/ac)"
+  ) +
+  # Use a restrained theme
+  theme_minimal(base_size = 11)
 ```
 
-The summary creates one row per year. `geom_line()` connects those rows in year order, and `scale_x_continuous()` states the integer-year tick marks. Excel's Line chart usually treats years as evenly spaced category labels instead.
+The lowest annual mean is 21.9 bu/ac in 2021. As in Excel, blank RM yields are omitted from each annual mean rather than treated as zero.
 
-### `geom_col()` and `geom_bar()`: bars {.unnumbered}
+## Compare two numeric variables with points {#sec-r-scatter-example}
 
-Use `geom_col()` when the bar heights have already been calculated.
+A scatter plot assigns one numeric column to each position. Rows missing either value do not produce a point.
 
 ```{r}
-#| label: fig-r-col
+#| label: fig-r-field-scatter
 #| eval: true
 #| echo: true
 #| message: false
 #| warning: false
-#| fig-width: 5.4
-#| fig-height: 3.0
-#| fig-cap: "Mean field yield by region."
-region_means <- yields |>
-  group_by(region) |>
-  summarise(mean_yield = mean(yield_bu_acre, na.rm = TRUE))
-
-ggplot(region_means, aes(x = region, y = mean_yield)) +
-  geom_col()
-```
-
-A bar of means hides how many fields are behind it and how much they vary. The box plot below shows the spread and is usually more informative for comparing these regions. In Excel, sort the summary table to reorder the bars.
-
-Use `geom_bar()` when the desired value is the number of rows. It counts the observations in each category:
-
-```{r}
-#| label: fig-r-bar
-#| eval: true
-#| echo: true
-#| message: false
-#| warning: false
-#| fig-width: 5.0
-#| fig-height: 2.8
-#| fig-cap: "Number of fields in each region."
-ggplot(yields, aes(x = region)) +
-  geom_bar()
-```
-
-Excel has no counting chart: use `COUNTIF` or a PivotTable to create the counts, then chart that summary.
-
-### `geom_histogram()` and `geom_boxplot()`: distributions {.unnumbered}
-
-A histogram shows the shape of one numeric variable. State the number of bins or the bin width rather than accepting the default without looking at it.
-
-```{r}
-#| label: fig-r-hist
-#| eval: true
-#| echo: true
-#| message: false
-#| warning: false
-#| fig-width: 5.2
-#| fig-height: 3.0
-#| fig-cap: "Distribution of recorded field yields."
-ggplot(yields, aes(x = yield_bu_acre)) +
-  geom_histogram(bins = 12, na.rm = TRUE)
-```
-
-With only 57 recorded yields, the apparent shape changes noticeably with 5, 12 or 30 bins; none is a uniquely true display. In Excel use **Insert > Statistical Chart > Histogram**, then **Format Axis** to set Bin width or Number of bins.
-
-A box plot makes distributions compact enough to compare across categories.
-
-```{r}
-#| label: fig-r-box
-#| eval: true
-#| echo: true
-#| message: false
-#| warning: false
-#| fig-width: 5.2
-#| fig-height: 3.0
-#| fig-cap: "Field-yield distributions by region."
-ggplot(yields, aes(x = region, y = yield_bu_acre)) +
-  geom_boxplot(na.rm = TRUE)
-```
-
-Excel's **Box and Whisker** chart is in the same Statistical Chart menu, but it expects each group's values in a separate column.
-
-### `geom_smooth()`: fitted patterns {.unnumbered}
-
-`geom_smooth(method = "lm")` adds a fitted straight line and an interval around it:
-
-```{r}
-#| label: fig-r-smooth
-#| eval: true
-#| echo: true
-#| message: false
-#| warning: false
-#| fig-width: 5.4
-#| fig-height: 3.2
-#| fig-cap: "Field size and yield with a fitted straight line."
+#| fig-width: 5.7
+#| fig-height: 3.3
+#| fig-cap: "Field size and yield for sixty simulated fields."
+#| fig-alt: "Fifty-seven points form a broad cloud with little upward or downward slope."
+# Map field size and yield to position
 ggplot(yields, aes(x = acres, y = yield_bu_acre)) +
-  geom_point(alpha = 0.45, na.rm = TRUE) +
-  geom_smooth(
-    method = "lm",
-    formula = y ~ x,
+  # Draw one point for each complete row
+  geom_point(
+    colour = "#2878A5",
+    alpha = 0.65,
     na.rm = TRUE
-  )
+  ) +
+  # State both units
+  labs(
+    x = "Field size (acres)",
+    y = "Yield (bu/ac)"
+  ) +
+  # Keep both horizontal and vertical guides
+  theme_minimal(base_size = 11)
 ```
 
-Here the line is nearly flat and the 95% confidence band is wide: these synthetic fields show no clear relationship between field size and yield. A fitted line is drawn whether or not a clear relationship exists, so read the points and band as well as the line. In Excel use **Chart Design > Add Chart Element > Trendline > Linear**; Excel can display the equation and R-squared but does not add this confidence band. Module 7 explains what the line estimates.
+Three rows have missing yield, so the chart contains 57 points. The correlation is about -0.07, which agrees with the nearly flat cloud.
 
-## Mapping and Setting Aesthetics {#sec-mapping-vs-setting}
+## Show a distribution with a histogram {#sec-r-histogram-example}
 
-Put an aesthetic inside `aes()` when it should depend on a variable. Put it outside `aes()` when every mark should receive the same value.
+`geom_histogram()` performs the binning that the Excel workbook displayed in a formula-driven table. The settings below match the Excel boundaries: bins are 3 bu/ac wide and begin at 30.
+
+```{r}
+#| label: fig-r-yield-histogram
+#| eval: true
+#| echo: true
+#| message: false
+#| warning: false
+#| fig-width: 5.8
+#| fig-height: 3.2
+#| fig-cap: "Distribution of recorded simulated field yields using 3 bu/ac bins."
+#| fig-alt: "A histogram of 57 yields has its tallest bin from 48 to 51 bushels per acre."
+# Map the recorded yields to the horizontal axis
+ggplot(yields, aes(x = yield_bu_acre)) +
+  # Match the Excel bin width and boundary
+  geom_histogram(
+    binwidth = 3,
+    boundary = 30,
+    closed = "left",
+    fill = "#D8A940",
+    colour = "white",
+    na.rm = TRUE
+  ) +
+  # Show the bin boundaries
+  scale_x_continuous(breaks = seq(30, 63, by = 3)) +
+  # State the unit and count
+  labs(
+    x = "Yield (bu/ac)",
+    y = "Fields"
+  ) +
+  # Remove unnecessary decoration
+  theme_minimal(base_size = 11)
+```
+
+With only 57 recorded yields, the apparent shape changes noticeably when the bin width changes. The bin definition is therefore part of the analysis rather than a formatting detail.
+
+## Mapping and setting aesthetics {#sec-mapping-vs-setting}
+
+Put an aesthetic inside `aes()` when it should depend on a column. Put it outside `aes()` when every mark should receive the same value.
 
 ```{r}
 #| label: fig-r-map-set
@@ -236,56 +232,154 @@ Put an aesthetic inside `aes()` when it should depend on a variable. Put it outs
 #| echo: true
 #| message: false
 #| warning: false
-#| fig-width: 4.7
+#| fig-width: 6.6
 #| fig-height: 3.0
 #| fig-subcap:
 #|   - "A. Colour mapped to region"
-#|   - "B. One colour set for all points"
+#|   - "B. One colour set for every point"
+#| fig-alt: "The left scatter plot uses three colours for regions; the right uses one blue colour for all fields."
 #| layout-ncol: 2
-# Map colour to a column in the data
-ggplot(yields, aes(x = acres, y = yield_bu_acre, colour = region)) +
-  geom_point(na.rm = TRUE)
+# Map colour to the region column
+ggplot(
+  yields,
+  aes(x = acres, y = yield_bu_acre, colour = region)
+) +
+  geom_point(alpha = 0.65, na.rm = TRUE) +
+  labs(x = "Field size (acres)", y = "Yield (bu/ac)") +
+  theme_minimal(base_size = 10)
 
-# Set one colour for every point
+# Set one colour for all points
 ggplot(yields, aes(x = acres, y = yield_bu_acre)) +
-  geom_point(colour = "steelblue", na.rm = TRUE)
+  geom_point(
+    colour = "#2878A5",
+    alpha = 0.65,
+    na.rm = TRUE
+  ) +
+  labs(x = "Field size (acres)", y = "Yield (bu/ac)") +
+  theme_minimal(base_size = 10)
 ```
 
-Putting `colour = "steelblue"` inside `aes()` would ask ggplot to map the literal category `"steelblue"` to a colour scale, producing an unnecessary legend.
+Putting `colour = "#2878A5"` inside `aes()` would ask ggplot to treat the colour code as a data value and would create an unnecessary legend. In Excel, colouring points by region requires a separate series for each region.
 
-In Excel, colouring points by a category requires one series per group: restructure the data with `FILTER()` or a PivotTable, then use **Select Data > Add** for each series. The one-line `aes(colour = region)` is a practical advantage of ggplot2.
+## Add a fitted pattern and direct label {#sec-r-direct-labels}
 
-## Labels and Themes {#sec-ggplot-polish}
-
-`labs()` supplies the text and `theme_minimal()` changes the non-data elements of the plot:
+Text can identify a small number of observations without forcing the reader to search a legend or table. The highest recorded field yield belongs to field F044.
 
 ```{r}
-#| label: fig-r-polished
+#| eval: true
+#| echo: false
+console('
+# Find the field with the highest recorded yield
+highest_field <- yields |>
+  filter(!is.na(yield_bu_acre)) |>
+  slice_max(yield_bu_acre, n = 1, with_ties = FALSE)
+
+# Inspect the row that will receive a label
+highest_field |>
+  select(field_id, acres, yield_bu_acre)
+')
+```
+
+```{r}
+#| label: fig-r-labelled-smooth
+#| eval: true
+#| echo: true
+#| message: false
+#| warning: false
+#| fig-width: 5.8
+#| fig-height: 3.4
+#| fig-cap: "Field size and yield with a fitted line and the highest-yield field labelled."
+#| fig-alt: "A nearly flat fitted line crosses a scatter plot; field F044 is labelled near 61 bushels per acre."
+# Draw the complete field records
+ggplot(yields, aes(x = acres, y = yield_bu_acre)) +
+  geom_point(alpha = 0.45, na.rm = TRUE) +
+  # Fit a straight line with its confidence band
+  geom_smooth(
+    method = "lm",
+    formula = y ~ x,
+    colour = "#2878A5",
+    na.rm = TRUE
+  ) +
+  # Label only the selected field
+  geom_text(
+    data = highest_field,
+    aes(label = field_id),
+    nudge_x = 12,
+    nudge_y = 0.5,
+    hjust = 0,
+    size = 3.2
+  ) +
+  # Leave room for the direct label
+  scale_x_continuous(limits = c(0, 520)) +
+  labs(
+    x = "Field size (acres)",
+    y = "Yield (bu/ac)"
+  ) +
+  theme_minimal(base_size = 11)
+```
+
+The fitted line is nearly flat and its interval is wide. `geom_smooth()` will draw a line whether or not the relationship is useful, so the points and uncertainty remain part of the interpretation.
+
+## Put explanatory text inside a chart {#sec-r-annotations}
+
+`geom_text()` attaches labels to rows in a data frame. `annotate()` places text at coordinates supplied in the plot code. The line chart below uses both.
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Select the lowest annual mean for a data-driven label
+lowest_year <- annual_mean |>
+  slice_min(mean_yield, n = 1, with_ties = FALSE) |>
+  mutate(label = paste0(year, ": ", round(mean_yield, 1), " bu/ac"))
+
+# Inspect the selected label row
+lowest_year
+')
+```
+
+```{r}
+#| label: fig-r-annotated-line
 #| eval: true
 #| echo: true
 #| message: false
 #| warning: false
 #| fig-width: 6.0
 #| fig-height: 3.4
-#| fig-cap: "A labelled scatter plot with region mapped to colour."
-ggplot(yields, aes(x = acres, y = yield_bu_acre, colour = region)) +
-  geom_point(alpha = 0.65, na.rm = TRUE) +
-  labs(
-    title = "Field size and yield, by region",
-    subtitle = "Sixty hypothetical Saskatchewan fields, 2024--2025",
-    x = "Field size (acres)",
-    y = "Yield (bu/acre)",
-    colour = "Region",
-    caption = "Source: synthetic AREC 261 data"
+#| fig-cap: "Annual mean canola yield with a direct label and a short note inside the plotting area."
+#| fig-alt: "The 2021 low point is labelled 2021: 21.9 bu/ac, and a note states that blank RM yields were omitted."
+# Draw the annual series
+ggplot(annual_mean, aes(x = year, y = mean_yield)) +
+  geom_line(colour = "#2878A5", linewidth = 0.7) +
+  geom_point(colour = "#2878A5", size = 2) +
+  # Attach the value to the selected row
+  geom_text(
+    data = lowest_year,
+    aes(label = label),
+    nudge_y = -1.6,
+    size = 3.2
   ) +
-  theme_minimal()
+  # Add a note that is not stored in the data
+  annotate(
+    "text",
+    x = 2015,
+    y = 44,
+    label = "Blank RM yields omitted",
+    hjust = 0,
+    size = 3.2,
+    colour = "#5F6E66"
+  ) +
+  scale_x_continuous(breaks = 2015:2024) +
+  scale_y_continuous(limits = c(15, 45)) +
+  labs(x = NULL, y = "Mean yield (bu/ac)") +
+  theme_minimal(base_size = 11)
 ```
 
-Other built-in themes include `theme_classic()` and `theme_bw()`. A theme changes the surrounding presentation; it does not change the data or mappings.
+Use text for a small number of points or one necessary qualification. Labelling every point would make this ten-year series harder to read.
 
-## Faceting {#sec-faceting}
+## Divide a comparison into facets {#sec-faceting}
 
-Faceting divides one plot into panels. Each panel below uses the same histogram definition for a different region:
+Faceting applies the same chart definition to subsets of the data. Each panel below uses the same 3 bu/ac bins and axis limits for a different region.
 
 ```{r}
 #| label: fig-r-facet
@@ -293,40 +387,56 @@ Faceting divides one plot into panels. Each panel below uses the same histogram 
 #| echo: true
 #| message: false
 #| warning: false
-#| fig-width: 6.2
+#| fig-width: 7.0
 #| fig-height: 3.2
-#| fig-cap: "One yield histogram for each region."
+#| fig-cap: "Recorded field-yield distributions shown separately by region."
+#| fig-alt: "Three small histograms use common bins and scales for Central, North and South."
+# Define one histogram
 ggplot(yields, aes(x = yield_bu_acre)) +
-  geom_histogram(bins = 8, na.rm = TRUE) +
-  facet_wrap(~ region) +
-  labs(x = "Yield (bu/acre)", y = "Fields")
+  geom_histogram(
+    binwidth = 3,
+    boundary = 30,
+    closed = "left",
+    fill = "#D8A940",
+    colour = "white",
+    na.rm = TRUE
+  ) +
+  # Repeat it for each region
+  facet_wrap(~ region, nrow = 1) +
+  scale_x_continuous(breaks = seq(30, 60, by = 10)) +
+  labs(x = "Yield (bu/ac)", y = "Fields") +
+  theme_minimal(base_size = 10)
 ```
 
-`facet_grid(region ~ variety)` creates a two-dimensional grid. Use it only when the resulting number of panels remains readable.
+Excel has no direct faceting feature. Separate charts can make the same comparison, but their bin definitions and axis bounds must be kept identical.
 
-Excel has no direct faceting feature. Use a PivotChart with a slicer to view one group at a time, or build one chart per group and set identical axis bounds manually.
+## Save a plot {#sec-saving-plots}
 
-## Saving Plots {#sec-saving-plots}
-
-Assigning a plot to a name before `ggsave()` makes the saved object explicit and lets you reuse it. Create the destination folder first:
+Assigning a plot to a name before `ggsave()` makes the saved object explicit and lets it be reused. Create the destination folder first.
 
 ```{r}
 #| eval: true
 #| echo: false
 console('
-# Build and save the regional box plot
+# Create the output folder if needed
 dir.create("output", showWarnings = FALSE)
 
-region_plot <- ggplot(
-  yields,
-  aes(x = region, y = yield_bu_acre)
-) +
-  geom_boxplot(na.rm = TRUE) +
-  labs(x = NULL, y = "Yield (bu/acre)")
+# Store the finished plot in an object
+regional_plot <- region_means |>
+  mutate(region = fct_reorder(region, mean_yield, .desc = TRUE)) |>
+  ggplot(aes(x = region, y = mean_yield)) +
+  geom_col(width = 0.7, fill = "#3F6F52") +
+  scale_y_continuous(
+    limits = c(0, 55),
+    expand = expansion(mult = c(0, 0.04))
+  ) +
+  labs(x = NULL, y = "Mean yield (bu/ac)") +
+  theme_minimal(base_size = 11)
 
+# Save the stated object at a reproducible size
 ggsave(
-  "output/region_boxplot.png",
-  plot = region_plot,
+  "output/region_yield_bar.png",
+  plot = regional_plot,
   width = 6,
   height = 4,
   dpi = 300
@@ -334,7 +444,7 @@ ggsave(
 ')
 ```
 
-Width and height are in inches unless another unit is supplied. PNG works for slides and web pages; PDF preserves vector lines and text for publication. SVG output requires the **svglite** package. Unlike Excel's **Save as Picture**, `ggsave()` lets you state the output dimensions and resolution in code.
+Width and height are in inches unless another unit is supplied. PNG works for slides and web pages; PDF preserves vector lines and text for publication. SVG output requires the `svglite` package.
 
 ::: {.callout-tip collapse="true"}
 ## Other resources -- ggplot2
