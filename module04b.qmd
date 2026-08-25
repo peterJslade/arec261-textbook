@@ -1,8 +1,8 @@
 # Graphing in Excel {#sec-graphing-excel}
 
-The examples in this chapter use [`canola_trial.csv`](practice/data/canola_trial.csv), the same simulated variety trial used in Module 2. The file has 120 fields, with fertilizer rate, growing-season rainfall, variety and yield recorded for each field.
+The examples in this chapter use [`sask_variety_yields.csv`](practice/data/sask_variety_yields.csv), which contains Saskatchewan Crop Insurance Corporation variety yields by risk zone from 2021 to 2025 [@scic_smp]. The file has 13,625 rows and includes 3,370 rows for `Canola/Rapeseed`.
 
-The main example compares mean yield for InVigor, Clearfield and DEKALB. The R chapter answers the same questions with the same data.
+The main example compares the 2025 acre-weighted provincial yields of the ten most widely grown canola varieties. The R chapter uses the same records, filters and calculations.
 
 ## Learning Objectives {.unnumbered}
 
@@ -11,15 +11,16 @@ By the end of this chapter you should be able to:
 
 1. Build a chart from a worksheet summary table.
 2. Check and correct the categories and series used by a chart.
-3. Change the chart title, axis titles, bounds and tick spacing.
+3. Change a chart's title, axis titles, bounds and tick spacing.
 4. Decide whether a legend or data labels help the reader.
-5. Create a scatter plot and histogram from numeric data.
-6. Format and export a chart without adding unnecessary decoration.
+5. Create a scatter plot and histogram from actual variety-yield data.
+6. Explain why provincial yields are weighted by reported acres.
+7. Format and export a chart without adding unnecessary decoration.
 :::
 
 ## The worked workbook {#sec-excel-graphing-workbook}
 
-The workbook contains the raw canola data and a finished bar chart, scatter plot and histogram. Open the **Bar chart** sheet first. The nine numbered steps beside the chart are meant to be followed in Excel.
+The workbook contains the canola records, a formula-driven variety summary, and finished bar, scatter and histogram examples. Open the **Bar chart** sheet first. The nine numbered steps beside the chart are meant to be followed in Excel.
 
 ::: {.callout-tip collapse="false" title="Workbook: graphing examples in Excel"}
 
@@ -28,75 +29,95 @@ The workbook contains the raw canola data and a finished bar chart, scatter plot
 [Open the view-only workbook online](https://usaskca1-my.sharepoint.com/:x:/g/personal/pjs998_usask_ca/IQALwnl-mlBVT4O0EQj4jZL9ASmOupIPmOfjGocibTAS9oA?e=ULMgyT) or [download a copy](textbook_examples/mod04_graphing_excel.xlsx).
 :::
 
+## Understand the source rows {#sec-excel-canola-source}
+
+Each source row represents one risk-zone, crop, variety and year combination. `Risk_Zone` is an identifier, not a measured quantity. `Acres` records the reported acreage and `Yield` is measured in bushels per acre.
+
+Some earlier-year observations are suppressed. Their acres and yields are blank in the source file and remain blank in the workbook. A blank is not the same as a zero, so it should not be converted to one before summarizing or graphing.
+
+The **Canola records** sheet is the exact `Canola/Rapeseed` subset plus one transparent helper column. `Acre-yield total` multiplies acres by yield for each reported row. The helper is blank when either input is blank.
+
 ## Start with the chart-driving table {#sec-excel-chart-table}
 
-The raw file has one row per field, but the question asks for one mean per variety. The chart therefore reads a three-row summary table rather than all 120 raw rows.
+The raw canola subset has 3,370 rows, but the bar chart needs one value per variety. The **Bar chart** sheet therefore contains a ten-row summary table.
 
-The **Bar chart** sheet uses `AVERAGEIF` to calculate mean yield and `COUNTIF` to report how many fields contributed. InVigor averages 54.5 bu/ac across 42 fields, Clearfield 53.5 across 39 fields and DEKALB 52.2 across 39 fields.
+The ten varieties were selected by total reported 2025 acres. Their provincial yield is calculated as:
 
-The formula column is present for inspection but is not part of the chart. A chart should select only the category labels and the values that determine the marks.
+$$
+\text{weighted yield} = \frac{\sum(\text{Acres} \times \text{Yield})}{\sum \text{Acres}}.
+$$
+
+This calculation gives more influence to a risk zone with 100,000 reported acres than to one with 1,000 acres. A simple average of the risk-zone yields would give both zones equal influence.
+
+The workbook uses `SUMIFS` to total the `Acre-yield total` and acres for the selected variety and year. The **Variety summary** sheet repeats the calculation for all 97 canola varieties.
 
 ## Create the bar chart {#sec-excel-create-bar}
 
-Select cells `A4:B7` on the **Bar chart** sheet, including the two headers. Use **Insert > Column or Bar Chart > Clustered Column**.
+On the **Bar chart** sheet, select cells `A4:B14`, including the two headers. Do not include reported acres, risk-zone counts or the formula text.
 
-Excel calls vertical bars a **column chart** and horizontal bars a **bar chart**. Both compare categories by length. The workbook uses vertical bars, which fit the three short variety names. A horizontal chart is often better when category labels are long.
+Use **Insert > Column or Bar Chart > 2-D Bar > Clustered Bar**. Excel calls horizontal bars a **bar chart** and vertical bars a **column chart**. Horizontal bars leave more room for variety names, so they suit this example.
 
-Selecting columns C and D as well would make Excel treat field counts or formula text as additional chart data. If that happens, use **Chart Design > Select Data** and remove the extra series, or delete the chart and select only `A4:B7` again.
+If you include columns C through E, Excel may treat acres, zone counts or formula text as additional series. Remove those series with **Chart Design > Select Data**, or delete the chart and select only `A4:B14` again.
 
 ## Check the source data {#sec-excel-select-data}
 
-With the chart selected, open **Chart Design > Select Data**. The **Legend Entries (Series)** list should contain one series named `Mean yield (bu/ac)`. The **Horizontal (Category) Axis Labels** should be the three variety cells.
+With the chart selected, open **Chart Design > Select Data**. The **Legend Entries (Series)** list should contain one series named `Weighted yield (bu/ac)`. The **Horizontal (Category) Axis Labels** should contain the ten variety names.
 
-If the varieties appear in the legend and the means appear along the horizontal axis, click **Switch Row/Column**. This is a correction for chart orientation, not a different calculation.
+If the varieties appear as separate series, click **Switch Row/Column**. This changes the orientation of the selected data; it does not recalculate the weighted yields.
 
-The chart remains linked to the summary cells. Editing a mean changes the corresponding bar. Sorting the summary rows changes the order of the bars.
+The chart remains linked to cells `A4:B14`. Changing a formula result changes the corresponding bar. Sorting the table changes the order of the bars.
 
 ## Change the title {#sec-excel-chart-title}
 
-Click the default chart title and type `Average canola yield by variety`. If the title is missing, use **Chart Design > Add Chart Element > Chart Title > Above Chart**.
+Click the default chart title and type `2025 yield of leading canola varieties`. If the title is missing, use **Chart Design > Add Chart Element > Chart Title > Above Chart**.
 
-A title should name the comparison. The unit can appear in the title or the value-axis title, but it does not need to appear twice. This chart puts the unit on the vertical axis.
+A useful title identifies the year, measure and comparison. The phrase `leading canola varieties` refers to the ten varieties with the largest reported 2025 acreage, not the ten highest-yielding varieties.
 
-To change the title's typeface or size, click the title itself before using the **Home** tab or the **Format Chart Title** pane. Clicking the chart background selects the chart area instead and changes a different element.
+To change the title's typeface or size, click the title itself before using the **Home** tab or **Format Chart Title** pane. Clicking the chart background selects a different chart element.
 
 ## Add and alter the axes {#sec-excel-alter-axes}
 
-Use **Chart Design > Add Chart Element > Axis Titles > Primary Vertical** and type `Mean yield (bu/ac)`. The variety names already identify the horizontal categories, so an additional horizontal title would add little.
+Use **Chart Design > Add Chart Element > Axis Titles > Primary Horizontal** and type `Acre-weighted yield (bu/ac)`. The variety names already explain the category axis, so it does not need another title.
 
-Right-click the vertical-axis numbers and choose **Format Axis**. Under **Axis Options**, set **Minimum** to `0`, **Maximum** to `60` and **Major unit** to `10`.
+Right-click the numbered axis and choose **Format Axis**. Under **Axis Options**, set **Minimum** to `0`, **Maximum** to `55` and **Major unit** to `10`.
 
-The minimum matters because bar length is measured from the baseline. Starting the axis near 50 would make the 2.3 bu/ac difference between InVigor and DEKALB look much larger than it is. A line or scatter plot can use a narrower scale because values are encoded by position rather than bar length.
+The zero minimum matters because bar length encodes yield. Starting the axis near 40 would make the differences look much larger than they are. Scatter plots can use narrower limits because points encode position rather than length.
 
-Excel places categories in the order of the source rows. Sort the summary table to change that order. For a horizontal bar chart, **Format Axis > Categories in reverse order** places the first source row at the top.
+Excel often places the first source row at the bottom of a horizontal bar chart. If the largest yield appears at the bottom, right-click the category axis and select **Format Axis > Categories in reverse order**.
 
 ## Legends, labels and colour {#sec-excel-chart-elements}
 
-This chart has one series, so its legend repeats information already supplied by the axis and title. Remove it with **Chart Design > Add Chart Element > Legend > None**.
+The chart has one series, so its legend repeats information already supplied by the title and value axis. Remove it with **Chart Design > Add Chart Element > Legend > None**.
 
-Exact values are useful when there are only three bars. Use **Chart Design > Add Chart Element > Data Labels > Outside End**, then open **Format Data Labels > Number** and show one decimal place. Data labels are less useful when a chart has many bars.
+Exact values remain readable with ten bars. Use **Chart Design > Add Chart Element > Data Labels > Outside End**, then open **Format Data Labels > Number** and show one decimal place.
 
-Click one bar once to select the whole series, then choose one fill colour. Clicking the same bar a second time selects only that bar, which is useful when one category needs deliberate emphasis. Different colours for all three bars would suggest meanings that are not present in the data.
+Click one bar once to select the whole series, then apply one fill colour. Clicking the same bar a second time selects only that variety. Use a second colour only when the text gives that variety a deliberate reason for emphasis.
 
-Light horizontal gridlines help readers estimate values from the scale. Remove heavy borders, shadows, gradients and three-dimensional effects.
+Keep light value gridlines, but remove heavy borders, gradients, shadows and three-dimensional effects.
 
-## Create the scatter plot {#sec-excel-scatter-example}
+## Create the two-year scatter plot {#sec-excel-scatter-example}
 
-The **Scatter plot** sheet compares growing-season rainfall with yield. An XY scatter chart is needed because both variables are measured numbers.
+The **Scatter plot** sheet compares each variety's 2024 and 2025 acre-weighted provincial yield. The helper table in `J41:L113` contains the 72 varieties reported in both years.
 
-On the **Canola data** sheet, rainfall is in column C and yield is in column E. Select the rainfall values, then hold **Ctrl** on Windows or **Command** on macOS while selecting the yield values. Use **Insert > Scatter > Scatter with only Markers**.
+Select the two numeric columns, `K41:L113`, and use **Insert > Scatter > Scatter with only Markers**. Open **Chart Design > Select Data** and confirm that the X values are `K42:K113` and the Y values are `L42:L113`.
 
-Open **Chart Design > Select Data**, edit the series and confirm that the X values are `C2:C121` and the Y values are `E2:E121`. Three fields have missing rainfall, so the chart contains 117 points. The correlation is about 0.65 and the point cloud has a visible upward slope.
+Add the title `Canola variety yield: 2024 versus 2025`. Label the horizontal axis `2024 acre-weighted yield (bu/ac)` and the vertical axis `2025 acre-weighted yield (bu/ac)`.
 
-Add the title `Canola yield by growing-season rainfall`, label the horizontal axis `Growing-season rainfall (mm)` and label the vertical axis `Yield (bu/ac)`. Do not connect the fields with lines because the rows do not form a sequence.
+Set the horizontal bounds to 0 and 55 and the vertical bounds to 20 and 55. The ranges are different because the lowest reported provincial value differs between the years. The chart contains 72 points; 25 varieties without a 2024 value are omitted rather than plotted at zero.
+
+The correlation is about 0.29. That number describes a weak positive linear association, but it does not explain why yields changed between years.
 
 ## Create the histogram {#sec-excel-histogram-example}
 
-Select the yield values in `E1:E121` on the **Canola data** sheet and use **Insert > Insert Statistic Chart > Histogram**. Right-click the horizontal axis, choose **Format Axis** and set **Bin width** to `4`.
+The **Histogram** sheet counts the 674 reported 2025 risk-zone-by-variety yields in 5 bu/ac intervals. The bin table uses `COUNTIFS` to require `Year = 2025` and then apply the lower and upper yield boundaries.
 
-The workbook also shows the bin counts in cells. The nine counts add to 120 and cover yields from 39.3 to 70.4 bu/ac. Changing the bin width changes the visible shape, so the chosen width belongs in the chart title or surrounding explanation.
+Select `J27:K38` and use **Insert > Column or Bar Chart > Clustered Column**. Set **Gap Width** close to zero if you want the columns to touch like conventional histogram bins.
 
-Use `Canola trial yields (4 bu/ac bins)` as the title. The horizontal axis is yield in bu/ac and the vertical axis is the number of fields.
+The eleven bin counts add to 674 and cover yields from 18.0 to 69.0 bu/ac. The tallest interval is 45 to 50 bu/ac, with 222 reported rows.
+
+You can also create Excel's automatic histogram by filtering **Canola records** to 2025, selecting the visible `Yield` values and using **Insert > Insert Statistic Chart > Histogram**. Right-click the horizontal axis, choose **Format Axis**, and set **Bin width** to `5`. The formula table is preferable when the Excel and R examples must use identical boundaries.
+
+Use `Reported 2025 canola yields (5 bu/ac bins)` as the title. Label the vertical axis `Reported risk-zone-by-variety rows` so readers do not mistake the bars for farms, fields or provincial varieties.
 
 ## Resize, copy and export {#sec-excel-chart-export}
 
@@ -104,4 +125,4 @@ Drag a corner handle to resize a selected chart without distorting it. Leave eno
 
 Copying a chart into Word or PowerPoint provides several paste options. **Picture** or **Paste Special > Picture (PNG)** fixes its appearance. A linked chart can update from Excel but can break when the workbook and document are moved or shared separately.
 
-Desktop Excel also provides **Save as Picture** from a chart's right-click menu. Before exporting, compare one plotted value with its source cell and check the title, source range, axis bounds, labels, units and number of observations.
+Desktop Excel also provides **Save as Picture** from a chart's right-click menu. Before exporting, compare at least one plotted value with its source cell and check the title, source range, axis bounds, units, missing-value treatment and number of observations.
