@@ -1,25 +1,25 @@
 # Graphing in Excel {#sec-graphing-excel}
 
-Excel builds a chart from cells. The work therefore begins with the table: decide what one row represents, calculate the values needed for the comparison and check that the chart reads the intended columns.
+The examples in this chapter use [`canola_trial.csv`](practice/data/canola_trial.csv), the same simulated variety trial used in Module 2. The file has 120 fields, with fertilizer rate, growing-season rainfall, variety and yield recorded for each field.
 
-This chapter uses two datasets. [`field_yields.csv`](practice/data/field_yields.csv) contains sixty simulated canola fields. [`rm_yields_2015_2024.csv`](practice/data/rm_yields_2015_2024.csv) contains published Saskatchewan RM crop yields. The Excel and R chapters answer the same four questions so that the software does not change the analysis.
+The main example compares mean yield for InVigor, Clearfield and DEKALB. The R chapter answers the same questions with the same data.
 
 ## Learning Objectives {.unnumbered}
 
 ::: {.objectives}
 By the end of this chapter you should be able to:
 
-1. Arrange a worksheet table for a bar, line, scatter or histogram chart.
-2. Choose the chart type that fits a comparison, trend, relationship or distribution.
-3. Check the source range, number of plotted observations and category order.
-4. Add descriptive labels and units without repeating information.
-5. Set an axis range that represents the comparison honestly.
-6. Copy a finished chart into a report or save it as an image.
+1. Build a chart from a worksheet summary table.
+2. Check and correct the categories and series used by a chart.
+3. Change the chart title, axis titles, bounds and tick spacing.
+4. Decide whether a legend or data labels help the reader.
+5. Create a scatter plot and histogram from numeric data.
+6. Format and export a chart without adding unnecessary decoration.
 :::
 
 ## The worked workbook {#sec-excel-graphing-workbook}
 
-The workbook contains a separate sheet for each chart and keeps the source data on their own sheets. Each chart sheet shows the table that drives the chart, the formulas used to calculate it and a short set of checks.
+The workbook contains the raw canola data and a finished bar chart, scatter plot and histogram. Open the **Bar chart** sheet first. The nine numbered steps beside the chart are meant to be followed in Excel.
 
 ::: {.callout-tip collapse="false" title="Workbook: graphing examples in Excel"}
 
@@ -28,50 +28,80 @@ The workbook contains a separate sheet for each chart and keeps the source data 
 [Open the view-only workbook online](https://usaskca1-my.sharepoint.com/:x:/g/personal/pjs998_usask_ca/IQALwnl-mlBVT4O0EQj4jZL9ASmOupIPmOfjGocibTAS9oA?e=ULMgyT) or [download a copy](textbook_examples/mod04_graphing_excel.xlsx).
 :::
 
-Open the **README** sheet first. The remaining sheets follow the same sequence as the examples below.
+## Start with the chart-driving table {#sec-excel-chart-table}
 
-## Compare regional means with bars {#sec-excel-bar-example}
+The raw file has one row per field, but the question asks for one mean per variety. The chart therefore reads a three-row summary table rather than all 120 raw rows.
 
-The first question is whether mean field yield differs across the three regions. The chart needs one row per region, not one row per field, so the **Bar chart** sheet calculates the three means with `AVERAGEIF`.
+The **Bar chart** sheet uses `AVERAGEIF` to calculate mean yield and `COUNTIF` to report how many fields contributed. InVigor averages 54.5 bu/ac across 42 fields, Clearfield 53.5 across 39 fields and DEKALB 52.2 across 39 fields.
 
-Central averages 47.6 bu/ac, North 47.3 bu/ac and South 42.7 bu/ac. Each mean uses nineteen recorded yields. The Central--North difference is only 0.3 bu/ac, which is small beside the variation among individual fields.
+The formula column is present for inspection but is not part of the chart. A chart should select only the category labels and the values that determine the marks.
 
-The source table is arranged from highest to lowest and the value axis begins at zero. There is one series, so a legend would repeat information already supplied by the title.
+## Create the bar chart {#sec-excel-create-bar}
 
-## Show change through time with a line {#sec-excel-line-example}
+Select cells `A4:B7` on the **Bar chart** sheet, including the two headers. Use **Insert > Column or Bar Chart > Clustered Column**.
 
-The **Line chart** sheet averages the available canola yields across RMs for each year from 2015 to 2024. A line is appropriate because the years have a meaningful order and equal spacing.
+Excel calls vertical bars a **column chart** and horizontal bars a **bar chart**. Both compare categories by length. The workbook uses vertical bars, which fit the three short variety names. A horizontal chart is often better when category labels are long.
 
-The lowest annual mean in the series is 21.9 bu/ac in 2021. The chart makes that point easy to find, but the plotted value should still be checked against the formula-driven table. `AVERAGEIF` ignores blank RM yields rather than treating them as zero.
+Selecting columns C and D as well would make Excel treat field counts or formula text as additional chart data. If that happens, use **Chart Design > Select Data** and remove the extra series, or delete the chart and select only `A4:B7` again.
 
-The vertical axis does not begin at zero. A line encodes values by position rather than bar length, so a narrower scale can be used, provided the displayed range does not exaggerate ordinary movement.
+## Check the source data {#sec-excel-select-data}
 
-## Compare two numeric variables with a scatter plot {#sec-excel-scatter-example}
+With the chart selected, open **Chart Design > Select Data**. The **Legend Entries (Series)** list should contain one series named `Mean yield (bu/ac)`. The **Horizontal (Category) Axis Labels** should be the three variety cells.
 
-The **Scatter plot** sheet places field size on the horizontal axis and yield on the vertical axis. This must be an XY scatter chart. A line chart would treat the field sizes as ordered labels and connect observations that do not form a sequence.
+If the varieties appear in the legend and the means appear along the horizontal axis, click **Switch Row/Column**. This is a correction for chart orientation, not a different calculation.
 
-Fifty-seven points are plotted because three fields have no recorded yield. The cloud has little visible slope, and the correlation is about -0.07. Field size and yield show almost no linear relationship in these simulated data.
+The chart remains linked to the summary cells. Editing a mean changes the corresponding bar. Sorting the summary rows changes the order of the bars.
 
-## Show a distribution with a histogram {#sec-excel-histogram-example}
+## Change the title {#sec-excel-chart-title}
 
-The **Histogram** sheet counts recorded yields in intervals 3 bu/ac wide. Its formulas use a lower bound that is included and an upper bound that is excluded; the last interval includes 63 so that the maximum of 60.7 bu/ac is counted.
+Click the default chart title and type `Average canola yield by variety`. If the title is missing, use **Chart Design > Add Chart Element > Chart Title > Above Chart**.
 
-The eleven bin counts add to 57, the number of recorded yields. Changing the bin width changes the visible shape, especially with a small dataset, so the chosen width belongs in the chart title or surrounding explanation.
+A title should name the comparison. The unit can appear in the title or the value-axis title, but it does not need to appear twice. This chart puts the unit on the vertical axis.
 
-Excel also has a built-in **Histogram** chart under **Insert > Statistical Chart**. The formula-driven version in the workbook makes the bin boundaries and count check visible.
+To change the title's typeface or size, click the title itself before using the **Home** tab or the **Format Chart Title** pane. Clicking the chart background selects the chart area instead and changes a different element.
 
-## Titles, axes and legends {#sec-excel-chart-elements}
+## Add and alter the axes {#sec-excel-alter-axes}
 
-Use **Chart Design > Add Chart Element** to add or remove titles, axis labels, legends and data labels. A title or axis should state the unit when it is not already clear. `Average field yield by region (bu/ac)` supplies both the comparison and the unit.
+Use **Chart Design > Add Chart Element > Axis Titles > Primary Vertical** and type `Mean yield (bu/ac)`. The variety names already identify the horizontal categories, so an additional horizontal title would add little.
 
-Bar charts normally need a zero baseline. Select the value axis, open **Format Axis**, and set its Minimum bound to 0. Mac users use the **Chart Design** tab for chart elements; the `+` button beside a selected chart is Windows-only.
+Right-click the vertical-axis numbers and choose **Format Axis**. Under **Axis Options**, set **Minimum** to `0`, **Maximum** to `60` and **Major unit** to `10`.
 
-A legend is needed when colour or shape identifies several series. A one-series chart does not need a legend that says `Mean yield`. Data labels are useful when exact values matter and there are few marks; labelling every point in a scatter plot usually covers the pattern.
+The minimum matters because bar length is measured from the baseline. Starting the axis near 50 would make the 2.3 bu/ac difference between InVigor and DEKALB look much larger than it is. A line or scatter plot can use a narrower scale because values are encoded by position rather than bar length.
 
-## Formatting and export {#sec-excel-chart-export}
+Excel places categories in the order of the source rows. Sort the summary table to change that order. For a horizontal bar chart, **Format Axis > Categories in reverse order** places the first source row at the top.
 
-Remove borders, gridlines or colours that do not help the comparison. Keep light gridlines when readers need to estimate values from an axis. Avoid three-dimensional effects, shadows and patterned fills.
+## Legends, labels and colour {#sec-excel-chart-elements}
 
-Copying a chart from Excel into Word or PowerPoint provides several paste options. **Picture** or **Paste Special > Picture (PNG)** fixes the appearance and prevents later workbook edits from changing the document. A linked chart updates from the workbook but can break when the files are moved or shared.
+This chart has one series, so its legend repeats information already supplied by the axis and title. Remove it with **Chart Design > Add Chart Element > Legend > None**.
 
-Desktop Excel can also use **Save as Picture** from a chart's right-click menu; Excel for the web cannot. Before handing over a chart, compare one plotted value with its source cell and check the category order, axis range, labels, units and number of observations.
+Exact values are useful when there are only three bars. Use **Chart Design > Add Chart Element > Data Labels > Outside End**, then open **Format Data Labels > Number** and show one decimal place. Data labels are less useful when a chart has many bars.
+
+Click one bar once to select the whole series, then choose one fill colour. Clicking the same bar a second time selects only that bar, which is useful when one category needs deliberate emphasis. Different colours for all three bars would suggest meanings that are not present in the data.
+
+Light horizontal gridlines help readers estimate values from the scale. Remove heavy borders, shadows, gradients and three-dimensional effects.
+
+## Create the scatter plot {#sec-excel-scatter-example}
+
+The **Scatter plot** sheet compares growing-season rainfall with yield. An XY scatter chart is needed because both variables are measured numbers.
+
+On the **Canola data** sheet, rainfall is in column C and yield is in column E. Select the rainfall values, then hold **Ctrl** on Windows or **Command** on macOS while selecting the yield values. Use **Insert > Scatter > Scatter with only Markers**.
+
+Open **Chart Design > Select Data**, edit the series and confirm that the X values are `C2:C121` and the Y values are `E2:E121`. Three fields have missing rainfall, so the chart contains 117 points. The correlation is about 0.65 and the point cloud has a visible upward slope.
+
+Add the title `Canola yield by growing-season rainfall`, label the horizontal axis `Growing-season rainfall (mm)` and label the vertical axis `Yield (bu/ac)`. Do not connect the fields with lines because the rows do not form a sequence.
+
+## Create the histogram {#sec-excel-histogram-example}
+
+Select the yield values in `E1:E121` on the **Canola data** sheet and use **Insert > Insert Statistic Chart > Histogram**. Right-click the horizontal axis, choose **Format Axis** and set **Bin width** to `4`.
+
+The workbook also shows the bin counts in cells. The nine counts add to 120 and cover yields from 39.3 to 70.4 bu/ac. Changing the bin width changes the visible shape, so the chosen width belongs in the chart title or surrounding explanation.
+
+Use `Canola trial yields (4 bu/ac bins)` as the title. The horizontal axis is yield in bu/ac and the vertical axis is the number of fields.
+
+## Resize, copy and export {#sec-excel-chart-export}
+
+Drag a corner handle to resize a selected chart without distorting it. Leave enough room for the title, labels and tick marks, and check the chart at the size it will occupy in the report.
+
+Copying a chart into Word or PowerPoint provides several paste options. **Picture** or **Paste Special > Picture (PNG)** fixes its appearance. A linked chart can update from Excel but can break when the workbook and document are moved or shared separately.
+
+Desktop Excel also provides **Save as Picture** from a chart's right-click menu. Before exporting, compare one plotted value with its source cell and check the title, source range, axis bounds, labels, units and number of observations.
