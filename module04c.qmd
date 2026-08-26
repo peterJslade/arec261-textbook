@@ -10,29 +10,6 @@ The Excel chapter built a bar chart of barley acreage, a pie chart, and line cha
 
 The data are the same two files the Excel workbooks used. [`sask_barley_2025.csv`](practice/data/sask_barley_2025.csv) has one row per barley variety with its 2025 acres and average yield. [`sask_variety_yields.csv`](practice/data/sask_variety_yields.csv) has Saskatchewan Crop Insurance Corporation records by risk zone, crop, variety and year, 2021 to 2025 [@scic_smp]; suppressed observations have missing acres and yield.
 
-```{r}
-#| eval: true
-#| echo: false
-console('
-# Load the tidyverse
-suppressPackageStartupMessages(library(tidyverse))
-
-# One row per barley variety: 2025 acres and average yield
-barley_2025 <- read_csv(
-  "practice/data/sask_barley_2025.csv",
-  show_col_types = FALSE
-)
-
-# Risk-zone records for all crops, varieties and years
-variety_yields <- read_csv(
-  "practice/data/sask_variety_yields.csv",
-  show_col_types = FALSE
-)
-
-glimpse(barley_2025)
-')
-```
-
 ## Learning Objectives {.unnumbered}
 
 ::: {.objectives}
@@ -51,7 +28,7 @@ By the end of this chapter you should be able to:
 
 `ggplot2` loads with the tidyverse, and every chart it draws is built from the same three parts:
 
-- the **data**: a data frame, usually arriving down a pipe;
+- the **data**: a data frame with the data to be plotted;
 - the **mapping**: `aes()`, which assigns variables to visual properties -- horizontal position, vertical position, colour;
 - a **geom**: the mark to draw -- `geom_col()` for bars, `geom_line()` for lines, `geom_point()` for points.
 
@@ -60,16 +37,16 @@ The template is always:
 ```r
 data |>
   ggplot(aes(x = ..., y = ...)) +
-  geom_something()
+  geom_something() + ...
 ```
 
-Everything after that is added as a layer with `+`: another geom, axis labels with `labs()`, a scale, a theme. This is a different way of thinking than Excel's chart menu. There is no gallery of chart types to pick from; a line chart and a bar chart are the same description with a different geom, and changing your mind about the mark does not mean starting over.
+We can then add other options to the graph with `+`.  For example, we can change the formatting, font size, or axis labels.  
 
-One distinction does a lot of work in what follows. A property set *inside* `aes()` is **mapped** to a variable, so it varies with the data and gets a legend -- `aes(colour = Variety)` draws one line per variety. The same property set *outside* `aes()` is a constant -- `geom_line(colour = "darkgreen")` makes every line green. Mapping carries information; setting is decoration.
+If we want an analogy to Excel, we can think of `data` as the spreadsheet containing our data, `aes()` as choosing which columns to plot on the x- and y-axes, and the `geom` as choosing the chart type. Other formatting options are then added using the + operator.
 
 ## Bar charts {#sec-r-bar-example}
 
-In Excel we selected the variety and acres columns and inserted a chart. The R equivalent names the data and the mapping, then adds a geom:
+Let's again start with a simple example using the barley variety data for 2025.  When we read the file in, we also convert the column names to lowercase with `clean_names()` (@sec-clean-names), so they are easier to type.  We can then plot the acres of all the varieties with the following code:
 
 ```{r}
 #| label: fig-r-bar-first
@@ -81,14 +58,31 @@ In Excel we selected the variety and acres columns and inserted a chart. The R e
 #| fig-height: 3.4
 #| fig-cap: "The first attempt: every barley variety."
 #| fig-alt: "A vertical bar chart with 32 overlapping variety names on the horizontal axis."
+# Load the tidyverse and janitor
+library(tidyverse)
+library(janitor)
+
+# One row per barley variety: 2025 acres and average yield
+barley_2025 <- read_csv(
+  "practice/data/sask_barley_2025.csv",
+  show_col_types = FALSE
+) |>
+  clean_names()          # column names to lowercase
+
+## Show the first few rows of data
+head(barley_2025)
+
+## Create a bar chart
 barley_2025 |>
-  ggplot(aes(x = Variety, y = Acres)) +
+  ggplot(aes(x = variety, y = acres)) +
   geom_col()
 ```
 
-`geom_col()` draws a bar for each row, with the height taken from the `y` mapping. The result has the same problems as the first Excel attempt: 32 varieties crowd the axis and the names are unreadable.
+Here we can see our formula in action: `barley_2025` is the data, `aes()` puts `variety` on the x-axis and `acres` on the y-axis, and then we use the function `geom_col()` to specify that we want a bar chart -- that is a bar for each row.  
 
-In Excel we fixed this by filtering the worksheet and re-sorting the rows, because an Excel chart draws whatever block of cells it is pointed at, in sheet order. In R the chart is drawn from the data frame you pass in, so the fixes are `filter()` and `fct_reorder()` in the pipe:
+This gives us a graph that looks a lot like the terrible graph that we first made in Excel.  
+
+As we did in Excel, let's filter to only varieties with more than 10,000 acres.  We can do this with the `filter()` function that we learned earlier.  We can also flip this to a horizontal bar chart by putting `variety` on the y-axis (vertical axis) and `acres` on the x-axis (horizontal axis).
 
 ```{r}
 #| label: fig-r-bar-filtered
@@ -101,15 +95,35 @@ In Excel we fixed this by filtering the worksheet and re-sorting the rows, becau
 #| fig-cap: "Varieties over 10,000 acres, largest at the top."
 #| fig-alt: "A horizontal bar chart of 14 varieties ordered by acres, Synergy AAC longest at about 393,000."
 barley_2025 |>
-  filter(Acres > 10000) |>                          # varieties over 10,000 acres
-  ggplot(aes(x = Acres,
-             y = fct_reorder(Variety, Acres))) +    # order bars by acres
+  filter(acres > 10000) |>       # varieties over 10,000 acres
+  ggplot(aes(x = acres,
+             y = variety)) +
   geom_col()
 ```
 
-Two things happened at once. Putting `Acres` on the x axis and `Variety` on the y axis gives horizontal bars, which is `Change Chart Type > Bar Chart` in Excel; there is no separate chart type. And `fct_reorder(Variety, Acres)` sorts the bars by their value, which in Excel required sorting the worksheet rows. Alphabetical order is the default; ordering by value is one function call, so there is no reason to settle for a chart that is hard to read.
+First, let's note what we did in the first two lines.  Recall that the pipe `|>` is like saying "then".  So we are saying to R, take `barley_2025`, then filter it to only include rows where `acres` is greater than 10,000.  Then assign acres to the x-axis and variety to the y-axis.  Then draw the bars with `geom_col()`, which infers that the bars should run along the numeric axis.
 
-The titles, labels and colours that took several Excel menus are arguments to `labs()` and the geom:
+Great!  Now we can start adding additional options.  First, we want to order the bars by their value, not alphabetically.  We can do this with the `fct_reorder()` function: `fct_reorder(variety, acres)` orders the varieties by their acres, which in Excel required sorting the worksheet rows.
+
+
+```{r}
+#| label: fig-r-bar-ordered
+#| eval: true
+#| echo: true
+#| message: false
+#| warning: false
+#| fig-width: 6.4
+#| fig-height: 4.0
+#| fig-cap: "The same varieties, ordered by acres."
+#| fig-alt: "A horizontal bar chart of 14 varieties ordered by acres, Synergy AAC longest at about 393,000."
+barley_2025 |>
+  filter(acres > 10000) |>
+  ggplot(aes(x = acres,
+             y = fct_reorder(variety, acres))) +    # order bars by acres
+  geom_col()
+```
+
+Finally we can add all of our additional options to the chart -- the colour of the bars, a title and axis labels, comma formatting on the axis, and a theme with a larger font -- with additional functions and with arguments inside some of the functions.
 
 ```{r}
 #| label: fig-r-bar-final
@@ -122,19 +136,34 @@ The titles, labels and colours that took several Excel menus are arguments to `l
 #| fig-cap: "The finished bar chart."
 #| fig-alt: "The same 14 bars in green with acreage labels, titled Acres of barley varieties in Saskatchewan, 2025."
 bar_plot <- barley_2025 |>
-  filter(Acres > 10000) |>
-  ggplot(aes(x = Acres,
-             y = fct_reorder(Variety, Acres))) +
-  geom_col(fill = "#3F6F52", width = 0.7) +          # green bars, less gap
+  filter(acres > 10000) |>
+  ggplot(aes(x = acres,
+             y = fct_reorder(variety, acres))) +
+  geom_col(fill = "DarkGreen") +                     # dark green bars
   scale_x_continuous(labels = scales::comma) +       # 400,000 not 4e+05
   labs(title = "Acres of barley varieties in Saskatchewan, 2025",
        x = "Acres", y = NULL) +
-  theme_minimal(base_size = 13)
+  theme_classic(base_size = 13)
 
 bar_plot
 ```
 
-`fill` sets every bar to one colour, because the bars all represent the same thing; mapping a variable to `fill` inside `aes()` is for when colour should carry information, as in the line chart below. `theme_minimal(base_size = 13)` removes the grey background and raises the font size -- the same complaint about small default fonts applies in both programs.
+Let's read this code one line at a time:
+1. Take the data `barley_2025` *then*
+2. Filter to only include rows where `acres` is greater than 10,000 *then*
+3. Assign `acres` to the x-axis and `variety` to the y-axis, ordering the bars by `acres` *then*
+4. Draw bars with `geom_col()` and colour them dark green *then*
+5. Change the scale on the x axis so that labels are in comma format (400,000 instead of 4e+05) *then*
+6. Add a title and axis labels *then*
+7. Change the theme to `theme_classic()` and increase the base font size to 13.
+
+All of this is a bit overwhelming -- even for me who has been using R for years.  Whereas in Excel you can kind of find the options through a user interface, with R you need to know the functions that you can add on to ggplot and what their arguments are.  To be honest, I rarely remember the exact function names or arguments. I used to have to look them up -- now I get AI to do that for me -- in the next module we will start graphing with AI.  For now, it is only important that you understand the very basic graphing commands:
+
+1. `ggplot()` to start the graph, and `aes()` to assign variables to axes and other visual properties.
+2. `geom_col()` to make a bar chart, `geom_line()` to make a line chart, and `geom_point()` to make a scatter plot.  If you don't supply any arguments to these functions, defaults will be used.  But you can change things like the colour and size of the bars, lines and points inside them, as we did with `fill = "DarkGreen"`.
+3. `labs()` to add a title and axis labels.
+4. The `theme_*()` functions, such as `theme_minimal()` and `theme_classic()`, to control the overall look of the chart, including the font size.
+
 
 ## Pie charts {#sec-r-pie-example}
 
@@ -151,13 +180,14 @@ In Excel we built the pie from a five-row block: the four largest varieties plus
 #| fig-cap: "2025 barley acreage: the four largest varieties and everything else."
 #| fig-alt: "A pie chart with five slices; Other and Synergy AAC are the two largest at roughly 400,000 acres each."
 barley_2025 |>
-  mutate(Variety = fct_lump_n(Variety, 4, w = Acres)) |>   # top 4 + Other
-  group_by(Variety) |>
-  summarise(Acres = sum(Acres)) |>
-  ggplot(aes(x = "", y = Acres, fill = Variety)) +
+  mutate(variety = fct_lump_n(variety, 4, w = acres)) |>   # top 4 + Other
+  group_by(variety) |>
+  summarise(acres = sum(acres)) |>
+  ggplot(aes(x = "", y = acres, fill = variety)) +
   geom_col(width = 1) +
   coord_polar(theta = "y") +                               # wrap the bar into a circle
-  labs(title = "2025 barley acreage by variety", x = NULL, y = NULL) +
+  labs(title = "2025 barley acreage by variety",
+       x = NULL, y = NULL, fill = NULL) +
   theme_void(base_size = 13)
 ```
 
@@ -165,7 +195,7 @@ There is no `geom_pie()`. A pie in ggplot2 is a single stacked bar wrapped into 
 
 ## Line charts {#sec-r-line-example}
 
-The line charts use the risk-zone file, which has one row per zone-variety-year. A provincial line needs one value per year, so the pipe filters to the variety and sums acres within each year before plotting:
+The line charts use the risk-zone file, which has one row per zone-variety-year; we again convert its column names to lowercase on the way in. A provincial line needs one value per year, so the pipe filters to the variety and sums acres within each year before plotting:
 
 ```{r}
 #| label: fig-r-line-synergy
@@ -177,12 +207,19 @@ The line charts use the risk-zone file, which has one row per zone-variety-year.
 #| fig-height: 3.6
 #| fig-cap: "Acres planted with Synergy barley."
 #| fig-alt: "A line from 408,000 acres in 2021 dipping to 317,000 in 2022 and recovering to about 393,000 by 2025."
+# Risk-zone records for all crops, varieties and years
+variety_yields <- read_csv(
+  "practice/data/sask_variety_yields.csv",
+  show_col_types = FALSE
+) |>
+  clean_names()          # column names to lowercase
+
 variety_yields |>
-  filter(Crop == "Barley",
-         Variety == "SYNERGY AAC") |>
-  group_by(Year) |>
-  summarise(acres = sum(Acres, na.rm = TRUE)) |>   # provincial total per year
-  ggplot(aes(x = Year, y = acres)) +
+  filter(crop == "Barley",
+         variety == "SYNERGY AAC") |>
+  group_by(year) |>
+  summarise(acres = sum(acres, na.rm = TRUE)) |>   # provincial total per year
+  ggplot(aes(x = year, y = acres)) +
   geom_line(colour = "#3F6F52", linewidth = 1) +
   scale_y_continuous(labels = scales::comma, limits = c(0, NA)) +
   labs(title = "Acres planted with Synergy AAC barley",
@@ -190,9 +227,9 @@ variety_yields |>
   theme_minimal(base_size = 13)
 ```
 
-In Excel the first attempt drew `Year` as a second data series, and fixing it meant a trip through **Select Data**. That mistake cannot happen here, because `aes(x = Year, y = acres)` states which variable is which axis.
+In Excel the first attempt drew `year` as a second data series, and fixing it meant a trip through **Select Data**. That mistake cannot happen here, because `aes(x = year, y = acres)` states which variable is which axis.
 
-To plot two varieties, Excel needed a column per variety and a new series added by hand. In R the data stays long: keep both varieties in the filter and map `Variety` to colour, and one line is drawn per variety with a legend:
+To plot two varieties, Excel needed a column per variety and a new series added by hand. In R the data stays long: keep both varieties in the filter and map `variety` to colour, and one line is drawn per variety with a legend:
 
 ```{r}
 #| label: fig-r-line-two
@@ -205,11 +242,11 @@ To plot two varieties, Excel needed a column per variety and a new series added 
 #| fig-cap: "Synergy has held its acreage; Copeland has lost most of its own."
 #| fig-alt: "Two lines: Copeland falls from 475,000 acres in 2021 to 126,000 in 2025 while Synergy stays near 400,000."
 variety_yields |>
-  filter(Crop == "Barley",
-         Variety %in% c("SYNERGY AAC", "COPELAND CDC")) |>
-  group_by(Variety, Year) |>
-  summarise(acres = sum(Acres, na.rm = TRUE), .groups = "drop") |>
-  ggplot(aes(x = Year, y = acres, colour = Variety)) +   # one line per variety
+  filter(crop == "Barley",
+         variety %in% c("SYNERGY AAC", "COPELAND CDC")) |>
+  group_by(variety, year) |>
+  summarise(acres = sum(acres, na.rm = TRUE), .groups = "drop") |>
+  ggplot(aes(x = year, y = acres, colour = variety)) +   # one line per variety
   geom_line(linewidth = 1) +
   scale_y_continuous(labels = scales::comma, limits = c(0, NA)) +
   labs(title = "Copeland's acreage has fallen by three-quarters; Synergy's has held",
@@ -230,13 +267,13 @@ The Excel chapter's answer to "what about all the varieties?" was a PivotChart, 
 #| fig-cap: "Acres of the main barley varieties, 2021 to 2025."
 #| fig-alt: "Eight lines showing Copeland declining, Synergy and Austenson roughly steady, and an Other line near 300,000 acres."
 variety_yields |>
-  filter(Crop == "Barley") |>
-  group_by(Variety, Year) |>
-  summarise(acres = sum(Acres, na.rm = TRUE), .groups = "drop") |>
-  mutate(Variety = fct_lump_n(Variety, 7, w = acres)) |>   # 7 biggest + Other
-  group_by(Variety, Year) |>
+  filter(crop == "Barley") |>
+  group_by(variety, year) |>
+  summarise(acres = sum(acres, na.rm = TRUE), .groups = "drop") |>
+  mutate(variety = fct_lump_n(variety, 7, w = acres)) |>   # 7 biggest + Other
+  group_by(variety, year) |>
   summarise(acres = sum(acres), .groups = "drop") |>
-  ggplot(aes(x = Year, y = acres, colour = Variety)) +
+  ggplot(aes(x = year, y = acres, colour = variety)) +
   geom_line(linewidth = 0.9) +
   scale_y_continuous(labels = scales::comma, limits = c(0, NA)) +
   labs(title = "Acres of barley varieties in Saskatchewan",
