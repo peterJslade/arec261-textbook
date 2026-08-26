@@ -47,6 +47,26 @@ By the end of this chapter you should be able to:
 7. Save a finished plot with `ggsave()`.
 :::
 
+## Introduction to ggplot2 {#sec-ggplot-intro}
+
+`ggplot2` loads with the tidyverse, and every chart it draws is built from the same three parts:
+
+- the **data**: a data frame, usually arriving down a pipe;
+- the **mapping**: `aes()`, which assigns variables to visual properties -- horizontal position, vertical position, colour;
+- a **geom**: the mark to draw -- `geom_col()` for bars, `geom_line()` for lines, `geom_point()` for points.
+
+The template is always:
+
+```r
+data |>
+  ggplot(aes(x = ..., y = ...)) +
+  geom_something()
+```
+
+Everything after that is added as a layer with `+`: another geom, axis labels with `labs()`, a scale, a theme. This is a different way of thinking than Excel's chart menu. There is no gallery of chart types to pick from; a line chart and a bar chart are the same description with a different geom, and changing your mind about the mark does not mean starting over.
+
+One distinction does a lot of work in what follows. A property set *inside* `aes()` is **mapped** to a variable, so it varies with the data and gets a legend -- `aes(colour = Variety)` draws one line per variety. The same property set *outside* `aes()` is a constant -- `geom_line(colour = "darkgreen")` makes every line green. Mapping carries information; setting is decoration.
+
 ## Bar charts {#sec-r-bar-example}
 
 In Excel we selected the variety and acres columns and inserted a chart. The R equivalent names the data and the mapping, then adds a geom:
@@ -66,7 +86,7 @@ barley_2025 |>
   geom_col()
 ```
 
-`ggplot()` names the data, `aes()` maps `Variety` to horizontal position and `Acres` to bar height, and `geom_col()` draws the bars. The result has the same problems as the first Excel attempt: 32 varieties crowd the axis and the names are unreadable.
+`geom_col()` draws a bar for each row, with the height taken from the `y` mapping. The result has the same problems as the first Excel attempt: 32 varieties crowd the axis and the names are unreadable.
 
 In Excel we fixed this by filtering the worksheet and re-sorting the rows, because an Excel chart draws whatever block of cells it is pointed at, in sheet order. In R the chart is drawn from the data frame you pass in, so the fixes are `filter()` and `fct_reorder()` in the pipe:
 
