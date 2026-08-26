@@ -1,25 +1,13 @@
 # Writing a Report {#sec-writing-reports}
 
-```{r}
-#| label: setup
-#| include: false
-#| eval: true
-library(tidyverse)
 
-wheat <- read_csv("practice/data/sask_wheat_2025.csv", show_col_types = FALSE)
-wheat_summary <- wheat |>
-  group_by(soil_zone) |>
-  summarise(
-    Records = n(),
-    `Missing yield` = sum(is.na(yield_bu_ac)),
-    `Mean yield (bu/ac)` = mean(yield_bu_ac, na.rm = TRUE),
-    .groups = "drop"
-  )
-```
+In this chapter, we will cover how to write a report based on your analysis. In some ways, we are putting the cart before the horse, since we have not yet covered much analysis. Part of the reason for this sequencing is that I hope it will help you as you develop your own analyses and submit your tests. More importantly, I want to emphasize that communication is not something that happens after the analysis; it is part of the analysis itself.
 
-Analysis becomes useful when someone can understand the finding and use it. A report should make the answer easy to find, show enough evidence to support it and state the limits that matter for the decision. Those principles apply whether the report is written in Word, Google Docs, Quarto or another tool.
+Writing is a form of structured thinking. As you explain your methods and results, you will often discover gaps in your reasoning, questionable assumptions or flaws in your logic.
 
-The course project, a memo for a farm manager and a client report differ in length. Their basic structure is the same.
+However, this does not mean that you are writing only for yourself. You are writing for a reader whose perspective is very different from yours. They have not spent time with your data, and they are unlikely to care which R function you used. Readers are generally focused on the results.
+
+Assignments sometimes condition students to prove that they know what they are doing by showing every step they took. That is not the purpose of a report. A report is a communication tool, not a diary of your work. Readers want to know what you found and have enough information to understand how you found it, but they do not need to see every step along the way. Most importantly, they want to know what the results mean and what, if anything, they should do about them.
 
 ## Learning Objectives {.unnumbered}
 
@@ -29,14 +17,67 @@ By the end of this chapter you should be able to:
 1. Structure a report around the reader's question rather than the order of the analysis.
 2. State the main finding in the opening paragraph.
 3. Present numbers with units, comparisons and appropriate precision.
-4. Introduce a chart and tell the reader what to notice.
+4. Introduce every table and chart in the text.
 5. State limitations that could change the interpretation or decision.
-6. Separate decisions about the report's message from software-specific formatting choices.
+6. Format the report in Word and submit it as a PDF.
 :::
 
-## Report Decisions Before Software {#sec-report-scope}
 
-This chapter gives general guidance on the substance of a report: what to lead with, how to organize the evidence, which numbers and figures to retain and which limitations matter. Draft the message first. Page margins, Word styles, caption tools, section breaks and export settings are implementation details that should support that message rather than determine it.
+## The structure of a report {#sec-report-structure}
+
+A common instinct is to structure reports in the same order as your work was done, starting with data acquisition, then cleaning, methods, results, and interpretation. That order records the analyst's effort, but it does not match the reader's priorities.
+
+A reasonable structure for a report is:
+
+1. **Answer:** State the main finding in plain language.  Most readers will carefully read the first paragraph and then skim the rest of the report.  Make sure that your most important point is made in that first paragraph. 
+2. **Question:** Explain what was asked and why the answer matters.
+3. **Data:** Identify the source, coverage, units, exclusions and important gaps.  However, avoid information overload.  
+4. **Method:** Describe the calculation in ordinary language. Name software or functions only when they help someone reproduce the work.
+5. **Results:** Present the charts, tables and numbers that support the answer.
+6. **Interpretation and limits:** Explain what the result means and what the analysis cannot establish.
+7. **Sources:** Provide enough information for another person to locate the data.
+8. **Appendices:** Some reports have two readers. The first cares only about your results. The second is another analyst who wants to see your methods and data, both to verify the analysis and to learn from it. If you have this second reader, put the detail in an appendix, so the first can stay with the results.
+
+
+## General tips on report writing
+
+1. When reporting numbers round to the appropriate level of precision, and include the units.  
+2. Provide context for your numbers. Not all readers will know that 20 bushels per acre is a poor yield for wheat in Saskatchewan.  
+3. Even better than context is comparison to a benchmark.  "Yields in 2022 were 20 bushels per acre, compared to an average of 50 bushels per acre in the previous five years."
+4. Report only the numbers that are needed to support your argument.  A table with 40 rows is not a summary if you only discuss three values.  Move supporting detail to an appendix or provide the data file separately.
+5. Use a table when the reader needs exact values. Use a chart when the comparison, pattern or change matters more than individual numbers.  Every table and chart must be introduced and discussed in the text. Captions should identify the measure, groups, time period and units. They should not repeat the whole paragraph above the figure.
+6. The method section should let a knowledgeable reader understand and reproduce the analysis without becoming a diary of software commands.  For example, write
+
+::: {.callout-tip title="Write"}
+We calculated the mean 2025 wheat yield for each soil zone. Four of the 150 fields had no reported yield and were excluded from the averages.
+:::
+
+Instead of:
+
+::: {.callout-warning title="Do not write"}
+We clicked **Data**, made a PivotTable, dragged `yield_bu_ac` to Values and changed the calculation to Average.
+:::
+
+7. Include the limitations of your data and methods.  This will actually increase the credibility of your report and the reader's confidence in your findings.  Some limitations include:
+    - **Coverage:** data that cover only one province or a short time period.
+    - **Missing data:** observations or variables absent in a systematic way.
+    - **Assumptions:** a weighting rule, category mapping or price used in a calculation.
+    - **Causation:** are you reporting an observed relationship that was not created by a controlled experiment (more on this in Module 7).
+
+    State each limitation plainly and explain its consequence. "The data include insured acres only, so the provincial average may not represent uninsured production" is more useful than "results should be interpreted with caution."
+
+8. Aim for simplicity not complexity in both your writing and your description of results.  Many students reach for "two dollar words" to impress the reader, but this often makes the report harder to read.
+
+
+## Formatting reports in Word {#sec-report-word}
+
+There are several tools for writing reports. The most common are Microsoft Word, Google Docs and LaTeX, each with its own strengths and weaknesses. In this course, we will focus on Microsoft Word because it is widely used in industry and in other classes you will take.
+
+That does not necessarily make Word the best tool for every report. LaTeX and Quarto provide stronger support for reproducible reports, particularly when a document contains equations, citations, tables, figures and results generated by code. In Quarto, the analysis and the written report can live in the same file, so rerunning the analysis automatically updates the results presented in the document. This reduces the risk of copying an outdated number or graph into the final report.
+
+Word, however, remains an important practical skill. It is familiar to most readers, makes collaborative editing and commenting straightforward, and is often the format expected by instructors, employers and clients. The principles developed in this chapter -- clear structure, concise writing, appropriate tables and figures, and attention to the reader -- apply regardless of the software used.
+
+The document below provides guidance on Word-specific formatting.
 
 ::: {.callout-note title="Writing the report in Microsoft Word"}
 Use the **Course 261 Word Formatting and Submission Guide** for Word-specific instructions on numbered sections, paragraph styles, page layout, figures, tables, equations and final submission checks. Unless an assignment explicitly requests another file type, submit the finished report as a PDF so that its margins and formatting remain fixed.
@@ -48,140 +89,3 @@ Use the **Course 261 Word Formatting and Submission Guide** for Word-specific in
 <iframe class="document-embed" src="downloads/course-261-word-formatting-guide.pdf" title="Course 261 Word Formatting and Submission Guide" width="100%" height="760" loading="lazy"></iframe>
 :::
 
-## Lead With the Answer {#sec-lead-with-answer}
-
-A common report follows the order in which the work was done: data, cleaning, method, result and interpretation. That order records the analyst's effort. It does not match the reader's priorities.
-
-Open with the finding:
-
-::: {.callout-tip title="Model opening"}
-Black-zone wheat fields in the [2025 Saskatchewan wheat data](practice/data/sask_wheat_2025.csv) averaged 53.0 bu/ac, compared with 38.6 bu/ac in the brown zone. The difference was 14.4 bu/ac, or 37% of the brown-zone mean. These descriptive averages exclude four fields with no reported yield and do not establish why yields differed between zones.
-:::
-
-The paragraph states the value, the comparison and the evidence behind the interpretation. A reader with thirty seconds can stop there. The rest of the report shows how the conclusion was reached.
-
-Write this paragraph after completing the analysis, then move it to the beginning.
-
-## A Structure That Works {#sec-report-structure}
-
-A short report can use one paragraph for each item. A longer report can turn them into sections.
-
-1. **Answer:** State the main finding in plain language.
-2. **Question:** Explain what was asked and why the answer matters.
-3. **Data:** Identify the source, coverage, units, exclusions and important gaps.
-4. **Method:** Describe the calculation in ordinary language. Name software or functions only when they help someone reproduce the work.
-5. **Results:** Present the charts, tables and numbers that support the answer.
-6. **Interpretation and limits:** Explain what the result means and what the analysis cannot establish.
-7. **Sources:** Provide enough information for another person to locate the data.
-
-The answer comes first. Qualifications follow after the evidence, where the reader can understand what they qualify.
-
-## Presenting Numbers {#sec-presenting-numbers}
-
-A calculation result is not automatically a useful reported number. `42.3851` still needs units, context and judgment about precision.
-
-### Round to the measurement {.unnumbered}
-
-Report only the precision the data can support. Yield measured to the nearest tenth of a bushel does not justify four decimal places. Write 53.0 bu/ac, or 53 when the extra decimal would not affect the decision. Round only after the calculation is complete.
-
-In R, `round(x, 1)` prepares a value for reporting. In Excel, a number format changes only the display, while `=ROUND(A2, 1)` returns a rounded value. Keep full precision during intermediate calculations.
-
-### Supply a comparison {.unnumbered}
-
-"Black-zone yield averaged 53.0 bu/ac" reports a level. "Black-zone yield averaged 14.4 bu/ac, or 37%, more than the brown-zone mean" supplies both an absolute and a relative comparison. When reporting a percentage difference, name its base.
-
-Useful comparisons include another region, an earlier year, a budget target or an established benchmark. Choose one that matches the decision.
-
-### State the units {.unnumbered}
-
-Put units in the sentence, table header or axis label. Bushels per acre, kilograms per hectare and dollars per tonne are not interchangeable even when a column is simply named `Yield` or `Price`. In Excel, put the unit in the header, such as `Yield (bu/ac)`, or use a custom format such as `0.0 "bu/ac"`; typing the unit into each value turns numbers into text.
-
-### Report fewer numbers {.unnumbered}
-
-Keep the figures that advance the argument. A forty-row table is not a summary when the text discusses only three values. Move supporting detail to an appendix or provide the data file separately. In a handoff workbook, the report should draw from a compact Output sheet while the Raw and Cleaned sheets preserve the detailed record (@sec-workbook-separation).
-
-## Tables and Charts {#sec-charts-in-reports}
-
-Use a table when the reader needs exact values. Use a chart when the comparison, pattern or change matters more than individual numbers.
-
-Table @tbl-wheat-summary reports the exact values behind the opening paragraph.
-
-```{r}
-#| label: tbl-wheat-summary
-#| tbl-cap: "Wheat yield records and mean yield by soil zone, Saskatchewan synthetic field data, 2025."
-#| echo: false
-#| eval: true
-#| results: asis
-print(wheat_summary |>
-  mutate(`Mean yield (bu/ac)` = round(`Mean yield (bu/ac)`, 1)) |>
-  knitr::kable(align = c("l", "r", "r", "r")))
-```
-
-Introduce each table or chart before it appears. Name what it displays, then state the feature that supports the argument:
-
-Figure @fig-report-example compares mean 2025 wheat yield across the three soil zones. The black-zone mean is highest, and the brown-zone mean is lowest.
-
-```{r}
-#| label: fig-report-example
-#| fig-cap: "Mean wheat yield by soil zone, Saskatchewan synthetic field data, 2025. Yields are in bushels per acre; four records with missing yield are excluded."
-#| fig-alt: "Bar chart of mean wheat yield: Black 53.0, Dark Brown 45.2 and Brown 38.6 bushels per acre."
-#| echo: false
-#| eval: true
-#| fig-width: 7
-#| fig-height: 4.2
-print(wheat_summary |>
-  ggplot(aes(x = reorder(soil_zone, `Mean yield (bu/ac)`),
-             y = `Mean yield (bu/ac)`)) +
-  geom_col(fill = "#2f6b4f", width = 0.65) +
-  geom_text(aes(label = sprintf("%.1f", `Mean yield (bu/ac)`)),
-            hjust = -0.2, size = 4) +
-  coord_flip(clip = "off") +
-  scale_y_continuous(limits = c(0, 60), expand = expansion(mult = c(0, 0.02))) +
-  labs(x = NULL, y = "Mean yield (bu/ac)") +
-  theme_minimal(base_size = 13) +
-  theme(panel.grid.major.y = element_blank()))
-```
-
-This tells the reader where to look and why the figure is present. A chart without an introduction leaves the reader to decide what matters.
-
-Aim for one chart, one point. If the main message needs two unrelated sentences, the chart may be doing two jobs.
-
-Captions should identify the measure, groups, time period and units. They should not repeat the whole paragraph above the figure.
-
-## Describe the Method, Not the Keystrokes {#sec-report-method}
-
-The method section should let a knowledgeable reader understand and reproduce the analysis without becoming a diary of software commands.
-
-Write:
-
-::: {.callout-tip title="Write"}
-We calculated the mean 2025 wheat yield for each soil zone. Four of the 150 fields had no reported yield and were excluded from the averages.
-:::
-
-::: {.callout-warning title="Do not write"}
-We clicked **Data**, made a PivotTable, dragged `yield_bu_ac` to Values and changed the calculation to Average.
-:::
-
-Do not list each menu choice or function call unless the implementation itself matters. Keep the script or workbook as the detailed record. A usable workbook record leaves formulas in place, labels the summary cells that feed the report and documents sources or Power Query steps on a README sheet.
-
-Move a small, final summary table or chart from the analysis tool into the report without retyping its values. Choose an export or paste method that preserves text and image quality, and remember that linked objects may stop updating when files move. For charts, see the export choices in @sec-excel-chart-export. The Word-specific guide above explains stable placement and formatting in Word.
-
-## Saying What You Do Not Know {#sec-caveats}
-
-A useful limitation is one that could change the reader's interpretation or action.
-
-- **Coverage:** insured acres only, one province or a short time period.
-- **Missing data:** observations or variables absent in a systematic way.
-- **Assumptions:** a weighting rule, category mapping or price used in a calculation.
-- **Confounding:** differences between groups that the available data cannot separate.
-- **Causation:** an observed relationship that was not created by a controlled experiment.
-
-State each limitation plainly and explain its consequence. "The data include insured acres only, so the provincial average may not represent uninsured production" is more useful than "results should be interpreted with caution."
-
-Do not bury the answer beneath qualifications, and do not omit a limitation that could reverse the decision.
-
-## The Course Project {#sec-project-report}
-
-The course project asks a question about agricultural data, carries out a reproducible analysis and explains the finding in a short report. Use the structure in this chapter. Unless the detailed assignment instructions request another format, submit the report as a PDF together with the script or workbook that produced its numbers and figures. If the report was prepared in Word, use the Word Formatting and Submission Guide above to complete the final layout and export checks.
-
-Complexity is not the goal. A direct comparison with a clear chart, traceable calculations and honest limits is stronger than an elaborate method the reader cannot follow.
