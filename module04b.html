@@ -567,8 +567,8 @@ window.Quarto = {
    
   <ul>
   <li><a href="#learning-objectives" id="toc-learning-objectives" class="nav-link active" data-scroll-target="#learning-objectives">Learning Objectives</a></li>
-  <li><a href="#sec-excel-graphing-workbook" id="toc-sec-excel-graphing-workbook" class="nav-link" data-scroll-target="#sec-excel-graphing-workbook"><span class="header-section-number">11.1</span> The worked workbook</a></li>
-  <li><a href="#sec-excel-canola-source" id="toc-sec-excel-canola-source" class="nav-link" data-scroll-target="#sec-excel-canola-source"><span class="header-section-number">11.2</span> Understand the source rows</a></li>
+  <li><a href="#sec-excel-canola-source" id="toc-sec-excel-canola-source" class="nav-link" data-scroll-target="#sec-excel-canola-source"><span class="header-section-number">11.1</span> Managing the data for graphing in Excel</a></li>
+  <li><a href="#sec-excel-graphing-workbook" id="toc-sec-excel-graphing-workbook" class="nav-link" data-scroll-target="#sec-excel-graphing-workbook"><span class="header-section-number">11.2</span> The worked workbook</a></li>
   <li><a href="#sec-excel-chart-table" id="toc-sec-excel-chart-table" class="nav-link" data-scroll-target="#sec-excel-chart-table"><span class="header-section-number">11.3</span> Start with the chart-driving table</a></li>
   <li><a href="#sec-excel-create-bar" id="toc-sec-excel-create-bar" class="nav-link" data-scroll-target="#sec-excel-create-bar"><span class="header-section-number">11.4</span> Create the bar chart</a></li>
   <li><a href="#sec-excel-select-data" id="toc-sec-excel-select-data" class="nav-link" data-scroll-target="#sec-excel-select-data"><span class="header-section-number">11.5</span> Check the source data</a></li>
@@ -620,8 +620,23 @@ window.Quarto = {
 </ol>
 </div>
 </section>
-<section id="sec-excel-graphing-workbook" class="level2" data-number="11.1">
-<h2 data-number="11.1" class="anchored" data-anchor-id="sec-excel-graphing-workbook"><span class="header-section-number">11.1</span> The worked workbook</h2>
+<section id="sec-excel-canola-source" class="level2" data-number="11.1">
+<h2 data-number="11.1" class="anchored" data-anchor-id="sec-excel-canola-source"><span class="header-section-number">11.1</span> Managing the data for graphing in Excel</h2>
+<p>Each source row represents one risk-zone, crop, variety and year combination. <code>Risk_Zone</code> is an identifier, not a measured quantity. <code>Acres</code> records the reported acreage and <code>Yield</code> is measured in bushels per acre.</p>
+<p>Some earlier-year observations are suppressed. Their acres and yields are blank in the source file and remain blank in the workbook. A blank is not the same as a zero, so it should not be converted to one before summarizing or graphing.</p>
+<p>The <strong>Canola records</strong> sheet is the exact <code>Canola/Rapeseed</code> subset plus one transparent helper column. <code>Acre-yield total</code> multiplies acres by yield for each reported row. The helper is blank when either input is blank.</p>
+<p>Beyond these particulars, how the data is laid out on the sheet decides how hard the chart is to make, because Excel builds a chart straight from a block of cells. A few rules cover most of it:</p>
+<ul>
+<li><strong>Charts read one rectangular block.</strong> One header row, categories in the first column, one column per series – no merged cells, no blank rows, and no totals or notes mixed in. Anything extra in the selected block becomes another series in the chart (<a href="#sec-excel-select-data" class="quarto-xref"><span>Section 11.5</span></a> shows the fix when it happens).</li>
+<li><strong>Excel wants wide data for a multi-series chart – the opposite of R.</strong> To plot three crops over time as three lines, put the year in the first column and one column per crop. The long, tidy form from <a href="module03b.html#sec-tidy-data" class="quarto-xref"><span>Section 8.1</span></a> cannot feed an ordinary chart at all; long data is charted through a PivotChart instead. So expect to pivot between the two shapes: long for analysis and R, wide for an Excel chart.</li>
+<li><strong>Numbers must be stored as numbers and dates as dates.</strong> A yield stored as text plots as zero or is skipped without warning, and text dates give a category axis, with the years evenly spaced whatever their values, instead of a true time axis. Put units in the header, as in <code>Yield (bu/ac)</code>; typing them into the cells turns the column into text.</li>
+<li><strong>Leave missing values blank.</strong> A zero draws a bar of height zero and drags a line down to the floor. A blank leaves a gap, and <strong>Select Data &gt; Hidden and Empty Cells</strong> controls whether a line bridges it.</li>
+<li><strong>Sort the table in the order you want the bars.</strong> Excel plots rows in sheet order, so sorting the summary table descending is the chart-ordering step.</li>
+<li><strong>Chart a small summary table, not the raw data.</strong> The bar chart in this chapter draws on a ten-row table, not the 3,370 source rows. Formatting that block as a Table (<strong>Ctrl+T</strong>; <strong>Cmd+T</strong> on a Mac) makes the chart pick up new rows automatically when the table grows.</li>
+</ul>
+</section>
+<section id="sec-excel-graphing-workbook" class="level2" data-number="11.2">
+<h2 data-number="11.2" class="anchored" data-anchor-id="sec-excel-graphing-workbook"><span class="header-section-number">11.2</span> The worked workbook</h2>
 <p>The workbook contains the canola records, a formula-driven variety summary, and finished bar, scatter and histogram examples. Open the <strong>Bar chart</strong> sheet first. The nine numbered steps beside the chart are meant to be followed in Excel.</p>
 <div class="callout callout-style-default callout-tip callout-titled" title="Workbook: graphing examples in Excel">
 <div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="true" aria-label="Toggle callout">
@@ -641,12 +656,6 @@ window.Quarto = {
 </div>
 </div>
 </div>
-</section>
-<section id="sec-excel-canola-source" class="level2" data-number="11.2">
-<h2 data-number="11.2" class="anchored" data-anchor-id="sec-excel-canola-source"><span class="header-section-number">11.2</span> Understand the source rows</h2>
-<p>Each source row represents one risk-zone, crop, variety and year combination. <code>Risk_Zone</code> is an identifier, not a measured quantity. <code>Acres</code> records the reported acreage and <code>Yield</code> is measured in bushels per acre.</p>
-<p>Some earlier-year observations are suppressed. Their acres and yields are blank in the source file and remain blank in the workbook. A blank is not the same as a zero, so it should not be converted to one before summarizing or graphing.</p>
-<p>The <strong>Canola records</strong> sheet is the exact <code>Canola/Rapeseed</code> subset plus one transparent helper column. <code>Acre-yield total</code> multiplies acres by yield for each reported row. The helper is blank when either input is blank.</p>
 </section>
 <section id="sec-excel-chart-table" class="level2" data-number="11.3">
 <h2 data-number="11.3" class="anchored" data-anchor-id="sec-excel-chart-table"><span class="header-section-number">11.3</span> Start with the chart-driving table</h2>
