@@ -18,6 +18,27 @@ By the end of this chapter you should be able to:
 7. Format and export a chart without adding unnecessary decoration.
 :::
 
+
+## Managing the data for graphing in Excel {#sec-excel-canola-source}
+
+Each source row represents one risk-zone, crop, variety and year combination. `Risk_Zone` is an identifier, not a measured quantity. `Acres` records the reported acreage and `Yield` is measured in bushels per acre.
+
+Some earlier-year observations are suppressed. Their acres and yields are blank in the source file and remain blank in the workbook. A blank is not the same as a zero, so it should not be converted to one before summarizing or graphing.
+
+The **Canola records** sheet is the exact `Canola/Rapeseed` subset plus one transparent helper column. `Acre-yield total` multiplies acres by yield for each reported row. The helper is blank when either input is blank.
+
+
+Beyond these particulars, how the data is laid out on the sheet decides how hard the chart is to make, because Excel builds a chart straight from a block of cells. A few rules cover most of it:
+
+- **Charts read one rectangular block.** One header row, categories in the first column, one column per series -- no merged cells, no blank rows, and no totals or notes mixed in. Anything extra in the selected block becomes another series in the chart (@sec-excel-select-data shows the fix when it happens).
+- **Excel wants wide data for a multi-series chart -- the opposite of R.** To plot three crops over time as three lines, put the year in the first column and one column per crop. The long, tidy form from @sec-tidy-data cannot feed an ordinary chart at all; long data is charted through a PivotChart instead. So expect to pivot between the two shapes: long for analysis and R, wide for an Excel chart.
+- **Numbers must be stored as numbers and dates as dates.** A yield stored as text plots as zero or is skipped without warning, and text dates give a category axis, with the years evenly spaced whatever their values, instead of a true time axis. Put units in the header, as in `Yield (bu/ac)`; typing them into the cells turns the column into text.
+- **Leave missing values blank.** A zero draws a bar of height zero and drags a line down to the floor. A blank leaves a gap, and **Select Data > Hidden and Empty Cells** controls whether a line bridges it.
+- **Sort the table in the order you want the bars.** Excel plots rows in sheet order, so sorting the summary table descending is the chart-ordering step.
+- **Chart a small summary table, not the raw data.** The bar chart in this chapter draws on a ten-row table, not the 3,370 source rows. Formatting that block as a Table (**Ctrl+T**; **Cmd+T** on a Mac) makes the chart pick up new rows automatically when the table grows.
+
+
+
 ## The worked workbook {#sec-excel-graphing-workbook}
 
 The workbook contains the canola records, a formula-driven variety summary, and finished bar, scatter and histogram examples. Open the **Bar chart** sheet first. The nine numbered steps beside the chart are meant to be followed in Excel.
@@ -28,14 +49,6 @@ The workbook contains the canola records, a formula-driven variety summary, and 
 
 [Open the view-only workbook online](https://usaskca1-my.sharepoint.com/:x:/g/personal/pjs998_usask_ca/IQALwnl-mlBVT4O0EQj4jZL9ASmOupIPmOfjGocibTAS9oA?e=ULMgyT) or [download a copy](textbook_examples/mod04_graphing_excel.xlsx).
 :::
-
-## Understand the source rows {#sec-excel-canola-source}
-
-Each source row represents one risk-zone, crop, variety and year combination. `Risk_Zone` is an identifier, not a measured quantity. `Acres` records the reported acreage and `Yield` is measured in bushels per acre.
-
-Some earlier-year observations are suppressed. Their acres and yields are blank in the source file and remain blank in the workbook. A blank is not the same as a zero, so it should not be converted to one before summarizing or graphing.
-
-The **Canola records** sheet is the exact `Canola/Rapeseed` subset plus one transparent helper column. `Acre-yield total` multiplies acres by yield for each reported row. The helper is blank when either input is blank.
 
 ## Start with the chart-driving table {#sec-excel-chart-table}
 
