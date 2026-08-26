@@ -6,9 +6,9 @@
 source("_console.R")
 ```
 
-The Excel chapter built a bar chart, scatter plot and histogram from actual Saskatchewan variety-yield records. This chapter reproduces those examples with `ggplot2`, then adds value labels, a reference line, direct variety labels and two displays that reveal more than the Excel summaries.
+The Excel chapter built a bar chart of barley acreage, a pie chart, and line charts of acreage over time. This chapter makes the same charts with `ggplot2`. Excel starts with a selected range and a chart menu. In R, we describe the chart in code: the data, the variables assigned to visual properties, and the marks to draw. The `ggplot2` package turns that description into a figure.
 
-The data come from [`sask_variety_yields.csv`](practice/data/sask_variety_yields.csv), which contains Saskatchewan Crop Insurance Corporation variety yields by risk zone from 2021 to 2025 [@scic_smp]. Suppressed observations have missing acres and yield.
+The data are the same two files the Excel workbooks used. [`sask_barley_2025.csv`](practice/data/sask_barley_2025.csv) has one row per barley variety with its 2025 acres and average yield. [`sask_variety_yields.csv`](practice/data/sask_variety_yields.csv) has Saskatchewan Crop Insurance Corporation records by risk zone, crop, variety and year, 2021 to 2025 [@scic_smp]; suppressed observations have missing acres and yield.
 
 ```{r}
 #| eval: true
@@ -17,42 +17,19 @@ console('
 # Load the tidyverse
 suppressPackageStartupMessages(library(tidyverse))
 
-# Read the actual Saskatchewan variety-yield file
+# One row per barley variety: 2025 acres and average yield
+barley_2025 <- read_csv(
+  "practice/data/sask_barley_2025.csv",
+  show_col_types = FALSE
+)
+
+# Risk-zone records for all crops, varieties and years
 variety_yields <- read_csv(
   "practice/data/sask_variety_yields.csv",
   show_col_types = FALSE
 )
 
-# Keep canola records, then keep reported values for calculations
-canola <- variety_yields |>
-  filter(Crop == "Canola/Rapeseed")
-
-reported_canola <- canola |>
-  filter(
-    !is.na(Acres),
-    !is.na(Yield),
-    Acres > 0
-  )
-
-# Calculate an acre-weighted provincial result for each variety and year
-provincial_variety <- reported_canola |>
-  group_by(Variety, Year) |>
-  summarise(
-    acres = sum(Acres),
-    weighted_yield = sum(Acres * Yield) / sum(Acres),
-    zones = n(),
-    .groups = "drop"
-  )
-
-# Select the ten varieties with the most reported acres in 2025
-leaders_2025 <- provincial_variety |>
-  filter(Year == 2025) |>
-  slice_max(acres, n = 10, with_ties = FALSE) |>
-  arrange(weighted_yield)
-
-# Inspect the chart-driving table
-leaders_2025 |>
-  select(Variety, acres, weighted_yield, zones)
+glimpse(barley_2025)
 ')
 ```
 
@@ -62,381 +39,192 @@ leaders_2025 |>
 By the end of this chapter you should be able to:
 
 1. Build a plot with `ggplot()`, `aes()` and a geom.
-2. Reproduce the Excel bar chart, scatter plot and histogram.
-3. Change a plot's title, axis labels, limits and tick marks.
-4. Calculate and graph an acre-weighted yield.
-5. Distinguish mapping an aesthetic to a variable from setting it to a constant.
-6. Add value labels, a reference line and direct series labels.
-7. Compare risk-zone distributions and save a finished plot.
+2. Reproduce the Excel bar, pie and line charts in code.
+3. Filter and summarise the data that feeds a chart, instead of editing it on a sheet.
+4. Order bars with `fct_reorder()` and group small categories with `fct_lump_n()`.
+5. Change a plot's title, labels, colours and theme.
+6. Plot several series by mapping a variable to colour.
+7. Save a finished plot with `ggsave()`.
 :::
 
-## Calculate the values before drawing {#sec-r-weighted-summary}
+## Bar charts {#sec-r-bar-example}
 
-The source contains one row per risk-zone, crop, variety and year combination. It does not contain one provincial yield per variety.
-
-The `summarise()` call first multiplies each reported risk-zone yield by its acres. It then divides the total by the reported acres:
-
-$$
-\text{weighted yield} = \frac{\sum(\text{Acres} \times \text{Yield})}{\sum \text{Acres}}.
-$$
-
-This is the same calculation performed by `SUMIFS` in the Excel workbook. A simple `mean(Yield)` would give every risk zone equal influence regardless of its acreage.
-
-The code excludes rows with missing acres or yield. It does not turn suppressed observations into zeroes.
-
-## Build the bar chart {#sec-r-bar-example}
-
-The Excel chart used a ten-row summary. `leaders_2025` is the equivalent R data frame.
+In Excel we selected the variety and acres columns and inserted a chart. The R equivalent names the data and the mapping, then adds a geom:
 
 ```{r}
-#| label: fig-r-variety-bars-basic
-#| eval: true
-#| echo: true
-#| message: false
-#| warning: false
-#| fig-width: 6.0
-#| fig-height: 4.0
-#| fig-cap: "Acre-weighted 2025 yield for the ten canola varieties with the most reported acres."
-#| fig-alt: "Ten horizontal green bars range from about 44 to 49 bushels per acre. L350PC has the longest bar and L233P the shortest."
-leaders_2025 |>
-  ggplot(
-    aes(
-      x = weighted_yield,
-      y = fct_reorder(Variety, weighted_yield)
-    )
-  ) +
-  geom_col(fill = "#3F6F52")
-```
-
-`ggplot()` names the data and maps columns to horizontal and vertical position. `geom_col()` draws bars whose lengths use the already-calculated `weighted_yield` values. `geom_bar()` would count rows instead, which answers a different question.
-
-The selected varieties range from 44.3 to 49.0 bu/ac. L340PC has by far the most reported acres, but it does not have the highest weighted yield in this selected group. The chart therefore compares yield; the selection rule is acreage.
-
-## Change the title and axes {#sec-r-title-axes}
-
-`labs()` supplies the title, subtitle, caption and axis text. `scale_x_continuous()` controls the displayed range and tick marks. These are separate from the calculation, so changing the scale does not change the weighted yields.
-
-```{r}
-#| label: fig-r-variety-bars-polished
+#| label: fig-r-bar-first
 #| eval: true
 #| echo: true
 #| message: false
 #| warning: false
 #| fig-width: 6.4
-#| fig-height: 4.3
-#| fig-cap: "A finished horizontal bar chart with a zero baseline and direct value labels."
-#| fig-alt: "A labelled horizontal bar chart shows weighted yields from 44.3 to 49.0 bushels per acre for ten canola varieties."
-# Store the finished plot so it can be saved later
-bar_plot <- leaders_2025 |>
-  ggplot(
-    aes(
-      x = weighted_yield,
-      y = fct_reorder(Variety, weighted_yield)
-    )
-  ) +
-  # Set one colour for the whole series
-  geom_col(
-    width = 0.7,
-    fill = "#3F6F52"
-  ) +
-  # Map formatted yield values to text
-  geom_text(
-    aes(label = sprintf("%.1f", weighted_yield)),
-    hjust = -0.25,
-    size = 3.3
-  ) +
-  # Match the Excel baseline and tick spacing
-  scale_x_continuous(
-    limits = c(0, 55),
-    breaks = seq(0, 50, by = 10),
-    expand = expansion(mult = c(0, 0))
-  ) +
-  labs(
-    title = "2025 yield of leading canola varieties",
-    subtitle = "Ten varieties with the largest reported acreage",
-    x = "Acre-weighted yield (bu/ac)",
-    y = NULL,
-    caption = "Source: SCIC Sask Management Plus variety-yield data"
-  ) +
-  theme_minimal(base_size = 11) +
-  theme(
-    plot.title.position = "plot",
-    panel.grid.minor = element_blank(),
-    panel.grid.major.y = element_blank()
-  )
+#| fig-height: 3.4
+#| fig-cap: "The first attempt: every barley variety."
+#| fig-alt: "A vertical bar chart with 32 overlapping variety names on the horizontal axis."
+barley_2025 |>
+  ggplot(aes(x = Variety, y = Acres)) +
+  geom_col()
+```
 
-# Print the stored plot
+`ggplot()` names the data, `aes()` maps `Variety` to horizontal position and `Acres` to bar height, and `geom_col()` draws the bars. The result has the same problems as the first Excel attempt: 32 varieties crowd the axis and the names are unreadable.
+
+In Excel we fixed this by filtering the worksheet and re-sorting the rows, because an Excel chart draws whatever block of cells it is pointed at, in sheet order. In R the chart is drawn from the data frame you pass in, so the fixes are `filter()` and `fct_reorder()` in the pipe:
+
+```{r}
+#| label: fig-r-bar-filtered
+#| eval: true
+#| echo: true
+#| message: false
+#| warning: false
+#| fig-width: 6.4
+#| fig-height: 4.0
+#| fig-cap: "Varieties over 10,000 acres, largest at the top."
+#| fig-alt: "A horizontal bar chart of 14 varieties ordered by acres, Synergy AAC longest at about 393,000."
+barley_2025 |>
+  filter(Acres > 10000) |>                          # varieties over 10,000 acres
+  ggplot(aes(x = Acres,
+             y = fct_reorder(Variety, Acres))) +    # order bars by acres
+  geom_col()
+```
+
+Two things happened at once. Putting `Acres` on the x axis and `Variety` on the y axis gives horizontal bars, which is `Change Chart Type > Bar Chart` in Excel; there is no separate chart type. And `fct_reorder(Variety, Acres)` sorts the bars by their value, which in Excel required sorting the worksheet rows. Alphabetical order is the default; ordering by value is one function call, so there is no reason to settle for a chart that is hard to read.
+
+The titles, labels and colours that took several Excel menus are arguments to `labs()` and the geom:
+
+```{r}
+#| label: fig-r-bar-final
+#| eval: true
+#| echo: true
+#| message: false
+#| warning: false
+#| fig-width: 6.4
+#| fig-height: 4.0
+#| fig-cap: "The finished bar chart."
+#| fig-alt: "The same 14 bars in green with acreage labels, titled Acres of barley varieties in Saskatchewan, 2025."
+bar_plot <- barley_2025 |>
+  filter(Acres > 10000) |>
+  ggplot(aes(x = Acres,
+             y = fct_reorder(Variety, Acres))) +
+  geom_col(fill = "#3F6F52", width = 0.7) +          # green bars, less gap
+  scale_x_continuous(labels = scales::comma) +       # 400,000 not 4e+05
+  labs(title = "Acres of barley varieties in Saskatchewan, 2025",
+       x = "Acres", y = NULL) +
+  theme_minimal(base_size = 13)
+
 bar_plot
 ```
 
-`limits = c(0, 55)` gives the bars a zero baseline. `breaks = seq(0, 50, by = 10)` places the labelled ticks. The labels remain inside the 55 bu/ac limit because the largest value is about 49.
+`fill` sets every bar to one colour, because the bars all represent the same thing; mapping a variable to `fill` inside `aes()` is for when colour should carry information, as in the line chart below. `theme_minimal(base_size = 13)` removes the grey background and raises the font size -- the same complaint about small default fonts applies in both programs.
 
-The `fill` argument is outside `aes()` because every bar receives the same colour. Moving `fill = Variety` inside `aes()` would map colour to a column and create ten colours plus a redundant legend.
+## Pie charts {#sec-r-pie-example}
 
-## Compare 2024 and 2025 {#sec-r-scatter-example}
-
-The scatter plot needs one 2024 value and one 2025 value on each row. `pivot_wider()` places the two years in separate columns, and `drop_na()` keeps only varieties reported in both years.
+In Excel we built the pie from a five-row block: the four largest varieties plus an `Other` row computed with `SUM`. The R version of that grouping is `fct_lump_n()`, which keeps the largest `n` categories, weighted here by acres, and lumps everything else into `Other`:
 
 ```{r}
-#| eval: true
-#| echo: false
-console('
-# Put the two annual yields on the same row
-year_pair <- provincial_variety |>
-  filter(Year %in% c(2024, 2025)) |>
-  select(Variety, Year, acres, weighted_yield) |>
-  pivot_wider(
-    names_from = Year,
-    values_from = c(acres, weighted_yield),
-    names_sep = "_"
-  ) |>
-  drop_na(weighted_yield_2024, weighted_yield_2025)
-
-# Select the most widely grown 2025 variety for a direct label
-largest_variety <- year_pair |>
-  slice_max(acres_2025, n = 1, with_ties = FALSE)
-
-tibble(
-  varieties_plotted = nrow(year_pair),
-  correlation = cor(
-    year_pair$weighted_yield_2024,
-    year_pair$weighted_yield_2025
-  ),
-  labelled_variety = largest_variety$Variety
-)
-')
-```
-
-```{r}
-#| label: fig-r-variety-scatter
+#| label: fig-r-pie
 #| eval: true
 #| echo: true
 #| message: false
 #| warning: false
-#| fig-width: 6.0
-#| fig-height: 4.0
-#| fig-cap: "Acre-weighted canola variety yields in 2024 and 2025."
-#| fig-alt: "A scatter plot of 72 varieties has a weak upward pattern. A dashed equality line is shown and L340PC is labelled directly."
-ggplot(
-  year_pair,
-  aes(
-    x = weighted_yield_2024,
-    y = weighted_yield_2025
-  )
-) +
-  # The equality line marks no change between years
-  geom_abline(
-    slope = 1,
-    intercept = 0,
-    linetype = "dashed",
-    colour = "grey55"
-  ) +
-  geom_point(
-    colour = "#2878A5",
-    alpha = 0.7,
-    size = 2
-  ) +
-  # Label only the variety with the most 2025 acres
-  geom_label(
-    data = largest_variety,
-    aes(label = Variety),
-    nudge_x = -3,
-    nudge_y = 2,
-    size = 3,
-    label.size = 0.15,
-    fill = "white"
-  ) +
-  scale_x_continuous(
-    limits = c(0, 55),
-    breaks = seq(0, 50, by = 10)
-  ) +
-  scale_y_continuous(
-    limits = c(20, 55),
-    breaks = seq(20, 50, by = 10)
-  ) +
-  labs(
-    title = "Canola variety yield: 2024 versus 2025",
-    x = "2024 acre-weighted yield (bu/ac)",
-    y = "2025 acre-weighted yield (bu/ac)"
-  ) +
-  theme_minimal(base_size = 11) +
-  theme(plot.title.position = "plot")
+#| fig-width: 5.4
+#| fig-height: 3.4
+#| fig-cap: "2025 barley acreage: the four largest varieties and everything else."
+#| fig-alt: "A pie chart with five slices; Other and Synergy AAC are the two largest at roughly 400,000 acres each."
+barley_2025 |>
+  mutate(Variety = fct_lump_n(Variety, 4, w = Acres)) |>   # top 4 + Other
+  group_by(Variety) |>
+  summarise(Acres = sum(Acres)) |>
+  ggplot(aes(x = "", y = Acres, fill = Variety)) +
+  geom_col(width = 1) +
+  coord_polar(theta = "y") +                               # wrap the bar into a circle
+  labs(title = "2025 barley acreage by variety", x = NULL, y = NULL) +
+  theme_void(base_size = 13)
 ```
 
-The plot contains 72 varieties and the correlation is about 0.29. A point above the dashed equality line has a higher weighted yield in 2025 than in 2024. The line is a comparison reference, not a fitted model.
+There is no `geom_pie()`. A pie in ggplot2 is a single stacked bar wrapped into a circle with `coord_polar()`, which is a fair description of what a pie chart is. The `Other` slice comes to 412,760 acres, slightly more than Synergy itself -- the same total the Excel `SUM` produced, and a useful reminder that the 28 lumped varieties jointly matter as much as the largest one.
 
-`geom_label()` directly identifies L340PC without creating a legend or labelling all 72 points. Direct labels are most useful when the text singles out a small number of observations for a stated reason.
+## Line charts {#sec-r-line-example}
 
-## Show the 2025 yield distribution {#sec-r-histogram-example}
-
-The histogram uses the 674 reported 2025 risk-zone-by-variety yields, not the 97 provincial variety summaries. That distinction determines what each bar counts.
+The line charts use the risk-zone file, which has one row per zone-variety-year. A provincial line needs one value per year, so the pipe filters to the variety and sums acres within each year before plotting:
 
 ```{r}
-#| label: fig-r-canola-histogram
+#| label: fig-r-line-synergy
 #| eval: true
 #| echo: true
 #| message: false
 #| warning: false
-#| fig-width: 6.0
-#| fig-height: 3.7
-#| fig-cap: "Distribution of 674 reported 2025 canola yields using 5 bu/ac bins."
-#| fig-alt: "A histogram peaks between 45 and 50 bushels per acre, with 222 reported risk-zone-by-variety rows in that interval."
-canola_2025 <- reported_canola |>
-  filter(Year == 2025)
-
-ggplot(canola_2025, aes(x = Yield)) +
-  # Match the Excel width and boundary
-  geom_histogram(
-    binwidth = 5,
-    boundary = 15,
-    closed = "left",
-    fill = "#D8A940",
-    colour = "white"
-  ) +
-  scale_x_continuous(
-    limits = c(15, 70),
-    breaks = seq(15, 70, by = 5),
-    expand = expansion(mult = c(0, 0))
-  ) +
-  labs(
-    title = "Reported 2025 canola yields",
-    subtitle = "Five-bushel-per-acre intervals",
-    x = "Risk-zone variety yield (bu/ac)",
-    y = "Reported rows"
-  ) +
-  theme_minimal(base_size = 11) +
-  theme(
-    plot.title.position = "plot",
-    panel.grid.minor = element_blank()
-  )
+#| fig-width: 6.4
+#| fig-height: 3.6
+#| fig-cap: "Acres planted with Synergy barley."
+#| fig-alt: "A line from 408,000 acres in 2021 dipping to 317,000 in 2022 and recovering to about 393,000 by 2025."
+variety_yields |>
+  filter(Crop == "Barley",
+         Variety == "SYNERGY AAC") |>
+  group_by(Year) |>
+  summarise(acres = sum(Acres, na.rm = TRUE)) |>   # provincial total per year
+  ggplot(aes(x = Year, y = acres)) +
+  geom_line(colour = "#3F6F52", linewidth = 1) +
+  scale_y_continuous(labels = scales::comma, limits = c(0, NA)) +
+  labs(title = "Acres planted with Synergy AAC barley",
+       x = "Year", y = "Total acres") +
+  theme_minimal(base_size = 13)
 ```
 
-The eleven bin counts add to 674. The tallest interval is 45 to 50 bu/ac, with 222 rows. Changing `binwidth` or `boundary` can change the apparent shape, so those settings are part of the analysis rather than decoration.
+In Excel the first attempt drew `Year` as a second data series, and fixing it meant a trip through **Select Data**. That mistake cannot happen here, because `aes(x = Year, y = acres)` states which variable is which axis.
 
-## Show the observations behind five varieties {#sec-r-variety-distributions}
-
-A provincial weighted yield hides the range of reported risk-zone yields. The next plot shows one point per reporting risk zone for the five varieties with the most 2025 acres.
+To plot two varieties, Excel needed a column per variety and a new series added by hand. In R the data stays long: keep both varieties in the filter and map `Variety` to colour, and one line is drawn per variety with a legend:
 
 ```{r}
-#| label: fig-r-variety-box-jitter
+#| label: fig-r-line-two
 #| eval: true
 #| echo: true
 #| message: false
 #| warning: false
-#| fig-width: 6.2
+#| fig-width: 6.4
+#| fig-height: 3.6
+#| fig-cap: "Synergy has held its acreage; Copeland has lost most of its own."
+#| fig-alt: "Two lines: Copeland falls from 475,000 acres in 2021 to 126,000 in 2025 while Synergy stays near 400,000."
+variety_yields |>
+  filter(Crop == "Barley",
+         Variety %in% c("SYNERGY AAC", "COPELAND CDC")) |>
+  group_by(Variety, Year) |>
+  summarise(acres = sum(Acres, na.rm = TRUE), .groups = "drop") |>
+  ggplot(aes(x = Year, y = acres, colour = Variety)) +   # one line per variety
+  geom_line(linewidth = 1) +
+  scale_y_continuous(labels = scales::comma, limits = c(0, NA)) +
+  labs(title = "Copeland's acres have gone somewhere -- much of it to Synergy's malting class",
+       x = "Year", y = "Total acres", colour = NULL) +
+  theme_minimal(base_size = 13)
+```
+
+The Excel chapter's answer to "what about all the varieties?" was a PivotChart, with the small varieties filtered out or grouped. The R answer is the same `fct_lump_n()` used for the pie: summarise acres by variety and year, keep the seven biggest varieties, and lump the rest into `Other`:
+
+```{r}
+#| label: fig-r-line-many
+#| eval: true
+#| echo: true
+#| message: false
+#| warning: false
+#| fig-width: 6.6
 #| fig-height: 3.8
-#| fig-cap: "Risk-zone yield distributions for the five most widely grown 2025 canola varieties."
-#| fig-alt: "Five horizontal box plots and jittered points show that reported risk-zone yields vary considerably within each canola variety."
-leading_five <- leaders_2025 |>
-  slice_max(acres, n = 5, with_ties = FALSE) |>
-  pull(Variety)
-
-zone_yields <- canola_2025 |>
-  filter(Variety %in% leading_five)
-
-ggplot(
-  zone_yields,
-  aes(
-    x = Yield,
-    y = fct_reorder(Variety, Yield, median)
-  )
-) +
-  geom_boxplot(
-    width = 0.55,
-    fill = "#E4EEE7",
-    colour = "#2F5940",
-    outlier.shape = NA
-  ) +
-  geom_jitter(
-    width = 0,
-    height = 0.12,
-    colour = "#2878A5",
-    alpha = 0.55,
-    size = 1.6
-  ) +
-  labs(
-    title = "Risk-zone yields behind the provincial summaries",
-    x = "Reported 2025 yield (bu/ac)",
-    y = NULL
-  ) +
-  theme_minimal(base_size = 11) +
-  theme(
-    plot.title.position = "plot",
-    panel.grid.major.y = element_blank()
-  )
-```
-
-Each point receives equal visual weight in this distribution plot, while the provincial summaries weight the points by acres. The box plot answers a question about the spread across reporting zones; the bar chart answers a question about acre-weighted provincial yield.
-
-## Directly label several trend lines {#sec-r-direct-line-labels}
-
-L340PC, L345PC and L233P have reported provincial results in all five years. A line chart is appropriate because year supplies an ordered sequence.
-
-```{r}
-#| label: fig-r-direct-line-labels
-#| eval: true
-#| echo: true
-#| message: false
-#| warning: false
-#| fig-width: 6.3
-#| fig-height: 3.8
-#| fig-cap: "Five-year acre-weighted yield trends with variety names printed at the line ends."
-#| fig-alt: "Three coloured lines show annual weighted yield from 2021 to 2025. L340PC, L345PC and L233P are labelled directly at 2025."
-trend_varieties <- provincial_variety |>
-  filter(Variety %in% c("L340PC", "L345PC", "L233P"))
-
-trend_ends <- trend_varieties |>
-  filter(Year == 2025) |>
-  mutate(
-    label_y = case_when(
-      Variety == "L345PC" ~ weighted_yield + 0.5,
-      Variety == "L233P" ~ weighted_yield - 0.5,
-      TRUE ~ weighted_yield
-    )
-  )
-
-ggplot(
-  trend_varieties,
-  aes(
-    x = Year,
-    y = weighted_yield,
-    colour = Variety
-  )
-) +
+#| fig-cap: "Acres of the main barley varieties, 2021 to 2025."
+#| fig-alt: "Eight lines showing Copeland declining, Synergy and Austenson roughly steady, and an Other line near 300,000 acres."
+variety_yields |>
+  filter(Crop == "Barley") |>
+  group_by(Variety, Year) |>
+  summarise(acres = sum(Acres, na.rm = TRUE), .groups = "drop") |>
+  mutate(Variety = fct_lump_n(Variety, 7, w = acres)) |>   # 7 biggest + Other
+  group_by(Variety, Year) |>
+  summarise(acres = sum(acres), .groups = "drop") |>
+  ggplot(aes(x = Year, y = acres, colour = Variety)) +
   geom_line(linewidth = 0.9) +
-  geom_point(size = 2) +
-  geom_text(
-    data = trend_ends,
-    aes(y = label_y, label = Variety),
-    hjust = -0.12,
-    size = 3.2,
-    show.legend = FALSE
-  ) +
-  scale_colour_manual(
-    values = c(
-      "L340PC" = "#3F6F52",
-      "L345PC" = "#2878A5",
-      "L233P" = "#A85B3C"
-    )
-  ) +
-  scale_x_continuous(
-    breaks = 2021:2025,
-    expand = expansion(mult = c(0.03, 0.20))
-  ) +
-  labs(
-    title = "Acre-weighted canola yield over time",
-    x = NULL,
-    y = "Acre-weighted yield (bu/ac)"
-  ) +
-  theme_minimal(base_size = 11) +
-  theme(
-    plot.title.position = "plot",
-    legend.position = "none",
-    panel.grid.minor = element_blank()
-  )
+  scale_y_continuous(labels = scales::comma, limits = c(0, NA)) +
+  labs(title = "Acres of barley varieties in Saskatchewan",
+       x = "Year", y = "Total acres", colour = NULL) +
+  theme_minimal(base_size = 13)
 ```
 
-Printing the names beside the final points lets the reader identify the lines without repeatedly looking between the plot and a legend. Direct labels work best with a small number of clearly separated series.
+Eight lines is about the limit for one chart, and with lines this distinct the legend works; @sec-graphing-principles covers direct labels and other ways to keep a many-line chart readable.
 
 ## Save the finished chart {#sec-saving-plots}
 
@@ -451,17 +239,15 @@ dir.create("output", showWarnings = FALSE)
 
 # Save the finished bar chart
 ggsave(
-  "output/canola_variety_bar.png",
+  "output/barley_variety_bar.png",
   plot = bar_plot,
   width = 6.4,
-  height = 4.3,
+  height = 4.0,
   dpi = 300
 )
 
 # Confirm that the file was written
-file.info(
-  "output/canola_variety_bar.png"
-)["size"]
+file.info("output/barley_variety_bar.png")["size"]
 ')
 ```
 
@@ -470,6 +256,7 @@ PNG works for slides and web pages. PDF preserves vector lines and text for publ
 ::: {.callout-tip collapse="true"}
 ## Other resources -- ggplot2
 
-- [ggplot2 documentation](https://ggplot2.tidyverse.org/)
-- [Data Visualization chapter in R for Data Science](https://r4ds.hadley.nz/data-visualize)
+- **R for Data Science (2nd ed.)** -- [Chapter 1, "Data visualization"](https://r4ds.hadley.nz/data-visualize) builds up the ggplot2 grammar with worked examples.
+- **ggplot2 documentation** -- the [function reference](https://ggplot2.tidyverse.org/reference/) with examples for every geom, scale and theme.
+- **R Graphics Cookbook** -- [recipes](https://r-graphics.org/) organized by the change you want to make to a chart.
 :::

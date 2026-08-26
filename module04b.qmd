@@ -1,21 +1,18 @@
 # Graphing in Excel {#sec-graphing-excel}
 
-The examples in this chapter use [`sask_variety_yields.csv`](practice/data/sask_variety_yields.csv), which contains Saskatchewan Crop Insurance Corporation variety yields by risk zone from 2021 to 2025 [@scic_smp]. The file has 13,625 rows and includes 3,370 rows for `Canola/Rapeseed`.
-
-The main example compares the 2025 acre-weighted provincial yields of the ten most widely grown canola varieties. The R chapter uses the same records, filters and calculations.
+The examples in this chapter use Saskatchewan Crop Insurance Corporation variety records [@scic_smp]: the acreage of barley varieties in 2025 for the bar and pie charts, and acreage by year from [`sask_variety_yields.csv`](practice/data/sask_variety_yields.csv) for the line charts. The R chapter (@sec-graphing-r) builds the same charts in code.
 
 ## Learning Objectives {.unnumbered}
 
 ::: {.objectives}
 By the end of this chapter you should be able to:
 
-1. Build a chart from a worksheet summary table.
-2. Check and correct the categories and series used by a chart.
-3. Change a chart's title, axis titles, bounds and tick spacing.
-4. Decide whether a legend or data labels help the reader.
-5. Create a scatter plot and histogram from actual variety-yield data.
-6. Explain why provincial yields are weighted by reported acres.
-7. Format and export a chart without adding unnecessary decoration.
+1. Create a chart from selected worksheet data, and restrict it by filtering.
+2. Change a chart's type, title, axis labels and bounds.
+3. Check and correct the categories and series a chart uses with **Select Data**.
+4. Group small categories into an "Other" slice for a pie chart.
+5. Plot several series on one line chart, directly and with a PivotChart.
+6. Format a chart without adding unnecessary decoration.
 :::
 
 ## Bar charts
@@ -151,123 +148,13 @@ The resulting graph (after some cosmetic changes to fonts, titles and gridlines)
 ![Acres of the main barley varieties, 2021 to 2025.](images/mod04b_line_final.svg){#fig-line-final}
 
 
-## Managing the data for graphing in Excel {#sec-excel-canola-source}
+## Managing the data for graphing in Excel {#sec-excel-data-layout}
 
-Each source row represents one risk-zone, crop, variety and year combination. `Risk_Zone` is an identifier, not a measured quantity. `Acres` records the reported acreage and `Yield` is measured in bushels per acre.
+How the data is laid out on the sheet decides how hard the chart is to make, because Excel builds a chart straight from a block of cells. A few rules cover most of it:
 
-Some earlier-year observations are suppressed. Their acres and yields are blank in the source file and remain blank in the workbook. A blank is not the same as a zero, so it should not be converted to one before summarizing or graphing.
-
-The **Canola records** sheet is the exact `Canola/Rapeseed` subset plus one transparent helper column. `Acre-yield total` multiplies acres by yield for each reported row. The helper is blank when either input is blank.
-
-
-Beyond these particulars, how the data is laid out on the sheet decides how hard the chart is to make, because Excel builds a chart straight from a block of cells. A few rules cover most of it:
-
-- **Charts read one rectangular block.** One header row, categories in the first column, one column per series -- no merged cells, no blank rows, and no totals or notes mixed in. Anything extra in the selected block becomes another series in the chart (@sec-excel-select-data shows the fix when it happens).
+- **Charts read one rectangular block.** One header row, categories in the first column, one column per series -- no merged cells, no blank rows, and no totals or notes mixed in. Anything extra in the selected block becomes another series in the chart (the fix is **Select Data** on the chart's right-click menu, where extra series can be removed).
 - **Excel wants wide data for a multi-series chart -- the opposite of R.** To plot three crops over time as three lines, put the year in the first column and one column per crop. The long, tidy form from @sec-tidy-data cannot feed an ordinary chart at all; long data is charted through a PivotChart instead. So expect to pivot between the two shapes: long for analysis and R, wide for an Excel chart.
 - **Numbers must be stored as numbers and dates as dates.** A yield stored as text plots as zero or is skipped without warning, and text dates give a category axis, with the years evenly spaced whatever their values, instead of a true time axis. Put units in the header, as in `Yield (bu/ac)`; typing them into the cells turns the column into text.
 - **Leave missing values blank.** A zero draws a bar of height zero and drags a line down to the floor. A blank leaves a gap, and **Select Data > Hidden and Empty Cells** controls whether a line bridges it.
 - **Sort the table in the order you want the bars.** Excel plots rows in sheet order, so sorting the summary table descending is the chart-ordering step.
-- **Chart a small summary table, not the raw data.** The bar chart in this chapter draws on a ten-row table, not the 3,370 source rows. Formatting that block as a Table (**Ctrl+T**; **Cmd+T** on a Mac) makes the chart pick up new rows automatically when the table grows.
-
-
-
-## The worked workbook {#sec-excel-graphing-workbook}
-
-The workbook contains the canola records, a formula-driven variety summary, and finished bar, scatter and histogram examples. Open the **Bar chart** sheet first. The nine numbered steps beside the chart are meant to be followed in Excel.
-
-::: {.callout-tip collapse="false" title="Workbook: graphing examples in Excel"}
-
-<iframe width="100%" height="700" frameborder="0" scrolling="no" src="https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7B7e79c20b-509a-4f55-83b4-1108f88d92fd%7D&action=embedview&wdAllowInteractivity=False&wdHideGridlines=True&wdHideHeaders=True&wdDownloadButton=True&wdInConfigurator=True&ActiveCell=%27README%27!A1"></iframe>
-
-[Open the view-only workbook online](https://usaskca1-my.sharepoint.com/:x:/g/personal/pjs998_usask_ca/IQALwnl-mlBVT4O0EQj4jZL9ASmOupIPmOfjGocibTAS9oA?e=ULMgyT) or [download a copy](textbook_examples/mod04_graphing_excel.xlsx).
-:::
-
-## Start with the chart-driving table {#sec-excel-chart-table}
-
-The raw canola subset has 3,370 rows, but the bar chart needs one value per variety. The **Bar chart** sheet therefore contains a ten-row summary table.
-
-The ten varieties were selected by total reported 2025 acres. Their provincial yield is calculated as:
-
-$$
-\text{weighted yield} = \frac{\sum(\text{Acres} \times \text{Yield})}{\sum \text{Acres}}.
-$$
-
-This calculation gives more influence to a risk zone with 100,000 reported acres than to one with 1,000 acres. A simple average of the risk-zone yields would give both zones equal influence.
-
-The workbook uses `SUMIFS` to total the `Acre-yield total` and acres for the selected variety and year. The **Variety summary** sheet repeats the calculation for all 97 canola varieties.
-
-## Create the bar chart {#sec-excel-create-bar}
-
-On the **Bar chart** sheet, select cells `A4:B14`, including the two headers. Do not include reported acres, risk-zone counts or the formula text.
-
-Use **Insert > Column or Bar Chart > 2-D Bar > Clustered Bar**. Excel calls horizontal bars a **bar chart** and vertical bars a **column chart**. Horizontal bars leave more room for variety names, so they suit this example.
-
-If you include columns C through E, Excel may treat acres, zone counts or formula text as additional series. Remove those series with **Chart Design > Select Data**, or delete the chart and select only `A4:B14` again.
-
-## Check the source data {#sec-excel-select-data}
-
-With the chart selected, open **Chart Design > Select Data**. The **Legend Entries (Series)** list should contain one series named `Weighted yield (bu/ac)`. The **Horizontal (Category) Axis Labels** should contain the ten variety names.
-
-If the varieties appear as separate series, click **Switch Row/Column**. This changes the orientation of the selected data; it does not recalculate the weighted yields.
-
-The chart remains linked to cells `A4:B14`. Changing a formula result changes the corresponding bar. Sorting the table changes the order of the bars.
-
-## Change the title {#sec-excel-chart-title}
-
-Click the default chart title and type `2025 yield of leading canola varieties`. If the title is missing, use **Chart Design > Add Chart Element > Chart Title > Above Chart**.
-
-A useful title identifies the year, measure and comparison. The phrase `leading canola varieties` refers to the ten varieties with the largest reported 2025 acreage, not the ten highest-yielding varieties.
-
-To change the title's typeface or size, click the title itself before using the **Home** tab or **Format Chart Title** pane. Clicking the chart background selects a different chart element.
-
-## Add and alter the axes {#sec-excel-alter-axes}
-
-Use **Chart Design > Add Chart Element > Axis Titles > Primary Horizontal** and type `Acre-weighted yield (bu/ac)`. The variety names already explain the category axis, so it does not need another title.
-
-Right-click the numbered axis and choose **Format Axis**. Under **Axis Options**, set **Minimum** to `0`, **Maximum** to `55` and **Major unit** to `10`.
-
-The zero minimum matters because bar length encodes yield. Starting the axis near 40 would make the differences look much larger than they are. Scatter plots can use narrower limits because points encode position rather than length.
-
-Excel often places the first source row at the bottom of a horizontal bar chart. If the largest yield appears at the bottom, right-click the category axis and select **Format Axis > Categories in reverse order**.
-
-## Legends, labels and colour {#sec-excel-chart-elements}
-
-The chart has one series, so its legend repeats information already supplied by the title and value axis. Remove it with **Chart Design > Add Chart Element > Legend > None**.
-
-Exact values remain readable with ten bars. Use **Chart Design > Add Chart Element > Data Labels > Outside End**, then open **Format Data Labels > Number** and show one decimal place.
-
-Click one bar once to select the whole series, then apply one fill colour. Clicking the same bar a second time selects only that variety. Use a second colour only when the text gives that variety a deliberate reason for emphasis.
-
-Keep light value gridlines, but remove heavy borders, gradients, shadows and three-dimensional effects.
-
-## Create the two-year scatter plot {#sec-excel-scatter-example}
-
-The **Scatter plot** sheet compares each variety's 2024 and 2025 acre-weighted provincial yield. The helper table in `J41:L113` contains the 72 varieties reported in both years.
-
-Select the two numeric columns, `K41:L113`, and use **Insert > Scatter > Scatter with only Markers**. Open **Chart Design > Select Data** and confirm that the X values are `K42:K113` and the Y values are `L42:L113`.
-
-Add the title `Canola variety yield: 2024 versus 2025`. Label the horizontal axis `2024 acre-weighted yield (bu/ac)` and the vertical axis `2025 acre-weighted yield (bu/ac)`.
-
-Set the horizontal bounds to 0 and 55 and the vertical bounds to 20 and 55. The ranges are different because the lowest reported provincial value differs between the years. The chart contains 72 points; 25 varieties without a 2024 value are omitted rather than plotted at zero.
-
-The correlation is about 0.29. That number describes a weak positive linear association, but it does not explain why yields changed between years.
-
-## Create the histogram {#sec-excel-histogram-example}
-
-The **Histogram** sheet counts the 674 reported 2025 risk-zone-by-variety yields in 5 bu/ac intervals. The bin table uses `COUNTIFS` to require `Year = 2025` and then apply the lower and upper yield boundaries.
-
-Select `J27:K38` and use **Insert > Column or Bar Chart > Clustered Column**. Set **Gap Width** close to zero if you want the columns to touch like conventional histogram bins.
-
-The eleven bin counts add to 674 and cover yields from 18.0 to 69.0 bu/ac. The tallest interval is 45 to 50 bu/ac, with 222 reported rows.
-
-You can also create Excel's automatic histogram by filtering **Canola records** to 2025, selecting the visible `Yield` values and using **Insert > Insert Statistic Chart > Histogram**. Right-click the horizontal axis, choose **Format Axis**, and set **Bin width** to `5`. The formula table is preferable when the Excel and R examples must use identical boundaries.
-
-Use `Reported 2025 canola yields (5 bu/ac bins)` as the title. Label the vertical axis `Reported risk-zone-by-variety rows` so readers do not mistake the bars for farms, fields or provincial varieties.
-
-## Resize, copy and export {#sec-excel-chart-export}
-
-Drag a corner handle to resize a selected chart without distorting it. Leave enough room for the title, labels and tick marks, and check the chart at the size it will occupy in the report.
-
-Copying a chart into Word or PowerPoint provides several paste options. **Picture** or **Paste Special > Picture (PNG)** fixes its appearance. A linked chart can update from Excel but can break when the workbook and document are moved or shared separately.
-
-Desktop Excel also provides **Save as Picture** from a chart's right-click menu. Before exporting, compare at least one plotted value with its source cell and check the title, source range, axis bounds, units, missing-value treatment and number of observations.
+- **Chart a small summary table, not the raw data.** The charts in this chapter draw on small summary tables, not the thirteen thousand source rows. Formatting that block as a Table (**Ctrl+T**; **Cmd+T** on a Mac) makes the chart pick up new rows automatically when the table grows.
