@@ -325,18 +325,18 @@ variety_yields |>
   ggplot(aes(x = year, y = acres, colour = variety)) +   # one line per variety
   geom_line(linewidth = 1) +
   scale_y_continuous(labels = scales::comma, limits = c(0, NA)) +
-  labs(title = "Copeland's acres are falling in risk zone 1; Synergy's are rising",
+  labs(title = "Acres planted with Synergy and Copeland in risk zone 1",
        x = "Year", y = "Acres", colour = NULL) +
-  theme_classic(base_size = 13)
+  theme_classic(base_size = 13) 
 ```
 
 Breaking down what changed:
 
 1. `%in%` keeps a row when `variety` matches either name in the list, where `==` could match only one *then*
-2. `colour = variety` is now *inside* `aes()`, so colour carries information: each variety gets its own colour and its own line.  When we set the colour of the Synergy line ourselves, `colour = "DarkGreen"` sat *outside* `aes()`, in `geom_line()` *then*
+2. `colour = variety` is now *inside* `aes()`.  So what is in `aes()` now reads -- assign year to the x-axis, acres to the y-axis, and give each variety its own colour (i.e., its own line) *then*
 3. `colour = NULL` inside `labs()` removes the legend's title, since the variety names speak for themselves.
 
-The Excel chapter's answer to "what about all the varieties?" was a PivotChart, with the small varieties filtered out or grouped.  We can do the same grouping here, in a data step and a plotting step.  This time we want the whole province rather than one risk zone, so the data step also has to add up the acres across zones with `group_by()` and `summarise()`.  It builds the variety-year totals, works out which varieties have more than 150,000 acres over the five years -- the same threshold we used in the PivotChart filter -- and renames the rest to `"Other"`:
+Now we want to add all the varieties to our plot and to sum acreage across risk zones.  Our first challenge is to do what the PivotTable effectively did in Excel: sum the acres for each variety and year across risk zones.  
 
 ```{r}
 #| eval: true
@@ -348,28 +348,44 @@ barley_by_year <- variety_yields |>
   group_by(variety, year) |>
   summarise(acres = sum(acres, na.rm = TRUE), .groups = "drop")
 
-# Which varieties have more than 150,000 acres over the five years?
-big_varieties <- barley_by_year |>
-  group_by(variety) |>
-  summarise(total_acres = sum(acres)) |>
-  filter(total_acres > 150000)
-
-big_varieties
-
-# Group everything else into "Other" and re-total
-main_varieties <- barley_by_year |>
-  mutate(variety = if_else(variety %in% big_varieties$variety,
-                           variety, "Other")) |>
-  group_by(variety, year) |>
-  summarise(acres = sum(acres), .groups = "drop")
+barley_by_year
 ')
 ```
 
-Reading the data step line by line:
 
-1. Take the risk-zone records, keep the barley rows, and total the acres for each variety in each year -- `group_by(variety, year)` with `summarise()` collapses the risk zones into provincial totals *then*
-2. Total each variety's acres across the five years, and keep the varieties over 150,000 acres *then*
-3. Use `if_else()` with `%in%` to rename every other variety to `"Other"`, and re-total so `"Other"` is one line rather than fifty.
+
+This gives us one row per variety per year, but a chart with every variety would still have too many lines.  As we did for the pie chart, we want to group the small varieties into an "Other" category.  This time a variety's size is its total acres across all five years, so we need to calculate that total before we can rename anything.  
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+##First get the total acreage of each variety across all risk zones and years
+barley_variety_yields <- variety_yields |>
+  filter(crop == "Barley") |>
+  group_by(variety) |>
+  mutate(total_acres = sum(acres, na.rm = TRUE)) |>
+  ungroup()
+
+## For varieties with less than 150,000 acres across all years, rename them to "Other"
+barley_variety_yields <- barley_variety_yields |>
+    mutate(variety = if_else(total_acres<150000, "Other", variety))
+
+# Total acres for each variety and year
+barley_by_year <- barley_variety_yields |>
+  group_by(variety, year) |>
+  summarise(acres = sum(acres, na.rm = TRUE)) |>
+  ungroup()
+')
+```
+
+Reading this code line by line:
+
+1. Take the barley records, group them by `variety`, and use `mutate()` to create a `total_acres` column holding each variety's acres summed across every zone and year.  Where `summarise()` would collapse the groups down to one row each, `mutate()` after a `group_by()` keeps every row and attaches the group total to each of them.  `ungroup()` then removes the grouping so later steps work on the whole table *then*
+2. Use `if_else()` to rename every variety whose `total_acres` is under 150,000 -- the same threshold we used in the PivotChart filter -- to `"Other"` *then*
+3. Re-total the acres by variety and year, so `"Other"` is a single line rather than fifty separate ones.
+
+
 
 Then the plotting step is the same line chart as before, with `variety` mapped to colour:
 
@@ -383,43 +399,53 @@ Then the plotting step is the same line chart as before, with `variety` mapped t
 #| fig-height: 3.8
 #| fig-cap: "Acres of the main barley varieties, 2021 to 2025."
 #| fig-alt: "Nine lines showing Copeland declining, Synergy and Austenson roughly steady, and an Other line near 300,000 acres."
-main_varieties |>
+barley_by_year |>
   ggplot(aes(x = year, y = acres, colour = variety)) +
   geom_line(linewidth = 0.9) +
   scale_y_continuous(labels = scales::comma, limits = c(0, NA)) +
   labs(title = "Acres of barley varieties in Saskatchewan",
        x = "Year", y = "Total acres", colour = NULL) +
-  theme_minimal(base_size = 13)
+  theme_classic(base_size = 13)
 ```
 
-Nine lines is about the limit for one chart, and with lines this distinct the legend works; @sec-graphing-principles covers direct labels and other ways to keep a many-line chart readable.
 
 ## Save the finished chart {#sec-saving-plots}
 
-Assigning a plot to a name makes the object passed to `ggsave()` explicit. Width and height are in inches unless another unit is supplied.
+In our code to date we have just displayed the plots in Positron.  We can also save these plots as an object and then save them to a file.  The first step is to assign the plot to a name.  This means the object is saved in memory and can be displayed again later.  
+
+We can then save that object to a file with `ggsave()`.  The first argument is the file name, and the second is the plot object.  
+
+
 
 ```{r}
 #| eval: true
 #| echo: false
 console('
-# Create the output folder if needed
-dir.create("output", showWarnings = FALSE)
+## Create plot (as above) and save it as the object variety_line_chart
+variety_line_chart <- barley_by_year |>
+  ggplot(aes(x = year, y = acres, colour = variety)) +
+  geom_line(linewidth = 0.9) +
+  scale_y_continuous(labels = scales::comma, limits = c(0, NA)) +
+  labs(title = "Acres of barley varieties in Saskatchewan",
+       x = "Year", y = "Total acres", colour = NULL) +
+  theme_classic(base_size = 13)
 
-# Save the finished bar chart
+## Visualize variety line chart by printing it in the console
+variety_line_chart
+
+# Save the finished line chart
 ggsave(
-  "output/barley_variety_bar.png",
-  plot = bar_plot,
+  "output/variety_line_chart.png",
+  plot = variety_line_chart,
   width = 6.4,
   height = 4.0,
   dpi = 300
 )
 
-# Confirm that the file was written
-file.info("output/barley_variety_bar.png")["size"]
 ')
 ```
 
-PNG works for slides and web pages. PDF preserves vector lines and text for publication. Stating the plot object, dimensions and resolution in code makes the export reproducible.
+I have chosen to save this as a PNG object by specifying the file type as `.png`. PNG works for slides and web pages. PDF preserves vector lines and text for publication. We can also alter the width, height, and quality of the image (in dpi or dots per inch).    
 
 ::: {.callout-tip collapse="true"}
 ## Other resources -- ggplot2
