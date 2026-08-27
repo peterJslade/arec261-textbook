@@ -29,7 +29,7 @@ Our first thing to do is to establish a readme file that the assistant can refer
 The common file format is a .md file.  You can write this as essentially a plain text file, denoting sections with hashtags.  For example, my first README.md is below  
 
 ```markdown
-# AREC 261 project
+# AREC 261 
 
 I am a student in AREC 261 Agricultural Data Analytics.  In this class, we
 will work with several agricultural datasets to learn concepts about data
@@ -53,26 +53,128 @@ That's it.  Save it as `README.md` at the top of your project folder, beside `da
 
 Now we can get the assistant to read our variety data and summarize it for us.  With the readme in place, the request can be short, because the standing instructions are already written down:
 
-::: {.ai-prompt}
+```text
 Read data/sask_variety_yields.csv.  Summarize its structure -- the columns, what one row represents, the years covered, and anything I should know about missing values -- and add that summary to the Datasets section of README.md.
-:::
-
-The assistant reads the file, writes a summary along these lines into the README, and every later conversation that reads it starts already knowing the dataset:
-
-```markdown
-### sask_variety_yields.csv
-
-Saskatchewan crop insurance records with one row per risk zone, crop,
-variety and year, 2021-2025.  Columns: Risk_Zone, Crop, Variety, Year,
-Acres, Yield.  13,625 rows; 4,186 have no recorded yield, mostly because
-the variety was not grown in that zone and year.
 ```
 
-Before trusting the summary, check it the same way you would check any other AI output.  The row and missing-value counts it wrote down are exactly what `glimpse()` and a `summarise()` by year report, which is where the next section starts.
+You could see in your console that the agent is actually running some R code and learning about the data.  The output of which it might paste in your chat.  For me, it created the following addition to the Readme file:   
 
-With the readme in place and the data summarized, the assistant can take on real chart work.  @fig-ai-five-variety is where a few rounds of prompting got me, starting from the many-variety line chart in @sec-graphing-r: the top five varieties by total acres with the rest grouped as Other, the legend replaced with a direct label on each line, and a subtitle stating the grouping rule.  Notice the axis runs to 2026, a year with no data -- the assistant made room for the labels that way, and whether to accept that is your call, not its.
+```markdown
+### `data/sask_variety_yields.csv`
 
-![A line chart refined with an AI assistant: direct labels, a grouped Other category, and a stated grouping rule.](images/five_variety_line_chart_1.png){#fig-ai-five-variety}
+Saskatchewan crop variety performance trial data, 13,625 rows and 6 columns. Each row is one crop variety's yield performance in a given risk (soil) zone and year.
+
+- `Risk_Zone`: numeric code (1–21) for the Saskatchewan soil/crop risk zone where the trial was conducted.
+- `Crop`: crop type (e.g. Canola/Rapeseed, Wheat - Hard Red Spring, Field Peas, Barley, Lentils, Oats, Flax), 25 distinct values.
+- `Variety`: name of the specific crop variety.
+- `Year`: trial year, ranging from 2021 to 2025.
+- `Acres`: acres of the variety grown/tested for that Crop x Variety x Risk_Zone x Year combination.
+- `Yield`: yield (units not confirmed from the file, likely bushels/acre) for that combination.
+
+Each Crop x Variety x Risk_Zone x Year combination is unique (no duplicate keys).
+
+**Missing values:** `Acres` and `Yield` are missing together in the same 4,186 rows (~31% of the data), and never missing individually. Missingness is strongly concentrated in earlier years — about 51% of rows are missing in 2021, dropping steadily to ~0.1% in 2025. This pattern suggests missingness reflects newer varieties without trial history in earlier years, rather than random data loss, but this should be confirmed with the data source before drawing conclusions.
+```
+
+[INCLUDE SCREENSHOT DROP DOWN OF WHAT I DID-- saved at ~1:25]
+
+Before trusting the summary, check it the same way you would check any other AI output.  
+
+## Now for charts
+Let's go back to the line chart we made in the previous session.  Below I have the minimal code for producting the last line chart that we created in that chapter.
+
+library(tidyverse)
+library(janitor)
+
+# Risk-zone records for all crops, varieties and years
+variety_yields <- read_csv(
+  "data/sask_variety_yields.csv",
+  show_col_types = FALSE
+) |>
+  clean_names()          # column names to lowercase
+
+
+# Total acres for each variety and year
+barley_by_year <- variety_yields |>
+  filter(crop == "Barley") |>
+  group_by(variety, year) |>
+  summarise(acres = sum(acres, na.rm = TRUE), .groups = "drop")
+
+barley_by_year
+
+##First get the total acreage of each variety across all risk zones and years
+barley_variety_yields <- variety_yields |>
+  filter(crop == "Barley") |>
+  group_by(variety) |>
+  mutate(total_acres = sum(acres, na.rm = TRUE)) |>
+  ungroup()
+
+## For varieties with less than 150,000 acres across all years, rename them to "Other"
+barley_variety_yields <- barley_variety_yields |>
+    mutate(variety = if_else(total_acres<150000, "Other", variety))
+
+# Total acres for each variety and year
+barley_by_year <- barley_variety_yields |>
+  group_by(variety, year) |>
+  summarise(acres = sum(acres, na.rm = TRUE)) |>
+  ungroup()
+
+barley_by_year |>
+  ggplot(aes(x = year, y = acres, colour = variety)) +
+  geom_line(linewidth = 0.9) +
+  scale_y_continuous(labels = scales::comma, limits = c(0, NA)) +
+  labs(title = "Acres of barley varieties in Saskatchewan",
+       x = "Year", y = "Total acres", colour = NULL) +
+  theme_classic(base_size = 13)
+
+## Create plot (as above) and save it as the object variety_line_chart
+variety_line_chart <- barley_by_year |>
+  ggplot(aes(x = year, y = acres, colour = variety)) +
+  geom_line(linewidth = 0.9) +
+  scale_y_continuous(labels = scales::comma, limits = c(0, NA)) +
+  labs(title = "Acres of barley varieties in Saskatchewan",
+       x = "Year", y = "Total acres", colour = NULL) +
+  theme_classic(base_size = 13)
+
+## Visualize variety line chart by printing it in the console
+variety_line_chart
+
+# Save the finished line chart
+ggsave(
+  "output/module_4/variety_line_chart.png",
+  plot = variety_line_chart,
+  width = 6.4,
+  height = 4.0,
+  dpi = 300
+)
+
+
+In my view the graph is OK.  But there are many ways to improve it.  My list would be:
+1. Includes only the top five varieties and an other category -- this means grouping the other varieties into the other category.
+2. Include faint gridlines at each 100,000
+3. Instead of a legend put variety names diretly in the graph
+4. The colours are a bit too bright -- use a more muted, color blind pallette
+
+These variations are all quite possible with ggplot.  BUt they are tedious work.  They type of tedious work that AI excels at.  So let's ask the assistant to do it for us.  The prompt I would use is:
+
+INSTRUCTIONS:
+Write a new script that modifies the script in module_4/ch12_02_line_graphing.R and produces a final chart that differs from the current output in four ways:
+
+Includes only the top five varieties and an other category -- this means grouping the other varieties into the other category.
+Include faint gridlines at each 100,000
+Instead of a legend put variety names diretly in the graph
+The colours are a bit too bright -- use a more muted, color blind pallette
+Call this script module_5/ch15_updated_line_graph.R
+
+PUT IN GRAPH IT PRODUCES
+
+
+
+
+
+
+
+
 
 ## A Chart Does Not Check Its Data {#sec-visual-limits}
 
@@ -171,9 +273,13 @@ A graphing request should state four things:
 
 For example:
 
-::: {.ai-prompt}
-The data frame d has columns Crop, Year, Risk_Zone, Acres and Yield. Keep recorded rows for Wheat - Hard Red Spring, Canola/Rapeseed, Barley and Oats. Calculate unweighted mean Yield by Year and Crop, then plot one line per crop. Put each crop name at the right end of its line and remove the legend. Show the summary table before the plot code.
-:::
+```text
+The data frame d has columns Crop, Year, Risk_Zone, Acres and Yield.
+Keep recorded rows for Wheat - Hard Red Spring, Canola/Rapeseed, Barley and
+Oats. Calculate unweighted mean Yield by Year and Crop, then plot one line per
+crop. Put each crop name at the right end of its line and remove the legend.
+Show the summary table before the plot code.
+```
 
 Asking for the summary table is useful. It separates the calculation from the drawing and gives you something numerical to inspect. For a workbook prompt, paste the header and several made-up rows and state which fields are categories—`Risk_Zone` is an identifier, not a quantity.
 
