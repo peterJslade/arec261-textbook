@@ -565,17 +565,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#learning-objectives" id="toc-learning-objectives" class="nav-link active" data-scroll-target="#learning-objectives">Learning Objectives</a></li>
   <li><a href="#set-up-the-readme-file" id="toc-set-up-the-readme-file" class="nav-link" data-scroll-target="#set-up-the-readme-file">Set up the readme file</a></li>
   <li><a href="#now-for-charts" id="toc-now-for-charts" class="nav-link" data-scroll-target="#now-for-charts"><span class="header-section-number">15.1</span> Now for charts</a></li>
-  <li><a href="#sec-visual-limits" id="toc-sec-visual-limits" class="nav-link" data-scroll-target="#sec-visual-limits"><span class="header-section-number">15.2</span> A Chart Does Not Check Its Data</a></li>
-  <li><a href="#sec-ai-graph-exercises" id="toc-sec-ai-graph-exercises" class="nav-link" data-scroll-target="#sec-ai-graph-exercises"><span class="header-section-number">15.3</span> The Exercises</a>
-  <ul>
-  <li><a href="#annotate-one-point" id="toc-annotate-one-point" class="nav-link" data-scroll-target="#annotate-one-point">1. Annotate one point</a></li>
-  <li><a href="#replace-a-legend-with-direct-labels" id="toc-replace-a-legend-with-direct-labels" class="nav-link" data-scroll-target="#replace-a-legend-with-direct-labels">2. Replace a legend with direct labels</a></li>
-  <li><a href="#shade-a-range-behind-a-line" id="toc-shade-a-range-behind-a-line" class="nav-link" data-scroll-target="#shade-a-range-behind-a-line">3. Shade a range behind a line</a></li>
-  <li><a href="#build-small-multiples" id="toc-build-small-multiples" class="nav-link" data-scroll-target="#build-small-multiples">4. Build small multiples</a></li>
-  <li><a href="#rebuild-a-chart-from-module-4" id="toc-rebuild-a-chart-from-module-4" class="nav-link" data-scroll-target="#rebuild-a-chart-from-module-4">5. Rebuild a chart from Module 4</a></li>
-  </ul></li>
-  <li><a href="#sec-ai-graph-prompt" id="toc-sec-ai-graph-prompt" class="nav-link" data-scroll-target="#sec-ai-graph-prompt"><span class="header-section-number">15.4</span> A Useful Prompt Structure</a></li>
-  <li><a href="#sec-ai-stuck" id="toc-sec-ai-stuck" class="nav-link" data-scroll-target="#sec-ai-stuck"><span class="header-section-number">15.5</span> When the Assistant Gets Stuck</a></li>
+  <li><a href="#building-a-graph-from-scratch" id="toc-building-a-graph-from-scratch" class="nav-link" data-scroll-target="#building-a-graph-from-scratch"><span class="header-section-number">15.2</span> Building a graph from scratch</a></li>
+  <li><a href="#prompting-ai" id="toc-prompting-ai" class="nav-link" data-scroll-target="#prompting-ai"><span class="header-section-number">15.3</span> Prompting AI</a></li>
   </ul>
 </nav>
     </div>
@@ -603,16 +594,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <p>Graphing is a good place to begin using AI assistance. <code>ggplot2</code> is a great package, but details such as annotations, direct labels and axis breaks require arguments that are easy to forget and somewhat difficult to implement – for example, getting text in just the right place can take trial and error. An assistant can draft that syntax quickly.</p>
 <p>It is also fairly easy to verify the work an AI assistant does on a chart. If you make the raw chart yourself, then you only need to verify that the aesthetics of the graph have been updated correctly, which can be seen visually as opposed to through the code.</p>
-<p>These exercises use R because ggplot2 code is text that an assistant can draft and you can inspect. Copilot inside Excel is a separately licensed product and is not unlocked by GitHub Copilot. A browser assistant can suggest Excel steps if you provide headers and made-up rows, but you must carry out and verify the clicks yourself.</p>
+<p>This chapter works in R with an assistant in Positron, in three stages: setting up a README the assistant can rely on, iterating on a chart we built ourselves, and then handing the assistant a whole task, from download to report.</p>
 <section id="learning-objectives" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="learning-objectives">Learning Objectives</h2>
 <div class="objectives">
 <p>By the end of this chapter you should be able to:</p>
 <ol type="1">
-<li>Ask an AI assistant for <code>ggplot2</code> code using the actual structure of a dataset.</li>
-<li>Check the data supplied to an AI-produced chart.</li>
-<li>Check the marks, labels, groups and scales drawn by the chart.</li>
-<li>Recognize when repeated prompting is no longer improving the result.</li>
+<li>Set up a README file that gives an assistant standing context for a project.</li>
+<li>Improve a chart by iterating with an assistant, one round of specific feedback at a time.</li>
+<li>Hand an assistant a complete task – download, analysis, chart and report – and review each piece it produces.</li>
+<li>Write prompts that state the outcome, the context and the deliverables.</li>
+<li>Verify agentic work: its data, its code and its departures from your instructions.</li>
 </ol>
 </div>
 </section>
@@ -784,143 +776,326 @@ Figure&nbsp;15.3: The second iteration: no subtitle, proper-case labels, a trimm
 </figcaption>
 </figure>
 </div>
-</section>
-<section id="sec-visual-limits" class="level2" data-number="15.2">
-<h2 data-number="15.2" class="anchored" data-anchor-id="sec-visual-limits"><span class="header-section-number">15.2</span> A Chart Does Not Check Its Data</h2>
-<p>A chart can show whether the drawing is wrong. It cannot show whether the wrong rows were supplied to it.</p>
-<p>A clean chart of 2024 is still wrong when the question asked about 2025. Code that removes every row with missing acreage may also create a convincing figure while changing the population being described.</p>
-<p>Check both sides of the plot:</p>
-<ol type="1">
-<li>Before plotting, inspect the number of rows, groups, missing values and numerical ranges.</li>
-<li>After plotting, inspect the marks, labels, axes and panels.</li>
-</ol>
-<p>The synthetic teaching file contains one row for a variety in a risk zone and year. Its rectangular layout includes combinations with no acreage and yield, often because that variety is absent from that zone-year. Consequently, comparisons across years also compare changing sets of varieties. The file has 13,625 rows, including 4,186 with no recorded yield. Inspect the counts before drawing the figure:</p>
-<div class="cell">
-<div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressPackageStartupMessages</span>(<span class="fu">library</span>(tidyverse))</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"practice/data/sask_variety_yields.csv"</span>,</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">show_col_types =</span> <span class="cn">FALSE</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(d)</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>d <span class="sc">|&gt;</span></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">rows =</span> <span class="fu">n</span>(),</span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">missing_yield =</span> <span class="fu">sum</span>(<span class="fu">is.na</span>(Yield)),</span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">.by =</span> Year</span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="console-transcript">
-<pre><code>&gt; suppressPackageStartupMessages(library(tidyverse))
-&gt; 
-&gt; d &lt;- read_csv(
-+   "practice/data/sask_variety_yields.csv",
-+   show_col_types = FALSE
-+ )
-&gt; 
-&gt; glimpse(d)
-Rows: 13,625
-Columns: 6
-$ Risk_Zone &lt;dbl&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, …
-$ Crop      &lt;chr&gt; "Barley", "Barley", "Barley", "Barley", "Barley", "Barley", …
-$ Variety   &lt;chr&gt; "ALTORADO", "ALTORADO", "ALTORADO", "ALTORADO", "ALTORADO", …
-$ Year      &lt;dbl&gt; 2021, 2022, 2023, 2024, 2025, 2021, 2022, 2023, 2024, 2025, …
-$ Acres     &lt;dbl&gt; NA, NA, NA, 505, 780, 5965, 5057, 5042, 4060, 3212, NA, NA, …
-$ Yield     &lt;dbl&gt; NA, NA, NA, 65.9, 77.2, 59.9, 76.4, 68.2, 80.9, 86.9, NA, NA…
-&gt; 
-&gt; d |&gt;
-+   summarise(
-+     rows = n(),
-+     missing_yield = sum(is.na(Yield)),
-+     .by = Year
-+   )
-# A tibble: 5 × 3
-   Year  rows missing_yield
-  &lt;dbl&gt; &lt;int&gt;         &lt;int&gt;
-1  2021  2725          1380
-2  2022  2725          1206
-3  2023  2725           929
-4  2024  2725           668
-5  2025  2725             3</code></pre>
+<p>I’m still not a huge fan of the colour palette. And the direct labels are not quite straight. I’ll ask for two more changes:</p>
+<div class="ai-prompt">
+<p>Almost perfect! Make sure the labels are all aligned left – right now they are almost exactly in the right place, but they are not all aligned. And use the Okabe-Ito colour palette, avoiding the yellow.</p>
 </div>
-</div>
-</div>
-<div class="cell">
-<div class="cell-output-display">
-<div id="fig-missing" class="quarto-float quarto-figure quarto-figure-center anchored">
+<p>Here is my final result:</p>
+<div id="fig-ai-five-variety-3" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-missing-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="module05c_files/figure-html/fig-missing-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;15.4: Rows with and without a recorded yield, by year."><img src="module05c_files/figure-html/fig-missing-1.png" class="img-fluid figure-img" width="480"></a>
+<div aria-describedby="fig-ai-five-variety-3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="images/five_variety_line_chart_3.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;15.4: The third iteration: left-aligned labels and the Okabe-Ito colour-blind-friendly palette."><img src="images/five_variety_line_chart_3.png" class="img-fluid figure-img"></a>
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-missing-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;15.4: Rows with and without a recorded yield, by year.
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ai-five-variety-3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;15.4: The third iteration: left-aligned labels and the Okabe-Ito colour-blind-friendly palette.
 </figcaption>
 </figure>
 </div>
-</div>
-</div>
-<p>About half the 2021 rows have no yield, while almost all 2025 rows have one. A trend therefore reflects turnover in the varieties represented as well as changes in yield. In Excel, a PivotTable with Year in Rows and both Count of Variety and Count of Yield in Values provides the same check.</p>
-</section>
-<section id="sec-ai-graph-exercises" class="level2" data-number="15.3">
-<h2 data-number="15.3" class="anchored" data-anchor-id="sec-ai-graph-exercises"><span class="header-section-number">15.3</span> The Exercises</h2>
-<p>All five exercises use <a href="practice/data/sask_variety_yields.csv"><code>sask_variety_yields.csv</code></a>. Its columns are <code>Risk_Zone</code>, <code>Crop</code>, <code>Variety</code>, <code>Year</code>, <code>Acres</code> and <code>Yield</code>.</p>
-<p>Work in Positron with an assistant connected. For each exercise, describe the result, read the proposed code, run it and complete the checks. When the draft is wrong, tell the assistant what is wrong rather than asking it to produce the same chart again.</p>
-<section id="annotate-one-point" class="level3 unnumbered">
-<h3 class="unnumbered anchored" data-anchor-id="annotate-one-point">1. Annotate one point</h3>
-<p>Plot the unweighted mean yield by year for <code>Crop == "Wheat - Hard Red Spring"</code>. Add a note with an arrow pointing to 2021 and identify it as a drought year; that label comes from outside weather knowledge, while the file itself shows only a low-yield year.</p>
-<p><strong>Checks:</strong> Does the arrow point to 2021? Is the note inside the plotting area? Which <code>Crop</code> value did the code filter? How many recorded yields contribute to each annual point? Is the mean weighted or unweighted, and is that what you intended?</p>
-</section>
-<section id="replace-a-legend-with-direct-labels" class="level3 unnumbered">
-<h3 class="unnumbered anchored" data-anchor-id="replace-a-legend-with-direct-labels">2. Replace a legend with direct labels</h3>
-<p>Plot average yield by year for <code>Wheat - Hard Red Spring</code>, <code>Canola/Rapeseed</code>, <code>Barley</code> and <code>Oats</code>. Put each crop name beside the right end of its line and remove the legend.</p>
-<p><strong>Checks:</strong> Are all four labels present and beside the correct line? Has a label been clipped at the panel edge? Can the series still be distinguished when printed in grey?</p>
-</section>
-<section id="shade-a-range-behind-a-line" class="level3 unnumbered">
-<h3 class="unnumbered anchored" data-anchor-id="shade-a-range-behind-a-line">3. Shade a range behind a line</h3>
-<p>Plot average <code>Wheat - Hard Red Spring</code> yield by year and add a <code>geom_ribbon()</code> band showing the range across risk-zone means. Summarize first by zone-year and then by year; draw the ribbon before the line so it sits behind it.</p>
-<p><strong>Checks:</strong> Does the band contain the mean line in every year? Is it drawn behind the line? Do the axis limits include it? How many recorded yields sit behind each zone-year mean?</p>
-</section>
-<section id="build-small-multiples" class="level3 unnumbered">
-<h3 class="unnumbered anchored" data-anchor-id="build-small-multiples">4. Build small multiples</h3>
-<p>Find the six crops with the greatest total acreage. Make one panel per crop showing average yield over time.</p>
-<p><strong>Checks:</strong> Print the acreage ranking used by the code. Were missing acres excluded or treated as zero? Are any selected categories sub-classes of another, such as Lentils and Lentils - Red? Are there exactly six panels? Decide whether the default shared scale or <code>scales = "free_y"</code> better answers the question.</p>
-</section>
-<section id="rebuild-a-chart-from-module-4" class="level3 unnumbered">
-<h3 class="unnumbered anchored" data-anchor-id="rebuild-a-chart-from-module-4">5. Rebuild a chart from Module 4</h3>
-<p>Choose a figure from <a href="module04a.html#sec-chart-types" class="quarto-xref"><span>Section 10.2</span></a> and reproduce it using only the description in the text. Do not open <code>R/chart_types.R</code> until the new version is finished. Then compare the two scripts and figures.</p>
-<p><strong>Checks:</strong> Compare the pre-plot summary, aesthetic mappings and geoms; ignore differences that are only theme or colour. Does each figure make the same comparison? Is either version clearer at the size used in the book?</p>
-</section>
-</section>
-<section id="sec-ai-graph-prompt" class="level2" data-number="15.4">
-<h2 data-number="15.4" class="anchored" data-anchor-id="sec-ai-graph-prompt"><span class="header-section-number">15.4</span> A Useful Prompt Structure</h2>
-<p>A graphing request should state four things:</p>
-<ul>
-<li>the data frame and relevant columns;</li>
-<li>the rows or groups to include;</li>
-<li>the calculation required before plotting;</li>
-<li>the chart form and the specific design change needed.</li>
-</ul>
-<p>For example:</p>
-<div class="ai-prompt">
-<p>The data frame d has columns Crop, Year, Risk_Zone, Acres and Yield. Keep recorded rows for Wheat - Hard Red Spring, Canola/Rapeseed, Barley and Oats. Calculate unweighted mean Yield by Year and Crop, then plot one line per crop. Put each crop name at the right end of its line and remove the legend. Show the summary table before the plot code.</p>
-</div>
-<p>Asking for the summary table is useful. It separates the calculation from the drawing and gives you something numerical to inspect. For a workbook prompt, paste the header and several made-up rows and state which fields are categories—<code>Risk_Zone</code> is an identifier, not a quantity.</p>
-</section>
-<section id="sec-ai-stuck" class="level2" data-number="15.5">
-<h2 data-number="15.5" class="anchored" data-anchor-id="sec-ai-stuck"><span class="header-section-number">15.5</span> When the Assistant Gets Stuck</h2>
-<p>An assistant may repeat the same failed fix after each error report. Repeating the same symptom can return the same approach.</p>
-<p>Try one of these instead:</p>
-<ul>
-<li><strong>Change the description.</strong> Restate the desired result rather than repeating the symptom.</li>
-<li><strong>Ask for an explanation.</strong> Understanding the error may reveal a one-line correction.</li>
-<li><strong>Reduce the problem.</strong> Remove extra layers until the basic plot works, then add them back one at a time.</li>
-<li><strong>Start a fresh chat.</strong> A conversation built around a mistaken approach can keep returning to it.</li>
-</ul>
-<p>When those fail, use the package documentation or a worked example. The assistant is one route to the syntax, not the authority on it.</p>
-<div class="callout callout-style-default callout-tip callout-titled">
+<p>Importantly, the work of the AI is clearly documented in the code that it produced. Because this is a graph, my standards for going through the code line-by-line are a bit more lax. I can see the data has not changed from my first graph, and the generated code only pertains to the aesthetics of the graph.</p>
+<div class="callout callout-style-default callout-note callout-titled" title="The script the assistant produced: code/module_5/ch15_updated_line_graph.R">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>The script the assistant produced: code/module_5/ch15_updated_line_graph.R
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(janitor)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Risk-zone records for all crops, varieties and years</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>variety_yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"data/sask_variety_yields.csv"</span>,</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">show_col_types =</span> <span class="cn">FALSE</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">clean_names</span>()          <span class="co"># column names to lowercase</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="do">## First get the total acreage of each barley variety across all risk zones and years</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>barley_variety_yields <span class="ot">&lt;-</span> variety_yields <span class="sc">|&gt;</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(crop <span class="sc">==</span> <span class="st">"Barley"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(variety) <span class="sc">|&gt;</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">total_acres =</span> <span class="fu">sum</span>(acres, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Identify the top five varieties by total acres; everyone else becomes "Other"</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>top_five_varieties <span class="ot">&lt;-</span> barley_variety_yields <span class="sc">|&gt;</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(variety, total_acres) <span class="sc">|&gt;</span></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_max</span>(total_acres, <span class="at">n =</span> <span class="dv">5</span>) <span class="sc">|&gt;</span></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(variety)</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>barley_variety_yields <span class="ot">&lt;-</span> barley_variety_yields <span class="sc">|&gt;</span></span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">variety =</span> <span class="fu">if_else</span>(variety <span class="sc">%in%</span> top_five_varieties, variety, <span class="st">"Other"</span>))</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a><span class="co"># Recase variety names (e.g. "SYNERGY AAC" -&gt; "Synergy AAC"), keeping short</span></span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a><span class="co"># all-caps breeding-program codes (AAC, CDC, AC) in upper case</span></span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>recase_variety <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>  words <span class="ot">&lt;-</span> <span class="fu">str_split</span>(x, <span class="st">" "</span>)</span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">map_chr</span>(words, <span class="cf">function</span>(w) {</span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>    w <span class="sc">|&gt;</span></span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>      <span class="fu">str_to_title</span>() <span class="sc">|&gt;</span></span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>      (\(w2) <span class="fu">if_else</span>(<span class="fu">str_length</span>(w) <span class="sc">&lt;=</span> <span class="dv">3</span> <span class="sc">&amp;</span> w <span class="sc">==</span> <span class="fu">str_to_upper</span>(w), <span class="fu">str_to_upper</span>(w), w2))() <span class="sc">|&gt;</span></span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>      <span class="fu">paste</span>(<span class="at">collapse =</span> <span class="st">" "</span>)</span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>barley_variety_yields <span class="ot">&lt;-</span> barley_variety_yields <span class="sc">|&gt;</span></span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">variety =</span> <span class="fu">recase_variety</span>(variety))</span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a><span class="co"># Total acres for each variety (including "Other") and year</span></span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a>barley_by_year <span class="ot">&lt;-</span> barley_variety_yields <span class="sc">|&gt;</span></span>
+<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(variety, year) <span class="sc">|&gt;</span></span>
+<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">acres =</span> <span class="fu">sum</span>(acres, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">"drop"</span>)</span>
+<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a><span class="co"># Labels are placed at each line's final year, to replace the legend</span></span>
+<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a>label_data <span class="ot">&lt;-</span> barley_by_year <span class="sc">|&gt;</span></span>
+<span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(year <span class="sc">==</span> <span class="fu">max</span>(year))</span>
+<span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-51"><a href="#cb4-51" aria-hidden="true" tabindex="-1"></a><span class="do">## Create the output folder for this module if needed</span></span>
+<span id="cb4-52"><a href="#cb4-52" aria-hidden="true" tabindex="-1"></a><span class="fu">dir.create</span>(<span class="st">"output/module_5"</span>, <span class="at">recursive =</span> <span class="cn">TRUE</span>, <span class="at">showWarnings =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb4-53"><a href="#cb4-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-54"><a href="#cb4-54" aria-hidden="true" tabindex="-1"></a>variety_line_chart <span class="ot">&lt;-</span> barley_by_year <span class="sc">|&gt;</span></span>
+<span id="cb4-55"><a href="#cb4-55" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> year, <span class="at">y =</span> acres, <span class="at">colour =</span> variety)) <span class="sc">+</span></span>
+<span id="cb4-56"><a href="#cb4-56" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="fl">0.9</span>) <span class="sc">+</span></span>
+<span id="cb4-57"><a href="#cb4-57" aria-hidden="true" tabindex="-1"></a>  <span class="co"># geom_text (not geom_text_repel) with a fixed x guarantees every</span></span>
+<span id="cb4-58"><a href="#cb4-58" aria-hidden="true" tabindex="-1"></a>  <span class="co"># label's left edge lines up, since ggrepel can override hjust</span></span>
+<span id="cb4-59"><a href="#cb4-59" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(</span>
+<span id="cb4-60"><a href="#cb4-60" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> label_data,</span>
+<span id="cb4-61"><a href="#cb4-61" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">label =</span> variety, <span class="at">x =</span> <span class="fl">2025.15</span>),</span>
+<span id="cb4-62"><a href="#cb4-62" aria-hidden="true" tabindex="-1"></a>    <span class="at">hjust =</span> <span class="dv">0</span>,</span>
+<span id="cb4-63"><a href="#cb4-63" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="fl">3.5</span>,</span>
+<span id="cb4-64"><a href="#cb4-64" aria-hidden="true" tabindex="-1"></a>    <span class="at">fontface =</span> <span class="st">"bold"</span>,</span>
+<span id="cb4-65"><a href="#cb4-65" aria-hidden="true" tabindex="-1"></a>    <span class="at">show.legend =</span> <span class="cn">FALSE</span></span>
+<span id="cb4-66"><a href="#cb4-66" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb4-67"><a href="#cb4-67" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Okabe-Ito colour-blind-friendly palette, replacing yellow (#F0E442) and</span></span>
+<span id="cb4-68"><a href="#cb4-68" aria-hidden="true" tabindex="-1"></a>  <span class="co"># orange (#E69F00) since orange reads as yellow at this size</span></span>
+<span id="cb4-69"><a href="#cb4-69" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_colour_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(</span>
+<span id="cb4-70"><a href="#cb4-70" aria-hidden="true" tabindex="-1"></a>    <span class="st">"#000000"</span>, <span class="st">"#56B4E9"</span>, <span class="st">"#009E73"</span>, <span class="st">"#0072B2"</span>, <span class="st">"#D55E00"</span>, <span class="st">"#CC79A7"</span></span>
+<span id="cb4-71"><a href="#cb4-71" aria-hidden="true" tabindex="-1"></a>  )) <span class="sc">+</span></span>
+<span id="cb4-72"><a href="#cb4-72" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(</span>
+<span id="cb4-73"><a href="#cb4-73" aria-hidden="true" tabindex="-1"></a>    <span class="at">labels =</span> scales<span class="sc">::</span>comma,</span>
+<span id="cb4-74"><a href="#cb4-74" aria-hidden="true" tabindex="-1"></a>    <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="cn">NA</span>),</span>
+<span id="cb4-75"><a href="#cb4-75" aria-hidden="true" tabindex="-1"></a>    <span class="at">breaks =</span> scales<span class="sc">::</span><span class="fu">breaks_width</span>(<span class="dv">100000</span>)</span>
+<span id="cb4-76"><a href="#cb4-76" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb4-77"><a href="#cb4-77" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Give labels room to the right of the last data point without cutting them off</span></span>
+<span id="cb4-78"><a href="#cb4-78" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(</span>
+<span id="cb4-79"><a href="#cb4-79" aria-hidden="true" tabindex="-1"></a>    <span class="at">breaks =</span> <span class="fu">unique</span>(barley_by_year<span class="sc">$</span>year),</span>
+<span id="cb4-80"><a href="#cb4-80" aria-hidden="true" tabindex="-1"></a>    <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="fl">0.02</span>, <span class="fl">0.28</span>))</span>
+<span id="cb4-81"><a href="#cb4-81" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb4-82"><a href="#cb4-82" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_cartesian</span>(<span class="at">clip =</span> <span class="st">"off"</span>) <span class="sc">+</span></span>
+<span id="cb4-83"><a href="#cb4-83" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb4-84"><a href="#cb4-84" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Acres of barley varieties grown in Saskatchewan, 2021-2025"</span>,</span>
+<span id="cb4-85"><a href="#cb4-85" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Year"</span>, <span class="at">y =</span> <span class="st">"Total acres"</span></span>
+<span id="cb4-86"><a href="#cb4-86" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb4-87"><a href="#cb4-87" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">13</span>) <span class="sc">+</span></span>
+<span id="cb4-88"><a href="#cb4-88" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb4-89"><a href="#cb4-89" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"none"</span>,</span>
+<span id="cb4-90"><a href="#cb4-90" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid.major.y =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">"grey85"</span>, <span class="at">linewidth =</span> <span class="fl">0.3</span>),</span>
+<span id="cb4-91"><a href="#cb4-91" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="fl">5.5</span>, <span class="at">r =</span> <span class="dv">40</span>, <span class="at">b =</span> <span class="fl">5.5</span>, <span class="at">l =</span> <span class="fl">5.5</span>)</span>
+<span id="cb4-92"><a href="#cb4-92" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb4-93"><a href="#cb4-93" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-94"><a href="#cb4-94" aria-hidden="true" tabindex="-1"></a><span class="do">## Visualize variety line chart by printing it in the console</span></span>
+<span id="cb4-95"><a href="#cb4-95" aria-hidden="true" tabindex="-1"></a>variety_line_chart</span>
+<span id="cb4-96"><a href="#cb4-96" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-97"><a href="#cb4-97" aria-hidden="true" tabindex="-1"></a><span class="co"># Save the finished line chart</span></span>
+<span id="cb4-98"><a href="#cb4-98" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(</span>
+<span id="cb4-99"><a href="#cb4-99" aria-hidden="true" tabindex="-1"></a>  <span class="st">"output/module_5/five_variety_line_chart.png"</span>,</span>
+<span id="cb4-100"><a href="#cb4-100" aria-hidden="true" tabindex="-1"></a>  <span class="at">plot =</span> variety_line_chart,</span>
+<span id="cb4-101"><a href="#cb4-101" aria-hidden="true" tabindex="-1"></a>  <span class="at">width =</span> <span class="fl">7.2</span>,</span>
+<span id="cb4-102"><a href="#cb4-102" aria-hidden="true" tabindex="-1"></a>  <span class="at">height =</span> <span class="fl">4.0</span>,</span>
+<span id="cb4-103"><a href="#cb4-103" aria-hidden="true" tabindex="-1"></a>  <span class="at">dpi =</span> <span class="dv">300</span></span>
+<span id="cb4-104"><a href="#cb4-104" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+</div>
+</section>
+<section id="building-a-graph-from-scratch" class="level2" data-number="15.2">
+<h2 data-number="15.2" class="anchored" data-anchor-id="building-a-graph-from-scratch"><span class="header-section-number">15.2</span> Building a graph from scratch</h2>
+<p>In the previous example, I asked an AI agent to perfect a graph I had already built. But we can ask AI to do much more – download data, analyze the data, output results, and build reports.</p>
+<p>In this example, I will ask the AI to download data on nitrogen fertilizer prices from Statistics Canada from 2018 to present. It should create a graph and on the graph include the text that points to the date of the Russian invasion of Ukraine. It should then write a quick report saying where it obtained the data, what the data is, and what the graph shows.</p>
+<div class="ai-prompt">
+<p>Download the nitrogen fertilizer price index from Statistics Canada (Table 18-10-0258-01) using the cansim package. Analyze the data in R. Create a graph showing how prices have changed over time and annotate the date of the Russian invasion of Ukraine. Write a short report describing the data source, what the data measure, and the main pattern shown in the graph. The audience for the report is just myself, so that I can verify what you have done. But I will later embed the chart in a report. Save everything needed to reproduce the analysis in this project.</p>
+</div>
+<p>The agent downloaded the table, saved a local copy of the extracted series into <code>data/</code>, and produced the chart, a script and a report.</p>
+<div id="fig-nitrogen-chart" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-nitrogen-chart-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="images/nitrogen_fertilizer_price_index_1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure&nbsp;15.5: The chart the agent produced from a single instruction."><img src="images/nitrogen_fertilizer_price_index_1.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-nitrogen-chart-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;15.5: The chart the agent produced from a single instruction.
+</figcaption>
+</figure>
+</div>
+<p>Two things are worth checking against my instructions. I asked for 2018 to present; the agent plotted the whole series back to 2002. The longer window arguably makes a better chart, but the departure from the instruction is the kind of thing you only find by looking. And in the report below, the agent itself flags that fertilizer prices were rising well before the invasion, so the annotation marks a date, not a cause – exactly the caution <span class="quarto-unresolved-ref">?sec-caveats</span> asks for in your own writing.</p>
+<div class="callout callout-style-default callout-note callout-titled" title="The script: code/module_5/ch16_nitrogen_fertilizer_price.R">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>The script: code/module_5/ch16_nitrogen_fertilizer_price.R
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># AREC 261 - Nitrogen fertilizer price index</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Downloads StatCan Table 18-10-0258-01 (Farm input price index) via the</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># cansim package, extracts the "Nitrogen fertilizers" series for Canada,</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co"># and plots how the index has changed over time, annotating the date of</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Russia's invasion of Ukraine (2022-02-24).</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="co"># A local copy of the extracted series is saved to data/ so the analysis</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="co"># can be re-run without re-downloading from StatCan.</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(cansim)</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="do">## ---- Download data ---------------------------------------------------</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="co"># get_cansim() caches the table locally after the first download, so</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a><span class="co"># re-running this script will not repeatedly hit the StatCan API</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>raw_data <span class="ot">&lt;-</span> <span class="fu">get_cansim</span>(<span class="st">"18-10-0258-01"</span>)</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Farm Input Price Index, "Nitrogen fertilizers" component, Canada-level</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>nitrogen_prices <span class="ot">&lt;-</span> raw_data <span class="sc">|&gt;</span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(GEO <span class="sc">==</span> <span class="st">"Canada"</span>, <span class="st">`</span><span class="at">Price index</span><span class="st">`</span> <span class="sc">==</span> <span class="st">"Nitrogen fertilizers"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="at">date =</span> Date, <span class="at">price_index =</span> VALUE, <span class="at">uom =</span> UOM) <span class="sc">|&gt;</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(date)</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a><span class="co"># Save a local copy so the rest of this script (and future sessions) can</span></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a><span class="co"># reproduce the analysis without re-downloading from StatCan</span></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a><span class="fu">write_csv</span>(nitrogen_prices, <span class="st">"data/nitrogen_fertilizer_price_index.csv"</span>)</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a><span class="do">## ---- Plot --------------------------------------------------------------</span></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>invasion_date <span class="ot">&lt;-</span> <span class="fu">as.Date</span>(<span class="st">"2022-02-24"</span>)</span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a><span class="fu">dir.create</span>(<span class="st">"output/module_5"</span>, <span class="at">recursive =</span> <span class="cn">TRUE</span>, <span class="at">showWarnings =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>nitrogen_price_chart <span class="ot">&lt;-</span> nitrogen_prices <span class="sc">|&gt;</span></span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> date, <span class="at">y =</span> price_index)) <span class="sc">+</span></span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="fl">0.9</span>, <span class="at">colour =</span> <span class="st">"#0072B2"</span>) <span class="sc">+</span></span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(</span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>    <span class="at">xintercept =</span> invasion_date,</span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>    <span class="at">linetype =</span> <span class="st">"dashed"</span>,</span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> <span class="st">"grey30"</span></span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(</span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a>    <span class="st">"text"</span>,</span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> invasion_date <span class="sc">+</span> <span class="dv">120</span>,</span>
+<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="fu">max</span>(nitrogen_prices<span class="sc">$</span>price_index, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a>    <span class="at">label =</span> <span class="st">"Russian invasion</span><span class="sc">\n</span><span class="st">of Ukraine</span><span class="sc">\n</span><span class="st">(Feb 2022)"</span>,</span>
+<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a>    <span class="at">hjust =</span> <span class="dv">0</span>,</span>
+<span id="cb5-50"><a href="#cb5-50" aria-hidden="true" tabindex="-1"></a>    <span class="at">vjust =</span> <span class="dv">1</span>,</span>
+<span id="cb5-51"><a href="#cb5-51" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="fl">3.3</span>,</span>
+<span id="cb5-52"><a href="#cb5-52" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> <span class="st">"grey30"</span></span>
+<span id="cb5-53"><a href="#cb5-53" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb5-54"><a href="#cb5-54" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_date</span>(<span class="at">date_breaks =</span> <span class="st">"2 years"</span>, <span class="at">date_labels =</span> <span class="st">"%Y"</span>) <span class="sc">+</span></span>
+<span id="cb5-55"><a href="#cb5-55" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb5-56"><a href="#cb5-56" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Nitrogen fertilizer price index, Canada"</span>,</span>
+<span id="cb5-57"><a href="#cb5-57" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Farm Input Price Index, quarterly, 2012 = 100"</span>,</span>
+<span id="cb5-58"><a href="#cb5-58" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Date"</span>,</span>
+<span id="cb5-59"><a href="#cb5-59" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Price index (2012 = 100)"</span>,</span>
+<span id="cb5-60"><a href="#cb5-60" aria-hidden="true" tabindex="-1"></a>    <span class="at">caption =</span> <span class="st">"Source: Statistics Canada, Table 18-10-0258-01"</span></span>
+<span id="cb5-61"><a href="#cb5-61" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb5-62"><a href="#cb5-62" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">13</span>) <span class="sc">+</span></span>
+<span id="cb5-63"><a href="#cb5-63" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">panel.grid.major.y =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">"grey90"</span>, <span class="at">linewidth =</span> <span class="fl">0.3</span>))</span>
+<span id="cb5-64"><a href="#cb5-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-65"><a href="#cb5-65" aria-hidden="true" tabindex="-1"></a>nitrogen_price_chart</span>
+<span id="cb5-66"><a href="#cb5-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-67"><a href="#cb5-67" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(</span>
+<span id="cb5-68"><a href="#cb5-68" aria-hidden="true" tabindex="-1"></a>  <span class="st">"output/module_5/nitrogen_fertilizer_price_index.png"</span>,</span>
+<span id="cb5-69"><a href="#cb5-69" aria-hidden="true" tabindex="-1"></a>  <span class="at">plot =</span> nitrogen_price_chart,</span>
+<span id="cb5-70"><a href="#cb5-70" aria-hidden="true" tabindex="-1"></a>  <span class="at">width =</span> <span class="fl">7.5</span>,</span>
+<span id="cb5-71"><a href="#cb5-71" aria-hidden="true" tabindex="-1"></a>  <span class="at">height =</span> <span class="fl">4.5</span>,</span>
+<span id="cb5-72"><a href="#cb5-72" aria-hidden="true" tabindex="-1"></a>  <span class="at">dpi =</span> <span class="dv">300</span></span>
+<span id="cb5-73"><a href="#cb5-73" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled" title="The report: output/module_5/nitrogen_fertilizer_price_report.md">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>The report: output/module_5/nitrogen_fertilizer_price_report.md
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu"># Nitrogen fertilizer price index — verification notes</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">## Data source</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>Statistics Canada, Table 18-10-0258-01, "Farm input price index" (formerly</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>CANSIM 002-0022), downloaded programmatically with the <span class="in">`cansim`</span> R package</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>(<span class="in">`get_cansim("18-10-0258-01")`</span>). Reproduced with</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">code/module_5/ch16_nitrogen_fertilizer_price.R</span><span class="co">](../../code/module_5/ch16_nitrogen_fertilizer_price.R)</span>.</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>A local snapshot of the extracted series is saved at</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">data/nitrogen_fertilizer_price_index.csv</span><span class="co">](../../data/nitrogen_fertilizer_price_index.csv)</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>so the analysis does not depend on re-downloading from StatCan.</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="fu">## What the data measure</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>The Farm Input Price Index (FIPI) tracks prices paid by Canadian farm</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>operators for inputs used in agricultural production. This series is</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>narrowed to:</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Geography**: Canada (national level; the table also has provincial</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>  breakdowns)</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Component**: "Nitrogen fertilizers" (a sub-category of "Fertilizer",</span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>  itself under "Crop production" inputs)</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Frequency**: quarterly</span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Units**: index, 2012 = 100 (i.e., prices are expressed relative to</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>  their average level in 2012, not in dollar terms)</span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>The extracted series runs from 2002 Q1 to 2026 Q1 (97 observations).</span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a><span class="fu">## Main pattern in the graph</span></span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>Nitrogen fertilizer prices show two large spikes over the sample period:</span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>one around 2008–09 (index peaking near 126, coinciding with the global</span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>commodity/food price spike of that period) and a much larger one in</span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a>2021–22 (index peaking near 172 in early 2022). The 2021–22 rise begins</span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a>before the Russian invasion of Ukraine (Feb 24, 2022) — prices were</span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a>already climbing sharply through 2021, likely reflecting natural gas</span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a>price increases (a key nitrogen fertilizer input) and post-pandemic</span>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a>supply chain disruption. The index continues rising for a few months</span>
+<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a>after the invasion before falling back, and by 2023–2024 settles in the</span>
+<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a>100–115 range, still elevated relative to the pre-2021 range (roughly</span>
+<span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a>75–95). Prices have risen again through 2025 into 2026 (index ~133 as of</span>
+<span id="cb6-42"><a href="#cb6-42" aria-hidden="true" tabindex="-1"></a>2026 Q1).</span>
+<span id="cb6-43"><a href="#cb6-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-44"><a href="#cb6-44" aria-hidden="true" tabindex="-1"></a>**Caveat**: the invasion is annotated as a reference point requested for</span>
+<span id="cb6-45"><a href="#cb6-45" aria-hidden="true" tabindex="-1"></a>the chart, but the graph alone cannot establish that the invasion caused</span>
+<span id="cb6-46"><a href="#cb6-46" aria-hidden="true" tabindex="-1"></a>the price spike — the run-up predates the invasion, and other factors</span>
+<span id="cb6-47"><a href="#cb6-47" aria-hidden="true" tabindex="-1"></a>(natural gas prices, general inflation, supply chain conditions) were</span>
+<span id="cb6-48"><a href="#cb6-48" aria-hidden="true" tabindex="-1"></a>also in play concurrently. Treat the annotation as marking a</span>
+<span id="cb6-49"><a href="#cb6-49" aria-hidden="true" tabindex="-1"></a>contextually relevant date, not as evidence of a causal break.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+</div>
+</section>
+<section id="prompting-ai" class="level2" data-number="15.3">
+<h2 data-number="15.3" class="anchored" data-anchor-id="prompting-ai"><span class="header-section-number">15.3</span> Prompting AI</h2>
+<p>AI output is sensitive to the way you prompt the program. Although AI is becoming better at autonomous work, it still benefits from clear instructions. Here are some tips:</p>
+<ol type="1">
+<li><p>Start with the outcome, not the procedure. Be specific about the deliverables and what it means for the task to be completed.</p></li>
+<li><p>Ask the agent to verify its own work. Even better, ask the agent to spawn other agents to verify its work. These new agents will not have the context of the working agent, so they are better able to assess the work on its own merits.</p></li>
+<li><p>Give it the context it needs. Explain what the work is for, what files/data already exist, who the audience is, and any relevant background.</p></li>
+<li><p>Balance giving constraints with allowing for flexibility. For data analysis, we would definitely want the agent to write R code, as opposed to Python code (assuming we aren’t familiar with the Python language). However, we may not want to specify the exact R functions to use, as the AI may be able to introduce us to new approaches.</p></li>
+<li><p>Review the agent’s work, not just its final answer. An agent can produce a beautiful graph from the wrong series. Check its source, data selection, code, assumptions, and intermediate decisions. Greater autonomy makes oversight more important, not less.</p></li>
+</ol>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -929,7 +1104,7 @@ Figure&nbsp;15.4: Rows with and without a recorded yield, by year.
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div id="callout-4" class="callout-4-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <ul>
 <li><strong>ggplot2: Elegant Graphics for Data Analysis</strong>, <a href="https://ggplot2-book.org/">ggplot2-book.org</a> – an explanation of the grammar and its components.</li>
