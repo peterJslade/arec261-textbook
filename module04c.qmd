@@ -169,8 +169,42 @@ All of this is a bit overwhelming -- even for me who has been using R for years.
 
 
 ## Pie charts {#sec-r-pie-example}
+Truth be told, ggplot is not great at producing pie charts.  In part, this is because data analysts don't much like pie charts, so perhaps ggplot developers do not want to encourage their use.  But we can still make a pie chart with ggplot by adding `+coord_polar(theta = "y")`.  This is like saying take the bar chart that we had created *then* wrapped into a circle along the y axis. 
 
-In Excel we built the pie from a five-row block: the four largest varieties plus an `Other` row computed with `SUM`. We can build the same five-row table with functions we already know. First the data step: `if_else()` renames every variety under 100,000 acres to `"Other"`, and `group_by()` with `summarise()` adds the small varieties up -- the same job the `SUM` did in Excel.
+When we do exactly this we get the same kind of terrible pie chart as we had in Excel.  Note that I removed some of the lines of code from the bar chart code above that don't apply to the pie chart -- the `fct_reorder()` function, because we don't want to order the slices, the colour of the bars, and the scale.
+
+```{r}
+#| label: fig-r-pie-first
+#| eval: true
+#| echo: true
+#| message: false
+#| warning: false
+#| fig-width: 6.0
+#| fig-height: 3.8
+#| fig-cap: "The first attempt: a pie with fourteen slices."
+#| fig-alt: "A pie chart with fourteen similarly coloured slices and a long legend of variety names."
+barley_2025 |>
+  filter(acres > 10000) |>
+  ggplot(aes(x = "", y = acres, fill = variety)) +
+  geom_col() +
+  labs(title = "Acres of barley varieties in Saskatchewan, 2025") +
+  theme_void(base_size = 13) + 
+  coord_polar(theta = "y") 
+
+```
+
+Again, let's break down this code:
+1. Take the data `barley_2025` *then*
+2. Filter to only include rows where `acres` is greater than 10,000 *then*
+3. Assign `acres` to the y-axis and `variety` to the fill colour, and assign an empty string to the x-axis (this is a bit of a hack since the x-axis does not exist on our pie chart) *then*
+4. Draw bars with `geom_col()` *then*
+5. Add a title with `labs()` *then*
+6. Use `theme_void()` to remove the axes and gridlines *then*
+7. Wrap the bars into a circle with `coord_polar(theta = "y")`.
+
+Once again we might want to group together all of the small varieties into an "Other" category, as we did in Excel.
+
+In Excel we built the pie from a five-row block: the four largest varieties plus an `Other` row computed with `SUM`. We can build the same five-row table with functions we already know, in a data step of its own. `if_else()` renames every variety under 100,000 acres to `"Other"`, and `group_by()` with `summarise()` adds the small varieties up -- the same job the `SUM` did in Excel.
 
 ```{r}
 #| eval: true
@@ -201,13 +235,13 @@ Five rows, exactly like the block the Excel pie was built from. Now the plotting
 pie_data |>
   ggplot(aes(x = "", y = acres, fill = variety)) +
   geom_col(width = 1) +
-  coord_polar(theta = "y") +      # wrap the bar into a circle
+  coord_polar(theta = "y") +
   labs(title = "2025 barley acreage by variety",
        x = NULL, y = NULL, fill = NULL) +
   theme_void(base_size = 13)
 ```
 
-There is no `geom_pie()`. A pie in ggplot2 is a single stacked bar wrapped into a circle with `coord_polar()`, which is a fair description of what a pie chart is. The `Other` slice comes to 412,760 acres, slightly more than Synergy itself -- the same total the Excel `SUM` produced, and a useful reminder that the 28 grouped varieties jointly matter as much as the largest one.
+The `Other` slice comes to 412,760 acres, slightly more than Synergy itself -- the same total the Excel `SUM` produced, and a useful reminder that the 28 grouped varieties jointly matter as much as the largest one.
 
 ## Line charts {#sec-r-line-example}
 
