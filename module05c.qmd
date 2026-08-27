@@ -8,7 +8,7 @@ source("_console.R")
 
 Graphing is a good place to begin using AI assistance. `ggplot2` is a great package, but details such as annotations, direct labels and axis breaks require arguments that are easy to forget and somewhat difficult to implement -- for example, getting text in just the right place can take trial and error. An assistant can draft that syntax quickly.
 
-It is also fairly easy to verify the work an AI assistant does on a chart.  If you make the raw chart yourself, then you only need to verify that the aesthetics of the graph have been updated correctly, which can be seen visually as opposed to thorugh the code.
+It is also fairly easy to verify the work an AI assistant does on a chart.  If you make the raw chart yourself, then you only need to verify that the aesthetics of the graph have been updated correctly, which can be seen visually as opposed to through the code.
 
 These exercises use R because ggplot2 code is text that an assistant can draft and you can inspect. Copilot inside Excel is a separately licensed product and is not unlocked by GitHub Copilot. A browser assistant can suggest Excel steps if you provide headers and made-up rows, but you must carry out and verify the clicks yourself.
 
@@ -22,6 +22,55 @@ By the end of this chapter you should be able to:
 3. Check the marks, labels, groups and scales drawn by the chart.
 4. Recognize when repeated prompting is no longer improving the result.
 :::
+
+## Set up the readme file {.unnumbered}
+Our first thing to do is to establish a readme file that the assistant can refer to.  This should establish the structure of the project.  We don't need to be too detailed about the data we are using, because the AI itself can continue to build this readme file.  
+
+The common file format is a .md file.  You can write this as essentially a plain text file, denoting sections with hashtags.  For example, my first readme.md is below  
+
+```markdown
+# AREC 261 project
+
+I am a student in AREC 261 Agricultural Data Analytics.  In this class, we
+will work with several agricultural datasets to learn concepts about data
+analysis, data visualization, and data communication.
+
+## Tools
+
+We will be using R for data analysis.
+
+When you write R code ensure that you are using the tidyverse package and
+that your code is well-commented so that I can learn.
+
+## Datasets
+
+We will continually re-use datasets.  So when we first encounter a dataset,
+update this document with a summary of the data set and what data it
+includes.
+```
+
+That's it.  Save it as `readme.md` at the top of your project folder, beside `data/`, `code/` and `output/`.
+
+Now we can get the assistant to read our variety data and summarize it for us.  With the readme in place, the request can be short, because the standing instructions are already written down:
+
+```text
+Read data/sask_variety_yields.csv.  Summarize its structure -- the columns,
+what one row represents, the years covered, and anything I should know about
+missing values -- and add that summary to the Datasets section of readme.md.
+```
+
+The assistant reads the file, writes a summary along these lines into the readme, and every later conversation that reads the readme starts already knowing the dataset:
+
+```markdown
+### sask_variety_yields.csv
+
+Saskatchewan crop insurance records with one row per risk zone, crop,
+variety and year, 2021-2025.  Columns: Risk_Zone, Crop, Variety, Year,
+Acres, Yield.  13,625 rows; 4,186 have no recorded yield, mostly because
+the variety was not grown in that zone and year.
+```
+
+Before trusting the summary, check it the same way you would check any other AI output.  The row and missing-value counts it wrote down are exactly what `glimpse()` and a `summarise()` by year report, which is where the next section starts.
 
 ## A Chart Does Not Check Its Data {#sec-visual-limits}
 
