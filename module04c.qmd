@@ -21,7 +21,7 @@ By the end of this chapter you should be able to:
 1. Build a plot with `ggplot()`, `aes()` and a geom.
 2. Reproduce the Excel bar, pie and line charts in code.
 3. Filter and summarise the data that feeds a chart, instead of editing it on a sheet.
-4. Order bars with `fct_reorder()` and group small categories with `fct_lump_n()`.
+4. Order bars with `fct_reorder()` and group small categories into an "Other" category.
 5. Change a plot's title, labels, colours and theme.
 6. Plot several series by mapping a variable to colour.
 7. Save a finished plot with `ggsave()`.
@@ -170,7 +170,23 @@ All of this is a bit overwhelming -- even for me who has been using R for years.
 
 ## Pie charts {#sec-r-pie-example}
 
-In Excel we built the pie from a five-row block: the four largest varieties plus an `Other` row computed with `SUM`. The R version of that grouping is `fct_lump_n()`, which keeps the largest `n` categories, weighted here by acres, and lumps everything else into `Other`:
+In Excel we built the pie from a five-row block: the four largest varieties plus an `Other` row computed with `SUM`. We can build the same five-row table with functions we already know. First the data step: `if_else()` renames every variety under 100,000 acres to `"Other"`, and `group_by()` with `summarise()` adds the small varieties up -- the same job the `SUM` did in Excel.
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Group the small varieties into "Other", then total the acres
+pie_data <- barley_2025 |>
+  mutate(variety = if_else(acres > 100000, variety, "Other")) |>
+  group_by(variety) |>
+  summarise(acres = sum(acres))
+
+pie_data
+')
+```
+
+Five rows, exactly like the block the Excel pie was built from. Now the plotting step:
 
 ```{r}
 #| label: fig-r-pie
@@ -182,19 +198,16 @@ In Excel we built the pie from a five-row block: the four largest varieties plus
 #| fig-height: 3.4
 #| fig-cap: "2025 barley acreage: the four largest varieties and everything else."
 #| fig-alt: "A pie chart with five slices; Other and Synergy AAC are the two largest at roughly 400,000 acres each."
-barley_2025 |>
-  mutate(variety = fct_lump_n(variety, 4, w = acres)) |>   # top 4 + Other
-  group_by(variety) |>
-  summarise(acres = sum(acres)) |>
+pie_data |>
   ggplot(aes(x = "", y = acres, fill = variety)) +
   geom_col(width = 1) +
-  coord_polar(theta = "y") +                               # wrap the bar into a circle
+  coord_polar(theta = "y") +      # wrap the bar into a circle
   labs(title = "2025 barley acreage by variety",
        x = NULL, y = NULL, fill = NULL) +
   theme_void(base_size = 13)
 ```
 
-There is no `geom_pie()`. A pie in ggplot2 is a single stacked bar wrapped into a circle with `coord_polar()`, which is a fair description of what a pie chart is. The `Other` slice comes to 412,760 acres, slightly more than Synergy itself -- the same total the Excel `SUM` produced, and a useful reminder that the 28 lumped varieties jointly matter as much as the largest one.
+There is no `geom_pie()`. A pie in ggplot2 is a single stacked bar wrapped into a circle with `coord_polar()`, which is a fair description of what a pie chart is. The `Other` slice comes to 412,760 acres, slightly more than Synergy itself -- the same total the Excel `SUM` produced, and a useful reminder that the 28 grouped varieties jointly matter as much as the largest one.
 
 ## Line charts {#sec-r-line-example}
 
@@ -257,7 +270,36 @@ variety_yields |>
   theme_minimal(base_size = 13)
 ```
 
-The Excel chapter's answer to "what about all the varieties?" was a PivotChart, with the small varieties filtered out or grouped. The R answer is the same `fct_lump_n()` used for the pie: summarise acres by variety and year, keep the seven biggest varieties, and lump the rest into `Other`:
+The Excel chapter's answer to "what about all the varieties?" was a PivotChart, with the small varieties filtered out or grouped. We can do the same grouping here, in a data step and a plotting step. The data step builds the variety-year totals, works out which varieties have more than 150,000 acres over the five years -- the same threshold we used in the PivotChart filter -- and renames the rest to `"Other"`:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Total acres for each variety and year
+barley_by_year <- variety_yields |>
+  filter(crop == "Barley") |>
+  group_by(variety, year) |>
+  summarise(acres = sum(acres, na.rm = TRUE), .groups = "drop")
+
+# Which varieties have more than 150,000 acres over the five years?
+big_varieties <- barley_by_year |>
+  group_by(variety) |>
+  summarise(total_acres = sum(acres)) |>
+  filter(total_acres > 150000)
+
+big_varieties
+
+# Group everything else into "Other" and re-total
+main_varieties <- barley_by_year |>
+  mutate(variety = if_else(variety %in% big_varieties$variety,
+                           variety, "Other")) |>
+  group_by(variety, year) |>
+  summarise(acres = sum(acres), .groups = "drop")
+')
+```
+
+Then the plotting step is the same line chart as before, with `variety` mapped to colour:
 
 ```{r}
 #| label: fig-r-line-many
@@ -268,14 +310,8 @@ The Excel chapter's answer to "what about all the varieties?" was a PivotChart, 
 #| fig-width: 6.6
 #| fig-height: 3.8
 #| fig-cap: "Acres of the main barley varieties, 2021 to 2025."
-#| fig-alt: "Eight lines showing Copeland declining, Synergy and Austenson roughly steady, and an Other line near 300,000 acres."
-variety_yields |>
-  filter(crop == "Barley") |>
-  group_by(variety, year) |>
-  summarise(acres = sum(acres, na.rm = TRUE), .groups = "drop") |>
-  mutate(variety = fct_lump_n(variety, 7, w = acres)) |>   # 7 biggest + Other
-  group_by(variety, year) |>
-  summarise(acres = sum(acres), .groups = "drop") |>
+#| fig-alt: "Nine lines showing Copeland declining, Synergy and Austenson roughly steady, and an Other line near 300,000 acres."
+main_varieties |>
   ggplot(aes(x = year, y = acres, colour = variety)) +
   geom_line(linewidth = 0.9) +
   scale_y_continuous(labels = scales::comma, limits = c(0, NA)) +
@@ -284,7 +320,7 @@ variety_yields |>
   theme_minimal(base_size = 13)
 ```
 
-Eight lines is about the limit for one chart, and with lines this distinct the legend works; @sec-graphing-principles covers direct labels and other ways to keep a many-line chart readable.
+Nine lines is about the limit for one chart, and with lines this distinct the legend works; @sec-graphing-principles covers direct labels and other ways to keep a many-line chart readable.
 
 ## Save the finished chart {#sec-saving-plots}
 
