@@ -910,9 +910,9 @@ Figure&nbsp;12.8: The same line with a title, labelled axes and a zero baseline.
 <span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> year, <span class="at">y =</span> acres, <span class="at">colour =</span> variety)) <span class="sc">+</span>   <span class="co"># one line per variety</span></span>
 <span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
 <span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>comma, <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="cn">NA</span>)) <span class="sc">+</span></span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Copeland's acres are falling in risk zone 1; Synergy's are rising"</span>,</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Acres planted with Synergy and Copeland in risk zone 1"</span>,</span>
 <span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Year"</span>, <span class="at">y =</span> <span class="st">"Acres"</span>, <span class="at">colour =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">13</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">13</span>) </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div id="fig-r-line-two" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Two lines crossing: Copeland falls from about 21,000 acres in 2021 to 7,900 in 2025 while Synergy rises from 4,300 to 9,200.">
 <figure class="quarto-float quarto-float-fig figure">
@@ -929,10 +929,10 @@ Figure&nbsp;12.9: Synergy and Copeland in risk zone 1.
 <p>Breaking down what changed:</p>
 <ol type="1">
 <li><code>%in%</code> keeps a row when <code>variety</code> matches either name in the list, where <code>==</code> could match only one <em>then</em></li>
-<li><code>colour = variety</code> is now <em>inside</em> <code>aes()</code>, so colour carries information: each variety gets its own colour and its own line. When we set the colour of the Synergy line ourselves, <code>colour = "DarkGreen"</code> sat <em>outside</em> <code>aes()</code>, in <code>geom_line()</code> <em>then</em></li>
+<li><code>colour = variety</code> is now <em>inside</em> <code>aes()</code>. So what is in <code>aes()</code> now reads – assign year to the x-axis, acres to the y-axis, and give each variety its own colour (i.e., its own line) <em>then</em></li>
 <li><code>colour = NULL</code> inside <code>labs()</code> removes the legend’s title, since the variety names speak for themselves.</li>
 </ol>
-<p>The Excel chapter’s answer to “what about all the varieties?” was a PivotChart, with the small varieties filtered out or grouped. We can do the same grouping here, in a data step and a plotting step. This time we want the whole province rather than one risk zone, so the data step also has to add up the acres across zones with <code>group_by()</code> and <code>summarise()</code>. It builds the variety-year totals, works out which varieties have more than 150,000 acres over the five years – the same threshold we used in the PivotChart filter – and renames the rest to <code>"Other"</code>:</p>
+<p>Now we want to add all the varieties to our plot and to sum acreage across risk zones. Our first challenge is to do what the PivotTable effectively did in Excel: sum the acres for each variety and year across risk zones.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Total acres for each variety and year</span></span>
@@ -941,20 +941,7 @@ Figure&nbsp;12.9: Synergy and Copeland in risk zone 1.
 <span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(variety, year) <span class="sc">|&gt;</span></span>
 <span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">acres =</span> <span class="fu">sum</span>(acres, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">"drop"</span>)</span>
 <span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Which varieties have more than 150,000 acres over the five years?</span></span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>big_varieties <span class="ot">&lt;-</span> barley_by_year <span class="sc">|&gt;</span></span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(variety) <span class="sc">|&gt;</span></span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">total_acres =</span> <span class="fu">sum</span>(acres)) <span class="sc">|&gt;</span></span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(total_acres <span class="sc">&gt;</span> <span class="dv">150000</span>)</span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>big_varieties</span>
-<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Group everything else into "Other" and re-total</span></span>
-<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>main_varieties <span class="ot">&lt;-</span> barley_by_year <span class="sc">|&gt;</span></span>
-<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">variety =</span> <span class="fu">if_else</span>(variety <span class="sc">%in%</span> big_varieties<span class="sc">$</span>variety,</span>
-<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>                           variety, <span class="st">"Other"</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(variety, year) <span class="sc">|&gt;</span></span>
-<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">acres =</span> <span class="fu">sum</span>(acres), <span class="at">.groups =</span> <span class="st">"drop"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>barley_by_year</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; # Total acres for each variety and year
 &gt; barley_by_year &lt;- variety_yields |&gt;
@@ -962,49 +949,84 @@ Figure&nbsp;12.9: Synergy and Copeland in risk zone 1.
 +   group_by(variety, year) |&gt;
 +   summarise(acres = sum(acres, na.rm = TRUE), .groups = "drop")
 &gt; 
-&gt; # Which varieties have more than 150,000 acres over the five years?
-&gt; big_varieties &lt;- barley_by_year |&gt;
+&gt; barley_by_year
+# A tibble: 165 × 3
+   variety       year acres
+   &lt;chr&gt;        &lt;dbl&gt; &lt;dbl&gt;
+ 1 ADVANTAGE AB  2021  2770
+ 2 ADVANTAGE AB  2022  7821
+ 3 ADVANTAGE AB  2023 17244
+ 4 ADVANTAGE AB  2024 22859
+ 5 ADVANTAGE AB  2025 22568
+ 6 ALBRIGHT AC   2021     0
+ 7 ALBRIGHT AC   2022     0
+ 8 ALBRIGHT AC   2023     0
+ 9 ALBRIGHT AC   2024     0
+10 ALBRIGHT AC   2025   700
+# ℹ 155 more rows</code></pre>
+</div>
+</div>
+</div>
+<p>This gives us one row per variety per year, but a chart with every variety would still have too many lines. As we did for the pie chart, we want to group the small varieties into an “Other” category. This time a variety’s size is its total acres across all five years, so we need to calculate that total before we can rename anything.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="do">##First get the total acreage of each variety across all risk zones and years</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>barley_variety_yields <span class="ot">&lt;-</span> variety_yields <span class="sc">|&gt;</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(crop <span class="sc">==</span> <span class="st">"Barley"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(variety) <span class="sc">|&gt;</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">total_acres =</span> <span class="fu">sum</span>(acres, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="do">## For varieties with less than 150,000 acres across all years, rename them to "Other"</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>barley_variety_yields <span class="ot">&lt;-</span> barley_variety_yields <span class="sc">|&gt;</span></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">variety =</span> <span class="fu">if_else</span>(total_acres<span class="sc">&lt;</span><span class="dv">150000</span>, <span class="st">"Other"</span>, variety))</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Total acres for each variety and year</span></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>barley_by_year <span class="ot">&lt;-</span> barley_variety_yields <span class="sc">|&gt;</span></span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(variety, year) <span class="sc">|&gt;</span></span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">acres =</span> <span class="fu">sum</span>(acres, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; ##First get the total acreage of each variety across all risk zones and years
+&gt; barley_variety_yields &lt;- variety_yields |&gt;
++   filter(crop == "Barley") |&gt;
 +   group_by(variety) |&gt;
-+   summarise(total_acres = sum(acres)) |&gt;
-+   filter(total_acres &gt; 150000)
++   mutate(total_acres = sum(acres, na.rm = TRUE)) |&gt;
++   ungroup()
 &gt; 
-&gt; big_varieties
-# A tibble: 8 × 2
-  variety       total_acres
-  &lt;chr&gt;               &lt;dbl&gt;
-1 AUSTENSON CDC     1513916
-2 CHURCHILL CDC      156341
-3 CLAYMORE           208024
-4 CONNECT AAC        621765
-5 COPELAND CDC      1411073
-6 FRASER CDC         377996
-7 MAVERICK CDC       260246
-8 SYNERGY AAC       1945350
+&gt; ## For varieties with less than 150,000 acres across all years, rename them to "Other"
+&gt; barley_variety_yields &lt;- barley_variety_yields |&gt;
++     mutate(variety = if_else(total_acres&lt;150000, "Other", variety))
 &gt; 
-&gt; # Group everything else into "Other" and re-total
-&gt; main_varieties &lt;- barley_by_year |&gt;
-+   mutate(variety = if_else(variety %in% big_varieties$variety,
-+                            variety, "Other")) |&gt;
+&gt; # Total acres for each variety and year
+&gt; barley_by_year &lt;- barley_variety_yields |&gt;
 +   group_by(variety, year) |&gt;
-+   summarise(acres = sum(acres), .groups = "drop")</code></pre>
++   summarise(acres = sum(acres, na.rm = TRUE)) |&gt;
++   ungroup()
+`summarise()` has regrouped the output.
+ℹ Summaries were computed grouped by variety and year.
+ℹ Output is grouped by variety.
+ℹ Use `summarise(.groups = "drop_last")` to silence this message.
+ℹ Use `summarise(.by = c(variety, year))` for per-operation grouping
+  (`?dplyr::dplyr_by`) instead.</code></pre>
 </div>
 </div>
 </div>
-<p>Reading the data step line by line:</p>
+<p>Reading this code line by line:</p>
 <ol type="1">
-<li>Take the risk-zone records, keep the barley rows, and total the acres for each variety in each year – <code>group_by(variety, year)</code> with <code>summarise()</code> collapses the risk zones into provincial totals <em>then</em></li>
-<li>Total each variety’s acres across the five years, and keep the varieties over 150,000 acres <em>then</em></li>
-<li>Use <code>if_else()</code> with <code>%in%</code> to rename every other variety to <code>"Other"</code>, and re-total so <code>"Other"</code> is one line rather than fifty.</li>
+<li>Take the barley records, group them by <code>variety</code>, and use <code>mutate()</code> to create a <code>total_acres</code> column holding each variety’s acres summed across every zone and year. Where <code>summarise()</code> would collapse the groups down to one row each, <code>mutate()</code> after a <code>group_by()</code> keeps every row and attaches the group total to each of them. <code>ungroup()</code> then removes the grouping so later steps work on the whole table <em>then</em></li>
+<li>Use <code>if_else()</code> to rename every variety whose <code>total_acres</code> is under 150,000 – the same threshold we used in the PivotChart filter – to <code>"Other"</code> <em>then</em></li>
+<li>Re-total the acres by variety and year, so <code>"Other"</code> is a single line rather than fifty separate ones.</li>
 </ol>
 <p>Then the plotting step is the same line chart as before, with <code>variety</code> mapped to colour:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>main_varieties <span class="sc">|&gt;</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> year, <span class="at">y =</span> acres, <span class="at">colour =</span> variety)) <span class="sc">+</span></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="fl">0.9</span>) <span class="sc">+</span></span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>comma, <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="cn">NA</span>)) <span class="sc">+</span></span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Acres of barley varieties in Saskatchewan"</span>,</span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Year"</span>, <span class="at">y =</span> <span class="st">"Total acres"</span>, <span class="at">colour =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">13</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>barley_by_year <span class="sc">|&gt;</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> year, <span class="at">y =</span> acres, <span class="at">colour =</span> variety)) <span class="sc">+</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="fl">0.9</span>) <span class="sc">+</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>comma, <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="cn">NA</span>)) <span class="sc">+</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Acres of barley varieties in Saskatchewan"</span>,</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Year"</span>, <span class="at">y =</span> <span class="st">"Total acres"</span>, <span class="at">colour =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">13</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div id="fig-r-line-many" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Nine lines showing Copeland declining, Synergy and Austenson roughly steady, and an Other line near 300,000 acres.">
 <figure class="quarto-float quarto-float-fig figure">
@@ -1018,48 +1040,67 @@ Figure&nbsp;12.10: Acres of the main barley varieties, 2021 to 2025.
 </div>
 </div>
 </div>
-<p>Nine lines is about the limit for one chart, and with lines this distinct the legend works; <a href="module04a.html" class="quarto-xref"><span>Chapter 10</span></a> covers direct labels and other ways to keep a many-line chart readable.</p>
 </section>
 <section id="sec-saving-plots" class="level2" data-number="12.5">
 <h2 data-number="12.5" class="anchored" data-anchor-id="sec-saving-plots"><span class="header-section-number">12.5</span> Save the finished chart</h2>
-<p>Assigning a plot to a name makes the object passed to <code>ggsave()</code> explicit. Width and height are in inches unless another unit is supplied.</p>
+<p>In our code to date we have just displayed the plots in Positron. We can also save these plots as an object and then save them to a file. The first step is to assign the plot to a name. This means the object is saved in memory and can be displayed again later.</p>
+<p>We can then save that object to a file with <code>ggsave()</code>. The first argument is the file name, and the second is the plot object.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the output folder if needed</span></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">dir.create</span>(<span class="st">"output"</span>, <span class="at">showWarnings =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Save the finished bar chart</span></span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(</span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"output/barley_variety_bar.png"</span>,</span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">plot =</span> bar_plot,</span>
-<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">width =</span> <span class="fl">6.4</span>,</span>
-<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">height =</span> <span class="fl">4.0</span>,</span>
-<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">dpi =</span> <span class="dv">300</span></span>
-<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Confirm that the file was written</span></span>
-<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a><span class="fu">file.info</span>(<span class="st">"output/barley_variety_bar.png"</span>)[<span class="st">"size"</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div>
+<figure class="figure">
+<p><a href="module04c_files/figure-html/unnamed-chunk-5-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-11"><img src="module04c_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></a></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Create plot (as above) and save it as the object variety_line_chart</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>variety_line_chart <span class="ot">&lt;-</span> barley_by_year <span class="sc">|&gt;</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> year, <span class="at">y =</span> acres, <span class="at">colour =</span> variety)) <span class="sc">+</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="fl">0.9</span>) <span class="sc">+</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>comma, <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="cn">NA</span>)) <span class="sc">+</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Acres of barley varieties in Saskatchewan"</span>,</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Year"</span>, <span class="at">y =</span> <span class="st">"Total acres"</span>, <span class="at">colour =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">13</span>)</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a><span class="do">## Visualize variety line chart by printing it in the console</span></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>variety_line_chart</span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Save the finished line chart</span></span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(</span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>  <span class="st">"output/variety_line_chart.png"</span>,</span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">plot =</span> variety_line_chart,</span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">width =</span> <span class="fl">6.4</span>,</span>
+<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">height =</span> <span class="fl">4.0</span>,</span>
+<span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">dpi =</span> <span class="dv">300</span></span>
+<span id="cb19-20"><a href="#cb19-20" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
-<pre><code>&gt; # Create the output folder if needed
-&gt; dir.create("output", showWarnings = FALSE)
+<pre><code>&gt; ## Create plot (as above) and save it as the object variety_line_chart
+&gt; variety_line_chart &lt;- barley_by_year |&gt;
++   ggplot(aes(x = year, y = acres, colour = variety)) +
++   geom_line(linewidth = 0.9) +
++   scale_y_continuous(labels = scales::comma, limits = c(0, NA)) +
++   labs(title = "Acres of barley varieties in Saskatchewan",
++        x = "Year", y = "Total acres", colour = NULL) +
++   theme_classic(base_size = 13)
 &gt; 
-&gt; # Save the finished bar chart
+&gt; ## Visualize variety line chart by printing it in the console
+&gt; variety_line_chart
+&gt; 
+&gt; # Save the finished line chart
 &gt; ggsave(
-+   "output/barley_variety_bar.png",
-+   plot = bar_plot,
++   "output/variety_line_chart.png",
++   plot = variety_line_chart,
 +   width = 6.4,
 +   height = 4.0,
 +   dpi = 300
 + )
-&gt; 
-&gt; # Confirm that the file was written
-&gt; file.info("output/barley_variety_bar.png")["size"]
-                               size
-output/barley_variety_bar.png 99566</code></pre>
+Error: Cannot find directory 'output'.
+ℹ Please supply an existing directory or use `create.dir = TRUE`.</code></pre>
 </div>
 </div>
 </div>
-<p>PNG works for slides and web pages. PDF preserves vector lines and text for publication. Stating the plot object, dimensions and resolution in code makes the export reproducible.</p>
+<p>I have chosen to save this as a PNG object by specifying the file type as <code>.png</code>. PNG works for slides and web pages. PDF preserves vector lines and text for publication. We can also alter the width, height, and quality of the image (in dpi or dots per inch).</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
