@@ -608,49 +608,6 @@ div.csl-indent {
 
 <p>The Excel chapter built a bar chart of barley acreage, a pie chart, and line charts of acreage over time. This chapter makes the same charts with <code>ggplot2</code>. Excel starts with a selected range and a chart menu. In R, we describe the chart in code: the data, the variables assigned to visual properties, and the marks to draw. The <code>ggplot2</code> package turns that description into a figure.</p>
 <p>The data are the same two files the Excel workbooks used. <a href="practice/data/sask_barley_2025.csv"><code>sask_barley_2025.csv</code></a> has one row per barley variety with its 2025 acres and average yield. <a href="practice/data/sask_variety_yields.csv"><code>sask_variety_yields.csv</code></a> has Saskatchewan Crop Insurance Corporation records by risk zone, crop, variety and year, 2021 to 2025 <span class="citation" data-cites="scic_smp">(<a href="references.html#ref-scic_smp" role="doc-biblioref">Saskatchewan Crop Insurance Corporation 2025</a>)</span>; suppressed observations have missing acres and yield.</p>
-<div class="cell">
-<div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the tidyverse</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressPackageStartupMessages</span>(<span class="fu">library</span>(tidyverse))</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># One row per barley variety: 2025 acres and average yield</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>barley_2025 <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"practice/data/sask_barley_2025.csv"</span>,</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">show_col_types =</span> <span class="cn">FALSE</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Risk-zone records for all crops, varieties and years</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>variety_yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  <span class="st">"practice/data/sask_variety_yields.csv"</span>,</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">show_col_types =</span> <span class="cn">FALSE</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(barley_2025)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="console-transcript">
-<pre><code>&gt; # Load the tidyverse
-&gt; suppressPackageStartupMessages(library(tidyverse))
-&gt; 
-&gt; # One row per barley variety: 2025 acres and average yield
-&gt; barley_2025 &lt;- read_csv(
-+   "practice/data/sask_barley_2025.csv",
-+   show_col_types = FALSE
-+ )
-&gt; 
-&gt; # Risk-zone records for all crops, varieties and years
-&gt; variety_yields &lt;- read_csv(
-+   "practice/data/sask_variety_yields.csv",
-+   show_col_types = FALSE
-+ )
-&gt; 
-&gt; glimpse(barley_2025)
-Rows: 32
-Columns: 3
-$ Variety     &lt;chr&gt; "SYNERGY AAC", "AUSTENSON CDC", "CONNECT AAC", "COPELAND C…
-$ Acres       &lt;dbl&gt; 392684, 197626, 143023, 125867, 74958, 66119, 55767, 38961…
-$ Yield_bu_ac &lt;dbl&gt; 86.6, 76.1, 90.1, 84.8, 88.0, 93.7, 48.3, 87.4, 75.7, 77.1…</code></pre>
-</div>
-</div>
-</div>
 <section id="learning-objectives" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="learning-objectives">Learning Objectives</h2>
 <div class="objectives">
@@ -670,24 +627,50 @@ $ Yield_bu_ac &lt;dbl&gt; 86.6, 76.1, 90.1, 84.8, 88.0, 93.7, 48.3, 87.4, 75.7, 
 <h2 data-number="12.1" class="anchored" data-anchor-id="sec-ggplot-intro"><span class="header-section-number">12.1</span> Introduction to ggplot2</h2>
 <p><code>ggplot2</code> loads with the tidyverse, and every chart it draws is built from the same three parts:</p>
 <ul>
-<li>the <strong>data</strong>: a data frame, usually arriving down a pipe;</li>
+<li>the <strong>data</strong>: a data frame with the data to be plotted;</li>
 <li>the <strong>mapping</strong>: <code>aes()</code>, which assigns variables to visual properties – horizontal position, vertical position, colour;</li>
 <li>a <strong>geom</strong>: the mark to draw – <code>geom_col()</code> for bars, <code>geom_line()</code> for lines, <code>geom_point()</code> for points.</li>
 </ul>
 <p>The template is always:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>data <span class="sc">|&gt;</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> ..., <span class="at">y =</span> ...)) <span class="sc">+</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_something</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Everything after that is added as a layer with <code>+</code>: another geom, axis labels with <code>labs()</code>, a scale, a theme. This is a different way of thinking than Excel’s chart menu. There is no gallery of chart types to pick from; a line chart and a bar chart are the same description with a different geom, and changing your mind about the mark does not mean starting over.</p>
-<p>One distinction does a lot of work in what follows. A property set <em>inside</em> <code>aes()</code> is <strong>mapped</strong> to a variable, so it varies with the data and gets a legend – <code>aes(colour = Variety)</code> draws one line per variety. The same property set <em>outside</em> <code>aes()</code> is a constant – <code>geom_line(colour = "darkgreen")</code> makes every line green. Mapping carries information; setting is decoration.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>data <span class="sc">|&gt;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> ..., <span class="at">y =</span> ...)) <span class="sc">+</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_something</span>() <span class="sc">+</span> ...</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>We can then add other options to the graph with <code>+</code>. For example, we can change the formatting, font size, or axis labels.</p>
+<p>If we want an analogy to Excel, we can think of <code>data</code> as the spreadsheet containing our data, <code>aes()</code> as choosing which columns to plot on the x- and y-axes, and the <code>geom</code> as choosing the chart type. Other formatting options are then added using the + operator.</p>
 </section>
 <section id="sec-r-bar-example" class="level2" data-number="12.2">
 <h2 data-number="12.2" class="anchored" data-anchor-id="sec-r-bar-example"><span class="header-section-number">12.2</span> Bar charts</h2>
-<p>In Excel we selected the variety and acres columns and inserted a chart. The R equivalent names the data and the mapping, then adds a geom:</p>
+<p>Let’s again start with a simple example using the barley variety data for 2025. When we read the file in, we also convert the column names to lowercase with <code>clean_names()</code> (<a href="module03b.html#sec-clean-names" class="quarto-xref"><span>Section 8.2.2.1</span></a>), so they are easier to type. We can then plot the acres of all the varieties with the following code:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>barley_2025 <span class="sc">|&gt;</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Variety, <span class="at">y =</span> Acres)) <span class="sc">+</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the tidyverse and janitor</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(janitor)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"># One row per barley variety: 2025 acres and average yield</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>barley_2025 <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">"practice/data/sask_barley_2025.csv"</span>,</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">show_col_types =</span> <span class="cn">FALSE</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">clean_names</span>()          <span class="co"># column names to lowercase</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="do">## Show the first few rows of data</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(barley_2025)</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="do">## Create a bar chart</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>barley_2025 <span class="sc">|&gt;</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> variety, <span class="at">y =</span> acres)) <span class="sc">+</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 3
+  variety        acres yield_bu_ac
+  &lt;chr&gt;          &lt;dbl&gt;       &lt;dbl&gt;
+1 SYNERGY AAC   392684        86.6
+2 AUSTENSON CDC 197626        76.1
+3 CONNECT AAC   143023        90.1
+4 COPELAND CDC  125867        84.8
+5 FRASER CDC     74958        88  
+6 CHURCHILL CDC  66119        93.7</code></pre>
+</div>
 <div class="cell-output-display">
 <div id="fig-r-bar-first" class="quarto-float quarto-figure quarto-figure-center anchored" alt="A vertical bar chart with 32 overlapping variety names on the horizontal axis.">
 <figure class="quarto-float quarto-float-fig figure">
@@ -701,14 +684,15 @@ Figure&nbsp;12.1: The first attempt: every barley variety.
 </div>
 </div>
 </div>
-<p><code>geom_col()</code> draws a bar for each row, with the height taken from the <code>y</code> mapping. The result has the same problems as the first Excel attempt: 32 varieties crowd the axis and the names are unreadable.</p>
-<p>In Excel we fixed this by filtering the worksheet and re-sorting the rows, because an Excel chart draws whatever block of cells it is pointed at, in sheet order. In R the chart is drawn from the data frame you pass in, so the fixes are <code>filter()</code> and <code>fct_reorder()</code> in the pipe:</p>
+<p>Here we can see our formula in action: <code>barley_2025</code> is the data, <code>aes()</code> puts <code>variety</code> on the x-axis and <code>acres</code> on the y-axis, and then we use the function <code>geom_col()</code> to specify that we want a bar chart – that is a bar for each row.</p>
+<p>This gives us a graph that looks a lot like the terrible graph that we first made in Excel.</p>
+<p>As we did in Excel, let’s filter to only varieties with more than 10,000 acres. We can do this with the <code>filter()</code> function that we learned earlier. We can also flip this to a horizontal bar chart by putting <code>variety</code> on the y-axis (vertical axis) and <code>acres</code> on the x-axis (horizontal axis).</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>barley_2025 <span class="sc">|&gt;</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Acres <span class="sc">&gt;</span> <span class="dv">10000</span>) <span class="sc">|&gt;</span>                          <span class="co"># varieties over 10,000 acres</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Acres,</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">y =</span> <span class="fu">fct_reorder</span>(Variety, Acres))) <span class="sc">+</span>    <span class="co"># order bars by acres</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>barley_2025 <span class="sc">|&gt;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(acres <span class="sc">&gt;</span> <span class="dv">10000</span>) <span class="sc">|&gt;</span>       <span class="co"># varieties over 10,000 acres</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> acres,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">y =</span> variety)) <span class="sc">+</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div id="fig-r-bar-filtered" class="quarto-float quarto-figure quarto-figure-center anchored" alt="A horizontal bar chart of 14 varieties ordered by acres, Synergy AAC longest at about 393,000.">
 <figure class="quarto-float quarto-float-fig figure">
@@ -722,56 +706,84 @@ Figure&nbsp;12.2: Varieties over 10,000 acres, largest at the top.
 </div>
 </div>
 </div>
-<p>Two things happened at once. Putting <code>Acres</code> on the x axis and <code>Variety</code> on the y axis gives horizontal bars, which is <code>Change Chart Type &gt; Bar Chart</code> in Excel; there is no separate chart type. And <code>fct_reorder(Variety, Acres)</code> sorts the bars by their value, which in Excel required sorting the worksheet rows. Alphabetical order is the default; ordering by value is one function call, so there is no reason to settle for a chart that is hard to read.</p>
-<p>The titles, labels and colours that took several Excel menus are arguments to <code>labs()</code> and the geom:</p>
+<p>First, let’s note what we did in the first two lines. Recall that the pipe <code>|&gt;</code> is like saying “then”. So we are saying to R, take <code>barley_2025</code>, then filter it to only include rows where <code>acres</code> is greater than 10,000. Then assign acres to the x-axis and variety to the y-axis. Then draw the bars with <code>geom_col()</code>, which infers that the bars should run along the numeric axis.</p>
+<p>Great! Now we can start adding additional options. First, we want to order the bars by their value, not alphabetically. We can do this with the <code>fct_reorder()</code> function: <code>fct_reorder(variety, acres)</code> orders the varieties by their acres, which in Excel required sorting the worksheet rows.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>barley_2025 <span class="sc">|&gt;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(acres <span class="sc">&gt;</span> <span class="dv">10000</span>) <span class="sc">|&gt;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> acres,</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">y =</span> <span class="fu">fct_reorder</span>(variety, acres))) <span class="sc">+</span>    <span class="co"># order bars by acres</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div id="fig-r-bar-ordered" class="quarto-float quarto-figure quarto-figure-center anchored" alt="A horizontal bar chart of 14 varieties ordered by acres, Synergy AAC longest at about 393,000.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-r-bar-ordered-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="module04c_files/figure-html/fig-r-bar-ordered-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;12.3: The same varieties, ordered by acres."><img src="module04c_files/figure-html/fig-r-bar-ordered-1.png" class="img-fluid figure-img" alt="A horizontal bar chart of 14 varieties ordered by acres, Synergy AAC longest at about 393,000." width="614"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-r-bar-ordered-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;12.3: The same varieties, ordered by acres.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Finally we can add all of our additional options to the chart – the colour of the bars, a title and axis labels, comma formatting on the axis, and a theme with a larger font – with additional functions and with arguments inside some of the functions.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>bar_plot <span class="ot">&lt;-</span> barley_2025 <span class="sc">|&gt;</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Acres <span class="sc">&gt;</span> <span class="dv">10000</span>) <span class="sc">|&gt;</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Acres,</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">y =</span> <span class="fu">fct_reorder</span>(Variety, Acres))) <span class="sc">+</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">fill =</span> <span class="st">"#3F6F52"</span>, <span class="at">width =</span> <span class="fl">0.7</span>) <span class="sc">+</span>          <span class="co"># green bars, less gap</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(acres <span class="sc">&gt;</span> <span class="dv">10000</span>) <span class="sc">|&gt;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> acres,</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">y =</span> <span class="fu">fct_reorder</span>(variety, acres))) <span class="sc">+</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">fill =</span> <span class="st">"DarkGreen"</span>) <span class="sc">+</span>                     <span class="co"># dark green bars</span></span>
 <span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>comma) <span class="sc">+</span>       <span class="co"># 400,000 not 4e+05</span></span>
 <span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Acres of barley varieties in Saskatchewan, 2025"</span>,</span>
 <span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Acres"</span>, <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">13</span>)</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">13</span>)</span>
 <span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>bar_plot</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div id="fig-r-bar-final" class="quarto-float quarto-figure quarto-figure-center anchored" alt="The same 14 bars in green with acreage labels, titled Acres of barley varieties in Saskatchewan, 2025.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-r-bar-final-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="module04c_files/figure-html/fig-r-bar-final-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;12.3: The finished bar chart."><img src="module04c_files/figure-html/fig-r-bar-final-1.png" class="img-fluid figure-img" alt="The same 14 bars in green with acreage labels, titled Acres of barley varieties in Saskatchewan, 2025." width="614"></a>
+<a href="module04c_files/figure-html/fig-r-bar-final-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;12.4: The finished bar chart."><img src="module04c_files/figure-html/fig-r-bar-final-1.png" class="img-fluid figure-img" alt="The same 14 bars in green with acreage labels, titled Acres of barley varieties in Saskatchewan, 2025." width="614"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-r-bar-final-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;12.3: The finished bar chart.
+Figure&nbsp;12.4: The finished bar chart.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p><code>fill</code> sets every bar to one colour, because the bars all represent the same thing; mapping a variable to <code>fill</code> inside <code>aes()</code> is for when colour should carry information, as in the line chart below. <code>theme_minimal(base_size = 13)</code> removes the grey background and raises the font size – the same complaint about small default fonts applies in both programs.</p>
+<p>Let’s read this code one line at a time: 1. Take the data <code>barley_2025</code> <em>then</em> 2. Filter to only include rows where <code>acres</code> is greater than 10,000 <em>then</em> 3. Assign <code>acres</code> to the x-axis and <code>variety</code> to the y-axis, ordering the bars by <code>acres</code> <em>then</em> 4. Draw bars with <code>geom_col()</code> and colour them dark green <em>then</em> 5. Change the scale on the x axis so that labels are in comma format (400,000 instead of 4e+05) <em>then</em> 6. Add a title and axis labels <em>then</em> 7. Change the theme to <code>theme_classic()</code> and increase the base font size to 13.</p>
+<p>All of this is a bit overwhelming – even for me who has been using R for years. Whereas in Excel you can kind of find the options through a user interface, with R you need to know the functions that you can add on to ggplot and what their arguments are. To be honest, I rarely remember the exact function names or arguments. I used to have to look them up – now I get AI to do that for me – in the next module we will start graphing with AI. For now, it is only important that you understand the very basic graphing commands:</p>
+<ol type="1">
+<li><code>ggplot()</code> to start the graph, and <code>aes()</code> to assign variables to axes and other visual properties.</li>
+<li><code>geom_col()</code> to make a bar chart, <code>geom_line()</code> to make a line chart, and <code>geom_point()</code> to make a scatter plot. If you don’t supply any arguments to these functions, defaults will be used. But you can change things like the colour and size of the bars, lines and points inside them, as we did with <code>fill = "DarkGreen"</code>.</li>
+<li><code>labs()</code> to add a title and axis labels.</li>
+<li>The <code>theme_*()</code> functions, such as <code>theme_minimal()</code> and <code>theme_classic()</code>, to control the overall look of the chart, including the font size.</li>
+</ol>
 </section>
 <section id="sec-r-pie-example" class="level2" data-number="12.3">
 <h2 data-number="12.3" class="anchored" data-anchor-id="sec-r-pie-example"><span class="header-section-number">12.3</span> Pie charts</h2>
 <p>In Excel we built the pie from a five-row block: the four largest varieties plus an <code>Other</code> row computed with <code>SUM</code>. The R version of that grouping is <code>fct_lump_n()</code>, which keeps the largest <code>n</code> categories, weighted here by acres, and lumps everything else into <code>Other</code>:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>barley_2025 <span class="sc">|&gt;</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Variety =</span> <span class="fu">fct_lump_n</span>(Variety, <span class="dv">4</span>, <span class="at">w =</span> Acres)) <span class="sc">|&gt;</span>   <span class="co"># top 4 + Other</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Variety) <span class="sc">|&gt;</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">Acres =</span> <span class="fu">sum</span>(Acres)) <span class="sc">|&gt;</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="st">""</span>, <span class="at">y =</span> Acres, <span class="at">fill =</span> Variety)) <span class="sc">+</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">variety =</span> <span class="fu">fct_lump_n</span>(variety, <span class="dv">4</span>, <span class="at">w =</span> acres)) <span class="sc">|&gt;</span>   <span class="co"># top 4 + Other</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(variety) <span class="sc">|&gt;</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">acres =</span> <span class="fu">sum</span>(acres)) <span class="sc">|&gt;</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="st">""</span>, <span class="at">y =</span> acres, <span class="at">fill =</span> variety)) <span class="sc">+</span></span>
 <span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">width =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
 <span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_polar</span>(<span class="at">theta =</span> <span class="st">"y"</span>) <span class="sc">+</span>                               <span class="co"># wrap the bar into a circle</span></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"2025 barley acreage by variety"</span>, <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>(<span class="at">base_size =</span> <span class="dv">13</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"2025 barley acreage by variety"</span>,</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="cn">NULL</span>, <span class="at">fill =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>(<span class="at">base_size =</span> <span class="dv">13</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div id="fig-r-pie" class="quarto-float quarto-figure quarto-figure-center anchored" alt="A pie chart with five slices; Other and Synergy AAC are the two largest at roughly 400,000 acres each.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-r-pie-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="module04c_files/figure-html/fig-r-pie-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;12.4: 2025 barley acreage: the four largest varieties and everything else."><img src="module04c_files/figure-html/fig-r-pie-1.png" class="img-fluid figure-img" alt="A pie chart with five slices; Other and Synergy AAC are the two largest at roughly 400,000 acres each." width="518"></a>
+<a href="module04c_files/figure-html/fig-r-pie-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure&nbsp;12.5: 2025 barley acreage: the four largest varieties and everything else."><img src="module04c_files/figure-html/fig-r-pie-1.png" class="img-fluid figure-img" alt="A pie chart with five slices; Other and Synergy AAC are the two largest at roughly 400,000 acres each." width="518"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-r-pie-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;12.4: 2025 barley acreage: the four largest varieties and everything else.
+Figure&nbsp;12.5: 2025 barley acreage: the four largest varieties and everything else.
 </figcaption>
 </figure>
 </div>
@@ -781,41 +793,48 @@ Figure&nbsp;12.4: 2025 barley acreage: the four largest varieties and everything
 </section>
 <section id="sec-r-line-example" class="level2" data-number="12.4">
 <h2 data-number="12.4" class="anchored" data-anchor-id="sec-r-line-example"><span class="header-section-number">12.4</span> Line charts</h2>
-<p>The line charts use the risk-zone file, which has one row per zone-variety-year. A provincial line needs one value per year, so the pipe filters to the variety and sums acres within each year before plotting:</p>
+<p>The line charts use the risk-zone file, which has one row per zone-variety-year; we again convert its column names to lowercase on the way in. A provincial line needs one value per year, so the pipe filters to the variety and sums acres within each year before plotting:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>variety_yields <span class="sc">|&gt;</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Crop <span class="sc">==</span> <span class="st">"Barley"</span>,</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>         Variety <span class="sc">==</span> <span class="st">"SYNERGY AAC"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Year) <span class="sc">|&gt;</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">acres =</span> <span class="fu">sum</span>(Acres, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)) <span class="sc">|&gt;</span>   <span class="co"># provincial total per year</span></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Year, <span class="at">y =</span> acres)) <span class="sc">+</span></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">colour =</span> <span class="st">"#3F6F52"</span>, <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>comma, <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="cn">NA</span>)) <span class="sc">+</span></span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Acres planted with Synergy AAC barley"</span>,</span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Year"</span>, <span class="at">y =</span> <span class="st">"Total acres"</span>) <span class="sc">+</span></span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">13</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Risk-zone records for all crops, varieties and years</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>variety_yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"practice/data/sask_variety_yields.csv"</span>,</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">show_col_types =</span> <span class="cn">FALSE</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">clean_names</span>()          <span class="co"># column names to lowercase</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>variety_yields <span class="sc">|&gt;</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(crop <span class="sc">==</span> <span class="st">"Barley"</span>,</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>         variety <span class="sc">==</span> <span class="st">"SYNERGY AAC"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(year) <span class="sc">|&gt;</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">acres =</span> <span class="fu">sum</span>(acres, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)) <span class="sc">|&gt;</span>   <span class="co"># provincial total per year</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> year, <span class="at">y =</span> acres)) <span class="sc">+</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">colour =</span> <span class="st">"#3F6F52"</span>, <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>comma, <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="cn">NA</span>)) <span class="sc">+</span></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Acres planted with Synergy AAC barley"</span>,</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Year"</span>, <span class="at">y =</span> <span class="st">"Total acres"</span>) <span class="sc">+</span></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">13</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div id="fig-r-line-synergy" class="quarto-float quarto-figure quarto-figure-center anchored" alt="A line from 408,000 acres in 2021 dipping to 317,000 in 2022 and recovering to about 393,000 by 2025.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-r-line-synergy-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="module04c_files/figure-html/fig-r-line-synergy-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure&nbsp;12.5: Acres planted with Synergy barley."><img src="module04c_files/figure-html/fig-r-line-synergy-1.png" class="img-fluid figure-img" alt="A line from 408,000 acres in 2021 dipping to 317,000 in 2022 and recovering to about 393,000 by 2025." width="614"></a>
+<a href="module04c_files/figure-html/fig-r-line-synergy-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure&nbsp;12.6: Acres planted with Synergy barley."><img src="module04c_files/figure-html/fig-r-line-synergy-1.png" class="img-fluid figure-img" alt="A line from 408,000 acres in 2021 dipping to 317,000 in 2022 and recovering to about 393,000 by 2025." width="614"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-r-line-synergy-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;12.5: Acres planted with Synergy barley.
+Figure&nbsp;12.6: Acres planted with Synergy barley.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>In Excel the first attempt drew <code>Year</code> as a second data series, and fixing it meant a trip through <strong>Select Data</strong>. That mistake cannot happen here, because <code>aes(x = Year, y = acres)</code> states which variable is which axis.</p>
-<p>To plot two varieties, Excel needed a column per variety and a new series added by hand. In R the data stays long: keep both varieties in the filter and map <code>Variety</code> to colour, and one line is drawn per variety with a legend:</p>
+<p>In Excel the first attempt drew <code>year</code> as a second data series, and fixing it meant a trip through <strong>Select Data</strong>. That mistake cannot happen here, because <code>aes(x = year, y = acres)</code> states which variable is which axis.</p>
+<p>To plot two varieties, Excel needed a column per variety and a new series added by hand. In R the data stays long: keep both varieties in the filter and map <code>variety</code> to colour, and one line is drawn per variety with a legend:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>variety_yields <span class="sc">|&gt;</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Crop <span class="sc">==</span> <span class="st">"Barley"</span>,</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>         Variety <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"SYNERGY AAC"</span>, <span class="st">"COPELAND CDC"</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Variety, Year) <span class="sc">|&gt;</span></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">acres =</span> <span class="fu">sum</span>(Acres, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">"drop"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Year, <span class="at">y =</span> acres, <span class="at">colour =</span> Variety)) <span class="sc">+</span>   <span class="co"># one line per variety</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(crop <span class="sc">==</span> <span class="st">"Barley"</span>,</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>         variety <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"SYNERGY AAC"</span>, <span class="st">"COPELAND CDC"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(variety, year) <span class="sc">|&gt;</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">acres =</span> <span class="fu">sum</span>(acres, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">"drop"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> year, <span class="at">y =</span> acres, <span class="at">colour =</span> variety)) <span class="sc">+</span>   <span class="co"># one line per variety</span></span>
 <span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
 <span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>comma, <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="cn">NA</span>)) <span class="sc">+</span></span>
 <span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Copeland's acreage has fallen by three-quarters; Synergy's has held"</span>,</span>
@@ -825,10 +844,10 @@ Figure&nbsp;12.5: Acres planted with Synergy barley.
 <div id="fig-r-line-two" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Two lines: Copeland falls from 475,000 acres in 2021 to 126,000 in 2025 while Synergy stays near 400,000.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-r-line-two-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="module04c_files/figure-html/fig-r-line-two-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure&nbsp;12.6: Synergy has held its acreage; Copeland has lost most of its own."><img src="module04c_files/figure-html/fig-r-line-two-1.png" class="img-fluid figure-img" alt="Two lines: Copeland falls from 475,000 acres in 2021 to 126,000 in 2025 while Synergy stays near 400,000." width="614"></a>
+<a href="module04c_files/figure-html/fig-r-line-two-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="Figure&nbsp;12.7: Synergy has held its acreage; Copeland has lost most of its own."><img src="module04c_files/figure-html/fig-r-line-two-1.png" class="img-fluid figure-img" alt="Two lines: Copeland falls from 475,000 acres in 2021 to 126,000 in 2025 while Synergy stays near 400,000." width="614"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-r-line-two-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;12.6: Synergy has held its acreage; Copeland has lost most of its own.
+Figure&nbsp;12.7: Synergy has held its acreage; Copeland has lost most of its own.
 </figcaption>
 </figure>
 </div>
@@ -837,13 +856,13 @@ Figure&nbsp;12.6: Synergy has held its acreage; Copeland has lost most of its ow
 <p>The Excel chapter’s answer to “what about all the varieties?” was a PivotChart, with the small varieties filtered out or grouped. The R answer is the same <code>fct_lump_n()</code> used for the pie: summarise acres by variety and year, keep the seven biggest varieties, and lump the rest into <code>Other</code>:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>variety_yields <span class="sc">|&gt;</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Crop <span class="sc">==</span> <span class="st">"Barley"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Variety, Year) <span class="sc">|&gt;</span></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">acres =</span> <span class="fu">sum</span>(Acres, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">"drop"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Variety =</span> <span class="fu">fct_lump_n</span>(Variety, <span class="dv">7</span>, <span class="at">w =</span> acres)) <span class="sc">|&gt;</span>   <span class="co"># 7 biggest + Other</span></span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Variety, Year) <span class="sc">|&gt;</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(crop <span class="sc">==</span> <span class="st">"Barley"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(variety, year) <span class="sc">|&gt;</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">acres =</span> <span class="fu">sum</span>(acres, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">"drop"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">variety =</span> <span class="fu">fct_lump_n</span>(variety, <span class="dv">7</span>, <span class="at">w =</span> acres)) <span class="sc">|&gt;</span>   <span class="co"># 7 biggest + Other</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(variety, year) <span class="sc">|&gt;</span></span>
 <span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">acres =</span> <span class="fu">sum</span>(acres), <span class="at">.groups =</span> <span class="st">"drop"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Year, <span class="at">y =</span> acres, <span class="at">colour =</span> Variety)) <span class="sc">+</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> year, <span class="at">y =</span> acres, <span class="at">colour =</span> variety)) <span class="sc">+</span></span>
 <span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="fl">0.9</span>) <span class="sc">+</span></span>
 <span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>comma, <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="cn">NA</span>)) <span class="sc">+</span></span>
 <span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Acres of barley varieties in Saskatchewan"</span>,</span>
@@ -853,10 +872,10 @@ Figure&nbsp;12.6: Synergy has held its acreage; Copeland has lost most of its ow
 <div id="fig-r-line-many" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Eight lines showing Copeland declining, Synergy and Austenson roughly steady, and an Other line near 300,000 acres.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-r-line-many-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="module04c_files/figure-html/fig-r-line-many-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="Figure&nbsp;12.7: Acres of the main barley varieties, 2021 to 2025."><img src="module04c_files/figure-html/fig-r-line-many-1.png" class="img-fluid figure-img" alt="Eight lines showing Copeland declining, Synergy and Austenson roughly steady, and an Other line near 300,000 acres." width="633"></a>
+<a href="module04c_files/figure-html/fig-r-line-many-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-8" title="Figure&nbsp;12.8: Acres of the main barley varieties, 2021 to 2025."><img src="module04c_files/figure-html/fig-r-line-many-1.png" class="img-fluid figure-img" alt="Eight lines showing Copeland declining, Synergy and Austenson roughly steady, and an Other line near 300,000 acres." width="633"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-r-line-many-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;12.7: Acres of the main barley varieties, 2021 to 2025.
+Figure&nbsp;12.8: Acres of the main barley varieties, 2021 to 2025.
 </figcaption>
 </figure>
 </div>
@@ -898,8 +917,8 @@ Figure&nbsp;12.7: Acres of the main barley varieties, 2021 to 2025.
 &gt; 
 &gt; # Confirm that the file was written
 &gt; file.info("output/barley_variety_bar.png")["size"]
-                                size
-output/barley_variety_bar.png 104891</code></pre>
+                               size
+output/barley_variety_bar.png 99566</code></pre>
 </div>
 </div>
 </div>
