@@ -82,7 +82,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-fbd8a02262d8148d587db906a6072b53.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-115622febec67285563361938505f125.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script src="site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
 <link href="site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
@@ -639,16 +639,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>includes.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>That’s it. Save it as <code>README.md</code> at the top of your project folder, beside <code>data/</code>, <code>code/</code> and <code>output/</code>.</p>
 <p>Now we can get the assistant to read our variety data and summarize it for us. With the readme in place, the request can be short, because the standing instructions are already written down:</p>
-<pre class="text"><code>Read data/sask_variety_yields.csv.  Summarize its structure -- the columns,
-what one row represents, the years covered, and anything I should know about
-missing values -- and add that summary to the Datasets section of README.md.</code></pre>
+<div class="ai-prompt">
+<p>Read data/sask_variety_yields.csv. Summarize its structure – the columns, what one row represents, the years covered, and anything I should know about missing values – and add that summary to the Datasets section of README.md.</p>
+</div>
 <p>The assistant reads the file, writes a summary along these lines into the README, and every later conversation that reads it starts already knowing the dataset:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">### sask_variety_yields.csv</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>Saskatchewan crop insurance records with one row per risk zone, crop,</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>variety and year, 2021-2025.  Columns: Risk_Zone, Crop, Variety, Year,</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>Acres, Yield.  13,625 rows; 4,186 have no recorded yield, mostly because</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>the variety was not grown in that zone and year.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">### sask_variety_yields.csv</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>Saskatchewan crop insurance records with one row per risk zone, crop,</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>variety and year, 2021-2025.  Columns: Risk_Zone, Crop, Variety, Year,</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>Acres, Yield.  13,625 rows; 4,186 have no recorded yield, mostly because</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>the variety was not grown in that zone and year.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Before trusting the summary, check it the same way you would check any other AI output. The row and missing-value counts it wrote down are exactly what <code>glimpse()</code> and a <code>summarise()</code> by year report, which is where the next section starts.</p>
 </section>
 <section id="sec-visual-limits" class="level2" data-number="15.1">
@@ -663,21 +663,21 @@ missing values -- and add that summary to the Datasets section of README.md.</co
 <p>The synthetic teaching file contains one row for a variety in a risk zone and year. Its rectangular layout includes combinations with no acreage and yield, often because that variety is absent from that zone-year. Consequently, comparisons across years also compare changing sets of varieties. The file has 13,625 rows, including 4,186 with no recorded yield. Inspect the counts before drawing the figure:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressPackageStartupMessages</span>(<span class="fu">library</span>(tidyverse))</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"practice/data/sask_variety_yields.csv"</span>,</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">show_col_types =</span> <span class="cn">FALSE</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(d)</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>d <span class="sc">|&gt;</span></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">rows =</span> <span class="fu">n</span>(),</span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">missing_yield =</span> <span class="fu">sum</span>(<span class="fu">is.na</span>(Yield)),</span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">.by =</span> Year</span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressPackageStartupMessages</span>(<span class="fu">library</span>(tidyverse))</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"practice/data/sask_variety_yields.csv"</span>,</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">show_col_types =</span> <span class="cn">FALSE</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(d)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>d <span class="sc">|&gt;</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">rows =</span> <span class="fu">n</span>(),</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">missing_yield =</span> <span class="fu">sum</span>(<span class="fu">is.na</span>(Yield)),</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">.by =</span> Year</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; suppressPackageStartupMessages(library(tidyverse))
 &gt; 
@@ -769,11 +769,9 @@ Figure&nbsp;15.1: Rows with and without a recorded yield, by year.
 <li>the chart form and the specific design change needed.</li>
 </ul>
 <p>For example:</p>
-<pre class="text"><code>The data frame d has columns Crop, Year, Risk_Zone, Acres and Yield.
-Keep recorded rows for Wheat - Hard Red Spring, Canola/Rapeseed, Barley and
-Oats. Calculate unweighted mean Yield by Year and Crop, then plot one line per
-crop. Put each crop name at the right end of its line and remove the legend.
-Show the summary table before the plot code.</code></pre>
+<div class="ai-prompt">
+<p>The data frame d has columns Crop, Year, Risk_Zone, Acres and Yield. Keep recorded rows for Wheat - Hard Red Spring, Canola/Rapeseed, Barley and Oats. Calculate unweighted mean Yield by Year and Crop, then plot one line per crop. Put each crop name at the right end of its line and remove the legend. Show the summary table before the plot code.</p>
+</div>
 <p>Asking for the summary table is useful. It separates the calculation from the drawing and gives you something numerical to inspect. For a workbook prompt, paste the header and several made-up rows and state which fields are categories—<code>Risk_Zone</code> is an identifier, not a quantity.</p>
 </section>
 <section id="sec-ai-stuck" class="level2" data-number="15.4">
