@@ -74,9 +74,9 @@ The mean is often a good description of a typical value when the data is roughly
 
 The ordinary mean treats every value as equally important. But often the values represent things of very different size, and treating them equally gives a misleading answer. When that happens you want a **weighted average**: each value is counted in proportion to how much it should "count."
 
-Return to the five wheat fields from the [ranges and functions section](module01a.qmd#sec-sum), with acres in `B5:B9` and yields in `C5:C9`. Suppose you want to answer: *what was the average yield across the whole farm?*
+Return to the five wheat fields from the [ranges and functions section](module01a.qmd#sec-sum), with acres in `B2:B6` and yields in `C2:C6`. Suppose you want to answer: *what was the average yield across the whole farm?*
 
-The tempting move is a plain `=AVERAGE(C5:C9)`, which gives 52.5 bu/ac. But that treats the 95-acre Creek field exactly the same as the 310-acre Home field -- as if each field were one "vote." That is not what "the average yield across the farm" means. A field three times the size should count three times as much.
+The tempting move is a plain `=AVERAGE(C2:C6)`, which gives 52.5 bu/ac. But that treats the 95-acre Creek field exactly the same as the 310-acre Home field -- as if each field were one "vote." That is not what "the average yield across the farm" means. A field three times the size should count three times as much.
 
 The right calculation weights each yield by its acres: multiply each field's yield by its acres, add those up (that is total production, in bushels), and divide by the total acres:
 
@@ -85,10 +85,10 @@ $$
 = \frac{\text{total bushels}}{\text{total acres}}
 $$
 
-where $x_i$ is each field's yield and $w_i$ is its acres (the **weight**). The workbook in @sec-sum already does this the simple way, dividing total bushels by total acres. `SUMPRODUCT` does the multiplying and adding in one step, which is handy when you have no bushels column:
+where $x_i$ is each field's yield and $w_i$ is its acres (the **weight**). Dividing total bushels by total acres in the workbook from @sec-sum gives exactly this. `SUMPRODUCT` does the multiplying and adding in one step, which is handy when you have no bushels column:
 
 ```
-=SUMPRODUCT(C5:C9, B5:B9) / SUM(B5:B9)
+=SUMPRODUCT(C2:C6, B2:B6) / SUM(B2:B6)
 ```
 
 This comes out to 52.0 bu/ac, a little *below* the plain 52.5. The gap is telling you that the bigger fields yielded slightly below the smaller ones, so counting every field equally overstated the farm's acreage-weighted average yield.
@@ -119,7 +119,7 @@ We will see skewness directly when we look at histograms in @sec-charts.
 
 ### Mode {.unnumbered}
 
-The **mode** is the most frequently occurring value. In Excel: `=MODE.SNGL(A1:A5)` for a single mode, or `=MODE.MULT(A1:A5)` if you want all of them (for data with multiple modes).
+The **mode** is the most frequently occurring value. In Excel: `=MODE.SNGL(A1:A5)` for a single mode, or `=MODE.MULT(A1:A5)` if you want all of them (for data with multiple modes). On the five yields we have been working with, every value appears once, so `=MODE.SNGL(A1:A5)` returns the `#N/A` error -- Excel's way of saying there is no mode to report.
 
 The mode is most useful for **categorical data** ("what is the most common crop in this region?") or for **discrete numeric data** with repeated values.  For continuous measurements like yields, the mode is usually less useful because exact values may rarely repeat, and which values repeat can depend on how precisely the data is measured or rounded.
 
@@ -173,7 +173,7 @@ conventionally called an outlier. Those two cutoffs are sometimes called the low
 **fences**.
 
 ```
-=QUARTILE.INC(D5:D40,1) - 1.5*(QUARTILE.INC(D5:D40,3) - QUARTILE.INC(D5:D40,1))
+=QUARTILE.INC(C2:C33,1) - 1.5*(QUARTILE.INC(C2:C33,3) - QUARTILE.INC(C2:C33,1))
 ```
 
 The 1.5 is a convention, not a result -- there is nothing special about it beyond long use.
@@ -236,7 +236,7 @@ For a data analyst, the spread is very informative.  If the values are spread ou
 
 The simplest measure of spread is the **range**: the maximum value minus the minimum value. In Excel: `=MAX(A1:A100) - MIN(A1:A100)`. The range is easy to understand, but it is very sensitive to extreme values -- a single unusual observation can change it dramatically.
 
-Suppose, for example, that one of the tightly clustered fields in @fig-spread-hail experiences a hailstorm that wipes out its crop. That single field increases the range from 8.9 to 40.6 bu/ac -- more than quadrupling it -- even though only one of the 30 fields has changed. The interquartile range, described below, barely moves, from 3.4 to 3.6 bu/ac, because it focuses on the middle half of the data rather than the extremes.
+Suppose, for example, that one of the tightly clustered fields in @fig-spread-hail experiences a hailstorm that wipes out its crop. That single field increases the range from 7.5 to 41.3 bu/ac -- more than five times larger -- even though only one of the 30 fields has changed. The interquartile range, described below, barely moves, from 2.8 to 3.0 bu/ac, because it focuses on the middle half of the data rather than the extremes.
 
 ```{r}
 #| label: fig-spread-hail
@@ -292,7 +292,7 @@ $$
 s = \sqrt{s^2} = \sqrt{\frac{1}{n-1} \sum_{i=1}^{n} (x_i - \bar{x})^2}
 $$
 
-Now the units match the original data, and we can say things like "yields in this region average 50 bu/acre with a standard deviation of 8 bu/acre." That is a statement someone can actually interpret.  This means that roughly on average the yields of any given variety are around 8 bu/acre different from the mean.  
+Now the units match the original data, and we can say things like "yields in this region average 50 bu/acre with a standard deviation of 8 bu/acre." That is a statement someone can actually interpret: a typical field in the region yields within about 8 bu/acre of that 50.
 
 In Excel: `=STDEV.S(A1:A5)` for a sample, `=STDEV.P(A1:A5)` for a population.
 
@@ -311,7 +311,7 @@ I say it is helpful because it can compare the spread of two datasets with very 
 However, in other contexts -- particularly when the data can be close to zero or negative -- the CV can be misleading. Suppose we wanted to compare the variability of farm income in a "good" year to farm incomes in a "bad" year.  In a bad year, the mean of income might be close to zero or negative.  In that case, the CV would explode to infinity or become negative.  Use the coefficient of variation with caution.
 
 ::: {.workbook-callout}
-The **Spread** tab works through all five measures on the barley varieties, so you can see how each responds to the same data.
+The **Spread** tab works through the five measures Excel computes directly on the barley varieties, so you can see how each responds to the same data.
 
 ::: {.excel-embed}
 <iframe width="402" height="700" frameborder="0" scrolling="no" src="https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7Bd65b003c-a9d5-44e1-98e1-7d399bbbd920%7D&action=embedview&ActiveCell='Spread'!A1&wdAllowInteractivity=False&wdDownloadButton=True&wdInConfigurator=True"></iframe>
@@ -336,7 +336,7 @@ The **Spread** tab works through all five measures on the barley varieties, so y
 :::
 
 ## Visualizing the Distribution of the Data {#sec-charts}
-The distribution of data describes how the observations are spread across different values – which values are common, which are rare, and the overall shape they form. A distribution can reveal things that no single summary number can, because very different-looking datasets can share the same summary statistics. @fig-shape shows two sets of 60 farm yields with identical means (40 bu/ac) and identical ranges (26 to 54 bu/ac), yet they look nothing alike. In panel A, the observations sit in two separate clusters; in panel B, they are concentrated in the middle and thin out toward either edge.
+The distribution of data describes how the observations are spread across different values -- which values are common, which are rare, and the overall shape they form. A distribution can reveal things that no single summary number can, because very different-looking datasets can share the same summary statistics. @fig-shape shows two sets of 60 farm yields with identical means (40 bu/ac) and identical ranges (26 to 54 bu/ac), yet they look nothing alike. In panel A, the observations sit in two separate clusters; in panel B, they are concentrated in the middle and thin out toward either edge.
 
 ```{r}
 #| label: fig-shape
@@ -356,7 +356,7 @@ strip_plot(shapes$unimodal, "B. Dense in the middle, thinning toward the edges",
            xlim = c(20, 60), mean_at = 40)
 ```
 
-The two clusters in panel A are a signal worth chasing: perhaps those farms differ in variety, soil zone, or seeding date, and what looks like one population is really two. Note also that the mean of 40 bu/ac in panel A describes a yield that almost no farm actually achieved – a good reminder that a summary statistic is not a substitute for looking at your data.
+The two clusters in panel A are a signal worth chasing: perhaps those farms differ in variety, soil zone, or seeding date, and what looks like one population is really two. Note also that the mean of 40 bu/ac in panel A describes a yield that almost no farm actually achieved -- a good reminder that a summary statistic is not a substitute for looking at your data.
 
 Perhaps the simplest way to visualize the shape of a distribution is with a histogram. A histogram divides the range of the data into bins and uses bars to show how many observations fall into each one. It lets you see at a glance whether the data is roughly symmetric (balanced around the centre), skewed (stretched farther in one direction than the other, as we discussed in @sec-central-tendency), or contains outliers (a few observations sitting far from the rest).
 

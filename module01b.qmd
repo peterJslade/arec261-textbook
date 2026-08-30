@@ -22,15 +22,15 @@ So far, our formulas have performed calculations without making decisions: multi
 
 ### `IF` {#sec-if .unnumbered}
 
-`IF` is the function that makes a decision. It looks at a condition and returns one of two values depending on whether that condition is true. The `IF` function has three arguments that are seperated by commas: (1) the condition to test, (2) the value to return if the condition is true, and (3) the value to return if the condition is false. Both the condition and the values returned can reference other cells.
+`IF` is the function that makes a decision. It looks at a condition and returns one of two values depending on whether that condition is true. The `IF` function has three arguments that are separated by commas: (1) the condition to test, (2) the value to return if the condition is true, and (3) the value to return if the condition is false. Both the condition and the values returned can reference other cells.
 
-In the following example, `IF` tests whether the value in D5 is greater than 50. If the condition is true, it returns the value in D6; if the condition is false, it returns the text No.
+In the following example, `IF` tests whether the value in D2 is greater than 50. If the condition is true, it returns the text Yes; if the condition is false, it returns the text No.
 
 ```
-=IF(D5>50, D6, "No")
+=IF(D2>50, "Yes", "No")
 ```
 
-Column E of the workbook below uses `IF` to label each field `"Yes"` or `"No"`. Note the quotation marks: text inside a formula always needs them.
+Column E of the workbook below uses exactly this formula to label each field `"Yes"` or `"No"`. Note the quotation marks: text inside a formula always needs them. The returned values can also reference cells -- `=IF(D2>50, C2, "No")` would return the field's acres when the condition is true.
 
 ::: {.workbook-callout}
 ::: {.excel-embed}
@@ -50,7 +50,7 @@ Sometimes one test is not enough. Because the true and false arguments can hold 
 they can hold another `IF`. To flag only the fields that are both over 50 bu/ac *and* canola:
 
 ```
-=IF(D5>50, IF(B5="Canola", "Yes", "No"), "No")
+=IF(D2>50, IF(B2="Canola", "Yes", "No"), "No")
 ```
 
 Read it from the outside in. If the yield clears 50, Excel moves to the inner `IF` and checks
@@ -65,17 +65,17 @@ clearer.
 `COUNTIF` takes two arguments: the range to test and the condition to test for. `SUMIF` and `AVERAGEIF` take a third argument: the range containing the values to sum or average.  Here are three examples:
 
 ```
-=COUNTIF(B5:B12, "Canola")
-=SUMIF(B5:B12, "Canola", C5:C12)
-=AVERAGEIF(B5:B12, "Canola", D5:D12)
+=COUNTIF(B2:B9, "Canola")
+=SUMIF(B2:B9, "Canola", C2:C9)
+=AVERAGEIF(B2:B9, "Canola", D2:D9)
 ```
-The first formula counts the fields where column B contains Canola. The second identifies those same fields and adds up their acres from column C. For example, if B6 and B8 both contain Canola, the `SUMIF` formula will return `C6+C8`. `AVERAGEIF` works in the same way, except that it averages the corresponding values rather than adding them.
+The first formula counts the fields where column B contains Canola. The second identifies those same fields and adds up their acres from column C. For example, if B2 and B4 both contain Canola, the `SUMIF` formula will include `C2+C4`. `AVERAGEIF` works in the same way, except that it averages the corresponding values rather than adding them.
 
-The two ranges must be the same size, but they do not technically need to contain the same row numbers. Excel matches the cells by their position within each range. For example, you could write: `=SUMIF(B5:B12, "Canola", D15:D22)`.  Here, B5 is paired with D15, B6 with D16, B7 with D17, and so on. If B6 and B8 contain Canola, Excel would therefore add D16+D18.
+The two ranges must be the same size, but they do not technically need to contain the same row numbers. Excel matches the cells by their position within each range. For example, you could write: `=SUMIF(B2:B9, "Canola", D12:D19)`.  Here, B2 is paired with D12, B3 with D13, B4 with D14, and so on. If B2 and B4 contain Canola, Excel would therefore add D12+D14.
 
 In practice, the ranges will usually cover the same rows of a dataset. The important point is that Excel matches their relative positions, not their row numbers.
 
-Examples of these functions are in rows 15-20 of the workbook above.
+Examples of these functions are in rows 12-16 of the workbook above.
 
 ### `COUNTIFS`, `SUMIFS`, and `AVERAGEIFS` {#sec-conditional-plural .unnumbered}
 
@@ -89,7 +89,7 @@ The plural forms take any number of conditions:
 =AVERAGEIFS(E2:E1068, C2:C1068, "Canola", B2:B1068, "Ontario")
 ```
 
-The argument order is different from `AVERAGEIF`, which catches people out. The range being
+The argument order is different from `AVERAGEIF`. The range being
 averaged comes **first**, followed by pairs: a range to test, then the condition to test it
 for. Add as many pairs as you need and Excel keeps only the rows that satisfy all of them.
 
@@ -132,7 +132,7 @@ Data often arrive split across tables. You might have yields by field in one tab
 
 Excel searches `$A$5:$A$7` for the crop named in `B11`, finds its position and returns the value from the same position in `$B$5:$B$7`. Note the `$` signs: the crop being looked up changes from row to row, but the price table stays in place, so its ranges are locked.
 
-If there are multiple matches—for example, if Canola appears twice in the price list—`XLOOKUP` returns the value associated with the first match. The value you look up should therefore identify a unique observation in the lookup table.
+If there are multiple matches -- for example, if Canola appears twice in the price list -- `XLOOKUP` returns the value associated with the first match. The value you look up should therefore identify a unique observation in the lookup table.
 
 The workbook below has two tables: a short crop-price list at the top and the field data underneath. Column E uses `XLOOKUP` to find the price for each field's crop and bring it across, with the formula shown in column F.
 
@@ -172,7 +172,7 @@ It is possible to combine the keys directly inside `XLOOKUP`, but explicit helpe
 An unmatched `XLOOKUP` returns `#N/A`. If every row returns `#N/A`, check that the helper columns use the same order and separator, that text does not contain stray spaces and that the corresponding values have the same type.
 
 ::: {.callout-tip collapse="true"}
-## Other resources—lookup functions (VLOOKUP, XLOOKUP, INDEX/MATCH)
+## Other resources — lookup functions (VLOOKUP, XLOOKUP, INDEX/MATCH)
 
 - **Excel for Dummies** -- *Microsoft 365 Excel for Dummies*, the chapter on lookup and reference functions.
 - **Microsoft Support** -- [VLOOKUP](https://support.microsoft.com/en-us/office/vlookup-function-0bbc8083-26fe-4963-8ab8-93a18ad188a1), [XLOOKUP](https://support.microsoft.com/en-us/office/xlookup-function-b7fd680e-6d10-43e6-84f9-8818e00d0651), [INDEX](https://support.microsoft.com/en-us/office/index-function-a5dcf0dd-996d-40a4-a822-b56b061328bd), [MATCH](https://support.microsoft.com/en-us/office/match-function-e8dffd45-c762-47d6-bf89-533f4a37673a).
@@ -286,7 +286,7 @@ This becomes important for PivotTables. If we want a PivotTable showing average 
 
 ## PivotTables {#sec-pivottables}
 
-*Note that PivotTables are something that is best understood by seeing it in action -- I suggest videos over text for this section!!*
+PivotTables are best understood by seeing them in action. The video below shows one being built; the text here is the reference to come back to.
 
 A **PivotTable** summarizes a dataset by category -- average yield by crop, total acres by year, or average yield by crop and year -- without requiring you to write formulas. This is one reason why long data is so useful: the variables stored in columns can become the categories that a PivotTable groups by.
 
@@ -328,8 +328,7 @@ a result that looks surprising.
 
 You can drag the same field into **Values** twice and summarize it two different ways. Yield
 as Average and Yield as Count puts the mean beside the number of observations behind it, which
-tells you how much data each average rests on. An average of four observations and an average
-of four hundred look identical until you show the count.
+tells you how much data each average rests on.
 
 The dropdown on a row field holds more than the list of values. **Value Filters** keep only
 the rows whose summarized number meets a condition -- varieties with at least 30 reports, say
@@ -339,7 +338,7 @@ same on the names themselves.
 Selecting a cell in a PivotTable and choosing Insert → PivotChart creates a chart tied to the
 table. Filter or rearrange the PivotTable and the chart follows, which is the advantage over
 copying numbers into an ordinary chart. Give it a title and label the axes as you would any
-chart (@sec-charts).
+chart.
 
 Finally, before interpreting any summary, check the units. The crops in this workbook are not all measured in the same units: cereals and canola are in bushels per acre, while pulse crops such as lentils and chickpeas are reported in *pounds* per acre. A PivotTable that averages yield across all crops mixes the two. Excel will happily average pounds per acre together with bushels per acre and return a number -- but that number has no meaningful interpretation. Keep `Crop` in the filter, or in Rows, so every cell of the summary is one crop in one unit.
 
