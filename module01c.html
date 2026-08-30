@@ -47,7 +47,7 @@ ul.task-list li input[type="checkbox"] {
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-499e317c88b00b95e95b39c0d605d011.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-d7ddc1374b0c794eabf968d99a8aa947.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script src="site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
 <link href="site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
@@ -695,15 +695,15 @@ window.Quarto = {
 <section id="weighted-average" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="weighted-average">Weighted Average</h3>
 <p>The ordinary mean treats every value as equally important. But often the values represent things of very different size, and treating them equally gives a misleading answer. When that happens you want a <strong>weighted average</strong>: each value is counted in proportion to how much it should “count.”</p>
-<p>Return to the five wheat fields from the <a href="./module01a.html#sec-sum">ranges and functions section</a>, with acres in <code>B5:B9</code> and yields in <code>C5:C9</code>. Suppose you want to answer: <em>what was the average yield across the whole farm?</em></p>
-<p>The tempting move is a plain <code>=AVERAGE(C5:C9)</code>, which gives 52.5 bu/ac. But that treats the 95-acre Creek field exactly the same as the 310-acre Home field – as if each field were one “vote.” That is not what “the average yield across the farm” means. A field three times the size should count three times as much.</p>
+<p>Return to the five wheat fields from the <a href="./module01a.html#sec-sum">ranges and functions section</a>, with acres in <code>B2:B6</code> and yields in <code>C2:C6</code>. Suppose you want to answer: <em>what was the average yield across the whole farm?</em></p>
+<p>The tempting move is a plain <code>=AVERAGE(C2:C6)</code>, which gives 52.5 bu/ac. But that treats the 95-acre Creek field exactly the same as the 310-acre Home field – as if each field were one “vote.” That is not what “the average yield across the farm” means. A field three times the size should count three times as much.</p>
 <p>The right calculation weights each yield by its acres: multiply each field’s yield by its acres, add those up (that is total production, in bushels), and divide by the total acres:</p>
 <p><span class="math display">\[
 \bar{x}_w = \frac{\sum w_i\, x_i}{\sum w_i}
 = \frac{\text{total bushels}}{\text{total acres}}
 \]</span></p>
-<p>where <span class="math inline">\(x_i\)</span> is each field’s yield and <span class="math inline">\(w_i\)</span> is its acres (the <strong>weight</strong>). The workbook in <a href="module01a.html#sec-sum" class="quarto-xref"><span>Section 1.6</span></a> already does this the simple way, dividing total bushels by total acres. <code>SUMPRODUCT</code> does the multiplying and adding in one step, which is handy when you have no bushels column:</p>
-<pre><code>=SUMPRODUCT(C5:C9, B5:B9) / SUM(B5:B9)</code></pre>
+<p>where <span class="math inline">\(x_i\)</span> is each field’s yield and <span class="math inline">\(w_i\)</span> is its acres (the <strong>weight</strong>). Dividing total bushels by total acres in the workbook from <a href="module01a.html#sec-sum" class="quarto-xref"><span>Section 1.6</span></a> gives exactly this. <code>SUMPRODUCT</code> does the multiplying and adding in one step, which is handy when you have no bushels column:</p>
+<pre><code>=SUMPRODUCT(C2:C6, B2:B6) / SUM(B2:B6)</code></pre>
 <p>This comes out to 52.0 bu/ac, a little <em>below</em> the plain 52.5. The gap is telling you that the bigger fields yielded slightly below the smaller ones, so counting every field equally overstated the farm’s acreage-weighted average yield.</p>
 <p>Weighted averages are not specific to agriculture: any time you average numbers that stand for different-sized quantities, you weight. If the midterm is worth 30% and the final 70%, and you score 80 and 90, your grade is the weighted average <span class="math inline">\(0.30 \times 80 + 0.70 \times 90 = 87\)</span>, not the plain average 85. Grade-point averages (weighting each course’s grade by its credit hours), price indexes, and portfolio returns all work the same way.</p>
 </section>
@@ -727,7 +727,7 @@ window.Quarto = {
 </section>
 <section id="mode" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="mode">Mode</h3>
-<p>The <strong>mode</strong> is the most frequently occurring value. In Excel: <code>=MODE.SNGL(A1:A5)</code> for a single mode, or <code>=MODE.MULT(A1:A5)</code> if you want all of them (for data with multiple modes).</p>
+<p>The <strong>mode</strong> is the most frequently occurring value. In Excel: <code>=MODE.SNGL(A1:A5)</code> for a single mode, or <code>=MODE.MULT(A1:A5)</code> if you want all of them (for data with multiple modes). On the five yields we have been working with, every value appears once, so <code>=MODE.SNGL(A1:A5)</code> returns the <code>#N/A</code> error – Excel’s way of saying there is no mode to report.</p>
 <p>The mode is most useful for <strong>categorical data</strong> (“what is the most common crop in this region?”) or for <strong>discrete numeric data</strong> with repeated values. For continuous measurements like yields, the mode is usually less useful because exact values may rarely repeat, and which values repeat can depend on how precisely the data is measured or rounded.</p>
 <div class="workbook-callout">
 <p>The <strong>Centre</strong> tab of the workbook below computes all four of these on 32 Saskatchewan barley varieties. Column D holds production (acres × yield), which is what the weighted average needs.</p>
@@ -791,7 +791,7 @@ window.Quarto = {
 <p>(Excel has both <code>.INC</code> and <code>.EXC</code> variants – inclusive and exclusive. For this course use <code>.INC</code>.)</p>
 <p>Percentiles are used whenever we want to describe where an observation stands relative to others. Standardized test scores are often reported as percentiles, economists use income percentiles to compare households across the income distribution, and agricultural analysts might ask whether a farm’s yield falls in the bottom 10% or whether a variety performs in the top quartile.</p>
 <p>The distance between the first and third quartile is the <strong>interquartile range</strong>, or IQR – the width of the middle half of the data. We return to it as a measure of spread below (<a href="#sec-spread" class="quarto-xref"><span>Section 3.3</span></a>), but it also gives us a common rule for deciding when a value is unusual enough to be worth a second look. Anything below Q1 − 1.5 × IQR, or above Q3 + 1.5 × IQR, is conventionally called an outlier. Those two cutoffs are sometimes called the lower and upper <strong>fences</strong>.</p>
-<pre><code>=QUARTILE.INC(D5:D40,1) - 1.5*(QUARTILE.INC(D5:D40,3) - QUARTILE.INC(D5:D40,1))</code></pre>
+<pre><code>=QUARTILE.INC(C2:C33,1) - 1.5*(QUARTILE.INC(C2:C33,3) - QUARTILE.INC(C2:C33,1))</code></pre>
 <p>The 1.5 is a convention, not a result – there is nothing special about it beyond long use. Notice what the rule depends on. The fences are built from the IQR, so a dataset whose middle half is tightly packed will flag values that a more spread-out dataset would treat as ordinary. Whether a number counts as an outlier depends on how tight the bulk of the data is, not only on how far out the number sits.</p>
 <p>A value falling outside the fences is not necessarily wrong. It might be a recording error, or it might be the most interesting observation you have.</p>
 <div class="workbook-callout">
@@ -885,7 +885,7 @@ Figure&nbsp;3.1: Thirty farm yields, each dot one field. Both sets average 40 bu
 <section id="range" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="range">Range</h3>
 <p>The simplest measure of spread is the <strong>range</strong>: the maximum value minus the minimum value. In Excel: <code>=MAX(A1:A100) - MIN(A1:A100)</code>. The range is easy to understand, but it is very sensitive to extreme values – a single unusual observation can change it dramatically.</p>
-<p>Suppose, for example, that one of the tightly clustered fields in <a href="#fig-spread-hail" class="quarto-xref">Figure&nbsp;<span>3.2</span></a> experiences a hailstorm that wipes out its crop. That single field increases the range from 8.9 to 40.6 bu/ac – more than quadrupling it – even though only one of the 30 fields has changed. The interquartile range, described below, barely moves, from 3.4 to 3.6 bu/ac, because it focuses on the middle half of the data rather than the extremes.</p>
+<p>Suppose, for example, that one of the tightly clustered fields in <a href="#fig-spread-hail" class="quarto-xref">Figure&nbsp;<span>3.2</span></a> experiences a hailstorm that wipes out its crop. That single field increases the range from 7.5 to 41.3 bu/ac – more than five times larger – even though only one of the 30 fields has changed. The interquartile range, described below, barely moves, from 2.8 to 3.0 bu/ac, because it focuses on the middle half of the data rather than the extremes.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-spread-hail" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -929,7 +929,7 @@ s^2 = \frac{1}{n-1} \sum_{i=1}^{n} (x_i - \bar{x})^2
 <p><span class="math display">\[
 s = \sqrt{s^2} = \sqrt{\frac{1}{n-1} \sum_{i=1}^{n} (x_i - \bar{x})^2}
 \]</span></p>
-<p>Now the units match the original data, and we can say things like “yields in this region average 50 bu/acre with a standard deviation of 8 bu/acre.” That is a statement someone can actually interpret. This means that roughly on average the yields of any given variety are around 8 bu/acre different from the mean.</p>
+<p>Now the units match the original data, and we can say things like “yields in this region average 50 bu/acre with a standard deviation of 8 bu/acre.” That is a statement someone can actually interpret: a typical field in the region yields within about 8 bu/acre of that 50.</p>
 <p>In Excel: <code>=STDEV.S(A1:A5)</code> for a sample, <code>=STDEV.P(A1:A5)</code> for a population.</p>
 <p>Standard deviation will show up everywhere in the rest of this course.</p>
 </section>
@@ -942,7 +942,7 @@ CV = \frac{s}{\bar{x}}
 <p>I say it is helpful because it can compare the spread of two datasets with very different means. Suppose barley averages 55 bu/ac with a standard deviation of 11 (CV = 11/55 = 0.20), while wheat averages 40 bu/ac with a standard deviation of 10 (CV = 10/40 = 0.25). Wheat’s standard deviation is <em>smaller</em> in absolute terms (10 vs 11), yet relative to its own average, wheat is <em>more</em> variable (CV 0.25 vs 0.20). The CV captures that relative variability: a CV of 0.1 means the standard deviation is 10% of the mean. So the CV lets you fairly compare the variability of two things measured on very different scales.</p>
 <p>However, in other contexts – particularly when the data can be close to zero or negative – the CV can be misleading. Suppose we wanted to compare the variability of farm income in a “good” year to farm incomes in a “bad” year. In a bad year, the mean of income might be close to zero or negative. In that case, the CV would explode to infinity or become negative. Use the coefficient of variation with caution.</p>
 <div class="workbook-callout">
-<p>The <strong>Spread</strong> tab works through all five measures on the barley varieties, so you can see how each responds to the same data.</p>
+<p>The <strong>Spread</strong> tab works through the five measures Excel computes directly on the barley varieties, so you can see how each responds to the same data.</p>
 <div class="excel-embed">
 <iframe width="402" height="700" frameborder="0" scrolling="no" src="https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7Bd65b003c-a9d5-44e1-98e1-7d399bbbd920%7D&amp;action=embedview&amp;ActiveCell='Spread'!A1&amp;wdAllowInteractivity=False&amp;wdDownloadButton=True&amp;wdInConfigurator=True">
 </iframe>
