@@ -176,6 +176,8 @@ fig_bubble <- function(d) {
   w$Acres <- w$den / 1e3
   w$Soil  <- factor(risk_zone_soil[as.character(w$Zone)],
                     levels = c("Brown", "Dark Brown", "Black/Grey"))
+  # Zones 22 and 23 have no soil-zone assignment above; omit them here
+  w <- w[!is.na(w$Soil), ]
 
   ggplot(w, aes(x = Yield_wheat, y = Yield_barley,
                 size = Acres, colour = Soil)) +
