@@ -151,12 +151,48 @@ Canadian files sometimes say NAD 83 rather than WGS 84. The two differ by less t
 
 ## Resolution, scale and extent
 
-::: {.callout-note}
-This section is a draft outline.
-:::
+**Resolution** is the size of the smallest thing the data can tell apart. For a raster it is the cell: the Annual Crop Inventory's cells are 30 metres, so a quarter section is about 27 cells across, and anything smaller than a cell -- a slough's edge, a yard site -- is rounded into whichever class dominates the cell. Vector data has a resolution too, in how finely its boundaries are drawn; the RM file this chapter uses has been simplified to within a few hundred metres, which is fine for a provincial map and too coarse for measuring a boundary line. Data also has a resolution in time: a yield monitor logs a point every second, the crop inventory gives one value per year.
 
-- Spatial resolution, scale, and extent
-- Agricultural examples at field, RM, provincial, and national scales
+**Extent** is how much ground the data covers: one field for a machinery file, the province for the RM yields, all of Canada for the crop inventory.
+
+The two pull against each other. Fine cells over a large extent make enormous files, so most datasets choose one or the other, and a table's place on that trade-off tells you what questions it can answer.
+
+| Dataset | Resolution | Extent |
+|---|---|---|
+| Yield monitor | a point every second, a few metres apart | one field |
+| Annual Crop Inventory | 30-metre cells, once a year | Canada |
+| RM crop yields | one value per RM per year | Saskatchewan |
+| StatCan field crops | one value per province per year | Canada |
+
+Matching the data to the question is mostly a matter of direction. Fine data can always be aggregated up to answer a coarse question -- yield-monitor points average up to a field mean, ACI cells count up to an RM's canola area. Going the other way is not possible: an RM yield says nothing about which quarters in the RM did well, and a provincial average hides the differences between RMs.
+
+@fig-resolution shows what aggregation costs. It is the land from @fig-raster-field again, coarsened so that every 10-by-10 block of cells becomes one 300-metre cell holding the block's most common class.
+
+```{r}
+#| label: fig-resolution
+#| eval: true
+#| echo: true
+#| message: false
+#| fig-width: 5.6
+#| fig-height: 4.2
+#| fig-cap: "The land from @fig-raster-field in 300-metre cells. The large fields survive the coarsening; the wetland, the road allowance and the smaller bluffs are gone."
+#| fig-alt: "A five-by-five grid of large coloured cells showing only the dominant crops of the same area, with the small features no longer visible."
+# Coarsen the window: each 10-by-10 block of cells becomes one 300 m cell
+coarse <- field_classed |>
+  mutate(block_x = ceiling(x / 10),
+         block_y = ceiling(y / 10)) |>       # assign each cell to a block
+  count(block_x, block_y, crop, colour) |>   # cells of each class per block
+  arrange(desc(n)) |>                        # most common class first
+  distinct(block_x, block_y, .keep_all = TRUE)  # keep it, one per block
+
+# Draw the coarsened cells
+ggplot(coarse, aes(block_x, block_y, fill = crop)) +
+  geom_tile(colour = "white", linewidth = 0.3) +
+  scale_fill_manual(values = palette) +
+  coord_fixed() +
+  theme_void() +
+  labs(fill = NULL)
+```
 
 ## Where agricultural spatial data comes from
 
