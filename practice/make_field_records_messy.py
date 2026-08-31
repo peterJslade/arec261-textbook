@@ -4,6 +4,9 @@
 #
 #   1. Awkward column names   -- every column uses a different convention
 #   2. Text in numeric column -- "harvest weight" carries a " t" unit suffix
+#      (weights are derived from the TRUE yield x acres x 0.02722 t/bu with
+#      ~3% noise, so the file is internally consistent even on rows whose
+#      yield column carries a planted code or impossible value)
 #   3. Duplicates             -- rows F012 and F027 appear twice, exactly
 #   4. Missing-value codes    -- yield uses -99; moisture uses N/A, missing,
 #                                a blank, and 9999
@@ -47,6 +50,9 @@ for i in range(1, N + 1):
     m, d = random.choice([0, 1, 2, 3]), random.randint(1, 28)
     seeded = date_formats[i % 4](m, d)
 
+    # field size: quarters and half-sections dominate
+    acres = random.choice([80, 120, 160, 160, 160, 160, 240, 320])
+
     # yield: plausible spring wheat, with planted problems
     y = round(random.gauss(58, 8), 1)
     if i == 7:
@@ -58,8 +64,10 @@ for i in range(1, N + 1):
     else:
         yield_val = str(y)
 
-    # harvest weight: a number with its unit typed in
-    weight = f"{round(random.uniform(90, 260), 1)} t"
+    # harvest weight: derived from the TRUE yield, so the columns agree
+    # (1 bu spring wheat = 60 lb = 0.02722 t), with a little noise
+    w = y * acres * 0.02722 * random.uniform(0.97, 1.03)
+    weight = f"{round(w, 1)} t"
 
     # nitrogen rate: kg/ha, except ~30% of producers reported t/ha
     n_kg = round(random.uniform(80, 145), 1)
@@ -77,7 +85,7 @@ for i in range(1, N + 1):
     else:
         moisture = str(round(random.uniform(11.5, 16.5), 1))
 
-    rows.append([field_id, variety, seeded, yield_val, weight, n_rate, moisture])
+    rows.append([field_id, variety, seeded, str(acres), yield_val, weight, n_rate, moisture])
 
 # exact duplicates of two rows
 rows.append(rows[11])   # F012
@@ -86,7 +94,7 @@ rows.append(rows[26])   # F027
 with open("data/field_records_messy.csv", "w", newline="") as f:
     w = csv.writer(f)
     # issue 1: every column name uses a different convention
-    w.writerow(["Field ID", "VARIETY_NAME", "SeededDate",
+    w.writerow(["Field ID", "VARIETY_NAME", "SeededDate", "Acres",
                 "Yield (bu/ac)", "harvest weight", "N rate", "Moisture %"])
     w.writerows(rows)
 
