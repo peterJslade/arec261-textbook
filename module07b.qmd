@@ -1,120 +1,128 @@
-# Correlation {#sec-correlation-chapter}
+# Querying Earth Engine from R {#sec-rgee-lab}
 
-```{r}
-#| include: false
-#| eval: true
-source("_console.R")
-```
+Google Earth Engine is a public archive of satellite and geospatial data -- petabytes of it, including the Annual Crop Inventory -- attached to computers that will run analyses on it for you. You never download the archive. You send a request describing the data and the computation you want, Google's servers do the work, and the answer comes back to your session. It is the clearest example in this course of what an API buys you: the data stays on their side, and you get exactly the numbers you asked for.
 
-The last chapter was about looking.  This one puts a number on what you saw: how strongly do
-two variables move together, and in which direction.
+The **rgee** package lets you send those requests from R, which means everything after the request -- tidying, joining, plotting -- uses the tools you already know.
 
 ## Learning Objectives {.unnumbered}
 
 ::: {.objectives}
 By the end of this chapter you should be able to:
 
-1. Compute and interpret a correlation coefficient.
-2. Explain what correlation does not measure.
-3. Distinguish correlation from causation, and name the ways they come apart.
+1. Register for noncommercial Earth Engine access and connect to it from R.
+2. Request the Annual Crop Inventory values at a point, for every available year, with `ee_extract()`.
+3. Tidy the response and join on a lookup table to turn pixel codes into crop names.
+4. Plot a field's crop history.
 :::
 
-## Covariance and Correlation {#sec-correlation}
-
-### The Intuition {.unnumbered}
-
-Suppose you have two variables — say, fertilizer rate and yield — measured across 100 fields. You make a scatter plot. What does it look like?
-
-- If the points form an upward-sloping cloud, yield tends to increase with fertilizer.
-- If they form a downward-sloping cloud, yield tends to decrease with fertilizer.
-- If they are a shapeless blob, there is no obvious relationship.
-- If they form a tight line, the relationship is strong.
-- If they are widely scattered, the relationship is weak.
-
-The **correlation coefficient** turns this visual intuition into a single number between -1 and +1.
-
-### The Formula {.unnumbered}
-
-First, the **covariance** between two variables $X$ and $Y$, for a sample of size $n$:
-
-$$
-\text{Cov}(X, Y) = \frac{1}{n-1} \sum_{i=1}^{n} (x_i - \bar{x})(y_i - \bar{y})
-$$
-
-The covariance is positive when $X$ and $Y$ tend to be above (or below) their means together, and negative when one is above while the other is below. But its magnitude depends on the units of both variables, which makes it hard to interpret directly.
-
-The **(Pearson) correlation coefficient** normalizes the covariance by the standard deviations:
-
-$$
-r = \frac{\text{Cov}(X, Y)}{s_X \, s_Y}
-$$
-
-The result is always between -1 and +1, regardless of units.
-
-- $r = +1$: perfect positive linear relationship.
-- $r = 0$: no linear relationship.
-- $r = -1$: perfect negative linear relationship.
-- $|r|$ between 0 and 1 measures the strength of the (linear!) relationship.
-
-### In Excel and R {.unnumbered}
-
-Excel:
-
-```
-=CORREL(A2:A101, B2:B101)
-```
-
-The **Correlation** sheet in the workbook calculates the three relationships in the trial data and shows the range used by each formula.
-
-::: {.workbook-callout}
-<!-- Public view-only link expires 2026-11-20 under the University of Saskatchewan 90-day policy. -->
-
-::: {.excel-embed}
-<iframe width="402" height="700" frameborder="0" scrolling="no" src="https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7B94760FBF-4CB2-4E6A-9381-3F1F435E1588%7D&action=embedview&wdAllowInteractivity=False&wdDownloadButton=True&wdInConfigurator=True&ActiveCell=%27Correlation%27!A1"></iframe>
+::: {.callout-note}
+The code in this chapter is shown but not executed by the book, because every Earth Engine request runs under a personal Google account. Your console output will differ in the details.
 :::
 
-[Download this workbook](textbook_examples/mod07_relationships_excel.xlsx) · [Open online](https://usaskca1-my.sharepoint.com/:x:/g/personal/pjs998_usask_ca/IQC_D3aUskxqTpOBPx9DXhWIAajgK3Ypqpzoy0DySJzDG0Y?e=FhyD6v) (File → Save a Copy to view formulas and edit)
-:::
+## One-time setup
 
-R:
+This setup is the price of admission for cloud APIs, and you pay it once. Budget 20 to 30 minutes.
+
+1. **A personal Google account.** Your USask account will not work here; any personal Gmail account does.
+2. **Register for Earth Engine.** Go to [code.earthengine.google.com/register](https://code.earthengine.google.com/register), sign in, and choose **Unpaid usage**, with **Academia & Research** as the use. The registration creates a *cloud project* with an id like `ee-yourname`. Write the id down -- R needs it every session.
+3. **Install rgee.** In R:
 
 ```r
-cor(trial$fertilizer_kg_ha, trial$yield_bu_acre)
+# Install rgee from CRAN
+install.packages("rgee")
+
+# One-time: install the Python pieces rgee runs on
+rgee::ee_install()
 ```
 
-Or every pair at once:
+`ee_install()` downloads and sets up its own copy of Python. Restart R when it finishes.
+
+4. **Connect.** In a fresh session:
 
 ```r
-cor(trial[, c("fertilizer_kg_ha", "rainfall_mm", "yield_bu_acre")],
-    use = "complete.obs")
+# Load the package
+library(rgee)
+
+# Connect to Earth Engine using your project id
+ee_Initialize(project = "ee-yourname")
 ```
 
-The `use = "complete.obs"` argument matters here: three fields in the trial data have no
-rainfall reading, and without it any correlation involving rainfall comes back `NA` --
-missing values propagate through `cor()` just as they did through `mean()`.
+The first `ee_Initialize()` opens a browser window and asks you to sign in and grant access. After that, the connection line at the top of your script is all it takes.
 
-That matrix is worth running on the trial data.  Yield correlates with fertilizer, and it
-correlates with rainfall -- but fertilizer and rainfall also correlate with *each other*, at
-about 0.46.  Hold on to that number; it is the whole subject of @sec-multiple-regression.
+::: {.callout-tip collapse="true" title="If the setup fights you"}
+- `ee_install()` errors part-way: restart R and run it again; it resumes.
+- `ee_Initialize()` complains the project does not exist or you lack permission: the id must match your registration exactly (check it at [code.earthengine.google.com](https://code.earthengine.google.com) under the profile icon), and registration must be complete.
+- The browser sign-in loops or hangs: run `ee_Authenticate()` on its own, then `ee_Initialize(project = "ee-yourname")`.
+- Anything about Python not found: run `rgee::ee_install()` again and restart R.
+:::
 
-### What Correlation Does Not Measure {.unnumbered}
+## Requesting a field's history
 
-Correlation measures *linear* relationships. If the true relationship between $X$ and $Y$ is a curve — say, $Y$ rises with $X$ and then falls — the correlation can be zero even though there is a very strong relationship. This is why you should **always plot your data** before computing a correlation. A single scatter plot tells you more than a single number.
+Pick a point you know: a home quarter, a family field, land you have worked on. Get its longitude and latitude from the [field viewer](practice/field_viewer/index.html) (the panel shows the coordinates of a click) or from Google Maps (right-click, the coordinates are the first menu entry -- note that Google shows latitude first, and the code below wants **longitude first**).
 
-Anscombe's quartet in @sec-anscombe makes the point concretely: four datasets with identical
-correlations that look nothing alike.
+```r
+# The location to look up, written as longitude then latitude
+field_point <- ee$Geometry$Point(c(-106.55, 52.19))
 
-## Correlation Is Not Causation {#sec-correlation-causation}
+# The Annual Crop Inventory: one raster image per year
+aci <- ee$ImageCollection("AAFC/ACI")$select("landcover")
 
-If you remember nothing else from this course, remember this sentence. **Correlation does not imply causation.**
+# Wrap the point as a feature collection, the shape ee_extract() expects
+field_fc <- ee$FeatureCollection(ee$Feature(field_point))
 
-There are several reasons two variables can be correlated without one causing the other:
+# Ask the server for the pixel value at that point, in every year
+crops_wide <- ee_extract(x = aci, y = field_fc, scale = 30)
 
-1. **Coincidence.** If you look at enough pairs of variables, some will be correlated by chance alone. There is a famous website (tylervigen.com) that collects absurd correlations: per-capita cheese consumption correlates with deaths by bedsheet entanglement. Neither causes the other. They are both just trending over time.
-2. **Reverse causation.** You observe that people who exercise more have lower weights. Does exercise cause low weight, or do people with low weight exercise more? Usually a bit of both.
-3. **Confounding.** A third variable causes both. Ice cream sales correlate with drowning deaths. Does ice cream cause drowning? No. Both are caused by summer.
-4. **Selection.** The dataset was assembled in a way that induces a spurious correlation. (We will see examples of this when we get to sampling.)
+# Print the result
+crops_wide
+```
 
-To establish causation, you generally need either a controlled experiment (randomly assign treatment and control) or some clever reasoning about the source of variation. This is the domain of **causal inference**, which you will meet in AREC 262.
+The whole exchange with Google is those few lines. `ee_extract()` builds the request, sends it, and hands back a plain data frame: one row, with one column per year, holding the pixel code the classification assigned to your point.
 
-For AREC 261, the point is: **any time you see a correlation, the first question should be "is there a plausible causal story, and what else could explain this?"** The second question should be "could it be the reverse direction?" And the third should be "what could be confounding this?"
+## Tidying the answer
+
+The response is wide -- one column per year, with names like `X2009_landcover` -- and the values are codes, not crop names. Both problems have familiar fixes. The lookup table [`aci_crop_classes.csv`](practice/data/aci_crop_classes.csv) maps each code to its crop name and to AAFC's map colour; download it into your project's `data/` folder.
+
+```r
+# Load the tidyverse
+library(tidyverse)
+
+# Read the table that maps pixel codes to crop names and colours
+aci_classes <- read_csv("data/aci_crop_classes.csv")
+
+# Reshape to one row per year and attach the crop names
+crops <- crops_wide |>
+  pivot_longer(everything(),
+               names_to = "year",
+               values_to = "value") |>   # one row per year
+  mutate(year = parse_number(year)) |>   # "X2009_landcover" becomes 2009
+  left_join(aci_classes, by = "value")   # attach crop name and colour
+
+# Print the field's history
+crops
+```
+
+## Plotting the rotation
+
+One tile per year, coloured with AAFC's own palette:
+
+```r
+# Plot the crop history of the point
+ggplot(crops, aes(x = year, y = crop, fill = colour)) +
+  # One coloured tile per year
+  geom_tile() +
+  # The colour column already holds hex colours, so use them directly
+  scale_fill_identity() +
+  # Label the plot
+  labs(x = NULL, y = NULL,
+       title = "What grew at this point, 2009 onward")
+```
+
+A rotation reads directly off this plot: canola years, wheat years, the season a wet spring shows up as "Too wet to be seeded."
+
+## Exercises {.unnumbered}
+
+1. Plot the history of a field you know. In a comment, say where it is and how you chose it.
+2. Compare the classified crops with what you know was actually grown, for the years you know. Where the satellite disagrees with the record, say which you believe and why.
+3. Move the point a few hundred metres -- to a neighbouring field, or from the centre of a field to its edge -- and rerun. In a comment: which years changed, and what does that tell you about where classified data is trustworthy?
+4. The classification is right roughly 85 to 90 percent of the time for major crops. In one or two sentences: what is this dataset good for, and what should it not be used for?

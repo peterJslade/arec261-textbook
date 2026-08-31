@@ -1,139 +1,130 @@
-# Sampling {#sec-module10}
+# Probability and Simulation II {#sec-module9}
 
 ## Learning Objectives {.unnumbered}
 
 ::: {.objectives}
 By the end of this module you should be able to:
 
-1. Define a population, sample, parameter, and statistic.
-2. Explain why we sample instead of measuring the whole population.
-3. Describe the concept of sampling variability.
-4. Understand what a sampling distribution is and why it matters.
-5. State the Central Limit Theorem and explain its implications.
-6. Recognize sources of sampling bias.
+1. Simulate from empirical distributions by sampling with replacement.
+2. Simulate multivariate processes with correlated inputs.
+3. Use simulation to answer more complex questions (crop revenue with multiple crops, risk analysis, etc.).
+4. Build simulations that others can read and modify.
+5. Explain the limitations of simulation.
 :::
 
-## Population and Sample {#sec-population-sample}
+## Simulating from Empirical Distributions {#sec-empirical-sim}
 
-Two of the most important words in statistics. Please internalize the distinction.
+In Module 9 you simulated from distributions with known parametric forms (normal, uniform). Sometimes you don't know the distribution — but you have historical data. You can simulate directly from that data by **sampling with replacement**.
 
-A **population** is the complete set of things you want to draw conclusions about. All the canola fields in Saskatchewan in 2025. All the farmers in Canada. All the possible outcomes of a hypothetical experiment.
+"Sampling with replacement" means: each draw is chosen at random from the historical data, and it can be the same value twice. This is different from "sampling without replacement," where each value can only appear once. With replacement is the right choice for simulation because it preserves the frequency of common values.
 
-A **sample** is the subset you actually observe. 200 randomly selected canola fields. 500 farmers who answered your survey. Ten repetitions of the experiment.
+In R:
 
-We measure things in the sample and use them to make inferences about the population. Nearly every statistical procedure in this book — and most you will ever encounter — is some version of this.
+```r
+# Historical yield data for the past 30 years
+historical_yields <- c(38, 42, 45, 33, 50, 47, 41, 49, ...)  # etc.
 
-Two more words:
+# Simulate 10000 future yields by sampling from the past
+simulated_yields <- sample(historical_yields, size = 10000, replace = TRUE)
 
-A **parameter** is a number describing the population. The mean canola yield in Saskatchewan in 2025. The average farm size. The proportion of organic operations. We usually don't know parameters directly.
+mean(simulated_yields)
+hist(simulated_yields)
+```
 
-A **statistic** is a number computed from the sample. The mean of the 200 fields you sampled. The average farm size of the 500 respondents. The proportion of organic operations in your sample. Statistics are known; parameters are (usually) not.
+This approach, sometimes called **empirical simulation** or **the bootstrap**, has two big advantages over parametric simulation:
 
-The core job of statistics is to use the known statistic to estimate the unknown parameter, with honest accounting for uncertainty.
+1. You don't have to assume a distribution. The historical data already "contains" the true distribution, warts and all. Extreme years are represented in proportion to how often they happened.
+2. It naturally preserves weird features — skewness, bimodality, outliers — that a normal distribution would miss.
 
-## Why Sample? {#sec-why-sample}
+The big disadvantage: you can only simulate what has happened before. If the future is different from the past (climate change, new varieties, new policies), empirical simulation will not capture that. Use it with care.
 
-It would be nice to measure the entire population. Why don't we?
+## Simulating Multiple Correlated Variables {#sec-multivariate-sim}
 
-- **Cost.** Counting every canola field in Saskatchewan costs millions of dollars. Counting a random sample of 200 costs a small fraction.
-- **Speed.** A full census takes years. A sample takes weeks.
-- **Destruction.** Some measurements destroy the thing being measured. You cannot measure the moisture content of every kernel of grain in the world.
-- **Impossibility.** For hypothetical populations ("all possible repetitions of this experiment"), there is no way to measure the whole thing.
+Real-world variables are rarely independent. When canola yields are high, soybean yields tend to be high too (shared weather). When yields are high, prices tend to be low (supply). Modeling these correlations is essential for realistic simulations.
 
-Even when a census is feasible — Statistics Canada does one every few years — it is often not better than a well-designed sample, because the scale introduces errors of its own (data entry mistakes, missing observations, lag).
+The simplest way to handle correlation is **bootstrap multivariate sampling**: instead of simulating each variable separately, you sample *rows* of historical data that contain all the variables together.
 
-For most practical purposes, **a good sample is as good as a census**. The key word is "good."
+```r
+historical <- data.frame(
+  year = 1995:2024,
+  canola_yield = c(...),
+  wheat_yield = c(...),
+  canola_price = c(...),
+  wheat_price = c(...)
+)
 
-## Sampling Variability {#sec-sampling-variability}
+# Sample 10000 years by sampling rows with replacement
+sampled_rows <- sample(nrow(historical), size = 10000, replace = TRUE)
+sims <- historical[sampled_rows, ]
 
-The rest of this course rests on this. When you take a sample, you get one specific set of observations. If you had taken a *different* sample — drawn different random fields — you would have gotten different observations, and probably a different sample mean. The sample statistic is itself random. **Sampling variability** is the name for this.
+head(sims)
+```
 
-To make this concrete, let's simulate. Pretend the population of canola yields is $N(45, 8^2)$. Take a sample of 30, compute its mean.
+Each simulated year contains the canola yield, wheat yield, canola price, and wheat price *as they actually co-occurred* in some historical year. The correlations are preserved automatically, because you didn't break them apart.
+
+For parametric multivariate simulation (normal distributions with a specified correlation structure), you can use `MASS::mvrnorm()`, but that's more than we need for this course.
+
+## A More Complex Example: Whole-Farm Revenue {#sec-whole-farm-sim}
+
+Let's put it all together. A farmer has 1000 acres. She will allocate them between canola and wheat. Historical data gives yields and prices for both crops over 30 years. The question: what is the distribution of total revenue under different allocation strategies?
 
 ```r
 set.seed(42)
-population_mean <- 45
-population_sd <- 8
 
-sample_1 <- rnorm(30, mean = population_mean, sd = population_sd)
-mean(sample_1)
-# result might be, say, 43.7
+# Historical data (load from CSV in practice)
+historical <- data.frame(
+  canola_yield = c(...),
+  canola_price = c(...),
+  wheat_yield = c(...),
+  wheat_price = c(...)
+)
+
+# Function to simulate revenue for a given allocation
+simulate_revenue <- function(acres_canola, acres_wheat, n_sims = 10000) {
+  sampled <- historical[sample(nrow(historical), n_sims, replace = TRUE), ]
+  revenue <- acres_canola * sampled$canola_yield * sampled$canola_price +
+             acres_wheat  * sampled$wheat_yield  * sampled$wheat_price
+  revenue
+}
+
+# Compare three strategies
+all_canola    <- simulate_revenue(1000, 0)
+all_wheat     <- simulate_revenue(0, 1000)
+half_and_half <- simulate_revenue(500, 500)
+
+# Summarise
+data.frame(
+  strategy = c("All canola", "All wheat", "Half and half"),
+  mean     = c(mean(all_canola), mean(all_wheat), mean(half_and_half)),
+  sd       = c(sd(all_canola),   sd(all_wheat),   sd(half_and_half)),
+  p05      = c(quantile(all_canola, 0.05),
+               quantile(all_wheat, 0.05),
+               quantile(half_and_half, 0.05))
+)
 ```
 
-Now do it again:
+The interesting result (for most datasets) is that *diversification reduces the worst case*. The half-and-half strategy usually has a lower mean than all-canola but a much better 5th percentile — because bad years for canola are often okay years for wheat. This is the mathematical basis for crop rotation and for the general wisdom of "don't put all your eggs in one basket."
 
-```r
-sample_2 <- rnorm(30, mean = population_mean, sd = population_sd)
-mean(sample_2)
-# maybe 46.1
-```
+Try varying the allocation to find the one that maximizes the 5th percentile revenue (a risk-averse criterion). This kind of analysis would be *extremely* hard to do analytically. With simulation it is a few lines of code.
 
-And again, a thousand times:
+## Writing Readable Simulation Code {#sec-readable-sim}
 
-```r
-many_means <- replicate(1000, mean(rnorm(30, mean = 45, sd = 8)))
-hist(many_means, breaks = 30)
-mean(many_means)   # close to 45
-sd(many_means)     # close to 8 / sqrt(30) ≈ 1.46
-```
+Simulations have a way of turning into spaghetti. A few habits:
 
-What do we see?
+- **Start with a function that simulates one iteration.** Then loop or vectorize.
+- **Name your variables descriptively.** `revenue`, not `x`.
+- **Separate data from parameters.** Put assumptions at the top of the script where they are easy to change.
+- **Sanity-check each step.** After simulating, plot a histogram. Does it look sensible? Is the mean what you expect?
+- **Write down the model in words before writing code.** If you can't describe it, you can't code it.
 
-1. The means are *not all the same*. They vary from sample to sample. This is sampling variability.
-2. The means are *centered around the true population mean* (45). On average, the sample mean is the right answer.
-3. The spread of the sample means (standard deviation ≈ 1.46) is much smaller than the spread of the individual values in the population (which is 8). Averaging reduces variability.
+## Limitations of Simulation {#sec-sim-limitations}
 
-That distribution of sample means — the histogram you just made — is called the **sampling distribution of the mean**. It is not a distribution of your data; it is a distribution of the *statistic*.
+Simulation is powerful but not magic. Its output is only as good as its input:
 
-## The Central Limit Theorem {#sec-clt}
+- **Garbage in, garbage out.** If your assumed distributions are wrong, your simulation is wrong. Confidence in the output should be no higher than confidence in the inputs.
+- **Dependence matters.** If you assume variables are independent when they're not (like canola yield and canola price), your results will be misleading — usually optimistic.
+- **Tail behavior matters.** Normal distributions have very thin tails. Real agricultural data often has fatter tails (more extreme events than a normal predicts). If your question hinges on tail events, a normal-based simulation will understate the risk.
+- **One more time: the future may not look like the past.** Climate change, policy change, and structural change make purely historical simulation conservative at best.
 
-The sampling distribution of the mean has three remarkable properties:
-
-1. **Its mean equals the population mean** $\mu$. On average, sample means are unbiased.
-2. **Its standard deviation equals** $\sigma / \sqrt{n}$, where $\sigma$ is the population standard deviation and $n$ is the sample size. This is called the **standard error of the mean** (SE). Larger samples have smaller standard errors.
-3. **Its shape is approximately normal for large enough $n$**, *regardless of the shape of the population distribution*.
-
-That third point is the **Central Limit Theorem (CLT)** and it is the most important theorem in applied statistics. It says: even if the underlying data is highly skewed, has weird shapes, has outliers — the distribution of the *sample mean* will be approximately normal, as long as the sample is large enough.
-
-How large is "large enough"? Depends on the shape. For roughly symmetric populations, $n = 30$ is usually plenty. For highly skewed populations (like farm incomes), you might need $n = 100$ or more. But the theorem guarantees convergence as $n$ grows.
-
-This is why the normal distribution is everywhere in inferential statistics. Even when the raw data is not normal, the sample mean is. And most of our inferences are about means.
-
-## Standard Error vs Standard Deviation {#sec-se-vs-sd}
-
-A common source of confusion. They are different things:
-
-- **Standard deviation ($s$ or $\sigma$)**: measures the spread of the *individual values* in a sample or population. Has units of the variable.
-- **Standard error ($SE$)**: measures the spread of the *sampling distribution of a statistic*, usually the mean. For the mean of a sample, $SE = s / \sqrt{n}$. Has the same units.
-
-A dataset has one standard deviation. A statistic (like the mean) has a standard error that depends on the sample size.
-
-When you see "$45 \pm 1.5$" in a report, ask: is that a standard deviation (showing the spread of the data) or a standard error (showing the precision of the estimate)? They answer different questions, and confusing them is a major source of statistical malpractice.
-
-## Sampling Bias {#sec-sampling-bias}
-
-Sampling variability is about the random fluctuation around the true answer. **Sampling bias** is about being systematically wrong.
-
-Examples:
-
-- **Selection bias.** Your sample is not representative of the population. You survey farmers about the new program by calling them during daytime business hours — but the farmers who answer are systematically different from the ones who are out in the field working.
-- **Self-selection bias.** You post a survey online and whoever wants to can respond. The people who respond are the ones who care strongly about the topic — who are usually *not* representative of everyone.
-- **Survivorship bias.** You measure yields from all the fields that were harvested. You miss the fields that failed and were never harvested. Your average yield is biased upward.
-- **Recall bias.** You ask people to report their pesticide use last year. They remember some things and forget others, and the remembering is not random.
-
-Bias cannot be fixed by a larger sample size. A bigger biased sample just gives you the wrong answer with more precision. The only fix for bias is better study design.
-
-The gold standard for unbiased sampling is the **simple random sample**: every member of the population has an equal chance of being selected, and selections are independent. This is an ideal that is sometimes hard to achieve in practice. More sophisticated designs (stratified sampling, cluster sampling) exist for specific situations; they are the subject of a course of their own.
-
-For AREC 261, the takeaway is: **always ask "how was this sample drawn, and does it plausibly represent the population I care about?"** If the answer is unclear, so are the conclusions.
-
-## A Thought Experiment: Election Polls {#sec-election-polls}
-
-Before an election, polling companies survey maybe 1500 voters and report which candidate leads. 1500 people out of many millions of voters. How is that enough?
-
-The answer: because of the Central Limit Theorem and the $1/\sqrt{n}$ formula. The standard error of a proportion from a sample of 1500 is about $\sqrt{0.25 / 1500} \approx 0.013$ — about 1.3 percentage points. A 95% "margin of error" is about twice that, so around $\pm 2.6$ points.
-
-That's honest enough for most practical purposes. If candidate A is leading candidate B by 10 points, they are probably really leading. If they are leading by 1 point, the poll cannot distinguish that from a tie.
-
-Notice what sample size did *not* help with: selection bias. If the sample was drawn in a way that systematically misses certain types of voters (famously, "shy Trump voters" in the 2016 U.S. election, who didn't admit their preference to pollsters), then no amount of $n$ fixes that. The poll is systematically wrong regardless of the math.
+All of these are reasons to be humble about simulation results. It is a tool for quantifying uncertainty under stated assumptions, not a crystal ball.
 

@@ -1,116 +1,139 @@
-# Randomization Tests {#sec-module11}
+# Sampling {#sec-module10}
 
 ## Learning Objectives {.unnumbered}
 
 ::: {.objectives}
 By the end of this module you should be able to:
 
-1. Explain the logic of hypothesis testing.
-2. State a null and alternative hypothesis for a two-group comparison.
-3. Conduct a permutation test by hand and in R.
-4. Interpret a $p$-value correctly.
-5. Distinguish statistical significance from practical significance.
+1. Define a population, sample, parameter, and statistic.
+2. Explain why we sample instead of measuring the whole population.
+3. Describe the concept of sampling variability.
+4. Understand what a sampling distribution is and why it matters.
+5. State the Central Limit Theorem and explain its implications.
+6. Recognize sources of sampling bias.
 :::
 
-## The Question: Is This Difference Real? {#sec-is-this-real}
+## Population and Sample {#sec-population-sample}
 
-You have two groups of canola fields: one treated with a new biological product, one untreated. The treated group has a mean yield of 48 bu/ac. The untreated group has a mean yield of 45 bu/ac. Is the product working?
+Two of the most important words in statistics. Please internalize the distinction.
 
-Before we answer, notice that even if the product does *nothing*, the two groups would not have exactly the same mean. By chance alone, one group will have slightly higher yields. The question is whether the difference we see (3 bu/ac) is *bigger than what we would expect by chance alone*.
+A **population** is the complete set of things you want to draw conclusions about. All the canola fields in Saskatchewan in 2025. All the farmers in Canada. All the possible outcomes of a hypothetical experiment.
 
-This is the core question of **hypothesis testing**: is the observed pattern consistent with nothing interesting going on, or is it too big to be chance?
+A **sample** is the subset you actually observe. 200 randomly selected canola fields. 500 farmers who answered your survey. Ten repetitions of the experiment.
 
-## The Null Hypothesis {#sec-null-hypothesis}
+We measure things in the sample and use them to make inferences about the population. Nearly every statistical procedure in this book — and most you will ever encounter — is some version of this.
 
-We formalize "nothing interesting is going on" as the **null hypothesis**, written $H_0$. For our example:
+Two more words:
 
-$$
-H_0: \text{the product has no effect (mean yield is the same in both groups)}
-$$
+A **parameter** is a number describing the population. The mean canola yield in Saskatchewan in 2025. The average farm size. The proportion of organic operations. We usually don't know parameters directly.
 
-And the **alternative hypothesis**, $H_1$ (or $H_A$):
+A **statistic** is a number computed from the sample. The mean of the 200 fields you sampled. The average farm size of the 500 respondents. The proportion of organic operations in your sample. Statistics are known; parameters are (usually) not.
 
-$$
-H_1: \text{the product does have an effect (means differ)}
-$$
+The core job of statistics is to use the known statistic to estimate the unknown parameter, with honest accounting for uncertainty.
 
-The logic of a hypothesis test is: *assume the null hypothesis is true*, compute how likely your observed data (or something more extreme) would be under that assumption, and if it is very unlikely, reject the null. This is a form of proof by contradiction.
+## Why Sample? {#sec-why-sample}
 
-## Permutation Tests: Hypothesis Testing by Simulation {#sec-permutation}
+It would be nice to measure the entire population. Why don't we?
 
-The traditional way to test hypotheses uses formulas (the $t$-test, the $z$-test, etc., which you will meet in AREC 262). Those formulas are useful but they obscure the intuition. Here we do it the modern way, with simulation.
+- **Cost.** Counting every canola field in Saskatchewan costs millions of dollars. Counting a random sample of 200 costs a small fraction.
+- **Speed.** A full census takes years. A sample takes weeks.
+- **Destruction.** Some measurements destroy the thing being measured. You cannot measure the moisture content of every kernel of grain in the world.
+- **Impossibility.** For hypothetical populations ("all possible repetitions of this experiment"), there is no way to measure the whole thing.
 
-The idea of a **permutation test**: if the null hypothesis is true — if the product has no effect — then the labels "treated" and "untreated" are meaningless. A given field would have the same yield whether we called it treated or untreated. So we can *randomly shuffle* the labels and compute the difference in means again. And again. And again. The distribution of differences we get by random shuffling is the distribution of differences we'd expect *if the null were true*. If our actual observed difference is way out in the tail of this distribution, we reject the null.
+Even when a census is feasible — Statistics Canada does one every few years — it is often not better than a well-designed sample, because the scale introduces errors of its own (data entry mistakes, missing observations, lag).
 
-In R:
+For most practical purposes, **a good sample is as good as a census**. The key word is "good."
+
+## Sampling Variability {#sec-sampling-variability}
+
+The rest of this course rests on this. When you take a sample, you get one specific set of observations. If you had taken a *different* sample — drawn different random fields — you would have gotten different observations, and probably a different sample mean. The sample statistic is itself random. **Sampling variability** is the name for this.
+
+To make this concrete, let's simulate. Pretend the population of canola yields is $N(45, 8^2)$. Take a sample of 30, compute its mean.
 
 ```r
 set.seed(42)
+population_mean <- 45
+population_sd <- 8
 
-# Observed data
-treated   <- c(49, 52, 47, 50, 46, 51, 48, 47, 49, 50)  # 10 fields
-untreated <- c(44, 46, 45, 47, 43, 44, 46, 47, 45, 43)  # 10 fields
-observed_diff <- mean(treated) - mean(untreated)
-# observed_diff ≈ 4
-
-# Combine all values
-all_yields <- c(treated, untreated)
-n_treated <- length(treated)
-
-# Shuffle labels many times and compute the difference
-n_perms <- 10000
-perm_diffs <- replicate(n_perms, {
-  shuffled <- sample(all_yields)
-  mean(shuffled[1:n_treated]) - mean(shuffled[(n_treated+1):length(shuffled)])
-})
-
-# What fraction of shuffles produce a difference as extreme as observed?
-p_value <- mean(abs(perm_diffs) >= abs(observed_diff))
-
-# Plot
-hist(perm_diffs, breaks = 40, main = "Permutation distribution")
-abline(v = observed_diff, col = "red", lwd = 2)
-abline(v = -observed_diff, col = "red", lwd = 2)
+sample_1 <- rnorm(30, mean = population_mean, sd = population_sd)
+mean(sample_1)
+# result might be, say, 43.7
 ```
 
-The $p$-value here is the fraction of random shuffles where the difference in means was as extreme as (or more extreme than) what we actually saw. If that fraction is small, the observed difference is unlikely under the null, and we reject the null.
+Now do it again:
 
-## Interpreting the $p$-Value {#sec-p-value}
+```r
+sample_2 <- rnorm(30, mean = population_mean, sd = population_sd)
+mean(sample_2)
+# maybe 46.1
+```
 
-This is where a lot of people get confused, so I am going to be careful.
+And again, a thousand times:
 
-**The $p$-value is the probability, assuming the null hypothesis is true, of seeing data as extreme or more extreme than what you observed.**
+```r
+many_means <- replicate(1000, mean(rnorm(30, mean = 45, sd = 8)))
+hist(many_means, breaks = 30)
+mean(many_means)   # close to 45
+sd(many_means)     # close to 8 / sqrt(30) ≈ 1.46
+```
 
-That sentence is precise and you should memorize it. Several things the $p$-value is *not*:
+What do we see?
 
-- **It is not the probability that the null hypothesis is true.** The null is either true or false; it has no probability in the frequentist framework.
-- **It is not the probability that your result is due to chance.** The $p$-value conditions on the null being true; it tells you how surprising the data is under that condition.
-- **It is not a measure of the size of the effect.** A tiny effect with a huge sample can have a tiny $p$-value. A huge effect with a small sample can have a large $p$-value. The $p$-value alone does not tell you whether the effect matters in practice.
+1. The means are *not all the same*. They vary from sample to sample. This is sampling variability.
+2. The means are *centered around the true population mean* (45). On average, the sample mean is the right answer.
+3. The spread of the sample means (standard deviation ≈ 1.46) is much smaller than the spread of the individual values in the population (which is 8). Averaging reduces variability.
 
-A convention: if $p < 0.05$, we reject the null. This threshold is arbitrary (a historical accident, really) and should not be treated as a sharp boundary between "real" and "not real." A $p$-value of 0.049 is not meaningfully different from 0.051. Report the actual $p$-value and let the reader interpret it.
+That distribution of sample means — the histogram you just made — is called the **sampling distribution of the mean**. It is not a distribution of your data; it is a distribution of the *statistic*.
 
-A better way to think about $p$-values: they are a measure of how surprised the data would make you if the null were true. Small $p$-value = very surprised = evidence against the null. Large $p$-value = not surprised = no evidence against the null (which is *not* the same as evidence for the null).
+## The Central Limit Theorem {#sec-clt}
 
-## Statistical vs Practical Significance {#sec-practical-significance}
+The sampling distribution of the mean has three remarkable properties:
 
-Here is a common mistake: "the difference was statistically significant, so the treatment works."
+1. **Its mean equals the population mean** $\mu$. On average, sample means are unbiased.
+2. **Its standard deviation equals** $\sigma / \sqrt{n}$, where $\sigma$ is the population standard deviation and $n$ is the sample size. This is called the **standard error of the mean** (SE). Larger samples have smaller standard errors.
+3. **Its shape is approximately normal for large enough $n$**, *regardless of the shape of the population distribution*.
 
-**Statistical significance means the effect is bigger than chance.** That's all. It does not mean the effect is large. It does not mean the treatment is worth adopting.
+That third point is the **Central Limit Theorem (CLT)** and it is the most important theorem in applied statistics. It says: even if the underlying data is highly skewed, has weird shapes, has outliers — the distribution of the *sample mean* will be approximately normal, as long as the sample is large enough.
 
-A 0.1 bu/ac yield increase might be statistically significant in a 10,000-field trial and completely useless in practice. Conversely, a 10 bu/ac yield increase might fail to achieve statistical significance in a 5-field trial and still be a big deal.
+How large is "large enough"? Depends on the shape. For roughly symmetric populations, $n = 30$ is usually plenty. For highly skewed populations (like farm incomes), you might need $n = 100$ or more. But the theorem guarantees convergence as $n$ grows.
 
-Always report *both*:
+This is why the normal distribution is everywhere in inferential statistics. Even when the raw data is not normal, the sample mean is. And most of our inferences are about means.
 
-- **The effect size** (in meaningful units).
-- **A measure of uncertainty** (confidence interval, $p$-value, standard error).
+## Standard Error vs Standard Deviation {#sec-se-vs-sd}
 
-Then let the decision-maker weigh whether the effect is worth acting on.
+A common source of confusion. They are different things:
 
-## One-Sided vs Two-Sided Tests {#sec-one-sided-two-sided}
+- **Standard deviation ($s$ or $\sigma$)**: measures the spread of the *individual values* in a sample or population. Has units of the variable.
+- **Standard error ($SE$)**: measures the spread of the *sampling distribution of a statistic*, usually the mean. For the mean of a sample, $SE = s / \sqrt{n}$. Has the same units.
 
-A brief note. Our example above asked "is there a difference?" — which is a **two-sided** test. It tests the null against "there is a difference in either direction."
+A dataset has one standard deviation. A statistic (like the mean) has a standard error that depends on the sample size.
 
-Sometimes you only care about one direction: "does the product *increase* yield?" That's a **one-sided** test. Its $p$-value is half of the two-sided one (roughly).
+When you see "$45 \pm 1.5$" in a report, ask: is that a standard deviation (showing the spread of the data) or a standard error (showing the precision of the estimate)? They answer different questions, and confusing them is a major source of statistical malpractice.
 
-In general, use two-sided tests unless you have a strong reason to only care about one direction *before you see the data*. Picking one-sided after you look at the data is cheating — it's a form of $p$-hacking.
+## Sampling Bias {#sec-sampling-bias}
+
+Sampling variability is about the random fluctuation around the true answer. **Sampling bias** is about being systematically wrong.
+
+Examples:
+
+- **Selection bias.** Your sample is not representative of the population. You survey farmers about the new program by calling them during daytime business hours — but the farmers who answer are systematically different from the ones who are out in the field working.
+- **Self-selection bias.** You post a survey online and whoever wants to can respond. The people who respond are the ones who care strongly about the topic — who are usually *not* representative of everyone.
+- **Survivorship bias.** You measure yields from all the fields that were harvested. You miss the fields that failed and were never harvested. Your average yield is biased upward.
+- **Recall bias.** You ask people to report their pesticide use last year. They remember some things and forget others, and the remembering is not random.
+
+Bias cannot be fixed by a larger sample size. A bigger biased sample just gives you the wrong answer with more precision. The only fix for bias is better study design.
+
+The gold standard for unbiased sampling is the **simple random sample**: every member of the population has an equal chance of being selected, and selections are independent. This is an ideal that is sometimes hard to achieve in practice. More sophisticated designs (stratified sampling, cluster sampling) exist for specific situations; they are the subject of a course of their own.
+
+For AREC 261, the takeaway is: **always ask "how was this sample drawn, and does it plausibly represent the population I care about?"** If the answer is unclear, so are the conclusions.
+
+## A Thought Experiment: Election Polls {#sec-election-polls}
+
+Before an election, polling companies survey maybe 1500 voters and report which candidate leads. 1500 people out of many millions of voters. How is that enough?
+
+The answer: because of the Central Limit Theorem and the $1/\sqrt{n}$ formula. The standard error of a proportion from a sample of 1500 is about $\sqrt{0.25 / 1500} \approx 0.013$ — about 1.3 percentage points. A 95% "margin of error" is about twice that, so around $\pm 2.6$ points.
+
+That's honest enough for most practical purposes. If candidate A is leading candidate B by 10 points, they are probably really leading. If they are leading by 1 point, the poll cannot distinguish that from a tie.
+
+Notice what sample size did *not* help with: selection bias. If the sample was drawn in a way that systematically misses certain types of voters (famously, "shy Trump voters" in the 2016 U.S. election, who didn't admit their preference to pollsters), then no amount of $n$ fixes that. The poll is systematically wrong regardless of the math.
 
