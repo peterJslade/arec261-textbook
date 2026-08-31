@@ -7,7 +7,8 @@
 #      (weights are derived from the TRUE yield x acres x 0.02722 t/bu with
 #      ~3% noise, so the file is internally consistent even on rows whose
 #      yield column carries a planted code or impossible value)
-#   3. Duplicates             -- rows F012 and F027 appear twice, exactly
+#   3. Duplicates             -- F002 and F005 appear twice, exactly, with
+#                                both pairs inside the first eight rows
 #   4. Missing-value codes    -- yield uses -99; moisture uses N/A, missing,
 #                                a blank, and 9999
 #   5. Impossible values      -- one yield of -12, one of 1250 bu/ac
@@ -87,9 +88,10 @@ for i in range(1, N + 1):
 
     rows.append([field_id, variety, seeded, str(acres), yield_val, weight, n_rate, moisture])
 
-# exact duplicates of two rows
-rows.append(rows[11])   # F012
-rows.append(rows[26])   # F027
+# exact duplicates of two rows, placed so both pairs sit in the
+# first eight rows of the file
+rows.insert(3, rows[1])   # copy of F002 as the 4th row
+rows.insert(7, rows[5])   # copy of F005 as the 8th row
 
 with open("data/field_records_messy.csv", "w", newline="") as f:
     w = csv.writer(f)
