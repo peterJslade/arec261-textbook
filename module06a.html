@@ -26,6 +26,41 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -48,6 +83,9 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="site_libs/bootstrap/bootstrap-5e59ab0f76eb8c10b14673f5248a7137.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -599,7 +637,101 @@ ul.task-list li input[type="checkbox"] {
 <p>Almost everything in agriculture happens somewhere: a yield belongs to a field, a rainfall reading to a gauge, an insurance premium to a risk zone. Spatial data is data that keeps the <em>where</em> attached to the numbers, so that location itself can be part of the analysis.</p>
 <p>Spatial data comes in two shapes.</p>
 <p><strong>Vector</strong> data describes things with boundaries or positions: points (a weather station, an elevator), lines (a road, a river), and polygons (a field, a rural municipality, a risk zone). A vector dataset is a table like any other, except that each row carries a geometry column describing its shape. The RM yields we have used all term are one join away from being spatial: Saskatchewan publishes the RM boundaries as polygons, and the RM number links a row of yields to a shape on the map.</p>
+<p>Here is that idea in practice. Reading the RM boundaries with the <strong>sf</strong> package gives a data frame with one extra column:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the package for spatial data</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sf)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the RM boundary file</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>rms <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="st">"data/sask_rms.geojson"</span>, <span class="at">quiet =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># An sf object is a data frame with a geometry column</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(rms)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; # Load the package for spatial data
+&gt; library(sf)
+&gt; 
+&gt; # Read the RM boundary file
+&gt; rms &lt;- st_read("data/sask_rms.geojson", quiet = TRUE)
+&gt; 
+&gt; # An sf object is a data frame with a geometry column
+&gt; head(rms)
+Simple feature collection with 6 features and 2 fields
+Geometry type: MULTIPOLYGON
+Dimension:     XY
+Bounding box:  xmin: -108.535 ymin: 49.262 xmax: -106.005 ymax: 51.62
+Geodetic CRS:  WGS 84
+  RMNO                 RMNM                       geometry
+1  288      PLEASANT VALLEY MULTIPOLYGON (((-108.469 51...
+2  167 SASKATCHEWAN LANDING MULTIPOLYGON (((-107.87 50....
+3  046       GLEN MCPHERSON MULTIPOLYGON (((-107.224 49...
+4  075          PINTO CREEK MULTIPOLYGON (((-106.817 49...
+5  104          GRAVELBOURG MULTIPOLYGON (((-106.562 50...
+6  103               SUTTON MULTIPOLYGON (((-106.005 50...</code></pre>
+</div>
+</div>
+</div>
+<p>Each row is an RM; the <code>geometry</code> column holds its polygon. Drawing the table draws the map:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Draw every row of the table as its polygon</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(rms) <span class="sc">+</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">fill =</span> <span class="st">"grey97"</span>, <span class="at">colour =</span> <span class="st">"grey40"</span>, <span class="at">linewidth =</span> <span class="fl">0.1</span>) <span class="sc">+</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Shade a single row: RM 344, Corman Park</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data =</span> <span class="fu">filter</span>(rms, RMNO <span class="sc">==</span> <span class="st">"344"</span>), <span class="at">fill =</span> <span class="st">"#4A7C59"</span>) <span class="sc">+</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div id="fig-rm-boundaries" class="quarto-float quarto-figure quarto-figure-center anchored" alt="A map of southern Saskatchewan divided into small rural municipality polygons, with one polygon near the centre shaded green.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-rm-boundaries-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="module06a_files/figure-html/fig-rm-boundaries-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;17.1: Vector data: the 297 rural municipalities of Saskatchewan. Each polygon is one row of the table; the shaded polygon is the row for RM 344, Corman Park."><img src="module06a_files/figure-html/fig-rm-boundaries-1.png" class="img-fluid figure-img" alt="A map of southern Saskatchewan divided into small rural municipality polygons, with one polygon near the centre shaded green." width="528"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-rm-boundaries-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;17.1: Vector data: the 297 rural municipalities of Saskatchewan. Each polygon is one row of the table; the shaded polygon is the row for RM 344, Corman Park.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
 <p><strong>Raster</strong> data divides the land into a grid of equal cells and stores one value per cell, like a photograph where every pixel is a measurement. Satellite imagery is raster data, and so is anything derived from it: a 30-metre grid where each cell holds an estimated crop type, a soil-moisture surface, an elevation model.</p>
+<p>Here is a small piece of one: a 50-by-50 window of the 2023 Annual Crop Inventory, covering about two square kilometres of central Saskatchewan. Each cell is 30 metres on a side and holds a single value, the crop class:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># One row per 30-metre cell: its position and its crop class</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>field <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/aci_field_raster.csv"</span>, <span class="at">show_col_types =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># The class table pairs each value with a crop name and a map colour</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>classes <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/aci_crop_classes.csv"</span>, <span class="at">show_col_types =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Attach the names and colours to the cells</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>field_classed <span class="ot">&lt;-</span> field <span class="sc">|&gt;</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(classes, <span class="at">by =</span> <span class="st">"value"</span>)</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="co"># The named palette: each crop paired with its official colour</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>palette <span class="ot">&lt;-</span> field_classed <span class="sc">|&gt;</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(crop, colour) <span class="sc">|&gt;</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">deframe</span>()</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Draw every cell as a tile</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(field_classed, <span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> y, <span class="at">fill =</span> crop)) <span class="sc">+</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_tile</span>(<span class="at">colour =</span> <span class="st">"white"</span>, <span class="at">linewidth =</span> <span class="fl">0.15</span>) <span class="sc">+</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> palette) <span class="sc">+</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_fixed</span>() <span class="sc">+</span></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>() <span class="sc">+</span></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">fill =</span> <span class="cn">NULL</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div id="fig-raster-field" class="quarto-float quarto-figure quarto-figure-center anchored" alt="A square grid of small coloured cells forming recognizable field shapes: blocks of canola and spring wheat, patches of trees and pasture, and a thin line of developed land.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-raster-field-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="module06a_files/figure-html/fig-raster-field-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;17.2: Raster data: 30-metre cells from the 2023 Annual Crop Inventory. The white lines show the cells; fields, a road allowance and a wetland emerge from nothing but a grid of single values."><img src="module06a_files/figure-html/fig-raster-field-1.png" class="img-fluid figure-img" alt="A square grid of small coloured cells forming recognizable field shapes: blocks of canola and spring wheat, patches of trees and pasture, and a thin line of developed land." width="614"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-raster-field-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;17.2: Raster data: 30-metre cells from the 2023 Annual Crop Inventory. The white lines show the cells; fields, a road allowance and a wetland emerge from nothing but a grid of single values.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Zoom in on either figure and the difference between the two shapes is plain: the vector map is exact boundaries, the raster is a grid pretending to be boundaries. Both are tables underneath, which is why the rest of the module can treat them with tools you already have.</p>
 <section id="coordinates-and-reference-systems" class="level2" data-number="17.1">
 <h2 data-number="17.1" class="anchored" data-anchor-id="coordinates-and-reference-systems"><span class="header-section-number">17.1</span> Coordinates and reference systems</h2>
 <div class="callout callout-style-default callout-note callout-titled">
@@ -1142,6 +1274,38 @@ document.addEventListener("DOMContentLoaded", function () {
   </div>
 </nav>
 </div> <!-- /content -->
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
 
 
 
