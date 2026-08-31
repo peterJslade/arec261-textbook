@@ -660,15 +660,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 Simple feature collection with 6 features and 2 fields
 Geometry type: MULTIPOLYGON
 Dimension:     XY
-Bounding box:  xmin: -108.535 ymin: 49.262 xmax: -106.005 ymax: 51.62
+Bounding box:  xmin: -108.5354 ymin: 49.26171 xmax: -106.0051 ymax: 51.61981
 Geodetic CRS:  WGS 84
   RMNO                 RMNM                       geometry
-1  288      PLEASANT VALLEY MULTIPOLYGON (((-108.469 51...
-2  167 SASKATCHEWAN LANDING MULTIPOLYGON (((-107.87 50....
-3  046       GLEN MCPHERSON MULTIPOLYGON (((-107.224 49...
-4  075          PINTO CREEK MULTIPOLYGON (((-106.817 49...
-5  104          GRAVELBOURG MULTIPOLYGON (((-106.562 50...
-6  103               SUTTON MULTIPOLYGON (((-106.005 50...</code></pre>
+1  288      PLEASANT VALLEY MULTIPOLYGON (((-108.5354 5...
+2  167 SASKATCHEWAN LANDING MULTIPOLYGON (((-107.8702 5...
+3  046       GLEN MCPHERSON MULTIPOLYGON (((-107.6208 4...
+4  075          PINTO CREEK MULTIPOLYGON (((-106.8173 4...
+5  104          GRAVELBOURG MULTIPOLYGON (((-106.8241 5...
+6  103               SUTTON MULTIPOLYGON (((-106.0051 5...</code></pre>
 </div>
 </div>
 </div>
@@ -734,24 +734,62 @@ Figure&nbsp;17.2: Raster data: 30-metre cells from the 2023 Annual Crop Inventor
 <p>Zoom in on either figure and the difference between the two shapes is plain: the vector map is exact boundaries, the raster is a grid pretending to be boundaries. Both are tables underneath, which is why the rest of the module can treat them with tools you already have.</p>
 <section id="coordinates-and-reference-systems" class="level2" data-number="17.1">
 <h2 data-number="17.1" class="anchored" data-anchor-id="coordinates-and-reference-systems"><span class="header-section-number">17.1</span> Coordinates and reference systems</h2>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
+<p>A location is usually written as a longitude and a latitude. The two conventions disagree on the order: maps, GPS units and Google write latitude first, while R and most spatial file formats want longitude first, because longitude is the x coordinate and latitude is the y. <a href="#fig-coord-swap" class="quarto-xref">Figure&nbsp;<span>17.3</span></a> shows the same two numbers entered in both orders.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># A world outline to plot against</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>world <span class="ot">&lt;-</span> <span class="fu">map_data</span>(<span class="st">"world"</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Country outlines in light grey</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_polygon</span>(<span class="at">data =</span> world, <span class="fu">aes</span>(long, lat, <span class="at">group =</span> group), <span class="at">fill =</span> <span class="st">"grey90"</span>) <span class="sc">+</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># The field, longitude first</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"point"</span>, <span class="at">x =</span> <span class="sc">-</span><span class="fl">106.55</span>, <span class="at">y =</span> <span class="fl">52.19</span>, <span class="at">colour =</span> <span class="st">"#4A7C59"</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># The same numbers, latitude first</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"point"</span>, <span class="at">x =</span> <span class="fl">52.19</span>, <span class="at">y =</span> <span class="sc">-</span><span class="fl">106.55</span>, <span class="at">colour =</span> <span class="st">"firebrick"</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_fixed</span>() <span class="sc">+</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div id="fig-coord-swap" class="quarto-float quarto-figure quarto-figure-center anchored" alt="A world map with a green point on Saskatchewan and a red point in the ocean south of Africa.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-coord-swap-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="module06a_files/figure-html/fig-coord-swap-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;17.3: The coordinates of a field near Saskatoon, entered longitude-first (green) and latitude-first (red). The red point is in the Southern Ocean."><img src="module06a_files/figure-html/fig-coord-swap-1.png" class="img-fluid figure-img" alt="A world map with a green point on Saskatchewan and a red point in the ocean south of Africa." width="614"></a>
 </div>
-<div class="callout-title-container flex-fill">
-Note
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-coord-swap-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;17.3: The coordinates of a field near Saskatoon, entered longitude-first (green) and latitude-first (red). The red point is in the Southern Ocean.
+</figcaption>
+</figure>
 </div>
 </div>
-<div class="callout-body-container callout-body">
-<p>This section is a draft outline.</p>
+</div>
+<p>Degrees are also not distances. A degree of latitude is about 111 km everywhere, but a degree of longitude shrinks toward the pole – at Saskatchewan’s latitude it is about 68 km. Subtracting two longitudes therefore does not give a distance, an area computed in degrees means nothing, and a map drawn as if degrees were equal in both directions comes out the wrong shape. <a href="#fig-degrees-squash" class="quarto-xref">Figure&nbsp;<span>17.4</span></a> draws the RM centres that way, and the province is stretched wide. <code>geom_sf()</code> drew <a href="#fig-rm-boundaries" class="quarto-xref">Figure&nbsp;<span>17.1</span></a> correctly because it knew the coordinates were degrees.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># One point per RM: the centre of its polygon</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>rm_centres <span class="ot">&lt;-</span> rms <span class="sc">|&gt;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_centroid</span>() <span class="sc">|&gt;</span>       <span class="co"># centre point of each polygon</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_coordinates</span>() <span class="sc">|&gt;</span>    <span class="co"># the longitude and latitude of each centre</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>()</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Degrees plotted as if equal in both directions</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(rm_centres, <span class="fu">aes</span>(X, Y)) <span class="sc">+</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">0.4</span>, <span class="at">colour =</span> <span class="st">"grey40"</span>) <span class="sc">+</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_fixed</span>() <span class="sc">+</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div id="fig-degrees-squash" class="quarto-float quarto-figure quarto-figure-center anchored" alt="A scatterplot of RM centre points forming a version of southern Saskatchewan that is noticeably too wide and flat.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-degrees-squash-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="module06a_files/figure-html/fig-degrees-squash-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;17.4: The centre of each RM, plotted as if a degree of longitude equalled a degree of latitude. Compare the shape with Figure&nbsp;fig-rm-boundaries."><img src="module06a_files/figure-html/fig-degrees-squash-1.png" class="img-fluid figure-img" alt="A scatterplot of RM centre points forming a version of southern Saskatchewan that is noticeably too wide and flat." width="614"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-degrees-squash-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;17.4: The centre of each RM, plotted as if a degree of longitude equalled a degree of latitude. Compare the shape with <a href="#fig-rm-boundaries" class="quarto-xref">Figure&nbsp;<span>17.1</span></a>.
+</figcaption>
+</figure>
 </div>
 </div>
-<ul>
-<li>Latitude and longitude</li>
-<li>Coordinate reference systems</li>
-<li>Geographic versus projected coordinates</li>
-</ul>
+</div>
+<p>A <strong>coordinate reference system</strong> (CRS) is the statement of what a file’s coordinates mean, and there are two kinds. A geographic CRS records positions in degrees on the globe; the one GPS uses is called WGS 84, or EPSG:4326. A projected CRS flattens a region onto a plane and records positions in metres; most Saskatchewan agency data uses UTM Zone 13. The EPSG number is how software identifies a CRS, and those two – 4326 for degrees, UTM Zone 13 for metres – cover nearly everything in this module.</p>
+<p>Every spatial file carries its CRS. Check it rather than guessing: Saskatchewan is wide enough that its western edge falls in UTM Zone 12, so even the usual choice for the province is sometimes wrong. The working rule is to put everything in one CRS before measuring distance or area or combining two layers, and to use a projected CRS when measuring. The functions that check and convert a CRS, <code>st_crs()</code> and <code>st_transform()</code>, are in <a href="module06b.html" class="quarto-xref"><span>Chapter 18</span></a>.</p>
+<p>Canadian files sometimes say NAD 83 rather than WGS 84. The two differ by less than a metre here, which is less than a combine header, and this course ignores the difference.</p>
 </section>
 <section id="resolution-scale-and-extent" class="level2" data-number="17.2">
 <h2 data-number="17.2" class="anchored" data-anchor-id="resolution-scale-and-extent"><span class="header-section-number">17.2</span> Resolution, scale and extent</h2>
