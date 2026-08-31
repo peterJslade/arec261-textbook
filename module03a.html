@@ -581,8 +581,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#sec-readxl" id="toc-sec-readxl" class="nav-link" data-scroll-target="#sec-readxl"><span class="header-section-number">7.5.2</span> Excel files</a></li>
   <li><a href="#sec-direct-download" id="toc-sec-direct-download" class="nav-link" data-scroll-target="#sec-direct-download"><span class="header-section-number">7.5.3</span> A file on the web</a></li>
   <li><a href="#sec-raw-copy" id="toc-sec-raw-copy" class="nav-link" data-scroll-target="#sec-raw-copy"><span class="header-section-number">7.5.4</span> Keep a raw copy</a></li>
-  <li><a href="#sec-api-r" id="toc-sec-api-r" class="nav-link" data-scroll-target="#sec-api-r"><span class="header-section-number">7.5.5</span> Calling an API</a></li>
-  <li><a href="#sec-data-packages" id="toc-sec-data-packages" class="nav-link" data-scroll-target="#sec-data-packages"><span class="header-section-number">7.5.6</span> Packages that wrap an API</a></li>
+  <li><a href="#sec-data-packages" id="toc-sec-data-packages" class="nav-link" data-scroll-target="#sec-data-packages"><span class="header-section-number">7.5.5</span> Packages that wrap an API</a></li>
   </ul></li>
   <li><a href="#sec-readme" id="toc-sec-readme" class="nav-link" data-scroll-target="#sec-readme"><span class="header-section-number">7.6</span> A final note on saving data</a></li>
   </ul>
@@ -619,10 +618,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <ol type="1">
 <li>Describe the table you need before you go looking for it.</li>
 <li>Name the main public sources of agricultural data, and tell a manual download, a direct file link, an API, and a package that wraps an API apart.</li>
-<li>Explain the parts of an API request and what comes back.</li>
-<li>Use Power Query to import a file, a folder of files, a file on the web, or a simple API, with the column types set on the way in.</li>
+<li>Use Power Query to import a file with the column types set on the way in.</li>
 <li>Read delimited text and Excel files into R with the column types stated, and find the values that failed to parse.</li>
-<li>Fetch a file or make an API request from R.</li>
+<li>Fetch a file from the web, or download data with a package that wraps an API.</li>
 <li>Keep a dated raw copy and a README that records source, units, parameters and retrieval date.</li>
 </ol>
 </div>
@@ -715,34 +713,7 @@ Figure&nbsp;7.1: Statistics Canada table 32-10-0359-01. <strong>Customize table<
 <section id="sec-apis" class="level3" data-number="7.3.1">
 <h3 data-number="7.3.1" class="anchored" data-anchor-id="sec-apis"><span class="header-section-number">7.3.1</span> APIs</h3>
 <p>An <strong>API</strong> (application programming interface) is a documented way for one program to ask another for data. Your program sends a request that says what it wants, and the server sends back a response containing just that. The request is a line of text, so it is recorded, repeatable, and easy to change.</p>
-<p>For a simple data API, the request is a URL with the choices written into it. For example, to obtain precipitation data for May 1 to May 5, 2024, we can use this URL: <a href="https://archive-api.open-meteo.com/v1/archive?latitude=52.13&amp;longitude=-106.67&amp;start_date=2024-05-01&amp;end_date=2024-05-05&amp;daily=precipitation_sum&amp;timezone=America/Regina" class="uri">https://archive-api.open-meteo.com/v1/archive?latitude=52.13&amp;longitude=-106.67&amp;start_date=2024-05-01&amp;end_date=2024-05-05&amp;daily=precipitation_sum&amp;timezone=America/Regina</a>.</p>
-<p>The URL looks complex, but it is easier to parse when broken into its components:</p>
-<pre><code>https://archive-api.open-meteo.com/v1/archive
-    ?latitude=52.13
-    &amp;longitude=-106.67
-    &amp;start_date=2024-05-01
-    &amp;end_date=2024-05-05
-    &amp;daily=precipitation_sum
-    &amp;timezone=America/Regina</code></pre>
-<p>The first line is the <strong>endpoint</strong> for Open-Meteo. Everything after the question mark consists of query parameters. The first two parameters contain the latitude and longitude, the next two contain the start and end dates, the sixth line requests daily precipitation, and the final line sets the time zone. Changing these parameters requests different data. The <a href="https://open-meteo.com/en/docs/historical-weather-api">Open-Meteo documentation</a> lists the available parameters.</p>
-<p>If the request succeeds the server answers with a status code, <code>200</code>, and a body. Data APIs mostly answer in <strong>JSON</strong>, a text format that nests values under labels rather than laying them out as rows and columns. The answer to our above request is:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">"latitude"</span><span class="fu">:</span><span class="fl">52.126537</span><span class="fu">,</span><span class="dt">"longitude"</span><span class="fu">:</span><span class="fl">-106.74034</span><span class="fu">,</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"generationtime_ms"</span><span class="fu">:</span><span class="fl">3.182649612426758</span><span class="fu">,</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"utc_offset_seconds"</span><span class="fu">:</span><span class="dv">-21600</span><span class="fu">,</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"timezone"</span><span class="fu">:</span><span class="st">"America/Regina"</span><span class="fu">,</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"timezone_abbreviation"</span><span class="fu">:</span><span class="st">"GMT-6"</span><span class="fu">,</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"elevation"</span><span class="fu">:</span><span class="fl">486.0</span><span class="fu">,</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"daily_units"</span><span class="fu">:{</span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"time"</span><span class="fu">:</span><span class="st">"iso8601"</span><span class="fu">,</span></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"precipitation_sum"</span><span class="fu">:</span><span class="st">"mm"</span><span class="fu">},</span></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"daily"</span><span class="fu">:{</span></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"time"</span><span class="fu">:</span><span class="ot">[</span><span class="st">"2024-05-01"</span><span class="ot">,</span><span class="st">"2024-05-02"</span><span class="ot">,</span><span class="st">"2024-05-03"</span><span class="ot">,</span><span class="st">"2024-05-04"</span><span class="ot">,</span><span class="st">"2024-05-05"</span><span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"precipitation_sum"</span><span class="fu">:</span><span class="ot">[</span><span class="fl">7.50</span><span class="ot">,</span><span class="fl">4.10</span><span class="ot">,</span><span class="fl">2.80</span><span class="ot">,</span><span class="fl">3.00</span><span class="ot">,</span><span class="fl">0.00</span><span class="ot">]</span><span class="fu">}}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>The line breaks are only for readability. The final line tells us that daily precipitation was 7.5 mm on May 1, 4.1 mm on May 2 and so on.</p>
-<p>If the request fails the status code says roughly why: <code>400</code> is a malformed request, <code>401</code> or <code>403</code> a permissions problem, <code>404</code> nothing at that address, <code>500</code> the server’s fault. Leave <code>longitude</code> out of the request above and Open-Meteo answers <code>400</code>.</p>
-<p>Many APIs ask for a <strong>key</strong>, a free password that identifies who is asking, which you request once from the provider and send with every request. USDA’s QuickStats needs one; Open-Meteo does not. A key identifies <em>you</em>, so keep it out of any workbook or script you share. The usual habit is to put it in an environment variable or a separate file that you do not share, and have the script read it from there.</p>
-<p>Two other API issues you may encounter. Some APIs return only the first page of a large result and expect you to ask for the rest. Most limit how many requests you can make in a minute. And rerunning the same request later can return different numbers, because the provider revised them, which is why the raw copy in <a href="#sec-raw-copy" class="quarto-xref"><span>Section 7.5.4</span></a> matters as much for an API as for a file.</p>
-<p>Direct API requests can be difficult because the response is often nested JSON. An R package can wrap the request and return a data frame; the <code>openmeteo</code> example in <a href="#sec-data-packages" class="quarto-xref"><span>Section 7.5.6</span></a> uses the same parameters as this URL.</p>
+<p>Building API requests by hand is fiddly, and this course does not ask you to. For the providers we use, someone has written an R package that builds the request and hands back a data frame – the packages in <a href="#sec-data-packages" class="quarto-xref"><span>Section 7.5.5</span></a> are wrappers around an API.</p>
 </section>
 </section>
 <section id="sec-excel-getting" class="level2" data-number="7.4">
@@ -872,16 +843,16 @@ Figure&nbsp;7.5: In the Power Query editor, change identifier columns such as <c
 <p>The tidyverse functions come from <strong>readr</strong>. The two files used here are the same ones used in the Excel examples above:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the tidyverse packages</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the comma-delimited ticket file</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>tickets <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"practice/data/elevator_tickets.csv"</span></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the first six rows</span></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(tickets)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the tidyverse packages</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the comma-delimited ticket file</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>tickets <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"practice/data/elevator_tickets.csv"</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the first six rows</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(tickets)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; # Load the tidyverse packages
 &gt; library(tidyverse)
@@ -928,23 +899,23 @@ date (1): delivery_date
 <p>Much like Excel, <code>read_csv()</code> guesses each column’s type from the first thousand values. In the console above, <code>ticket_id</code> kept its zeros and <code>lot_code</code> stayed as text. However, <code>permit_book</code> was read as a number, printed as <code>4.52e15</code>, and has already lost its last digits. We can state the types in <code>read_csv()</code> using the <code>col_types</code> argument. <code>cols()</code> creates a named list in which each column name is paired with the type that column should have.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the ticket file and state the important column types</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>tickets <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"practice/data/elevator_tickets.csv"</span>,</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">col_types =</span> <span class="fu">cols</span>(</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Keep ticket identifiers as text</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">ticket_id =</span> <span class="fu">col_character</span>(),</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Keep permit-book identifiers as text</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">permit_book =</span> <span class="fu">col_character</span>(),</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Keep lot codes as text</span></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">lot_code =</span> <span class="fu">col_character</span>(),</span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Read dates in year-month-day order</span></span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">delivery_date =</span> <span class="fu">col_date</span>(<span class="st">"%Y-%m-%d"</span>)</span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the first six rows</span></span>
-<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(tickets)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the ticket file and state the important column types</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>tickets <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"practice/data/elevator_tickets.csv"</span>,</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">col_types =</span> <span class="fu">cols</span>(</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Keep ticket identifiers as text</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">ticket_id =</span> <span class="fu">col_character</span>(),</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Keep permit-book identifiers as text</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">permit_book =</span> <span class="fu">col_character</span>(),</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Keep lot codes as text</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">lot_code =</span> <span class="fu">col_character</span>(),</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Read dates in year-month-day order</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">delivery_date =</span> <span class="fu">col_date</span>(<span class="st">"%Y-%m-%d"</span>)</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the first six rows</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(tickets)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; # Read the ticket file and state the important column types
 &gt; tickets &lt;- read_csv(
@@ -979,17 +950,17 @@ date (1): delivery_date
 <p>A value that does not fit the stated type does not stop the script. R puts in <code>NA</code>, warns, and records the problem, and <code>problems()</code> lists what it recorded. <code>grain_deliveries_messy.csv</code>, the file <a href="module03b.html" class="quarto-xref"><span>Chapter 8</span></a> works through, has one weight typed with its unit:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the messy deliveries file and require a numeric weight</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"practice/data/grain_deliveries_messy.csv"</span>,</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">col_types =</span> <span class="fu">cols</span>(</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Parse weight as a double</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">weight_tonnes =</span> <span class="fu">col_double</span>()</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co"># List values that failed to parse</span></span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="fu">problems</span>(deliveries)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the messy deliveries file and require a numeric weight</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"practice/data/grain_deliveries_messy.csv"</span>,</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">col_types =</span> <span class="fu">cols</span>(</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Parse weight as a double</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">weight_tonnes =</span> <span class="fu">col_double</span>()</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co"># List values that failed to parse</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="fu">problems</span>(deliveries)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; # Read the messy deliveries file and require a numeric weight
 &gt; deliveries &lt;- read_csv(
@@ -1021,35 +992,35 @@ e.g.:
 <p>The code below shows three attempts to read the barley workbook. The first reads the README sheet instead of the data. The second reads the correct sheet but treats its title as the header. The third reads the correct sheet and skips the three rows above the table.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the package for reading Excel workbooks</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readxl)</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the first sheet in the workbook</span></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>barley_first_sheet <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"practice/data/sask_barley_2025.xlsx"</span></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the first six rows of the README sheet</span></span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(barley_first_sheet)</span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the Barley_2025 sheet without skipping its title rows</span></span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>barley_no_skip <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(</span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>  <span class="st">"practice/data/sask_barley_2025.xlsx"</span>,</span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">sheet =</span> <span class="st">"Barley_2025"</span></span>
-<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the first six rows of the incorrectly imported table</span></span>
-<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(barley_no_skip)</span>
-<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the Barley_2025 sheet and skip the three title rows</span></span>
-<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>barley <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(</span>
-<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>  <span class="st">"practice/data/sask_barley_2025.xlsx"</span>,</span>
-<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>  <span class="at">sheet =</span> <span class="st">"Barley_2025"</span>,</span>
-<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>  <span class="at">skip =</span> <span class="dv">3</span></span>
-<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the first six rows of the correctly imported table</span></span>
-<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(barley)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the package for reading Excel workbooks</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readxl)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the first sheet in the workbook</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>barley_first_sheet <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"practice/data/sask_barley_2025.xlsx"</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the first six rows of the README sheet</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(barley_first_sheet)</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the Barley_2025 sheet without skipping its title rows</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>barley_no_skip <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  <span class="st">"practice/data/sask_barley_2025.xlsx"</span>,</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">sheet =</span> <span class="st">"Barley_2025"</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the first six rows of the incorrectly imported table</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(barley_no_skip)</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the Barley_2025 sheet and skip the three title rows</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>barley <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>  <span class="st">"practice/data/sask_barley_2025.xlsx"</span>,</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>  <span class="at">sheet =</span> <span class="st">"Barley_2025"</span>,</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>  <span class="at">skip =</span> <span class="dv">3</span></span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the first six rows of the correctly imported table</span></span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(barley)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; # Load the package for reading Excel workbooks
 &gt; library(readxl)
@@ -1116,14 +1087,14 @@ New names:
 <p>An alternative to <code>skip</code> is to specify the range of cells to import. This can exclude both rows and columns.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Read only cells A4 through C36 on the Barley_2025 sheet</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>barley <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"practice/data/sask_barley_2025.xlsx"</span>,</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">range =</span> <span class="st">"Barley_2025!A4:C36"</span></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the first six rows</span></span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(barley)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Read only cells A4 through C36 on the Barley_2025 sheet</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>barley <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"practice/data/sask_barley_2025.xlsx"</span>,</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">range =</span> <span class="st">"Barley_2025!A4:C36"</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the first six rows</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(barley)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; # Read only cells A4 through C36 on the Barley_2025 sheet
 &gt; barley &lt;- read_excel(
@@ -1152,14 +1123,14 @@ New names:
 <p><code>read_csv()</code> accepts a URL in place of a path, so the RM yields can be read straight from the dashboard:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Store the direct download URL</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>rm_yields_url <span class="ot">&lt;-</span> <span class="st">"https://dashboard.saskatchewan.ca/export/rm-yields-data/4950.csv"</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the CSV directly from the web</span></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>rm_yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(rm_yields_url)</span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the first six rows</span></span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(rm_yields)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Store the direct download URL</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>rm_yields_url <span class="ot">&lt;-</span> <span class="st">"https://dashboard.saskatchewan.ca/export/rm-yields-data/4950.csv"</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the CSV directly from the web</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>rm_yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(rm_yields_url)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the first six rows</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(rm_yields)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; # Store the direct download URL
 &gt; rm_yields_url &lt;- "https://dashboard.saskatchewan.ca/export/rm-yields-data/4950.csv"
@@ -1198,8 +1169,8 @@ dbl (18): Year, RM, Winter Wheat, Canola, Spring Wheat, Mustard, Durum, Sunf...
 <p>The file at a URL can be revised or replaced; in this case, the RM data are updated at least once a year. After reading the data, save a dated copy so that you retain the version used in your analysis.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Save a dated snapshot of the data in the project data folder</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">write_csv</span>(rm_yields, <span class="st">"data/rm_yields_2026-08-22.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Save a dated snapshot of the data in the project data folder</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">write_csv</span>(rm_yields, <span class="st">"data/rm_yields_2026-08-22.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; # Save a dated snapshot of the data in the project data folder
 &gt; write_csv(rm_yields, "data/rm_yields_2026-08-22.csv")</code></pre>
@@ -1208,149 +1179,38 @@ dbl (18): Year, RM, Winter Wheat, Canola, Spring Wheat, Mustard, Durum, Sunf...
 </div>
 <p>The URL above records where the data came from, and the date in the filename records when this copy was obtained. If the online file changes later, this dated snapshot preserves the data used for the analysis. Strictly speaking, <code>write_csv()</code> saves the values after R has read them rather than preserving the exact original file, but it captures the important practice at this stage: keep the version you actually used.</p>
 </section>
-<section id="sec-api-r" class="level3" data-number="7.5.5">
-<h3 data-number="7.5.5" class="anchored" data-anchor-id="sec-api-r"><span class="header-section-number">7.5.5</span> Calling an API</h3>
-<p>The <strong>httr2</strong> package builds a request one part at a time, which makes the parts visible. The Open-Meteo request from <a href="#sec-apis" class="quarto-xref"><span>Section 7.3.1</span></a>:</p>
-<div class="cell">
-<div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the package for making HTTP requests</span></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(httr2)</span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Start a request and add the location, dates, variable and time zone</span></span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>weather_request <span class="ot">&lt;-</span> <span class="fu">request</span>(<span class="st">"https://archive-api.open-meteo.com/v1/archive"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">req_url_query</span>(</span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">latitude =</span> <span class="fl">52.13</span>,</span>
-<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">longitude =</span> <span class="sc">-</span><span class="fl">106.67</span>,</span>
-<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">start_date =</span> <span class="st">"2024-05-01"</span>,</span>
-<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">end_date =</span> <span class="st">"2024-05-05"</span>,</span>
-<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">daily =</span> <span class="st">"precipitation_sum"</span>,</span>
-<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">timezone =</span> <span class="st">"America/Regina"</span></span>
-<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the request object</span></span>
-<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>weather_request</span>
-<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Show the request without sending it</span></span>
-<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a><span class="fu">req_dry_run</span>(weather_request)</span>
-<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Send the request and store the response</span></span>
-<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a>weather_response <span class="ot">&lt;-</span> <span class="fu">req_perform</span>(weather_request)</span>
-<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the HTTP status code</span></span>
-<span id="cb17-25"><a href="#cb17-25" aria-hidden="true" tabindex="-1"></a><span class="fu">resp_status</span>(weather_response)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="console-transcript">
-<pre><code>&gt; # Load the package for making HTTP requests
-&gt; library(httr2)
-&gt; 
-&gt; # Start a request and add the location, dates, variable and time zone
-&gt; weather_request &lt;- request("https://archive-api.open-meteo.com/v1/archive") |&gt;
-+   req_url_query(
-+     latitude = 52.13,
-+     longitude = -106.67,
-+     start_date = "2024-05-01",
-+     end_date = "2024-05-05",
-+     daily = "precipitation_sum",
-+     timezone = "America/Regina"
-+   )
-&gt; 
-&gt; # Print the request object
-&gt; weather_request
-&lt;httr2_request&gt;
-GET https://archive-api.open-meteo.com/v1/archive?latitude=52.13&amp;longitude=-106.67&amp;start_date=2024-05-01&amp;end_date=2024-05-05&amp;daily=precipitation_sum&amp;timezone=America%2FRegina
-Body: empty
-&gt; 
-&gt; # Show the request without sending it
-&gt; req_dry_run(weather_request)
-GET /v1/archive HTTP/1.1
-accept: */*
-accept-encoding: deflate, gzip, br, zstd
-host: archive-api.open-meteo.com
-user-agent: httr2/1.3.0 r-curl/8.0.0 libcurl/8.5.0
-
-&gt; 
-&gt; # Send the request and store the response
-&gt; weather_response &lt;- req_perform(weather_request)
-&gt; 
-&gt; # Print the HTTP status code
-&gt; resp_status(weather_response)
-[1] 200</code></pre>
-</div>
-</div>
-</div>
-<p><code>request()</code> names the endpoint, <code>req_url_query()</code> adds and encodes the parameters, and <code>req_dry_run()</code> lets you inspect the request before sending it. <code>req_perform()</code> sends it and already stops on an HTTP error such as <code>400</code> or <code>404</code>; <code>resp_status()</code> reports the successful response’s code.</p>
-<p>The body is JSON. JSON can contain groups inside other groups, so <code>resp_body_json()</code> represents it as a nested R list (see the discussion of lists in <a href="module02a.html#sec-r-basics" class="quarto-xref"><span>Section 4.5</span></a>). The outer <code>weather_json</code> list contains an element named <code>daily</code>, which is itself a list. Inside <code>daily</code>, the elements named <code>time</code> and <code>precipitation_sum</code> are equal-length vectors. We can extract those vectors with <code>$</code> and use them as columns in a data frame:</p>
-<div class="cell">
-<div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert the JSON response to nested R objects</span></span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>weather_json <span class="ot">&lt;-</span> <span class="fu">resp_body_json</span>(weather_response, <span class="at">simplifyVector =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract the vectors and put them into a data frame</span></span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>saskatoon_rain <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Convert the date strings to Date values</span></span>
-<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">date =</span> <span class="fu">as.Date</span>(weather_json<span class="sc">$</span>daily<span class="sc">$</span>time),</span>
-<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Extract daily precipitation in millimetres</span></span>
-<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">precipitation_mm =</span> weather_json<span class="sc">$</span>daily<span class="sc">$</span>precipitation_sum</span>
-<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the resulting data frame</span></span>
-<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>saskatoon_rain</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="console-transcript">
-<pre><code>&gt; # Convert the JSON response to nested R objects
-&gt; weather_json &lt;- resp_body_json(weather_response, simplifyVector = TRUE)
-&gt; 
-&gt; # Extract the vectors and put them into a data frame
-&gt; saskatoon_rain &lt;- data.frame(
-+   # Convert the date strings to Date values
-+   date = as.Date(weather_json$daily$time),
-+   # Extract daily precipitation in millimetres
-+   precipitation_mm = weather_json$daily$precipitation_sum
-+ )
-&gt; 
-&gt; # Print the resulting data frame
-&gt; saskatoon_rain
-        date precipitation_mm
-1 2024-05-01              7.5
-2 2024-05-02              4.1
-3 2024-05-03              2.8
-4 2024-05-04              3.0
-5 2024-05-05              0.0</code></pre>
-</div>
-</div>
-</div>
-<p>Each <code>$</code> moves down one level of the list: <code>weather_json$daily</code> selects the daily list, and <code>$time</code> or <code>$precipitation_sum</code> selects a vector inside it. <code>data.frame()</code> then places those vectors in columns. Every API’s JSON is shaped differently, so the first time you use one, run <code>str(weather_json)</code> and read the provider’s documentation rather than guessing element names. Save the raw response too, with <code>writeLines(resp_body_string(weather_response), "data/raw/saskatoon_2024-05.json")</code>, for the same reason as the raw CSV.</p>
-</section>
-<section id="sec-data-packages" class="level3" data-number="7.5.6">
-<h3 data-number="7.5.6" class="anchored" data-anchor-id="sec-data-packages"><span class="header-section-number">7.5.6</span> Packages that wrap an API</h3>
-<p>Getting data from an API (as above) is a bit of work. We need to get the JSON data and then parse it ourselves. For many APIs a developer has created a package that allows you to call the API and obtain the data directly in a data frame.</p>
-<p>As mentioned above, the <strong>openmeteo</strong> package is one example. When you load this package you can use the function <code>weather_history()</code> to directly download data. As with all functions, if you want to understand the arguments that you need to supply to weather history type <code>?weather_history</code> in your console. In this case you will see that you need to supply at least three arguments, start, end and either hourly or daily:</p>
+<section id="sec-data-packages" class="level3" data-number="7.5.5">
+<h3 data-number="7.5.5" class="anchored" data-anchor-id="sec-data-packages"><span class="header-section-number">7.5.5</span> Packages that wrap an API</h3>
+<p>For many APIs a developer has created a package that builds the request for you and returns the data directly as a data frame.</p>
+<p>The <strong>openmeteo</strong> package is one example. When you load this package you can use the function <code>weather_history()</code> to directly download data. As with all functions, if you want to understand the arguments that you need to supply to weather history type <code>?weather_history</code> in your console. In this case you will see that you need to supply at least three arguments, start, end and either hourly or daily:</p>
 <ul>
 <li><p>start, end: Required. Start and end dates in ISO 8601 (e.g.&nbsp;“2020-12-31”).</p></li>
 <li><p>hourly, daily: At least one required. A weather variable accepted by the API, or list thereof. Details provided in the help description.</p></li>
 </ul>
 <p>Additionally, you can supply the units you want the data in (e.g., “mm” or “cm”) and the timezone the hours/days refer to.</p>
 <p>Once again we can install the package using the following code:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Install remotes from CRAN</span></span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">"remotes"</span>)</span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Install openmeteo from GitHub</span></span>
-<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"tpisel/openmeteo"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>After installation, one function call returns a data frame with the Saskatoon precipitaiton data for May 2024:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Install remotes from CRAN</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">"remotes"</span>)</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Install openmeteo from GitHub</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"tpisel/openmeteo"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>After installation, one function call returns a data frame with the Saskatoon precipitation data for May 2024:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the Open-Meteo API wrapper</span></span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(openmeteo)</span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Request historical precipitation for Saskatoon</span></span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>saskatoon_rain_package <span class="ot">&lt;-</span> <span class="fu">weather_history</span>(</span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(<span class="fl">52.13</span>, <span class="sc">-</span><span class="fl">106.67</span>),</span>
-<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">start =</span> <span class="st">"2024-05-01"</span>,</span>
-<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">end =</span> <span class="st">"2024-05-05"</span>,</span>
-<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">daily =</span> <span class="st">"precipitation_sum"</span>,</span>
-<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">timezone =</span> <span class="st">"America/Regina"</span></span>
-<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the returned data frame</span></span>
-<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>saskatoon_rain_package</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the Open-Meteo API wrapper</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(openmeteo)</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Request historical precipitation for Saskatoon</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>saskatoon_rain_package <span class="ot">&lt;-</span> <span class="fu">weather_history</span>(</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(<span class="fl">52.13</span>, <span class="sc">-</span><span class="fl">106.67</span>),</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">start =</span> <span class="st">"2024-05-01"</span>,</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">end =</span> <span class="st">"2024-05-05"</span>,</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">daily =</span> <span class="st">"precipitation_sum"</span>,</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">timezone =</span> <span class="st">"America/Regina"</span></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the returned data frame</span></span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>saskatoon_rain_package</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; # Load the Open-Meteo API wrapper
 &gt; library(openmeteo)
@@ -1404,7 +1264,6 @@ user-agent: httr2/1.3.0 r-curl/8.0.0 libcurl/8.5.0
 <ul>
 <li><strong>Microsoft</strong> – <a href="https://learn.microsoft.com/en-us/power-query/power-query-what-is-power-query">What is Power Query?</a> and the <a href="https://learn.microsoft.com/en-us/power-query/connectors/web/web">Web connector</a>.</li>
 <li><strong>readr</strong> – <a href="https://readr.tidyverse.org/articles/column-types.html">column types</a>; <strong>readxl</strong> – <a href="https://readxl.tidyverse.org/reference/read_excel.html"><code>read_excel()</code></a>.</li>
-<li><strong>httr2</strong> – <a href="https://httr2.r-lib.org/">package documentation</a>.</li>
 <li><strong>openmeteo</strong> – <a href="https://github.com/tpisel/openmeteo">package documentation and source code</a>.</li>
 </ul>
 </div>
