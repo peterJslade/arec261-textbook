@@ -93,13 +93,61 @@ Zoom in on either figure and the difference between the two shapes is plain: the
 
 ## Coordinates and reference systems
 
-::: {.callout-note}
-This section is a draft outline.
-:::
+A location is usually written as a longitude and a latitude. The two conventions disagree on the order: maps, GPS units and Google write latitude first, while R and most spatial file formats want longitude first, because longitude is the x coordinate and latitude is the y. @fig-coord-swap shows the same two numbers entered in both orders.
 
-- Latitude and longitude
-- Coordinate reference systems
-- Geographic versus projected coordinates
+```{r}
+#| label: fig-coord-swap
+#| eval: true
+#| echo: true
+#| message: false
+#| fig-width: 6.4
+#| fig-height: 3.4
+#| fig-cap: "The coordinates of a field near Saskatoon, entered longitude-first (green) and latitude-first (red). The red point is in the Southern Ocean."
+#| fig-alt: "A world map with a green point on Saskatchewan and a red point in the ocean south of Africa."
+# A world outline to plot against
+world <- map_data("world")
+
+ggplot() +
+  # Country outlines in light grey
+  geom_polygon(data = world, aes(long, lat, group = group), fill = "grey90") +
+  # The field, longitude first
+  annotate("point", x = -106.55, y = 52.19, colour = "#4A7C59", size = 3) +
+  # The same numbers, latitude first
+  annotate("point", x = 52.19, y = -106.55, colour = "firebrick", size = 3) +
+  coord_fixed() +
+  theme_void()
+```
+
+Degrees are also not distances. A degree of latitude is about 111 km everywhere, but a degree of longitude shrinks toward the pole -- at Saskatchewan's latitude it is about 68 km. Subtracting two longitudes therefore does not give a distance, an area computed in degrees means nothing, and a map drawn as if degrees were equal in both directions comes out the wrong shape. @fig-degrees-squash draws the RM centres that way, and the province is stretched wide. `geom_sf()` drew @fig-rm-boundaries correctly because it knew the coordinates were degrees.
+
+```{r}
+#| label: fig-degrees-squash
+#| eval: true
+#| echo: true
+#| message: false
+#| warning: false
+#| fig-width: 6.4
+#| fig-height: 4.2
+#| fig-cap: "The centre of each RM, plotted as if a degree of longitude equalled a degree of latitude. Compare the shape with @fig-rm-boundaries."
+#| fig-alt: "A scatterplot of RM centre points forming a version of southern Saskatchewan that is noticeably too wide and flat."
+# One point per RM: the centre of its polygon
+rm_centres <- rms |>
+  st_centroid() |>       # centre point of each polygon
+  st_coordinates() |>    # the longitude and latitude of each centre
+  as_tibble()
+
+# Degrees plotted as if equal in both directions
+ggplot(rm_centres, aes(X, Y)) +
+  geom_point(size = 0.4, colour = "grey40") +
+  coord_fixed() +
+  theme_void()
+```
+
+A **coordinate reference system** (CRS) is the statement of what a file's coordinates mean, and there are two kinds. A geographic CRS records positions in degrees on the globe; the one GPS uses is called WGS 84, or EPSG:4326. A projected CRS flattens a region onto a plane and records positions in metres; most Saskatchewan agency data uses UTM Zone 13. The EPSG number is how software identifies a CRS, and those two -- 4326 for degrees, UTM Zone 13 for metres -- cover nearly everything in this module.
+
+Every spatial file carries its CRS. Check it rather than guessing: Saskatchewan is wide enough that its western edge falls in UTM Zone 12, so even the usual choice for the province is sometimes wrong. The working rule is to put everything in one CRS before measuring distance or area or combining two layers, and to use a projected CRS when measuring. The functions that check and convert a CRS, `st_crs()` and `st_transform()`, are in @sec-spatial-r.
+
+Canadian files sometimes say NAD 83 rather than WGS 84. The two differ by less than a metre here, which is less than a combine header, and this course ignores the difference.
 
 ## Resolution, scale and extent
 
