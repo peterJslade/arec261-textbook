@@ -26,6 +26,41 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -48,6 +83,9 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="site_libs/bootstrap/bootstrap-5e59ab0f76eb8c10b14673f5248a7137.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -567,11 +605,15 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#reading-spatial-data" id="toc-reading-spatial-data" class="nav-link active" data-scroll-target="#reading-spatial-data"><span class="header-section-number">18.1</span> Reading spatial data</a></li>
-  <li><a href="#making-points-from-coordinates" id="toc-making-points-from-coordinates" class="nav-link" data-scroll-target="#making-points-from-coordinates"><span class="header-section-number">18.2</span> Making points from coordinates</a></li>
+  <li><a href="#learning-objectives" id="toc-learning-objectives" class="nav-link active" data-scroll-target="#learning-objectives">Learning Objectives</a></li>
+  <li><a href="#reading-vector-data" id="toc-reading-vector-data" class="nav-link" data-scroll-target="#reading-vector-data"><span class="header-section-number">18.1</span> Reading vector data</a></li>
+  <li><a href="#points-from-coordinates" id="toc-points-from-coordinates" class="nav-link" data-scroll-target="#points-from-coordinates"><span class="header-section-number">18.2</span> Points from coordinates</a></li>
   <li><a href="#transforming-coordinate-systems" id="toc-transforming-coordinate-systems" class="nav-link" data-scroll-target="#transforming-coordinate-systems"><span class="header-section-number">18.3</span> Transforming coordinate systems</a></li>
-  <li><a href="#joining-data-to-boundaries" id="toc-joining-data-to-boundaries" class="nav-link" data-scroll-target="#joining-data-to-boundaries"><span class="header-section-number">18.4</span> Joining data to boundaries</a></li>
-  <li><a href="#writing-spatial-data" id="toc-writing-spatial-data" class="nav-link" data-scroll-target="#writing-spatial-data"><span class="header-section-number">18.5</span> Writing spatial data</a></li>
+  <li><a href="#attaching-a-table-to-boundaries" id="toc-attaching-a-table-to-boundaries" class="nav-link" data-scroll-target="#attaching-a-table-to-boundaries"><span class="header-section-number">18.4</span> Attaching a table to boundaries</a></li>
+  <li><a href="#which-polygon-holds-a-point" id="toc-which-polygon-holds-a-point" class="nav-link" data-scroll-target="#which-polygon-holds-a-point"><span class="header-section-number">18.5</span> Which polygon holds a point</a></li>
+  <li><a href="#reading-raster-data" id="toc-reading-raster-data" class="nav-link" data-scroll-target="#reading-raster-data"><span class="header-section-number">18.6</span> Reading raster data</a></li>
+  <li><a href="#cutting-a-raster-with-a-polygon" id="toc-cutting-a-raster-with-a-polygon" class="nav-link" data-scroll-target="#cutting-a-raster-with-a-polygon"><span class="header-section-number">18.7</span> Cutting a raster with a polygon</a></li>
+  <li><a href="#writing-spatial-data" id="toc-writing-spatial-data" class="nav-link" data-scroll-target="#writing-spatial-data"><span class="header-section-number">18.8</span> Writing spatial data</a></li>
   </ul>
 </nav>
     </div>
@@ -597,54 +639,431 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
+<p><a href="module06a.html" class="quarto-xref"><span>Chapter 17</span></a> treated spatial data as something to look at. This chapter makes it something to work with. The <strong>sf</strong> package handles vector data and the <strong>terra</strong> package handles rasters, and both give you objects that the Module 2 verbs mostly work on unchanged.</p>
+<section id="learning-objectives" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="learning-objectives">Learning Objectives</h2>
+<div class="objectives">
+<p>By the end of this chapter you should be able to:</p>
+<ol type="1">
+<li>Read vector data with <code>st_read()</code> and interpret the header it prints.</li>
+<li>Turn a table of coordinates into spatial points.</li>
+<li>Check and transform a coordinate reference system, and measure area in a projected one.</li>
+<li>Join ordinary data to boundaries, and find which polygon contains a point.</li>
+<li>Read a raster with terra, and crop and mask it with a polygon.</li>
+<li>Write spatial results to a file.</li>
+</ol>
 </div>
-<div class="callout-title-container flex-fill">
-Note
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>This chapter is a draft outline. The sections below show what it will cover.</p>
-</div>
-</div>
-<p>This chapter covers reading spatial data into R with the <strong>sf</strong> package and doing the ordinary things – inspecting, joining, saving – with a table that happens to carry geometry.</p>
-<section id="reading-spatial-data" class="level2" data-number="18.1">
-<h2 data-number="18.1" class="anchored" data-anchor-id="reading-spatial-data"><span class="header-section-number">18.1</span> Reading spatial data</h2>
-<ul>
-<li>Reading shapefiles and GeoPackages with <code>sf</code></li>
-<li>Inspecting an <code>sf</code> object</li>
-<li>The geometry column</li>
-<li>Reading field and RM boundaries</li>
-</ul>
+<p>The two working files are the RM boundaries from <a href="module06a.html" class="quarto-xref"><span>Chapter 17</span></a> and a slice of the 2023 Annual Crop Inventory covering two RMs, <a href="practice/data/aci_rm_slice_2023.tif"><code>aci_rm_slice_2023.tif</code></a>.</p>
 </section>
-<section id="making-points-from-coordinates" class="level2" data-number="18.2">
-<h2 data-number="18.2" class="anchored" data-anchor-id="making-points-from-coordinates"><span class="header-section-number">18.2</span> Making points from coordinates</h2>
-<ul>
-<li>Turning a longitude/latitude table into spatial points</li>
-</ul>
+<section id="reading-vector-data" class="level2" data-number="18.1">
+<h2 data-number="18.1" class="anchored" data-anchor-id="reading-vector-data"><span class="header-section-number">18.1</span> Reading vector data</h2>
+<p><code>st_read()</code> reads most vector formats – GeoJSON, GeoPackage, and shapefiles, which arrive as a folder of files that travel together.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the package for vector spatial data</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sf)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the RM boundaries</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>rms <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="st">"data/sask_rms.geojson"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; # Load the package for vector spatial data
+&gt; library(sf)
+&gt; 
+&gt; # Read the RM boundaries
+&gt; rms &lt;- st_read("data/sask_rms.geojson")
+Reading layer `sask_rms' from data source 
+  `/home/runner/work/arec261-textbook/arec261-textbook/practice/data/sask_rms.geojson' 
+  using driver `GeoJSON'
+Simple feature collection with 297 features and 2 fields
+Geometry type: MULTIPOLYGON
+Dimension:     XY
+Bounding box:  xmin: -110.0064 ymin: 48.99886 xmax: -101.362 ymax: 60.00002
+Geodetic CRS:  WGS 84</code></pre>
+</div>
+</div>
+</div>
+<p>The banner is worth reading before the data: 297 features, geometry type <code>MULTIPOLYGON</code>, a bounding box, and the CRS, <code>WGS 84</code>. Those are the questions <a href="module06a.html" class="quarto-xref"><span>Chapter 17</span></a> taught, answered before you look at a single row.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># The first rows: a data frame with a geometry column</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(rms, <span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; # The first rows: a data frame with a geometry column
+&gt; head(rms, 3)
+Simple feature collection with 3 features and 2 fields
+Geometry type: MULTIPOLYGON
+Dimension:     XY
+Bounding box:  xmin: -108.5354 ymin: 49.26171 xmax: -107.2174 ymax: 51.61981
+Geodetic CRS:  WGS 84
+  RMNO                 RMNM                       geometry
+1  288      PLEASANT VALLEY MULTIPOLYGON (((-108.5354 5...
+2  167 SASKATCHEWAN LANDING MULTIPOLYGON (((-107.8702 5...
+3  046       GLEN MCPHERSON MULTIPOLYGON (((-107.6208 4...</code></pre>
+</div>
+</div>
+</div>
+<p>Everything from Module 2 applies. <code>filter()</code> keeps rows, <code>select()</code> keeps columns, and the geometry column follows along.</p>
+</section>
+<section id="points-from-coordinates" class="level2" data-number="18.2">
+<h2 data-number="18.2" class="anchored" data-anchor-id="points-from-coordinates"><span class="header-section-number">18.2</span> Points from coordinates</h2>
+<p>A table with longitude and latitude columns becomes spatial with <code>st_as_sf()</code>. The <code>coords</code> argument names the two columns, longitude first, and <code>crs = 4326</code> states what the numbers mean.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Four cities as a plain table</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>cities <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">city =</span> <span class="fu">c</span>(<span class="st">"Saskatoon"</span>, <span class="st">"Regina"</span>, <span class="st">"Swift Current"</span>, <span class="st">"Yorkton"</span>),</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">lon  =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">106.67</span>, <span class="sc">-</span><span class="fl">104.61</span>, <span class="sc">-</span><span class="fl">107.79</span>, <span class="sc">-</span><span class="fl">102.46</span>),</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">lat  =</span> <span class="fu">c</span>(<span class="fl">52.13</span>, <span class="fl">50.45</span>, <span class="fl">50.28</span>, <span class="fl">51.21</span>)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Turn the coordinate columns into point geometry</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>cities_sf <span class="ot">&lt;-</span> <span class="fu">st_as_sf</span>(cities, <span class="at">coords =</span> <span class="fu">c</span>(<span class="st">"lon"</span>, <span class="st">"lat"</span>), <span class="at">crs =</span> <span class="dv">4326</span>)</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the spatial version</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>cities_sf</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; # Four cities as a plain table
+&gt; cities &lt;- tibble(
++   city = c("Saskatoon", "Regina", "Swift Current", "Yorkton"),
++   lon  = c(-106.67, -104.61, -107.79, -102.46),
++   lat  = c(52.13, 50.45, 50.28, 51.21)
++ )
+&gt; 
+&gt; # Turn the coordinate columns into point geometry
+&gt; cities_sf &lt;- st_as_sf(cities, coords = c("lon", "lat"), crs = 4326)
+&gt; 
+&gt; # Print the spatial version
+&gt; cities_sf
+Simple feature collection with 4 features and 1 field
+Geometry type: POINT
+Dimension:     XY
+Bounding box:  xmin: -107.79 ymin: 50.28 xmax: -102.46 ymax: 52.13
+Geodetic CRS:  WGS 84
+# A tibble: 4 × 2
+  city                 geometry
+* &lt;chr&gt;             &lt;POINT [°]&gt;
+1 Saskatoon     (-106.67 52.13)
+2 Regina        (-104.61 50.45)
+3 Swift Current (-107.79 50.28)
+4 Yorkton       (-102.46 51.21)</code></pre>
+</div>
+</div>
+</div>
+<p>Both objects are now layers that can share a map:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># The polygons, then the points on top</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data =</span> rms, <span class="at">fill =</span> <span class="st">"grey97"</span>, <span class="at">colour =</span> <span class="st">"grey60"</span>, <span class="at">linewidth =</span> <span class="fl">0.1</span>) <span class="sc">+</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data =</span> cities_sf, <span class="at">colour =</span> <span class="st">"#4A7C59"</span>, <span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div id="fig-points-on-rms" class="quarto-float quarto-figure quarto-figure-center anchored" alt="A map of the southern Saskatchewan RM grid with four labelled points.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-points-on-rms-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="module06b_files/figure-html/fig-points-on-rms-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;18.1: Two vector layers on one map: the RM polygons and four cities as points."><img src="module06b_files/figure-html/fig-points-on-rms-1.png" class="img-fluid figure-img" alt="A map of the southern Saskatchewan RM grid with four labelled points." width="528"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-points-on-rms-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;18.1: Two vector layers on one map: the RM polygons and four cities as points.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
 </section>
 <section id="transforming-coordinate-systems" class="level2" data-number="18.3">
 <h2 data-number="18.3" class="anchored" data-anchor-id="transforming-coordinate-systems"><span class="header-section-number">18.3</span> Transforming coordinate systems</h2>
-<ul>
-<li>When and why a transformation is needed</li>
-<li><code>st_transform()</code></li>
-</ul>
+<p><code>st_crs()</code> reports what a layer’s coordinates mean, and <code>st_transform()</code> converts them. Transforming the RMs to UTM Zone 13 turns degrees into metres:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># The CRS the file arrived in</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">st_crs</span>(rms)<span class="sc">$</span>Name</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert from degrees to UTM Zone 13 metres</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>rms_utm <span class="ot">&lt;-</span> <span class="fu">st_transform</span>(rms, <span class="dv">32613</span>)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co"># The bounding box before and after</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="fu">st_bbox</span>(rms)</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="fu">st_bbox</span>(rms_utm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; # The CRS the file arrived in
+&gt; st_crs(rms)$Name
+[1] "WGS 84"
+&gt; 
+&gt; # Convert from degrees to UTM Zone 13 metres
+&gt; rms_utm &lt;- st_transform(rms, 32613)
+&gt; 
+&gt; # The bounding box before and after
+&gt; st_bbox(rms)
+      xmin       ymin       xmax       ymax 
+-110.00638   48.99886 -101.36201   60.00002 
+&gt; st_bbox(rms_utm)
+     xmin      ymin      xmax      ymax 
+ 133976.7 5427372.1  766069.5 6661937.9 </code></pre>
+</div>
+</div>
+</div>
+<p>Same province, different numbers: the first box is in degrees, the second in metres. Measurement is the reason to care. With the coordinates in metres, <code>st_area()</code> gives a real area – here, the RM of Corman Park in square kilometres:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Area of RM 344, Corman Park, in square kilometres</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>rms_utm <span class="sc">|&gt;</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(RMNO <span class="sc">==</span> <span class="st">"344"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_area</span>() <span class="sc">|&gt;</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.numeric</span>() <span class="sc">/</span> <span class="fl">1e6</span>      <span class="co"># drop the m^2 label, then scale</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; # Area of RM 344, Corman Park, in square kilometres
+&gt; rms_utm |&gt;
++   filter(RMNO == "344") |&gt;
++   st_area() |&gt;
++   as.numeric() / 1e6      # drop the m^2 label, then scale
+[1] 2281.731</code></pre>
+</div>
+</div>
+</div>
 </section>
-<section id="joining-data-to-boundaries" class="level2" data-number="18.4">
-<h2 data-number="18.4" class="anchored" data-anchor-id="joining-data-to-boundaries"><span class="header-section-number">18.4</span> Joining data to boundaries</h2>
-<ul>
-<li>Joining ordinary data (RM yields) to spatial boundaries by key</li>
-<li>Introductory spatial joins: which polygon contains this point?</li>
-</ul>
+<section id="attaching-a-table-to-boundaries" class="level2" data-number="18.4">
+<h2 data-number="18.4" class="anchored" data-anchor-id="attaching-a-table-to-boundaries"><span class="header-section-number">18.4</span> Attaching a table to boundaries</h2>
+<p>The RM boundaries carry no yields, and the RM yield table carries no shapes. The RM number links them. Read the yield file and keep the 2023 canola column:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the wide RM yield file</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>rm_yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/rm_yields_1990plus.csv"</span>, <span class="at">show_col_types =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co"># One row per RM: 2023 canola</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>canola_2023 <span class="ot">&lt;-</span> rm_yields <span class="sc">|&gt;</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Year <span class="sc">==</span> <span class="dv">2023</span>) <span class="sc">|&gt;</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(RM, Canola)</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Join the yields onto the boundaries</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>rm_canola <span class="ot">&lt;-</span> <span class="fu">left_join</span>(rms, canola_2023, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"RMNO"</span> <span class="ot">=</span> <span class="st">"RM"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; # Read the wide RM yield file
+&gt; rm_yields &lt;- read_csv("data/rm_yields_1990plus.csv", show_col_types = FALSE)
+&gt; 
+&gt; # One row per RM: 2023 canola
+&gt; canola_2023 &lt;- rm_yields |&gt;
++   filter(Year == 2023) |&gt;
++   select(RM, Canola)
+&gt; 
+&gt; # Join the yields onto the boundaries
+&gt; rm_canola &lt;- left_join(rms, canola_2023, by = c("RMNO" = "RM"))
+Error: Can't join `x$RMNO` with `y$RM` due to incompatible types.
+ℹ `x$RMNO` is a &lt;character&gt;.
+ℹ `y$RM` is a &lt;double&gt;.</code></pre>
+</div>
+</div>
+</div>
+<p>The join refuses to run: <code>RMNO</code> came out of the boundary file as text and <code>RM</code> is a number. The fix is to make the types agree before joining, and then to check what the join produced:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Make the key numeric, then join</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>rm_canola <span class="ot">&lt;-</span> rms <span class="sc">|&gt;</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">RMNO =</span> <span class="fu">as.numeric</span>(RMNO)) <span class="sc">|&gt;</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(canola_2023, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"RMNO"</span> <span class="ot">=</span> <span class="st">"RM"</span>))</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Same 297 rows as the boundaries</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(rm_canola)</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="co"># RMs with no reported canola in 2023</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(<span class="fu">is.na</span>(rm_canola<span class="sc">$</span>Canola))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; # Make the key numeric, then join
+&gt; rm_canola &lt;- rms |&gt;
++   mutate(RMNO = as.numeric(RMNO)) |&gt;
++   left_join(canola_2023, by = c("RMNO" = "RM"))
+&gt; 
+&gt; # Same 297 rows as the boundaries
+&gt; nrow(rm_canola)
+[1] 297
+&gt; 
+&gt; # RMs with no reported canola in 2023
+&gt; sum(is.na(rm_canola$Canola))
+[1] 8</code></pre>
+</div>
+</div>
+</div>
+<p>A left join keeps every boundary, so the row count matching <code>rms</code> is the first check, and the count of missing yields is the second – those RMs reported no canola that year, and <a href="module06c.html" class="quarto-xref"><span>Chapter 19</span></a> has to decide how to colour them. Mapping this object is where that chapter starts.</p>
 </section>
-<section id="writing-spatial-data" class="level2" data-number="18.5">
-<h2 data-number="18.5" class="anchored" data-anchor-id="writing-spatial-data"><span class="header-section-number">18.5</span> Writing spatial data</h2>
-<ul>
-<li>Exporting a spatial dataset</li>
-</ul>
+<section id="which-polygon-holds-a-point" class="level2" data-number="18.5">
+<h2 data-number="18.5" class="anchored" data-anchor-id="which-polygon-holds-a-point"><span class="header-section-number">18.5</span> Which polygon holds a point</h2>
+<p>A <strong>spatial join</strong> matches rows by location instead of by key. <code>st_join()</code> attaches to each point the attributes of the polygon it falls in:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Which RM is each city in?</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">st_join</span>(cities_sf, rms) <span class="sc">|&gt;</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(city, RMNO, RMNM)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; # Which RM is each city in?
+&gt; st_join(cities_sf, rms) |&gt;
++   select(city, RMNO, RMNM)
+Simple feature collection with 4 features and 3 fields
+Geometry type: POINT
+Dimension:     XY
+Bounding box:  xmin: -107.79 ymin: 50.28 xmax: -102.46 ymax: 52.13
+Geodetic CRS:  WGS 84
+# A tibble: 4 × 4
+  city          RMNO  RMNM                 geometry
+  &lt;chr&gt;         &lt;chr&gt; &lt;chr&gt;             &lt;POINT [°]&gt;
+1 Saskatoon     344   CORMAN PARK   (-106.67 52.13)
+2 Regina        159   SHERWOOD      (-104.61 50.45)
+3 Swift Current 137   SWIFT CURRENT (-107.79 50.28)
+4 Yorkton       244   ORKNEY        (-102.46 51.21)</code></pre>
+</div>
+</div>
+</div>
+<p>Counting many points per polygon is the same join followed by <code>count()</code>. Module 8 uses exactly that to summarize thousands of machinery points inside a field boundary (<a href="module08b.html" class="quarto-xref"><span>Chapter 24</span></a>).</p>
+</section>
+<section id="reading-raster-data" class="level2" data-number="18.6">
+<h2 data-number="18.6" class="anchored" data-anchor-id="reading-raster-data"><span class="header-section-number">18.6</span> Reading raster data</h2>
+<p>The <strong>terra</strong> package does for rasters what sf does for vectors. <code>rast()</code> reads the file, and printing the object answers the <a href="module06a.html" class="quarto-xref"><span>Chapter 17</span></a> questions – how many cells, how big each one is, how much ground they cover, and in what CRS:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the package for raster data</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(terra)</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the crop inventory slice</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>aci <span class="ot">&lt;-</span> <span class="fu">rast</span>(<span class="st">"data/aci_rm_slice_2023.tif"</span>)</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Size, resolution, extent and CRS in one printout</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>aci</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; # Load the package for raster data
+&gt; library(terra)
+&gt; 
+&gt; # Read the crop inventory slice
+&gt; aci &lt;- rast("data/aci_rm_slice_2023.tif")
+&gt; 
+&gt; # Size, resolution, extent and CRS in one printout
+&gt; aci
+class       : SpatRaster
+size        : 1029, 2136, 1  (nrow, ncol, nlyr)
+resolution  : 30, 30  (x, y)
+extent      : 409980, 474060, 5689170, 5720040  (xmin, xmax, ymin, ymax)
+coord. ref. : WGS 84 / UTM zone 13N (EPSG:32613)
+source      : aci_rm_slice_2023.tif
+name        : aci_rm_slice_2023</code></pre>
+</div>
+</div>
+</div>
+<p>The slice covers the RMs of Wood Creek and McCraney at 30 metres, and its CRS is already UTM Zone 13. <a href="#fig-aci-slice" class="quarto-xref">Figure&nbsp;<span>18.2</span></a> puts the boundaries over the cells.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Shrink for display: each 8-by-8 block of cells becomes one cell</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>aci_small <span class="ot">&lt;-</span> <span class="fu">aggregate</span>(aci, <span class="at">fact =</span> <span class="dv">8</span>, <span class="at">fun =</span> <span class="st">"modal"</span>)</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="co"># The class table pairs each value with a crop name and a colour</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>classes <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/aci_crop_classes.csv"</span>, <span class="at">show_col_types =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Raster to a data frame of cell centres and values</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>aci_df <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(aci_small, <span class="at">xy =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">value =</span> <span class="dv">3</span>) <span class="sc">|&gt;</span>                     <span class="co"># the third column holds the class</span></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(classes, <span class="at">by =</span> <span class="st">"value"</span>)         <span class="co"># attach names and colours</span></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a><span class="co"># The named palette for the classes present</span></span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>pal <span class="ot">&lt;-</span> aci_df <span class="sc">|&gt;</span></span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(crop, colour) <span class="sc">|&gt;</span></span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">deframe</span>()</span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a><span class="co"># The two RM boundaries, in the raster's CRS</span></span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>pair <span class="ot">&lt;-</span> rms_utm <span class="sc">|&gt;</span></span>
+<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(RMNO <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"281"</span>, <span class="st">"282"</span>))</span>
+<span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-21"><a href="#cb20-21" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb20-22"><a href="#cb20-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_raster</span>(<span class="at">data =</span> aci_df, <span class="fu">aes</span>(x, y, <span class="at">fill =</span> crop)) <span class="sc">+</span></span>
+<span id="cb20-23"><a href="#cb20-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data =</span> pair, <span class="at">fill =</span> <span class="cn">NA</span>, <span class="at">colour =</span> <span class="st">"black"</span>, <span class="at">linewidth =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb20-24"><a href="#cb20-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> pal) <span class="sc">+</span></span>
+<span id="cb20-25"><a href="#cb20-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>() <span class="sc">+</span></span>
+<span id="cb20-26"><a href="#cb20-26" aria-hidden="true" tabindex="-1"></a>  <span class="co"># A compact legend leaves more room for the map</span></span>
+<span id="cb20-27"><a href="#cb20-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.key.size =</span> <span class="fu">unit</span>(<span class="dv">4</span>, <span class="st">"mm"</span>),</span>
+<span id="cb20-28"><a href="#cb20-28" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">8</span>)) <span class="sc">+</span></span>
+<span id="cb20-29"><a href="#cb20-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">fill =</span> <span class="cn">NULL</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div id="fig-aci-slice" class="quarto-float quarto-figure quarto-figure-center anchored" alt="A wide map of coloured crop cells with two black polygon outlines over them.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-aci-slice-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="module06b_files/figure-html/fig-aci-slice-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;18.2: The 2023 Annual Crop Inventory over the RMs of Wood Creek (281, right) and McCraney (282, left), with the RM boundaries as a vector layer on top."><img src="module06b_files/figure-html/fig-aci-slice-1.png" class="img-fluid figure-img" alt="A wide map of coloured crop cells with two black polygon outlines over them." width="672"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-aci-slice-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;18.2: The 2023 Annual Crop Inventory over the RMs of Wood Creek (281, right) and McCraney (282, left), with the RM boundaries as a vector layer on top.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The overlay works because both layers are in the same CRS. Had the boundaries stayed in degrees, the outlines would land nowhere near the cells – the rule from <a href="module06a.html" class="quarto-xref"><span>Chapter 17</span></a>, in raster form.</p>
+</section>
+<section id="cutting-a-raster-with-a-polygon" class="level2" data-number="18.7">
+<h2 data-number="18.7" class="anchored" data-anchor-id="cutting-a-raster-with-a-polygon"><span class="header-section-number">18.7</span> Cutting a raster with a polygon</h2>
+<p><code>crop()</code> trims a raster to a polygon’s bounding box and <code>mask()</code> blanks the cells outside the polygon itself. Together they cut one RM out of the slice, and <code>freq()</code> counts what is in it:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Wood Creek, in the raster CRS</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>wood_creek <span class="ot">&lt;-</span> rms_utm <span class="sc">|&gt;</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(RMNO <span class="sc">==</span> <span class="st">"281"</span>)</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Trim to the bounding box, then blank the cells outside the RM</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>aci_wc <span class="ot">&lt;-</span> <span class="fu">crop</span>(aci, <span class="fu">vect</span>(wood_creek)) <span class="sc">|&gt;</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mask</span>(<span class="fu">vect</span>(wood_creek))</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Count the cells in each class and turn counts into shares</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a><span class="fu">freq</span>(aci_wc) <span class="sc">|&gt;</span></span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(classes, <span class="at">by =</span> <span class="st">"value"</span>) <span class="sc">|&gt;</span>       <span class="co"># attach the crop names</span></span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">share =</span> count <span class="sc">/</span> <span class="fu">sum</span>(count)) <span class="sc">|&gt;</span>     <span class="co"># share of the RM</span></span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(crop, count, share) <span class="sc">|&gt;</span></span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(share)) <span class="sc">|&gt;</span></span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">6</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; # Wood Creek, in the raster CRS
+&gt; wood_creek &lt;- rms_utm |&gt;
++   filter(RMNO == "281")
+&gt; 
+&gt; # Trim to the bounding box, then blank the cells outside the RM
+&gt; aci_wc &lt;- crop(aci, vect(wood_creek)) |&gt;
++   mask(vect(wood_creek))
+&gt; 
+&gt; # Count the cells in each class and turn counts into shares
+&gt; freq(aci_wc) |&gt;
++   left_join(classes, by = "value") |&gt;       # attach the crop names
++   mutate(share = count / sum(count)) |&gt;     # share of the RM
++   select(crop, count, share) |&gt;
++   arrange(desc(share)) |&gt;
++   head(6)
+                 crop  count      share
+1              Canola 301505 0.31751907
+2        Spring wheat 289143 0.30450048
+3 Pasture and forages  80279 0.08454292
+4             Wetland  49449 0.05207542
+5                Peas  45843 0.04827790
+6              Barley  40439 0.04258687</code></pre>
+</div>
+</div>
+</div>
+<p>This is the aggregation direction from <a href="module06a.html" class="quarto-xref"><span>Chapter 17</span></a> in action: a million 30-metre cells collapse to a handful of numbers about one RM. Each 30-metre cell is about 0.22 acres, so multiplying a count by 0.22 gives the class’s area in acres.</p>
+</section>
+<section id="writing-spatial-data" class="level2" data-number="18.8">
+<h2 data-number="18.8" class="anchored" data-anchor-id="writing-spatial-data"><span class="header-section-number">18.8</span> Writing spatial data</h2>
+<p><code>st_write()</code> saves a vector layer and <code>writeRaster()</code> saves a raster. For vector output use GeoPackage rather than shapefile – a shapefile truncates column names to ten characters and splits into several files.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Save the joined boundaries-plus-yields layer</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="fu">st_write</span>(rm_canola, <span class="st">"output/rm_canola_2023.gpkg"</span>, <span class="at">delete_dsn =</span> <span class="cn">TRUE</span>, <span class="at">quiet =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Save the masked raster</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a><span class="fu">writeRaster</span>(aci_wc, <span class="st">"output/aci_wood_creek_2023.tif"</span>, <span class="at">overwrite =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; # Save the joined boundaries-plus-yields layer
+&gt; st_write(rm_canola, "output/rm_canola_2023.gpkg", delete_dsn = TRUE, quiet = TRUE)
+Creating dataset output/rm_canola_2023.gpkg failed.
+Warning: GDAL Error 4: sqlite3_open(output/rm_canola_2023.gpkg) failed: unable to open database file
+Error: Creation failed.
+
+&gt; 
+&gt; # Save the masked raster
+&gt; writeRaster(aci_wc, "output/aci_wood_creek_2023.tif", overwrite = TRUE)
+Error: [writeRaster] cannot write file</code></pre>
+</div>
+</div>
+</div>
+<p>The saved GeoPackage is what <a href="module06c.html" class="quarto-xref"><span>Chapter 19</span></a> reads back to make its first map.</p>
 
 
 </section>
@@ -1120,6 +1539,38 @@ document.addEventListener("DOMContentLoaded", function () {
   </div>
 </nav>
 </div> <!-- /content -->
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
 
 
 

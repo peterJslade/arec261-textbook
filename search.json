@@ -1498,7 +1498,7 @@
     "href": "module06b.html",
     "title": "18  Working with Spatial Data in R",
     "section": "",
-    "text": "18.1 Reading spatial data\nThis chapter covers reading spatial data into R with the sf package and doing the ordinary things – inspecting, joining, saving – with a table that happens to carry geometry.",
+    "text": "Learning Objectives\nChapter 17 treated spatial data as something to look at. This chapter makes it something to work with. The sf package handles vector data and the terra package handles rasters, and both give you objects that the Module 2 verbs mostly work on unchanged.\nThe two working files are the RM boundaries from Chapter 17 and a slice of the 2023 Annual Crop Inventory covering two RMs, aci_rm_slice_2023.tif.",
     "crumbs": [
       "Feedback",
       "Module 6: Spatial Data and Mapping",
@@ -1506,11 +1506,11 @@
     ]
   },
   {
-    "objectID": "module06b.html#reading-spatial-data",
-    "href": "module06b.html#reading-spatial-data",
+    "objectID": "module06b.html#learning-objectives",
+    "href": "module06b.html#learning-objectives",
     "title": "18  Working with Spatial Data in R",
     "section": "",
-    "text": "Reading shapefiles and GeoPackages with sf\nInspecting an sf object\nThe geometry column\nReading field and RM boundaries",
+    "text": "By the end of this chapter you should be able to:\n\nRead vector data with st_read() and interpret the header it prints.\nTurn a table of coordinates into spatial points.\nCheck and transform a coordinate reference system, and measure area in a projected one.\nJoin ordinary data to boundaries, and find which polygon contains a point.\nRead a raster with terra, and crop and mask it with a polygon.\nWrite spatial results to a file.",
     "crumbs": [
       "Feedback",
       "Module 6: Spatial Data and Mapping",
@@ -1518,11 +1518,23 @@
     ]
   },
   {
-    "objectID": "module06b.html#making-points-from-coordinates",
-    "href": "module06b.html#making-points-from-coordinates",
+    "objectID": "module06b.html#reading-vector-data",
+    "href": "module06b.html#reading-vector-data",
     "title": "18  Working with Spatial Data in R",
-    "section": "18.2 Making points from coordinates",
-    "text": "18.2 Making points from coordinates\n\nTurning a longitude/latitude table into spatial points",
+    "section": "18.1 Reading vector data",
+    "text": "18.1 Reading vector data\nst_read() reads most vector formats – GeoJSON, GeoPackage, and shapefiles, which arrive as a folder of files that travel together.\n\n\n# Load the package for vector spatial data\nlibrary(sf)\n\n# Read the RM boundaries\nrms &lt;- st_read(\"data/sask_rms.geojson\")\n\n&gt; # Load the package for vector spatial data\n&gt; library(sf)\n&gt; \n&gt; # Read the RM boundaries\n&gt; rms &lt;- st_read(\"data/sask_rms.geojson\")\nReading layer `sask_rms' from data source \n  `/home/runner/work/arec261-textbook/arec261-textbook/practice/data/sask_rms.geojson' \n  using driver `GeoJSON'\nSimple feature collection with 297 features and 2 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: -110.0064 ymin: 48.99886 xmax: -101.362 ymax: 60.00002\nGeodetic CRS:  WGS 84\n\n\n\nThe banner is worth reading before the data: 297 features, geometry type MULTIPOLYGON, a bounding box, and the CRS, WGS 84. Those are the questions Chapter 17 taught, answered before you look at a single row.\n\n\n# The first rows: a data frame with a geometry column\nhead(rms, 3)\n\n&gt; # The first rows: a data frame with a geometry column\n&gt; head(rms, 3)\nSimple feature collection with 3 features and 2 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: -108.5354 ymin: 49.26171 xmax: -107.2174 ymax: 51.61981\nGeodetic CRS:  WGS 84\n  RMNO                 RMNM                       geometry\n1  288      PLEASANT VALLEY MULTIPOLYGON (((-108.5354 5...\n2  167 SASKATCHEWAN LANDING MULTIPOLYGON (((-107.8702 5...\n3  046       GLEN MCPHERSON MULTIPOLYGON (((-107.6208 4...\n\n\n\nEverything from Module 2 applies. filter() keeps rows, select() keeps columns, and the geometry column follows along.",
+    "crumbs": [
+      "Feedback",
+      "Module 6: Spatial Data and Mapping",
+      "<span class='chapter-number'>18</span>  <span class='chapter-title'>Working with Spatial Data in R</span>"
+    ]
+  },
+  {
+    "objectID": "module06b.html#points-from-coordinates",
+    "href": "module06b.html#points-from-coordinates",
+    "title": "18  Working with Spatial Data in R",
+    "section": "18.2 Points from coordinates",
+    "text": "18.2 Points from coordinates\nA table with longitude and latitude columns becomes spatial with st_as_sf(). The coords argument names the two columns, longitude first, and crs = 4326 states what the numbers mean.\n\n\n# Four cities as a plain table\ncities &lt;- tibble(\n  city = c(\"Saskatoon\", \"Regina\", \"Swift Current\", \"Yorkton\"),\n  lon  = c(-106.67, -104.61, -107.79, -102.46),\n  lat  = c(52.13, 50.45, 50.28, 51.21)\n)\n\n# Turn the coordinate columns into point geometry\ncities_sf &lt;- st_as_sf(cities, coords = c(\"lon\", \"lat\"), crs = 4326)\n\n# Print the spatial version\ncities_sf\n\n&gt; # Four cities as a plain table\n&gt; cities &lt;- tibble(\n+   city = c(\"Saskatoon\", \"Regina\", \"Swift Current\", \"Yorkton\"),\n+   lon  = c(-106.67, -104.61, -107.79, -102.46),\n+   lat  = c(52.13, 50.45, 50.28, 51.21)\n+ )\n&gt; \n&gt; # Turn the coordinate columns into point geometry\n&gt; cities_sf &lt;- st_as_sf(cities, coords = c(\"lon\", \"lat\"), crs = 4326)\n&gt; \n&gt; # Print the spatial version\n&gt; cities_sf\nSimple feature collection with 4 features and 1 field\nGeometry type: POINT\nDimension:     XY\nBounding box:  xmin: -107.79 ymin: 50.28 xmax: -102.46 ymax: 52.13\nGeodetic CRS:  WGS 84\n# A tibble: 4 × 2\n  city                 geometry\n* &lt;chr&gt;             &lt;POINT [°]&gt;\n1 Saskatoon     (-106.67 52.13)\n2 Regina        (-104.61 50.45)\n3 Swift Current (-107.79 50.28)\n4 Yorkton       (-102.46 51.21)\n\n\n\nBoth objects are now layers that can share a map:\n\n# The polygons, then the points on top\nggplot() +\n  geom_sf(data = rms, fill = \"grey97\", colour = \"grey60\", linewidth = 0.1) +\n  geom_sf(data = cities_sf, colour = \"#4A7C59\", size = 2) +\n  theme_void()\n\n\n\n\n\n\n\nFigure 18.1: Two vector layers on one map: the RM polygons and four cities as points.",
     "crumbs": [
       "Feedback",
       "Module 6: Spatial Data and Mapping",
@@ -1534,7 +1546,7 @@
     "href": "module06b.html#transforming-coordinate-systems",
     "title": "18  Working with Spatial Data in R",
     "section": "18.3 Transforming coordinate systems",
-    "text": "18.3 Transforming coordinate systems\n\nWhen and why a transformation is needed\nst_transform()",
+    "text": "18.3 Transforming coordinate systems\nst_crs() reports what a layer’s coordinates mean, and st_transform() converts them. Transforming the RMs to UTM Zone 13 turns degrees into metres:\n\n\n# The CRS the file arrived in\nst_crs(rms)$Name\n\n# Convert from degrees to UTM Zone 13 metres\nrms_utm &lt;- st_transform(rms, 32613)\n\n# The bounding box before and after\nst_bbox(rms)\nst_bbox(rms_utm)\n\n&gt; # The CRS the file arrived in\n&gt; st_crs(rms)$Name\n[1] \"WGS 84\"\n&gt; \n&gt; # Convert from degrees to UTM Zone 13 metres\n&gt; rms_utm &lt;- st_transform(rms, 32613)\n&gt; \n&gt; # The bounding box before and after\n&gt; st_bbox(rms)\n      xmin       ymin       xmax       ymax \n-110.00638   48.99886 -101.36201   60.00002 \n&gt; st_bbox(rms_utm)\n     xmin      ymin      xmax      ymax \n 133976.7 5427372.1  766069.5 6661937.9 \n\n\n\nSame province, different numbers: the first box is in degrees, the second in metres. Measurement is the reason to care. With the coordinates in metres, st_area() gives a real area – here, the RM of Corman Park in square kilometres:\n\n\n# Area of RM 344, Corman Park, in square kilometres\nrms_utm |&gt;\n  filter(RMNO == \"344\") |&gt;\n  st_area() |&gt;\n  as.numeric() / 1e6      # drop the m^2 label, then scale\n\n&gt; # Area of RM 344, Corman Park, in square kilometres\n&gt; rms_utm |&gt;\n+   filter(RMNO == \"344\") |&gt;\n+   st_area() |&gt;\n+   as.numeric() / 1e6      # drop the m^2 label, then scale\n[1] 2281.731",
     "crumbs": [
       "Feedback",
       "Module 6: Spatial Data and Mapping",
@@ -1542,11 +1554,47 @@
     ]
   },
   {
-    "objectID": "module06b.html#joining-data-to-boundaries",
-    "href": "module06b.html#joining-data-to-boundaries",
+    "objectID": "module06b.html#attaching-a-table-to-boundaries",
+    "href": "module06b.html#attaching-a-table-to-boundaries",
     "title": "18  Working with Spatial Data in R",
-    "section": "18.4 Joining data to boundaries",
-    "text": "18.4 Joining data to boundaries\n\nJoining ordinary data (RM yields) to spatial boundaries by key\nIntroductory spatial joins: which polygon contains this point?",
+    "section": "18.4 Attaching a table to boundaries",
+    "text": "18.4 Attaching a table to boundaries\nThe RM boundaries carry no yields, and the RM yield table carries no shapes. The RM number links them. Read the yield file and keep the 2023 canola column:\n\n\n# Read the wide RM yield file\nrm_yields &lt;- read_csv(\"data/rm_yields_1990plus.csv\", show_col_types = FALSE)\n\n# One row per RM: 2023 canola\ncanola_2023 &lt;- rm_yields |&gt;\n  filter(Year == 2023) |&gt;\n  select(RM, Canola)\n\n# Join the yields onto the boundaries\nrm_canola &lt;- left_join(rms, canola_2023, by = c(\"RMNO\" = \"RM\"))\n\n&gt; # Read the wide RM yield file\n&gt; rm_yields &lt;- read_csv(\"data/rm_yields_1990plus.csv\", show_col_types = FALSE)\n&gt; \n&gt; # One row per RM: 2023 canola\n&gt; canola_2023 &lt;- rm_yields |&gt;\n+   filter(Year == 2023) |&gt;\n+   select(RM, Canola)\n&gt; \n&gt; # Join the yields onto the boundaries\n&gt; rm_canola &lt;- left_join(rms, canola_2023, by = c(\"RMNO\" = \"RM\"))\nError: Can't join `x$RMNO` with `y$RM` due to incompatible types.\nℹ `x$RMNO` is a &lt;character&gt;.\nℹ `y$RM` is a &lt;double&gt;.\n\n\n\nThe join refuses to run: RMNO came out of the boundary file as text and RM is a number. The fix is to make the types agree before joining, and then to check what the join produced:\n\n\n# Make the key numeric, then join\nrm_canola &lt;- rms |&gt;\n  mutate(RMNO = as.numeric(RMNO)) |&gt;\n  left_join(canola_2023, by = c(\"RMNO\" = \"RM\"))\n\n# Same 297 rows as the boundaries\nnrow(rm_canola)\n\n# RMs with no reported canola in 2023\nsum(is.na(rm_canola$Canola))\n\n&gt; # Make the key numeric, then join\n&gt; rm_canola &lt;- rms |&gt;\n+   mutate(RMNO = as.numeric(RMNO)) |&gt;\n+   left_join(canola_2023, by = c(\"RMNO\" = \"RM\"))\n&gt; \n&gt; # Same 297 rows as the boundaries\n&gt; nrow(rm_canola)\n[1] 297\n&gt; \n&gt; # RMs with no reported canola in 2023\n&gt; sum(is.na(rm_canola$Canola))\n[1] 8\n\n\n\nA left join keeps every boundary, so the row count matching rms is the first check, and the count of missing yields is the second – those RMs reported no canola that year, and Chapter 19 has to decide how to colour them. Mapping this object is where that chapter starts.",
+    "crumbs": [
+      "Feedback",
+      "Module 6: Spatial Data and Mapping",
+      "<span class='chapter-number'>18</span>  <span class='chapter-title'>Working with Spatial Data in R</span>"
+    ]
+  },
+  {
+    "objectID": "module06b.html#which-polygon-holds-a-point",
+    "href": "module06b.html#which-polygon-holds-a-point",
+    "title": "18  Working with Spatial Data in R",
+    "section": "18.5 Which polygon holds a point",
+    "text": "18.5 Which polygon holds a point\nA spatial join matches rows by location instead of by key. st_join() attaches to each point the attributes of the polygon it falls in:\n\n\n# Which RM is each city in?\nst_join(cities_sf, rms) |&gt;\n  select(city, RMNO, RMNM)\n\n&gt; # Which RM is each city in?\n&gt; st_join(cities_sf, rms) |&gt;\n+   select(city, RMNO, RMNM)\nSimple feature collection with 4 features and 3 fields\nGeometry type: POINT\nDimension:     XY\nBounding box:  xmin: -107.79 ymin: 50.28 xmax: -102.46 ymax: 52.13\nGeodetic CRS:  WGS 84\n# A tibble: 4 × 4\n  city          RMNO  RMNM                 geometry\n  &lt;chr&gt;         &lt;chr&gt; &lt;chr&gt;             &lt;POINT [°]&gt;\n1 Saskatoon     344   CORMAN PARK   (-106.67 52.13)\n2 Regina        159   SHERWOOD      (-104.61 50.45)\n3 Swift Current 137   SWIFT CURRENT (-107.79 50.28)\n4 Yorkton       244   ORKNEY        (-102.46 51.21)\n\n\n\nCounting many points per polygon is the same join followed by count(). Module 8 uses exactly that to summarize thousands of machinery points inside a field boundary (Chapter 24).",
+    "crumbs": [
+      "Feedback",
+      "Module 6: Spatial Data and Mapping",
+      "<span class='chapter-number'>18</span>  <span class='chapter-title'>Working with Spatial Data in R</span>"
+    ]
+  },
+  {
+    "objectID": "module06b.html#reading-raster-data",
+    "href": "module06b.html#reading-raster-data",
+    "title": "18  Working with Spatial Data in R",
+    "section": "18.6 Reading raster data",
+    "text": "18.6 Reading raster data\nThe terra package does for rasters what sf does for vectors. rast() reads the file, and printing the object answers the Chapter 17 questions – how many cells, how big each one is, how much ground they cover, and in what CRS:\n\n\n# Load the package for raster data\nlibrary(terra)\n\n# Read the crop inventory slice\naci &lt;- rast(\"data/aci_rm_slice_2023.tif\")\n\n# Size, resolution, extent and CRS in one printout\naci\n\n&gt; # Load the package for raster data\n&gt; library(terra)\n&gt; \n&gt; # Read the crop inventory slice\n&gt; aci &lt;- rast(\"data/aci_rm_slice_2023.tif\")\n&gt; \n&gt; # Size, resolution, extent and CRS in one printout\n&gt; aci\nclass       : SpatRaster\nsize        : 1029, 2136, 1  (nrow, ncol, nlyr)\nresolution  : 30, 30  (x, y)\nextent      : 409980, 474060, 5689170, 5720040  (xmin, xmax, ymin, ymax)\ncoord. ref. : WGS 84 / UTM zone 13N (EPSG:32613)\nsource      : aci_rm_slice_2023.tif\nname        : aci_rm_slice_2023\n\n\n\nThe slice covers the RMs of Wood Creek and McCraney at 30 metres, and its CRS is already UTM Zone 13. Figure 18.2 puts the boundaries over the cells.\n\n# Shrink for display: each 8-by-8 block of cells becomes one cell\naci_small &lt;- aggregate(aci, fact = 8, fun = \"modal\")\n\n# The class table pairs each value with a crop name and a colour\nclasses &lt;- read_csv(\"data/aci_crop_classes.csv\", show_col_types = FALSE)\n\n# Raster to a data frame of cell centres and values\naci_df &lt;- as.data.frame(aci_small, xy = TRUE) |&gt;\n  rename(value = 3) |&gt;                     # the third column holds the class\n  left_join(classes, by = \"value\")         # attach names and colours\n\n# The named palette for the classes present\npal &lt;- aci_df |&gt;\n  distinct(crop, colour) |&gt;\n  deframe()\n\n# The two RM boundaries, in the raster's CRS\npair &lt;- rms_utm |&gt;\n  filter(RMNO %in% c(\"281\", \"282\"))\n\nggplot() +\n  geom_raster(data = aci_df, aes(x, y, fill = crop)) +\n  geom_sf(data = pair, fill = NA, colour = \"black\", linewidth = 0.5) +\n  scale_fill_manual(values = pal) +\n  theme_void() +\n  # A compact legend leaves more room for the map\n  theme(legend.key.size = unit(4, \"mm\"),\n        legend.text = element_text(size = 8)) +\n  labs(fill = NULL)\n\n\n\n\n\n\n\nFigure 18.2: The 2023 Annual Crop Inventory over the RMs of Wood Creek (281, right) and McCraney (282, left), with the RM boundaries as a vector layer on top.\n\n\n\n\n\nThe overlay works because both layers are in the same CRS. Had the boundaries stayed in degrees, the outlines would land nowhere near the cells – the rule from Chapter 17, in raster form.",
+    "crumbs": [
+      "Feedback",
+      "Module 6: Spatial Data and Mapping",
+      "<span class='chapter-number'>18</span>  <span class='chapter-title'>Working with Spatial Data in R</span>"
+    ]
+  },
+  {
+    "objectID": "module06b.html#cutting-a-raster-with-a-polygon",
+    "href": "module06b.html#cutting-a-raster-with-a-polygon",
+    "title": "18  Working with Spatial Data in R",
+    "section": "18.7 Cutting a raster with a polygon",
+    "text": "18.7 Cutting a raster with a polygon\ncrop() trims a raster to a polygon’s bounding box and mask() blanks the cells outside the polygon itself. Together they cut one RM out of the slice, and freq() counts what is in it:\n\n\n# Wood Creek, in the raster CRS\nwood_creek &lt;- rms_utm |&gt;\n  filter(RMNO == \"281\")\n\n# Trim to the bounding box, then blank the cells outside the RM\naci_wc &lt;- crop(aci, vect(wood_creek)) |&gt;\n  mask(vect(wood_creek))\n\n# Count the cells in each class and turn counts into shares\nfreq(aci_wc) |&gt;\n  left_join(classes, by = \"value\") |&gt;       # attach the crop names\n  mutate(share = count / sum(count)) |&gt;     # share of the RM\n  select(crop, count, share) |&gt;\n  arrange(desc(share)) |&gt;\n  head(6)\n\n&gt; # Wood Creek, in the raster CRS\n&gt; wood_creek &lt;- rms_utm |&gt;\n+   filter(RMNO == \"281\")\n&gt; \n&gt; # Trim to the bounding box, then blank the cells outside the RM\n&gt; aci_wc &lt;- crop(aci, vect(wood_creek)) |&gt;\n+   mask(vect(wood_creek))\n&gt; \n&gt; # Count the cells in each class and turn counts into shares\n&gt; freq(aci_wc) |&gt;\n+   left_join(classes, by = \"value\") |&gt;       # attach the crop names\n+   mutate(share = count / sum(count)) |&gt;     # share of the RM\n+   select(crop, count, share) |&gt;\n+   arrange(desc(share)) |&gt;\n+   head(6)\n                 crop  count      share\n1              Canola 301505 0.31751907\n2        Spring wheat 289143 0.30450048\n3 Pasture and forages  80279 0.08454292\n4             Wetland  49449 0.05207542\n5                Peas  45843 0.04827790\n6              Barley  40439 0.04258687\n\n\n\nThis is the aggregation direction from Chapter 17 in action: a million 30-metre cells collapse to a handful of numbers about one RM. Each 30-metre cell is about 0.22 acres, so multiplying a count by 0.22 gives the class’s area in acres.",
     "crumbs": [
       "Feedback",
       "Module 6: Spatial Data and Mapping",
@@ -1557,8 +1605,8 @@
     "objectID": "module06b.html#writing-spatial-data",
     "href": "module06b.html#writing-spatial-data",
     "title": "18  Working with Spatial Data in R",
-    "section": "18.5 Writing spatial data",
-    "text": "18.5 Writing spatial data\n\nExporting a spatial dataset",
+    "section": "18.8 Writing spatial data",
+    "text": "18.8 Writing spatial data\nst_write() saves a vector layer and writeRaster() saves a raster. For vector output use GeoPackage rather than shapefile – a shapefile truncates column names to ten characters and splits into several files.\n\n\n# Save the joined boundaries-plus-yields layer\nst_write(rm_canola, \"output/rm_canola_2023.gpkg\", delete_dsn = TRUE, quiet = TRUE)\n\n# Save the masked raster\nwriteRaster(aci_wc, \"output/aci_wood_creek_2023.tif\", overwrite = TRUE)\n\n&gt; # Save the joined boundaries-plus-yields layer\n&gt; st_write(rm_canola, \"output/rm_canola_2023.gpkg\", delete_dsn = TRUE, quiet = TRUE)\nCreating dataset output/rm_canola_2023.gpkg failed.\nWarning: GDAL Error 4: sqlite3_open(output/rm_canola_2023.gpkg) failed: unable to open database file\nError: Creation failed.\n\n&gt; \n&gt; # Save the masked raster\n&gt; writeRaster(aci_wc, \"output/aci_wood_creek_2023.tif\", overwrite = TRUE)\nError: [writeRaster] cannot write file\n\n\n\nThe saved GeoPackage is what Chapter 19 reads back to make its first map.",
     "crumbs": [
       "Feedback",
       "Module 6: Spatial Data and Mapping",
