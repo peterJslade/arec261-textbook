@@ -1,32 +1,299 @@
 # Working with Spatial Data in R {#sec-spatial-r}
 
-::: {.callout-note}
-This chapter is a draft outline. The sections below show what it will cover.
+```{r}
+#| include: false
+#| eval: true
+source("_console.R")
+# Chunks in this chapter run with practice/ as the working directory, so the
+# student-facing paths (data/..., output/...) resolve at render time.
+knitr::opts_knit$set(root.dir = "practice")
+suppressMessages({library(tidyverse); library(sf); library(terra)})
+```
+
+@sec-spatial-data treated spatial data as something to look at. This chapter makes it something to work with. The **sf** package handles vector data and the **terra** package handles rasters, and both give you objects that the Module 2 verbs mostly work on unchanged.
+
+## Learning Objectives {.unnumbered}
+
+::: {.objectives}
+By the end of this chapter you should be able to:
+
+1. Read vector data with `st_read()` and interpret the header it prints.
+2. Turn a table of coordinates into spatial points.
+3. Check and transform a coordinate reference system, and measure area in a projected one.
+4. Join ordinary data to boundaries, and find which polygon contains a point.
+5. Read a raster with terra, and crop and mask it with a polygon.
+6. Write spatial results to a file.
 :::
 
-This chapter covers reading spatial data into R with the **sf** package and doing the ordinary things -- inspecting, joining, saving -- with a table that happens to carry geometry.
+The two working files are the RM boundaries from @sec-spatial-data and a slice of the 2023 Annual Crop Inventory covering two RMs, [`aci_rm_slice_2023.tif`](practice/data/aci_rm_slice_2023.tif).
 
-## Reading spatial data
+## Reading vector data
 
-- Reading shapefiles and GeoPackages with `sf`
-- Inspecting an `sf` object
-- The geometry column
-- Reading field and RM boundaries
+`st_read()` reads most vector formats -- GeoJSON, GeoPackage, and shapefiles, which arrive as a folder of files that travel together.
 
-## Making points from coordinates
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the package for vector spatial data
+library(sf)
 
-- Turning a longitude/latitude table into spatial points
+# Read the RM boundaries
+rms <- st_read("data/sask_rms.geojson")
+')
+```
+
+The banner is worth reading before the data: 297 features, geometry type `MULTIPOLYGON`, a bounding box, and the CRS, `WGS 84`. Those are the questions @sec-spatial-data taught, answered before you look at a single row.
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# The first rows: a data frame with a geometry column
+head(rms, 3)
+')
+```
+
+Everything from Module 2 applies. `filter()` keeps rows, `select()` keeps columns, and the geometry column follows along.
+
+## Points from coordinates
+
+A table with longitude and latitude columns becomes spatial with `st_as_sf()`. The `coords` argument names the two columns, longitude first, and `crs = 4326` states what the numbers mean.
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Four cities as a plain table
+cities <- tibble(
+  city = c("Saskatoon", "Regina", "Swift Current", "Yorkton"),
+  lon  = c(-106.67, -104.61, -107.79, -102.46),
+  lat  = c(52.13, 50.45, 50.28, 51.21)
+)
+
+# Turn the coordinate columns into point geometry
+cities_sf <- st_as_sf(cities, coords = c("lon", "lat"), crs = 4326)
+
+# Print the spatial version
+cities_sf
+')
+```
+
+Both objects are now layers that can share a map:
+
+```{r}
+#| label: fig-points-on-rms
+#| eval: true
+#| echo: true
+#| message: false
+#| fig-width: 5.5
+#| fig-height: 5.8
+#| fig-cap: "Two vector layers on one map: the RM polygons and four cities as points."
+#| fig-alt: "A map of the southern Saskatchewan RM grid with four labelled points."
+# The polygons, then the points on top
+ggplot() +
+  geom_sf(data = rms, fill = "grey97", colour = "grey60", linewidth = 0.1) +
+  geom_sf(data = cities_sf, colour = "#4A7C59", size = 2) +
+  theme_void()
+```
 
 ## Transforming coordinate systems
 
-- When and why a transformation is needed
-- `st_transform()`
+`st_crs()` reports what a layer's coordinates mean, and `st_transform()` converts them. Transforming the RMs to UTM Zone 13 turns degrees into metres:
 
-## Joining data to boundaries
+```{r}
+#| eval: true
+#| echo: false
+console('
+# The CRS the file arrived in
+st_crs(rms)$Name
 
-- Joining ordinary data (RM yields) to spatial boundaries by key
-- Introductory spatial joins: which polygon contains this point?
+# Convert from degrees to UTM Zone 13 metres
+rms_utm <- st_transform(rms, 32613)
+
+# The bounding box before and after
+st_bbox(rms)
+st_bbox(rms_utm)
+')
+```
+
+Same province, different numbers: the first box is in degrees, the second in metres. Measurement is the reason to care. With the coordinates in metres, `st_area()` gives a real area -- here, the RM of Corman Park in square kilometres:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Area of RM 344, Corman Park, in square kilometres
+rms_utm |>
+  filter(RMNO == "344") |>
+  st_area() |>
+  as.numeric() / 1e6      # drop the m^2 label, then scale
+')
+```
+
+## Attaching a table to boundaries
+
+The RM boundaries carry no yields, and the RM yield table carries no shapes. The RM number links them. Read the yield file and keep the 2023 canola column:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Read the wide RM yield file
+rm_yields <- read_csv("data/rm_yields_1990plus.csv", show_col_types = FALSE)
+
+# One row per RM: 2023 canola
+canola_2023 <- rm_yields |>
+  filter(Year == 2023) |>
+  select(RM, Canola)
+
+# Join the yields onto the boundaries
+rm_canola <- left_join(rms, canola_2023, by = c("RMNO" = "RM"))
+')
+```
+
+The join refuses to run: `RMNO` came out of the boundary file as text and `RM` is a number. The fix is to make the types agree before joining, and then to check what the join produced:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Make the key numeric, then join
+rm_canola <- rms |>
+  mutate(RMNO = as.numeric(RMNO)) |>
+  left_join(canola_2023, by = c("RMNO" = "RM"))
+
+# Same 297 rows as the boundaries
+nrow(rm_canola)
+
+# RMs with no reported canola in 2023
+sum(is.na(rm_canola$Canola))
+')
+```
+
+A left join keeps every boundary, so the row count matching `rms` is the first check, and the count of missing yields is the second -- those RMs reported no canola that year, and @sec-maps has to decide how to colour them. Mapping this object is where that chapter starts.
+
+## Which polygon holds a point
+
+A **spatial join** matches rows by location instead of by key. `st_join()` attaches to each point the attributes of the polygon it falls in:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Which RM is each city in?
+st_join(cities_sf, rms) |>
+  select(city, RMNO, RMNM)
+')
+```
+
+Counting many points per polygon is the same join followed by `count()`. Module 8 uses exactly that to summarize thousands of machinery points inside a field boundary (@sec-combining-spatial).
+
+## Reading raster data
+
+The **terra** package does for rasters what sf does for vectors. `rast()` reads the file, and printing the object answers the @sec-spatial-data questions -- how many cells, how big each one is, how much ground they cover, and in what CRS:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the package for raster data
+library(terra)
+
+# Read the crop inventory slice
+aci <- rast("data/aci_rm_slice_2023.tif")
+
+# Size, resolution, extent and CRS in one printout
+aci
+')
+```
+
+The slice covers the RMs of Wood Creek and McCraney at 30 metres, and its CRS is already UTM Zone 13. @fig-aci-slice puts the boundaries over the cells.
+
+```{r}
+#| label: fig-aci-slice
+#| eval: true
+#| echo: true
+#| message: false
+#| fig-width: 7.0
+#| fig-height: 4.0
+#| fig-cap: "The 2023 Annual Crop Inventory over the RMs of Wood Creek (281, right) and McCraney (282, left), with the RM boundaries as a vector layer on top."
+#| fig-alt: "A wide map of coloured crop cells with two black polygon outlines over them."
+# Shrink for display: each 8-by-8 block of cells becomes one cell
+aci_small <- aggregate(aci, fact = 8, fun = "modal")
+
+# The class table pairs each value with a crop name and a colour
+classes <- read_csv("data/aci_crop_classes.csv", show_col_types = FALSE)
+
+# Raster to a data frame of cell centres and values
+aci_df <- as.data.frame(aci_small, xy = TRUE) |>
+  rename(value = 3) |>                     # the third column holds the class
+  left_join(classes, by = "value")         # attach names and colours
+
+# The named palette for the classes present
+pal <- aci_df |>
+  distinct(crop, colour) |>
+  deframe()
+
+# The two RM boundaries, in the raster's CRS
+pair <- rms_utm |>
+  filter(RMNO %in% c("281", "282"))
+
+ggplot() +
+  geom_raster(data = aci_df, aes(x, y, fill = crop)) +
+  geom_sf(data = pair, fill = NA, colour = "black", linewidth = 0.5) +
+  scale_fill_manual(values = pal) +
+  theme_void() +
+  # A compact legend leaves more room for the map
+  theme(legend.key.size = unit(4, "mm"),
+        legend.text = element_text(size = 8)) +
+  labs(fill = NULL)
+```
+
+The overlay works because both layers are in the same CRS. Had the boundaries stayed in degrees, the outlines would land nowhere near the cells -- the rule from @sec-spatial-data, in raster form.
+
+## Cutting a raster with a polygon
+
+`crop()` trims a raster to a polygon's bounding box and `mask()` blanks the cells outside the polygon itself. Together they cut one RM out of the slice, and `freq()` counts what is in it:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Wood Creek, in the raster CRS
+wood_creek <- rms_utm |>
+  filter(RMNO == "281")
+
+# Trim to the bounding box, then blank the cells outside the RM
+aci_wc <- crop(aci, vect(wood_creek)) |>
+  mask(vect(wood_creek))
+
+# Count the cells in each class and turn counts into shares
+freq(aci_wc) |>
+  left_join(classes, by = "value") |>       # attach the crop names
+  mutate(share = count / sum(count)) |>     # share of the RM
+  select(crop, count, share) |>
+  arrange(desc(share)) |>
+  head(6)
+')
+```
+
+This is the aggregation direction from @sec-spatial-data in action: a million 30-metre cells collapse to a handful of numbers about one RM. Each 30-metre cell is about 0.22 acres, so multiplying a count by 0.22 gives the class's area in acres.
 
 ## Writing spatial data
 
-- Exporting a spatial dataset
+`st_write()` saves a vector layer and `writeRaster()` saves a raster. For vector output use GeoPackage rather than shapefile -- a shapefile truncates column names to ten characters and splits into several files.
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Save the joined boundaries-plus-yields layer
+st_write(rm_canola, "output/rm_canola_2023.gpkg", delete_dsn = TRUE, quiet = TRUE)
+
+# Save the masked raster
+writeRaster(aci_wc, "output/aci_wood_creek_2023.tif", overwrite = TRUE)
+')
+```
+
+The saved GeoPackage is what @sec-maps reads back to make its first map.
