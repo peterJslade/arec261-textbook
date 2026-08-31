@@ -54,70 +54,23 @@ It is best practice to obtain data directly from the agency that produces it. A 
 
 ## Downloading Data
 
-In this course, we will obtain data in four ways.
+We can obtain data in a few different ways. The simplest is to directly download data or have data sent to you in a `.csv`, `.xlsx` or some other file. This is how we have approached data so far in this class.  So far in the class we have been reading in data that is already fairly "clean".  Not all data is this simple.  In this chapter, we will overview some common issues with loading data.
 
-| Route | What you do | What you get | Good for |
-|---|---|---|---|
-| Manual download | Choose options on a website, click **Download** | A CSV or Excel file | Exploring, one-off work |
-| Direct file link | Give Excel or R the address of a published file | The same file, fetched by a program | Simple repeatable retrieval |
-| API | Send a structured request to a server | Usually JSON, sometimes CSV | Selecting exactly what you want; anything automated |
-| Package | Call an R function that builds the request and tidies the answer | A data frame | Providers with a maintained package |
+We will also discuss obtaining data directly through R code.  Many data providers have an API (application programming interface) that allows you to request data directly from their server.  Using the API directly is a more advanced topic.  However, we will learn to use R packages that use APIs to download data -- in particular we will learn about the `openmeteo` package that allows the user to download weather data and the `cansim` package that allows the user to download data from Statistics Canada.
 
-Manual downloads and direct file links are fairly self-explanatory. For example, if we want data on seeded acres in each province, we can visit [Statistics Canada table 32-10-0359-01](https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=3210035901), customize the table and click **Download options**.
 
-![Statistics Canada table 32-10-0359-01. **Customize table** chooses the harvest disposition and years; **Download options** saves the result as a CSV.](images/statcan_download_options.png){#fig-statcan-download .screenshot}
+## Opening data files in Excel {#sec-excel-getting}
 
-If we want yields for each RM in Saskatchewan, we can get them from the provincial Ministry of Agriculture. The [direct link downloads the CSV](https://dashboard.saskatchewan.ca/export/rm-yields-data/4950.csv); the [crop production dashboard](https://dashboard.saskatchewan.ca/business-economy/business-industry-trade/crop-production) provides more information about the data.
+Excel's native file format is .xlsx.  But it can also open `.csv`, `.tsv`, `.txt` and other file formats.  One issue with Excel opening these files is that it can try to convert the data to formats that are not intended.  
 
-You may not yet have encountered the latter two options: APIs and software packages.
+For example, when we try to open the elevator data in Excel.  The following message pops-up, warning that excel will convert large numbers to scientific notation and remove leading zeros.  This is a problem because the data contains identifiers that are not meant to be treated as numbers.  It also has silently converted the lot codes to dates.   
 
-### APIs {#sec-apis}
-An **API** (application programming interface) is a documented way for one program to ask another for data. Your program sends a request that says what it wants, and the server sends back a response containing just that. The request is a line of text, so it is recorded, repeatable, and easy to change.
-
-Building API requests by hand is fiddly, and this course does not ask you to. For the providers we use, someone has written an R package that builds the request and hands back a data frame -- the packages in @sec-data-packages are wrappers around an API.
-
-## Getting Data Into Excel {#sec-excel-getting}
-
-Excel can open a file by double-clicking it. For anything you will do twice, Power Query is the better route, and it is the one this section builds up to.
-
-### File Formats
-
-An `.xlsx` file can hold several sheets, formatting, formulas and charts. The older `.xls` does the same with more limits. Files other people send you are usually one of these, and the things to look for on opening are which sheet holds the data and whether the table starts on row 1 or under a title and some notes.
-
-A **CSV** (comma-separated values) file is plain text. Each line is a row and commas separate the fields. It keeps no formulas, no formatting, no column types and no second sheet, which is why it is the usual format for passing data between programs and why most downloads come this way. A **TSV** uses tabs. A `.txt` file may use tabs, semicolons, pipes or something else; open it in a text editor to see. The simplicity is the point, and it also means the program that opens the file has to guess what each field is.
-
-### What double-clicking a CSV does {#sec-csv-excel}
-
-Download [`elevator_tickets.csv`](practice/data/elevator_tickets.csv), which contains twenty grain-delivery tickets, and open it directly in Excel. Excel tries to be helpful by assigning types to the columns. On current versions of Excel for Mac, you should see the warning in Figure @fig-csv-doubleclick.
 
 ![Excel warns that it will remove leading zeros and convert large numbers to scientific notation.](images/csv_doubleclick.png){#fig-csv-doubleclick .screenshot}
 
-By clicking **Convert**, you are accepting two operations:
-
-- Leading zeros disappear. `00451` becomes `451`, and an RM number or a postal code loses its shape.
-- Long numbers turn into scientific notation. A 16-digit account number displays as `1.23E+15`, and the last digits are rounded away for good.
-
-After the conversion, the identifiers look quite different. Excel also interpreted the lot codes as dates.
-
-<!-- Public view-only link expires 2026-11-20 under the USask 90-day policy. -->
-::: {.workbook-callout}
-::: {.callout-tip collapse="false" title="Workbook: elevator_tickets.xlsx after Excel's automatic conversions"}
-
-::: {.excel-embed}
-<iframe width="402" height="346" frameborder="0" scrolling="no" src="https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc={9d996bbe-a578-4e19-982e-7f603d73faea}&action=embedview&wdAllowInteractivity=False&wdHideGridlines=True&wdHideHeaders=True&wdDownloadButton=True&wdInConfigurator=True&waccluster=CA3&edaebp="></iframe>
-:::
-
-[Download this workbook](textbook_examples/elevator_tickets.xlsx) · [Open online](https://usaskca1-my.sharepoint.com/:x:/g/personal/pjs998_usask_ca/IQC-a5mdeKUZTpguf2A9c_rqAXCA1uhiQ8ATsYUFTgp_60U?e=ODC9XU) (view only)
-:::
-:::
-
-There are two issues. First, the conversions are wrong and have to be corrected. Second, correcting them by hand leaves no record of what we did. For a quick calculation we could save the result as an `.xlsx` file, but Power Query records the import steps and can repeat them.
-
-
 ### Power Query {#sec-power-query}
 
-Power Query is Excel's import tool, under **Data > Get Data**. It reads a source, shows a preview, lets you fix the columns, and loads the result onto a sheet. Two things make it the right default. It lets you set each column's type before anything is loaded. And it records every step, so when the source changes you press **Refresh** and the same steps run again on the new data. The import becomes a recipe rather than a set of manual fixes.
-
+A better -- though much more involved -- way of importing data into Excel is to use Power Query.  Power Query is found under **Data > Get Data**. We will use it more in the coming chapters. It reads a source, shows a preview, lets you fix the columns, and loads the result onto a sheet.
 For the tickets file:
 
 1. Choose **Data > Get Data > From Text/CSV** (on a Mac, **Data > Get Data (Power Query)**; the wording moves around between versions) and select the file.
@@ -125,11 +78,13 @@ For the tickets file:
 3. Press **Transform Data** rather than **Load**. In the editor, use each column header's type icon to set `ticket_id`, `permit_book` and `lot_code` to Text, `delivery_date` to Date, and `weight_tonnes` to Decimal Number.
 4. Choose **Close & Load**. Save the workbook as `.xlsx`, which keeps the query; saving as CSV throws it away.
 
+::: {.callout-note collapse="true" title="Screenshots of these steps"}
 ![On Excel for Mac, the Power Query import starts under **Data > Get Data (Power Query)**.](images/csv_getdata_menu.png){#fig-csv-getdata-menu .screenshot}
 
 ![Set **Data type detection** to **Do not detect data types** before transforming the file.](images/csv_type_detection.png){#fig-csv-type-detection .screenshot}
 
 ![In the Power Query editor, change identifier columns such as `ticket_id` to Text.](images/csv_type_text.png){#fig-csv-type-text .screenshot}
+:::
 
 After loading, check it. The number of rows and columns is what you expected; the identifiers kept their zeros and all their digits; the dates cover the right period; the numbers are numbers; blanks did not become zeros.
 
@@ -145,7 +100,7 @@ After loading, check it. The number of rows and columns is what you expected; th
 :::
 :::
 
-On Windows, Power Query can also retrieve a direct download or API response through **From Web**. That option is not available in the same form on a Mac. I find the interface clunky even on Windows, so this course uses R for APIs, particularly when a package is available.
+
 
 
 ## Getting Data Into R {#sec-r-getting}
