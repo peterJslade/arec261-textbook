@@ -1,12 +1,95 @@
 # Thinking Spatially {#sec-spatial-data}
 
+```{r}
+#| include: false
+#| eval: true
+source("_console.R")
+# Chunks in this chapter run with practice/ as the working directory, so the
+# student-facing paths (data/...) resolve at render time.
+knitr::opts_knit$set(root.dir = "practice")
+suppressMessages({library(tidyverse); library(sf)})
+```
+
 Almost everything in agriculture happens somewhere: a yield belongs to a field, a rainfall reading to a gauge, an insurance premium to a risk zone. Spatial data is data that keeps the *where* attached to the numbers, so that location itself can be part of the analysis.
 
 Spatial data comes in two shapes.
 
 **Vector** data describes things with boundaries or positions: points (a weather station, an elevator), lines (a road, a river), and polygons (a field, a rural municipality, a risk zone). A vector dataset is a table like any other, except that each row carries a geometry column describing its shape. The RM yields we have used all term are one join away from being spatial: Saskatchewan publishes the RM boundaries as polygons, and the RM number links a row of yields to a shape on the map.
 
+Here is that idea in practice. Reading the RM boundaries with the **sf** package gives a data frame with one extra column:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the package for spatial data
+library(sf)
+
+# Read the RM boundary file
+rms <- st_read("data/sask_rms.geojson", quiet = TRUE)
+
+# An sf object is a data frame with a geometry column
+head(rms)
+')
+```
+
+Each row is an RM; the `geometry` column holds its polygon. Drawing the table draws the map:
+
+```{r}
+#| label: fig-rm-boundaries
+#| eval: true
+#| echo: true
+#| message: false
+#| fig-width: 5.5
+#| fig-height: 6.2
+#| fig-cap: "Vector data: the 297 rural municipalities of Saskatchewan. Each polygon is one row of the table; the shaded polygon is the row for RM 344, Corman Park."
+#| fig-alt: "A map of southern Saskatchewan divided into small rural municipality polygons, with one polygon near the centre shaded green."
+# Draw every row of the table as its polygon
+ggplot(rms) +
+  geom_sf(fill = "grey97", colour = "grey40", linewidth = 0.1) +
+  # Shade a single row: RM 344, Corman Park
+  geom_sf(data = filter(rms, RMNO == "344"), fill = "#4A7C59") +
+  theme_void()
+```
+
 **Raster** data divides the land into a grid of equal cells and stores one value per cell, like a photograph where every pixel is a measurement. Satellite imagery is raster data, and so is anything derived from it: a 30-metre grid where each cell holds an estimated crop type, a soil-moisture surface, an elevation model.
+
+Here is a small piece of one: a 50-by-50 window of the 2023 Annual Crop Inventory, covering about two square kilometres of central Saskatchewan. Each cell is 30 metres on a side and holds a single value, the crop class:
+
+```{r}
+#| label: fig-raster-field
+#| eval: true
+#| echo: true
+#| message: false
+#| fig-width: 6.4
+#| fig-height: 4.6
+#| fig-cap: "Raster data: 30-metre cells from the 2023 Annual Crop Inventory. The white lines show the cells; fields, a road allowance and a wetland emerge from nothing but a grid of single values."
+#| fig-alt: "A square grid of small coloured cells forming recognizable field shapes: blocks of canola and spring wheat, patches of trees and pasture, and a thin line of developed land."
+# One row per 30-metre cell: its position and its crop class
+field <- read_csv("data/aci_field_raster.csv", show_col_types = FALSE)
+
+# The class table pairs each value with a crop name and a map colour
+classes <- read_csv("data/aci_crop_classes.csv", show_col_types = FALSE)
+
+# Attach the names and colours to the cells
+field_classed <- field |>
+  left_join(classes, by = "value")
+
+# The named palette: each crop paired with its official colour
+palette <- field_classed |>
+  distinct(crop, colour) |>
+  deframe()
+
+# Draw every cell as a tile
+ggplot(field_classed, aes(x = x, y = y, fill = crop)) +
+  geom_tile(colour = "white", linewidth = 0.15) +
+  scale_fill_manual(values = palette) +
+  coord_fixed() +
+  theme_void() +
+  labs(fill = NULL)
+```
+
+Zoom in on either figure and the difference between the two shapes is plain: the vector map is exact boundaries, the raster is a grid pretending to be boundaries. Both are tables underneath, which is why the rest of the module can treat them with tools you already have.
 
 ## Coordinates and reference systems
 

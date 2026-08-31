@@ -1,28 +1,19 @@
 #!/usr/bin/env python3
-"""Turn a OneDrive/SharePoint share URL into a Quarto embed block.
+"""Turn a public OneDrive/SharePoint share URL into a Quarto embed block.
 
 Usage:
     python3 tools/sharepoint_embed.py "<share-url>" [--typing] [--title "Heading"]
 
 The share URL is the one from OneDrive's "Copy link" (looks like
 https://<tenant>-my.sharepoint.com/:x:/g/personal/<user>/IQ...?e=xxxx).
-The document GUID is encoded (little-endian) at byte offset 2 of the
-base64url token, which is what this extracts.
+The complete sharing URL is retained because its token grants anonymous access.
 """
-import argparse, base64, re, sys, uuid
-
-BASE = ("https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/"
-        "_layouts/15/Doc.aspx?sourcedoc=%7B{guid}%7D")
+import argparse
 
 
-def guid_from_share_url(url: str) -> str:
-    token = url.split("/")[-1].split("?")[0]
-    raw = base64.urlsafe_b64decode(token + "=" * (-len(token) % 4))
-    return str(uuid.UUID(bytes_le=raw[2:18]))
-
-
-def embed_block(guid: str, title: str | None, typing: bool, active_cell: str | None) -> str:
-    src = BASE.format(guid=guid) + "&action=embedview"
+def embed_block(url: str, title: str | None, typing: bool, active_cell: str | None) -> str:
+    separator = "&" if "?" in url else "?"
+    src = url + separator + "action=embedview"
     src += "&AllowTyping=True" if typing else "&wdAllowInteractivity=False"
     if active_cell:
         src += f"&ActiveCell={active_cell}"
@@ -49,9 +40,7 @@ def main() -> int:
     ap.add_argument("--active-cell", help="e.g. 'Sheet1'!A1")
     a = ap.parse_args()
 
-    guid = guid_from_share_url(a.url)
-    print(f"# GUID: {guid}\n", file=sys.stderr)
-    print(embed_block(guid, a.title, a.typing, a.active_cell))
+    print(embed_block(a.url, a.title, a.typing, a.active_cell))
     return 0
 
 
