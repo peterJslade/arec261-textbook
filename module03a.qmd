@@ -18,11 +18,10 @@ By the end of this chapter you should be able to:
 
 1. Describe the table you need before you go looking for it.
 2. Name the main public sources of agricultural data, and tell a manual download, a direct file link, an API, and a package that wraps an API apart.
-3. Explain the parts of an API request and what comes back.
-4. Use Power Query to import a file, a folder of files, a file on the web, or a simple API, with the column types set on the way in.
-5. Read delimited text and Excel files into R with the column types stated, and find the values that failed to parse.
-6. Fetch a file or make an API request from R.
-7. Keep a dated raw copy and a README that records source, units, parameters and retrieval date.
+3. Use Power Query to import a file with the column types set on the way in.
+4. Read delimited text and Excel files into R with the column types stated, and find the values that failed to parse.
+5. Fetch a file from the web, or download data with a package that wraps an API.
+6. Keep a dated raw copy and a README that records source, units, parameters and retrieval date.
 :::
 
 ## Start With the Table You Need {#sec-table-needed}
@@ -75,48 +74,7 @@ You may not yet have encountered the latter two options: APIs and software packa
 ### APIs {#sec-apis}
 An **API** (application programming interface) is a documented way for one program to ask another for data. Your program sends a request that says what it wants, and the server sends back a response containing just that. The request is a line of text, so it is recorded, repeatable, and easy to change.
 
-For a simple data API, the request is a URL with the choices written into it. For example, to obtain precipitation data for May 1 to May 5, 2024, we can use this URL: <https://archive-api.open-meteo.com/v1/archive?latitude=52.13&longitude=-106.67&start_date=2024-05-01&end_date=2024-05-05&daily=precipitation_sum&timezone=America/Regina>.
-
-The URL looks complex, but it is easier to parse when broken into its components:
-
-```
-https://archive-api.open-meteo.com/v1/archive
-    ?latitude=52.13
-    &longitude=-106.67
-    &start_date=2024-05-01
-    &end_date=2024-05-05
-    &daily=precipitation_sum
-    &timezone=America/Regina
-```
-
-The first line is the **endpoint** for Open-Meteo. Everything after the question mark consists of query parameters. The first two parameters contain the latitude and longitude, the next two contain the start and end dates, the sixth line requests daily precipitation, and the final line sets the time zone. Changing these parameters requests different data. The [Open-Meteo documentation](https://open-meteo.com/en/docs/historical-weather-api) lists the available parameters.
-
-If the request succeeds the server answers with a status code, `200`, and a body. Data APIs mostly answer in **JSON**, a text format that nests values under labels rather than laying them out as rows and columns. The answer to our above request is:
-
-```json
-{"latitude":52.126537,"longitude":-106.74034,
-  "generationtime_ms":3.182649612426758,
-  "utc_offset_seconds":-21600,
-  "timezone":"America/Regina",
-  "timezone_abbreviation":"GMT-6",
-  "elevation":486.0,
-  "daily_units":{
-    "time":"iso8601",
-    "precipitation_sum":"mm"},
-  "daily":{
-    "time":["2024-05-01","2024-05-02","2024-05-03","2024-05-04","2024-05-05"],
-    "precipitation_sum":[7.50,4.10,2.80,3.00,0.00]}}
-```
-
-The line breaks are only for readability. The final line tells us that daily precipitation was 7.5 mm on May 1, 4.1 mm on May 2 and so on.
-
-If the request fails the status code says roughly why: `400` is a malformed request, `401` or `403` a permissions problem, `404` nothing at that address, `500` the server's fault. Leave `longitude` out of the request above and Open-Meteo answers `400`.
-
-Many APIs ask for a **key**, a free password that identifies who is asking, which you request once from the provider and send with every request. USDA's QuickStats needs one; Open-Meteo does not. A key identifies *you*, so keep it out of any workbook or script you share. The usual habit is to put it in an environment variable or a separate file that you do not share, and have the script read it from there.
-
-Two other API issues you may encounter. Some APIs return only the first page of a large result and expect you to ask for the rest. Most limit how many requests you can make in a minute. And rerunning the same request later can return different numbers, because the provider revised them, which is why the raw copy in @sec-raw-copy matters as much for an API as for a file.
-
-Direct API requests can be difficult because the response is often nested JSON. An R package can wrap the request and return a data frame; the `openmeteo` example in @sec-data-packages uses the same parameters as this URL.
+Building API requests by hand is fiddly, and this course does not ask you to. For the providers we use, someone has written an R package that builds the request and hands back a data frame -- the packages in @sec-data-packages are wrappers around an API.
 
 ## Getting Data Into Excel {#sec-excel-getting}
 
@@ -365,73 +323,11 @@ write_csv(rm_yields, "data/rm_yields_2026-08-22.csv")
 
 The URL above records where the data came from, and the date in the filename records when this copy was obtained. If the online file changes later, this dated snapshot preserves the data used for the analysis. Strictly speaking, `write_csv()` saves the values after R has read them rather than preserving the exact original file, but it captures the important practice at this stage: keep the version you actually used.
 
-### Calling an API {#sec-api-r}
-
-The **httr2** package builds a request one part at a time, which makes the parts visible. The Open-Meteo request from @sec-apis:
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-# Load the package for making HTTP requests
-library(httr2)
-
-# Start a request and add the location, dates, variable and time zone
-weather_request <- request("https://archive-api.open-meteo.com/v1/archive") |>
-  req_url_query(
-    latitude = 52.13,
-    longitude = -106.67,
-    start_date = "2024-05-01",
-    end_date = "2024-05-05",
-    daily = "precipitation_sum",
-    timezone = "America/Regina"
-  )
-
-# Print the request object
-weather_request
-
-# Show the request without sending it
-req_dry_run(weather_request)
-
-# Send the request and store the response
-weather_response <- req_perform(weather_request)
-
-# Print the HTTP status code
-resp_status(weather_response)
-')
-```
-
-`request()` names the endpoint, `req_url_query()` adds and encodes the parameters, and `req_dry_run()` lets you inspect the request before sending it. `req_perform()` sends it and already stops on an HTTP error such as `400` or `404`; `resp_status()` reports the successful response's code.
-
-The body is JSON. JSON can contain groups inside other groups, so `resp_body_json()` represents it as a nested R list (see the discussion of lists in @sec-r-basics). The outer `weather_json` list contains an element named `daily`, which is itself a list. Inside `daily`, the elements named `time` and `precipitation_sum` are equal-length vectors. We can extract those vectors with `$` and use them as columns in a data frame:
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-# Convert the JSON response to nested R objects
-weather_json <- resp_body_json(weather_response, simplifyVector = TRUE)
-
-# Extract the vectors and put them into a data frame
-saskatoon_rain <- data.frame(
-  # Convert the date strings to Date values
-  date = as.Date(weather_json$daily$time),
-  # Extract daily precipitation in millimetres
-  precipitation_mm = weather_json$daily$precipitation_sum
-)
-
-# Print the resulting data frame
-saskatoon_rain
-')
-```
-
-Each `$` moves down one level of the list: `weather_json$daily` selects the daily list, and `$time` or `$precipitation_sum` selects a vector inside it. `data.frame()` then places those vectors in columns. Every API's JSON is shaped differently, so the first time you use one, run `str(weather_json)` and read the provider's documentation rather than guessing element names. Save the raw response too, with `writeLines(resp_body_string(weather_response), "data/raw/saskatoon_2024-05.json")`, for the same reason as the raw CSV.
-
 ### Packages that wrap an API {#sec-data-packages}
 
-Getting data from an API (as above) is a bit of work.  We need to get the JSON data and then parse it ourselves.  For many APIs a developer has created a package that allows you to call the API and obtain the data directly in a data frame.  
+For many APIs a developer has created a package that builds the request for you and returns the data directly as a data frame.
 
-As mentioned above, the **openmeteo** package is one example.  When you load this package you can use the function `weather_history()` to directly download data.  As with all functions, if you want to understand the arguments that you need to supply to weather history type `?weather_history` in your console.  In this case you will see that you need to supply at least three arguments, start, end and either hourly or daily:
+The **openmeteo** package is one example.  When you load this package you can use the function `weather_history()` to directly download data.  As with all functions, if you want to understand the arguments that you need to supply to weather history type `?weather_history` in your console.  In this case you will see that you need to supply at least three arguments, start, end and either hourly or daily:
 
 - start, end: Required. Start and end dates in ISO 8601 (e.g. "2020-12-31").
 
@@ -449,7 +345,7 @@ install.packages("remotes")
 remotes::install_github("tpisel/openmeteo")
 ```
 
-After installation, one function call returns a data frame with the Saskatoon precipitaiton data for May 2024:
+After installation, one function call returns a data frame with the Saskatoon precipitation data for May 2024:
 
 ```{r}
 #| eval: true
@@ -494,6 +390,5 @@ Then in the README.md you can log the provenance of each dataset.
 
 - **Microsoft** -- [What is Power Query?](https://learn.microsoft.com/en-us/power-query/power-query-what-is-power-query) and the [Web connector](https://learn.microsoft.com/en-us/power-query/connectors/web/web).
 - **readr** -- [column types](https://readr.tidyverse.org/articles/column-types.html); **readxl** -- [`read_excel()`](https://readxl.tidyverse.org/reference/read_excel.html).
-- **httr2** -- [package documentation](https://httr2.r-lib.org/).
 - **openmeteo** -- [package documentation and source code](https://github.com/tpisel/openmeteo).
 :::
