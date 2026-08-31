@@ -135,13 +135,11 @@ There is no single correct shape for every purpose. Analysis is often easier wit
 
 ## Data cleaning {#sec-data-cleaning}
 
-### Checking data quality {#sec-data-quality .unnumbered}
-
 Before cleaning a new dataset, check what arrived. A file can contain the wrong units, missing records and duplicate observations without producing an error. A short inspection at the beginning can save a great deal of confusion later.
 
 These checks can find problems, but they cannot prove that every value is correct. A yield of 55 bu/ac may be perfectly plausible and still belong to the wrong field. We need to understand the source as well as inspect the values.
 
-#### Know what the values mean {.unnumbered}
+### Know what the values mean {.unnumbered}
 
 Data cleaning relies on your ability to spot values that do not make sense. This means you need some idea of what the data should look like. A crop yield between 0 and 100 may be plausible when it is measured in bushels per acre, while the same crop measured in tonnes per acre will have much smaller values. The number alone is not enough.
 
@@ -156,7 +154,7 @@ Before looking for errors, answer a few questions:
 
 This information may be in a data dictionary, a README file or the page from which the data were downloaded. If it is not documented, you may need to ask the person who created the file.
 
-#### Take a first look {.unnumbered}
+### Take a first look {.unnumbered}
 
 Start with the basic structure:
 
@@ -168,7 +166,7 @@ Start with the basic structure:
 
 An unexpected row count or repeated identifier may mean that records are missing, duplicated or stored at a different level than you expected. Looking at the first few rows is useful, but it will not reveal a problem near the bottom of a large file.
 
-#### Check each variable {.unnumbered}
+### Check each variable {.unnumbered}
 
 For a **numeric variable**:
 
@@ -192,7 +190,7 @@ For a **date variable**:
 - Look for dates outside the period covered by the data.
 - Check for gaps, repeated dates and dates stored as text.
 
-#### Check variables together {.unnumbered}
+### Check variables together {.unnumbered}
 
 Some problems appear only when two or more variables are compared:
 
@@ -203,7 +201,7 @@ Some problems appear only when two or more variables are compared:
 
 A scatter plot can reveal an odd relationship between two numeric variables. A line plot can expose gaps or abrupt changes over time. Summaries grouped by year, region or source can show whether missing values or unusual measurements are concentrated in one part of the dataset.
 
-#### Investigate before changing {.unnumbered}
+### Investigate before changing {.unnumbered}
 
 When something looks wrong:
 
@@ -213,42 +211,9 @@ When something looks wrong:
 4. Record any correction, conversion or exclusion in a reproducible cleaning step.
 5. If the correct treatment remains uncertain, report that uncertainty and compare the results with and without the questionable observations.
 
-### Data cleaning in Excel {#sec-cleaning-excel}
+## Common data quality issues
 
-The first step in Excel is to inspect the raw data, not to start replacing values. Summaries and graphs help us find the rows that need attention. We can then use formulas or Power Query to record what we changed while keeping the original columns intact.
-
-#### Summarize and visualize the raw data {.unnumbered}
-
-The workbook below contains 19 grain-delivery tickets. Columns A through F hold the data as they arrived. We will begin with the two numeric measurements: `weight_tonnes` in `D5:D23` and `moisture_pct` in `E5:E23`.
-
-For the weight column, calculate:
-
-- the number of observations with `=COUNT(D5:D23)`;
-- the mean with `=AVERAGE(D5:D23)`;
-- the median with `=MEDIAN(D5:D23)`;
-- the minimum with `=MIN(D5:D23)`;
-- the maximum with `=MAX(D5:D23)`; and
-- the number of blanks with `=COUNTBLANK(D5:D23)`.
-
-There are 19 recorded weights. Their mean is 33.9 tonnes, their median is 36.5 tonnes, and they range from -12.4 to 48.1 tonnes. The negative minimum cannot be a delivery weight, but the summary does not tell us why it is negative or what value should replace it.
-
-Repeat the same calculations for `moisture_pct`. There are 18 recorded values and one blank. The mean is 9.17%, the median is 9.25%, and the values range from 0.099% to 14.6%. The minimum is suspicious because the other moisture readings are between 7% and 14.6%. It may have been entered as a proportion rather than a percentage.
-
-The summary statistics identify the extreme values, but a graph shows how those values relate to the rest of the data. Select the weight column and choose **Insert > Insert Statistic Chart > Histogram**. Repeat this for moisture. The weight histogram has one observation separated from the positive delivery weights. The moisture histogram has one observation close to zero and the remaining values between 7% and 14.6%.
-
-A histogram does not tell us that an unusual value is wrong. It tells us which observations to investigate. We still need the source record or a documented rule before changing a value.
-
-::: {.workbook-callout}
-<!-- Public view-only link expires 2026-11-20 under the University of Saskatchewan 90-day policy. -->
-
-::: {.excel-embed}
-<iframe width="402" height="700" frameborder="0" scrolling="no" src="https://usaskca1-my.sharepoint.com/:x:/g/personal/pjs998_usask_ca/IQDIaxNv25afSa5LoEz9-G3tAXoBxYJcoWjP4fMOie4JVrQ?e=PsWLYM&action=embedview&wdAllowInteractivity=False&wdDownloadButton=True&wdInConfigurator=True&ActiveCell=%27Cleaning%27!A1"></iframe>
-:::
-
-[Download this workbook](textbook_examples/mod03_cleaning_excel.xlsx) · [Open online](https://usaskca1-my.sharepoint.com/:x:/g/personal/pjs998_usask_ca/IQDIaxNv25afSa5LoEz9-G3tAXoBxYJcoWjP4fMOie4JVrQ?e=PsWLYM) (File → Save a Copy to view formulas and edit)
-:::
-
-#### Common data quality issues
+These are the issues I most commonly encounter with datasets:
 
 1. **Awkward column names.** In R, you will refer to column names constantly, so consistency matters. If you sometimes use `SpringWheat`, other times `Spring Wheat`, and still other times `spring-wheat`, you will continually have to remember which convention you chose.
 
@@ -317,6 +282,43 @@ The quick check from the list -- the minimum and maximum of every numeric column
 The yield minimum is a missing-value code and the maximum is twenty times a real yield, and together they pull the mean seventeen bushels above the median. The N rate minimum and maximum are in different units. The last two columns refuse to summarize at all: the unit suffix and the missing-value codes make them text, which is issue 2 doing its damage before any analysis starts.
 
 The remaining two issues hide deeper in the file: two rows appear twice, and the moisture column has more than one way of saying missing. Open the full file and find them. A worked check-and-clean of the whole file exists in both tools: [a workbook](textbook_examples/mod03_field_records_cleaning.xlsx) whose Checks and Clean sheets are built from live formulas, and [an R script](practice/field_records_cleaning.R) that does the same and writes the cleaned file to `output/`.
+
+
+
+### Data cleaning in Excel {#sec-cleaning-excel}
+
+The first step in Excel is to inspect the raw data, not to start replacing values. Summaries and graphs help us find the rows that need attention. We can then use formulas or Power Query to record what we changed while keeping the original columns intact.
+
+#### Summarize and visualize the raw data {.unnumbered}
+
+The workbook below contains 19 grain-delivery tickets. Columns A through F hold the data as they arrived. We will begin with the two numeric measurements: `weight_tonnes` in `D5:D23` and `moisture_pct` in `E5:E23`.
+
+For the weight column, calculate:
+
+- the number of observations with `=COUNT(D5:D23)`;
+- the mean with `=AVERAGE(D5:D23)`;
+- the median with `=MEDIAN(D5:D23)`;
+- the minimum with `=MIN(D5:D23)`;
+- the maximum with `=MAX(D5:D23)`; and
+- the number of blanks with `=COUNTBLANK(D5:D23)`.
+
+There are 19 recorded weights. Their mean is 33.9 tonnes, their median is 36.5 tonnes, and they range from -12.4 to 48.1 tonnes. The negative minimum cannot be a delivery weight, but the summary does not tell us why it is negative or what value should replace it.
+
+Repeat the same calculations for `moisture_pct`. There are 18 recorded values and one blank. The mean is 9.17%, the median is 9.25%, and the values range from 0.099% to 14.6%. The minimum is suspicious because the other moisture readings are between 7% and 14.6%. It may have been entered as a proportion rather than a percentage.
+
+The summary statistics identify the extreme values, but a graph shows how those values relate to the rest of the data. Select the weight column and choose **Insert > Insert Statistic Chart > Histogram**. Repeat this for moisture. The weight histogram has one observation separated from the positive delivery weights. The moisture histogram has one observation close to zero and the remaining values between 7% and 14.6%.
+
+A histogram does not tell us that an unusual value is wrong. It tells us which observations to investigate. We still need the source record or a documented rule before changing a value.
+
+::: {.workbook-callout}
+<!-- Public view-only link expires 2026-11-20 under the University of Saskatchewan 90-day policy. -->
+
+::: {.excel-embed}
+<iframe width="402" height="700" frameborder="0" scrolling="no" src="https://usaskca1-my.sharepoint.com/:x:/g/personal/pjs998_usask_ca/IQDIaxNv25afSa5LoEz9-G3tAXoBxYJcoWjP4fMOie4JVrQ?e=PsWLYM&action=embedview&wdAllowInteractivity=False&wdDownloadButton=True&wdInConfigurator=True&ActiveCell=%27Cleaning%27!A1"></iframe>
+:::
+
+[Download this workbook](textbook_examples/mod03_cleaning_excel.xlsx) · [Open online](https://usaskca1-my.sharepoint.com/:x:/g/personal/pjs998_usask_ca/IQDIaxNv25afSa5LoEz9-G3tAXoBxYJcoWjP4fMOie4JVrQ?e=PsWLYM) (File → Save a Copy to view formulas and edit)
+:::
 
 #### Cleaning with formulas {.unnumbered}
 
