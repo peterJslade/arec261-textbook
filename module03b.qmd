@@ -289,11 +289,43 @@ The quick check from the list -- the minimum and maximum of every numeric column
 
 The yield minimum is a missing-value code and the maximum is twenty times a real yield, and together they pull the mean eighteen bushels above the median. The N rate minimum and maximum are in different units. The last two columns refuse to summarize at all: the unit suffix and the missing-value codes make them text, which is issue 2 doing its damage before any analysis starts.
 
-The remaining issue hides deeper in the file: the moisture column has more ways of saying missing than the N/A shown here. Open the full file and find the rest. A worked check-and-clean of the whole file exists in both tools: [a workbook](textbook_examples/mod03_field_records_cleaning.xlsx) whose Checks and Clean sheets are built from live formulas, and [an R script](practice/field_records_cleaning.R) that does the same and writes the cleaned file to `output/`.
-
-
 
 ### Data cleaning in Excel {#sec-cleaning-excel}
+
+The following Excel workbook shows some steps in checking and then cleaning the data.  In the DataSummary worksheet, the numeric variables are summarized, getting the mean, median, minimum and maximum and a histogram is plotted.  For the categorical variables, the `UNIQUE()` function is used to list the distinct values and the `COUNTIF()` function is used to count how many times each distinct value appears.  Finally, we counted the number of rows using `=ROWS(RawData!A2:A39)` and the number of distinct rows using `=ROWS(UNIQUE(RawData!A2:A39))`.  The difference between these two counts is the number of duplicate rows.
+
+
+
+Unfortunately, in Excel there is not a great way to programmatically clean data so that it is transparent and reproducible.  In the clean data worksheet, I tried to do this using IF statements.  For example, since there are four ways Brandon is recorded, I used the following formula to standardize the variety name:
+
+`=IF(OR(RawData!B2="Brandon",RawData!B2="Brandon AAC",RawData!B2="Brndon"),"AAC Brandon",RawData!B2)`.
+
+This means if the raw cell holds any of the three stray spellings, the formula writes AAC Brandon; otherwise it copies the raw value across unchanged.  Copying the formula down the column applies the rule to every row, and because every cell in the Clean sheet points back at RawData, the raw file is never touched.
+
+Of course, if we had many more varieties with naming issues, this would become quite cumbersome.
+
+Other functions that I used in this worksheet include:
+
+- `DATEVALUE()` converts the seeding dates, which arrive as text in four different formats, into real Excel dates.
+- `VALUE(SUBSTITUTE(RawData!F2," t",""))` strips the " t" unit from the harvest weights so the column becomes numeric.
+- `IF()` conditions blank the -99 codes, the impossible yields and the moisture missing-value codes, and multiply the nitrogen rates reported in t/ha by 1000 so every rate is in kg/ha.
+- A running `COUNTIF(RawData!$A$2:$A2,RawData!A2)>1` flags the second appearance of a field ID, so the duplicate rows can be filtered out when saving a final copy.
+
+::: {.workbook-callout}
+<!-- Anyone-view link expires 2026-11-29 under the University of Saskatchewan 90-day policy. -->
+
+::: {.excel-embed}
+<iframe width="100%" height="700" frameborder="0" scrolling="no" src="https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7BA96B2111-6943-487A-B1CD-2B84892058BB%7D&action=embedview&wdAllowInteractivity=False&wdDownloadButton=True&wdInConfigurator=True&ActiveCell=%27DataSummary%27!A1"></iframe>
+:::
+
+[Download this workbook](textbook_examples/mod03_field_records_cleaning.xlsx) · [Open online](https://usaskca1-my.sharepoint.com/:x:/g/personal/pjs998_usask_ca/IQARIWupQ2l6SLHNK4SJIFi7AaPD784L8M-lxPSEBlwjw2I?e=Gd8AR1) (File → Save a Copy to view formulas and edit)
+:::
+
+The moisture column has more ways of saying missing than the N/A shown in the preview above -- open the full file and find the rest. [An R script](practice/field_records_cleaning.R) works through the same checks and cleaning in R and writes the cleaned file to `output/`.
+
+
+
+
 
 The first step in Excel is to inspect the raw data, not to start replacing values. Summaries and graphs help us find the rows that need attention. We can then use formulas or Power Query to record what we changed while keeping the original columns intact.
 
