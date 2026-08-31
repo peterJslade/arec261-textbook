@@ -1,33 +1,186 @@
 # Making and Interpreting Maps {#sec-maps}
 
-::: {.callout-note}
-This chapter is a draft outline. The sections below show what it will cover.
+```{r}
+#| include: false
+#| eval: true
+source("_console.R")
+# Chunks in this chapter run with practice/ as the working directory, so the
+# student-facing paths (data/..., output/...) resolve at render time.
+knitr::opts_knit$set(root.dir = "practice")
+suppressMessages({library(tidyverse); library(sf); library(ggspatial)})
+```
+
+A map made with `geom_sf()` is a ggplot. Everything from @sec-graphing-r carries over -- aesthetics, scales, facets, labels -- and the decisions that make a chart honest make a map honest too.
+
+## Learning Objectives {.unnumbered}
+
+::: {.objectives}
+By the end of this chapter you should be able to:
+
+1. Make a choropleth map from joined boundary-and-value data.
+2. Choose a continuous or categorical colour scale, and show missing areas honestly.
+3. Compare maps across years with facets and one shared scale.
+4. Put a map on a basemap of imagery or streets, with a scale bar.
+5. Finish a map with a title, units, and a data source.
 :::
 
-This chapter turns spatial data into maps with `geom_sf()`, and covers the decisions that make a map honest.
+## A first map
 
-## Maps with geom_sf()
+@sec-spatial-r saved the RM boundaries with 2023 canola yields attached. Read the file back and put the yield on the map as fill:
 
-- Point and polygon maps
-- Layering boundaries and observations
+```{r}
+#| label: fig-choropleth-first
+#| eval: true
+#| echo: true
+#| message: false
+#| fig-width: 5.6
+#| fig-height: 5.6
+#| fig-cap: "2023 canola yield by RM. Grey RMs reported no canola."
+#| fig-alt: "A choropleth map of southern Saskatchewan RMs coloured from dark to light by canola yield, with a few grey polygons."
+# Load the spatial package
+library(sf)
 
-## Choropleth maps
+# The boundaries-plus-yields layer saved in the last chapter
+rm_canola <- st_read("output/rm_canola_2023.gpkg", quiet = TRUE)
 
-- Continuous and categorical colour scales
-- Missing observations versus genuine zeros
+# Fill each polygon by its yield
+ggplot(rm_canola) +
+  geom_sf(aes(fill = Canola), colour = "grey40", linewidth = 0.05) +
+  scale_fill_viridis_c(na.value = "grey85") +
+  theme_void() +
+  labs(fill = "bu/ac")
+```
 
-## Comparing maps
+A map coloured by a value is a **choropleth**. Two of its choices matter more than the rest. The colour scale is the first: `scale_fill_viridis_c()` runs from dark to light in even perceptual steps, so twice the difference in yield looks like twice the difference in colour. The second is the grey polygons. Those RMs have `NA` for canola -- no reported yield -- which is not the same as a yield of zero, and `na.value = "grey85"` keeps the two from sharing a colour. A missing area painted the same as a low value is a quiet lie.
 
-- Consistent scales when comparing maps
-- Faceting by crop, region, or year
+## Categorical scales
 
-## Labels and honesty
+Sometimes classes read better than a continuous ramp. Make the classes with `case_when()`, then map the new column:
 
-- Titles, legends, units, captions, and sources
-- Avoiding misleading maps
+```{r}
+#| label: fig-choropleth-classes
+#| eval: true
+#| echo: true
+#| message: false
+#| fig-width: 5.6
+#| fig-height: 5.6
+#| fig-cap: "The same yields in three classes. Class edges are choices; state them."
+#| fig-alt: "The same RM map with polygons in three shades labelled under 30, 30 to 40, and over 40 bushels per acre."
+# Three yield classes, with the cutoffs visible in the code
+rm_canola <- rm_canola |>
+  mutate(yield_class = case_when(
+    Canola < 30 ~ "Under 30",
+    Canola <= 40 ~ "30 to 40",
+    Canola > 40 ~ "Over 40"
+  ) |>
+    factor(levels = c("Under 30", "30 to 40", "Over 40")))
 
-## An interactive map
+# Map the classes
+ggplot(rm_canola) +
+  geom_sf(aes(fill = yield_class), colour = "grey40", linewidth = 0.05) +
+  scale_fill_brewer(palette = "YlGn", na.value = "grey85") +
+  theme_void() +
+  labs(fill = "bu/ac")
+```
 
-- An introductory interactive map (optional)
+Classes trade detail for readability, and the cutoffs are decisions: moving an edge from 30 to 35 redraws the map without changing a single yield. Put the cutoffs in the legend or the caption so a reader can see them.
+
+## Comparing years
+
+A comparison across maps is honest only when the maps share a scale. Join two years of canola instead of one, and let `facet_wrap()` draw both -- the shared fill scale comes free:
+
+```{r}
+#| label: fig-facet-years
+#| eval: true
+#| echo: true
+#| message: false
+#| fig-width: 8.0
+#| fig-height: 4.4
+#| fig-cap: "Canola yield by RM in the 2021 drought and in 2023, on one scale."
+#| fig-alt: "Two side-by-side RM maps: the 2021 map is almost entirely dark low-yield colours, the 2023 map much lighter."
+# Canola for the two years, one row per RM per year
+canola_years <- read_csv("data/rm_yields_1990plus.csv", show_col_types = FALSE) |>
+  filter(Year %in% c(2021, 2023)) |>
+  select(Year, RM, Canola)
+
+# The boundaries
+rms <- st_read("data/sask_rms.geojson", quiet = TRUE) |>
+  mutate(RMNO = as.numeric(RMNO))
+
+# Join each year separately, so every RM appears in both panels
+rm_two_years <- bind_rows(
+  left_join(rms, filter(canola_years, Year == 2021), by = c("RMNO" = "RM")) |>
+    mutate(Year = 2021),   # keep the year on the RMs that had no row
+  left_join(rms, filter(canola_years, Year == 2023), by = c("RMNO" = "RM")) |>
+    mutate(Year = 2023)
+)
+
+# One map per year, one scale for both
+ggplot(rm_two_years) +
+  geom_sf(aes(fill = Canola), colour = "grey40", linewidth = 0.05) +
+  scale_fill_viridis_c(na.value = "grey85") +
+  facet_wrap(~ Year) +
+  theme_void() +
+  labs(fill = "bu/ac")
+```
+
+The 2021 drought is the whole story of this figure, and it is only visible because both panels use one scale. Scaled separately, each map would use its full colour range and the two years would look alike.
+
+## Adding a basemap
+
+At the scale of an RM or a field, a map floating on white loses its bearings. `annotation_map_tile()` from the **ggspatial** package draws web map tiles under the other layers, the way an online map does:
+
+```{r}
+#| label: fig-basemap
+#| eval: true
+#| echo: true
+#| message: false
+#| warning: false
+#| fig-width: 6.4
+#| fig-height: 3.8
+#| fig-cap: "The RM of Wood Creek on an OpenStreetMap basemap, with a scale bar."
+#| fig-alt: "A street-map view of a rural area with one municipality outlined in dark green and a scale bar in the corner."
+# Load the package for basemaps and scale bars
+library(ggspatial)
+
+# The RM to show
+wood_creek <- rms |>
+  filter(RMNO == 281)
+
+# Tiles underneath, the boundary on top, a scale bar in the corner
+ggplot(wood_creek) +
+  annotation_map_tile(type = "osm", zoom = 10, progress = "none") +
+  geom_sf(fill = NA, colour = "#4A7C59", linewidth = 0.9) +
+  annotation_scale(location = "br") +
+  theme_void()
+```
+
+The tiles come from OpenStreetMap, which needs no account. Commercial tile providers -- Mapbox, Esri, Google -- plug into the same layer once you have a key from them, and imagery basemaps work well under field-level data in Module 7. The scale bar answers the question every zoomed-in map raises, how far is that, and `annotation_scale()` computes it from the CRS.
+
+## Finishing a map
+
+A finished map states what it shows, in what units, from what source. `labs()` does all three:
+
+```{r}
+#| label: fig-finished-map
+#| eval: true
+#| echo: true
+#| message: false
+#| fig-width: 6.2
+#| fig-height: 6.4
+#| fig-cap: "The first map, finished: title, units, missing data named, and the source stated."
+#| fig-alt: "The 2023 canola choropleth with a title, a legend labelled in bushels per acre, and a source caption."
+ggplot(rm_canola) +
+  geom_sf(aes(fill = Canola), colour = "grey40", linewidth = 0.05) +
+  scale_fill_viridis_c(na.value = "grey85") +
+  theme_void() +
+  labs(
+    title = "Canola yield by rural municipality, 2023",
+    fill = "bu/ac",
+    caption = "Grey: no reported canola. Source: Saskatchewan Ministry of Agriculture RM yields."
+  )
+```
+
+The same habits that mislead in a chart mislead on a map: a colour scale that starts partway up the data, class breaks chosen to make a pattern appear, a comparison across panels with different scales, missing areas coloured like data. None of them require bad intent, only inattention, and each one is caught by asking what a reader would conclude from the colours alone.
 
 <!-- Possible assignment: map RM crop yields, agricultural facilities, or weather stations; explain two patterns and one limitation. -->
