@@ -151,7 +151,7 @@ Five canola fields yielded 52.3, 47.8, 55.1, 44.6, and 50.9 bu/ac, on 160, 320, 
 
 **(a)** Create a vector `yields` and a vector `acres` holding these values.
 
-**(b)** Create a vector `yields_t_ha` converting the yields to tonnes per hectare (multiply by 0.0560). in one line (R multiplies every element at once).
+**(b)** Create a vector `yields_t_ha` converting the yields to tonnes per hectare (multiply by 0.0560) in one line -- R multiplies every element at once.
 
 **(c)** Compute the mean and standard deviation of `yields`.
 
@@ -159,19 +159,36 @@ Five canola fields yielded 52.3, 47.8, 55.1, 44.6, and 50.9 bu/ac, on 160, 320, 
 
 <details><summary>Answer</summary>
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Create the yield and acreage vectors
 yields <- c(52.3, 47.8, 55.1, 44.6, 50.9)
 acres  <- c(160, 320, 240, 130, 200)
+
+# (b) Convert every yield to tonnes per hectare in one line
 yields_t_ha <- yields * 0.0560
+
+# Print the converted yields
+yields_t_ha
+
+# (c) Mean and standard deviation of the yields
 mean(yields)
 sd(yields)
+
+# (d) Total production in bushels
 total_bu <- sum(yields * acres)
+total_bu
+
+# (d) Average yield weighted by acres
 total_bu / sum(acres)
+
+## I find the mean to be 50.14 bu/ac and the sd 4.06.
+## Total production is 52,866 bu and the acre-weighted average 50.35 bu/ac.
+')
 ```
 
-- (b) 2.93, 2.68, 3.09, 2.50, 2.85 t/ha.
-- (c) Mean **50.14**, sd **4.06**.
-- (d) Total **52,866 bu**; weighted average **50.35 bu/ac**.
 </details>
 
 ### Question 2
@@ -186,20 +203,44 @@ Five barley fields yielded 68.2, 71.5, 64.9, 74.1, and 66.3 bu/ac. Five lentil f
 
 <details><summary>Answer</summary>
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Yield vectors for each crop
 barley  <- c(68.2, 71.5, 64.9, 74.1, 66.3)
 lentils <- c(1450, 1720, 1280, 1610, 1390)
+
+# (a) Mean of each crop
+mean(barley)
+mean(lentils)
+
+# (a) Standard deviation of each crop
+sd(barley)
+sd(lentils)
+
+# (a) Variance of each crop
 var(barley)
 var(lentils)
+
+# (a) Range (maximum minus minimum) of each crop
 max(barley) - min(barley)
 max(lentils) - min(lentils)
+
+# (c) Coefficient of variation (sd divided by mean) for each crop
 sd(barley) / mean(barley)
 sd(lentils) / mean(lentils)
+
+## I find barley mean 69.0, sd 3.77, variance 14.25, range 9.2; lentils
+## mean 1490, sd 175.36, variance 30,750, range 440.
+## (b) The two standard deviations are in different units (bushels vs pounds
+## per acre) and on very different scales, so the raw spreads are not
+## comparable.
+## (c) CV barley 0.055, lentils 0.118 -- lentil yields are more variable
+## relative to their own average.
+')
 ```
 
-- (a) Barley mean **69.0**, sd **3.77**, variance **14.25**, range **9.2**; lentils mean **1490**, sd **175.36**, variance **30,750**, range **440**.
-- (b) They are in different units (bushels vs pounds per acre) and on very different scales, so the raw spreads are not comparable.
-- (c) CV barley **0.055**, lentils **0.118** -- lentil yields are more variable relative to their own average.
 </details>
 
 ### Question 3
@@ -214,17 +255,33 @@ A trial records, for each field: the crop grown, the seeded acres, and whether t
 
 <details><summary>Answer</summary>
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Crop grown: character, so the values are quoted
 crop      <- c("Canola", "Wheat", "Peas", "Canola")
+
+# (a) Seeded acres: numeric, no quotes
 acres     <- c(160, 320, 240, 130)
+
+# (a) Irrigated or not: logical, no quotes
 irrigated <- c(TRUE, FALSE, FALSE, TRUE)
+
+# (c) Combine the three vectors into a data frame
 trial <- data.frame(crop = crop,
                     acres = acres,
                     irrigated = irrigated)
+
+# Print the data frame
 trial
+
+## (b) The character values (crop names) need quotes. Numbers must not have
+## them (quoted numbers become text), and TRUE/FALSE must not have them --
+## quoted, they would be text rather than logical values.
+')
 ```
 
-- (b) The character values (crop names) need quotes. Numbers must not have them (quoted numbers become text), and `TRUE`/`FALSE` must not have them -- quoted, they would be text rather than logical values.
 </details>
 
 ---
@@ -241,15 +298,29 @@ Twelve canola fields yielded 24.1, 31.5, 28.8, 35.2, 22.7, 30.4, 27.9, 33.6, 25.
 
 <details><summary>Answer</summary>
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Canola yields as a vector (bu/ac)
 canola <- c(24.1, 31.5, 28.8, 35.2, 22.7, 30.4, 27.9, 33.6, 25.5, 29.3, 32.8, 26.4)
+
+# (a) Mean yield
 mean(canola)
+
+# (b) 10th, 50th, and 90th percentiles in one call
 quantile(canola, c(0.1, 0.5, 0.9))
+
+# (c) The median, to check against the 50th percentile
+median(canola)
+
+## I find the mean to be 29.02.
+## (b) 10th 24.24, 50th 29.05, 90th 33.52.
+## (c) The 50th percentile is the median by definition; median(canola)
+## confirms 29.05.
+')
 ```
 
-- (a) Mean **29.02**.
-- (b) 10th **24.24**, 50th **29.05**, 90th **33.52**.
-- (c) The 50th percentile is the median by definition; `median(canola)` confirms **29.05**.
 </details>
 
 ### Question 5
@@ -270,9 +341,30 @@ mean(x = c(10, 20, 60))
 
 <details><summary>Answer</summary>
 
-- (a) Line 1 assigns 25 to `k` (prints nothing). Line 2 asks whether `k` equals 30 and prints `[1] FALSE`. Line 3 computes a mean and prints `[1] 30`.
-- (b) No -- the `x =` inside the call names an argument for `mean()`; it does not create an object.
-- (c) `==` would become `<-` (or `=`, which also assigns) -- and the book uses `<-` for assignment.
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Run the three lines to see what each one prints
+
+# Line 1: assign 25 to k
+k <- 25
+
+# Line 2: ask whether k equals 30
+k == 30
+
+# Line 3: compute a mean, with the argument named
+mean(x = c(10, 20, 60))
+
+## (a) Line 1 assigns 25 to k and prints nothing. Line 2 asks whether k
+## equals 30 and prints [1] FALSE. Line 3 computes a mean and prints [1] 30.
+## (b) No -- the x = inside the call names an argument for mean(); it does
+## not create an object.
+## (c) == would become <- (or =, which also assigns) -- and the book uses <-
+## for assignment.
+')
+```
+
 </details>
 
 ### Question 6
@@ -287,16 +379,30 @@ mean(x = c(10, 20, 60))
 
 <details><summary>Answer</summary>
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Mean with the argument unnamed
 mean(c(12, 18, 30))
+
+# (a) Mean with the argument named
 mean(x = c(12, 18, 30))
+
+# (c) What the classmate typed: Mean with a capital M
+Mean(c(12, 18, 30))
+
+# (d) Standard deviation with the argument named
 sd(x = c(12, 18, 30))
+
+## (a) Both calls print [1] 20, so they agree.
+## (b) ?sd opens the documentation.
+## (c) R is exact about names: Mean with a capital M is not the same function
+## as mean.
+## (d) The standard deviation is 9.165151.
+')
 ```
 
-- (a) Both print `[1] 20`.
-- (b) `?sd`.
-- (c) R is exact about names: `Mean` with a capital M is not the same function as `mean`.
-- (d) `[1] 9.165151`.
 </details>
 
 ### Question 7
@@ -313,17 +419,32 @@ Four oat fields yielded 84.3, 91.7, 77.2, and 88.5 bu/ac, and oats are selling a
 
 <details><summary>Answer</summary>
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Oat yields (bu/ac) and the price ($/bu)
 yields <- c(84.3, 91.7, 77.2, 88.5)
 price  <- 4.15
+
+# (b) Revenue per acre, using the price object
 revenue <- yields * price
+
+# Print the revenues
 revenue
+
+# (c) Mean revenue per acre
 mean(revenue)
+
+## (b) The revenues are 349.85, 380.56, 320.38, 367.28 $/ac, rounded to the
+## cent (the console shows 349.845 and so on).
+## (c) Mean revenue is $354.51 per acre.
+## (d) Change price <- 4.60, then rerun the lines below it. The price lives
+## in one object, so one edit updates everything -- the same reason a
+## spreadsheet keeps a price in one cell.
+')
 ```
 
-- (b) 349.85, 380.56, 320.38, 367.28 $/ac, rounded to the cent (the console shows 349.845 and so on).
-- (c) Mean **$354.51** per acre.
-- (d) Change `price <- 4.60`, then rerun the lines below it. The price lives in one object, so one edit updates everything -- the same reason a spreadsheet keeps a price in one cell.
 </details>
 
 ### Question 8
@@ -336,19 +457,38 @@ mean(revenue)
 
 <details><summary>Answer</summary>
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Build the data frame
 durum_fields <- data.frame(
   field_id = c("D1", "D2", "D3", "D4"),
   region = c("South", "South", "Central", "North"),
   yield = c(28.3, 41.6, 35.2, 44.8)
 )
-nrow(durum_fields); ncol(durum_fields); names(durum_fields)
+
+# (b) Number of rows
+nrow(durum_fields)
+
+# (b) Number of columns
+ncol(durum_fields)
+
+# (b) Column names
+names(durum_fields)
+
+# (c) Mean yield, using $
 mean(durum_fields$yield)
+
+# (c) Range (maximum minus minimum)
 max(durum_fields$yield) - min(durum_fields$yield)
+
+## (b) 4 rows, 3 columns; the columns are field_id, region, yield.
+## (c) I find the mean to be 37.48 (the console shows 37.475) and the
+## range 16.5.
+')
 ```
 
-- (b) 4 rows, 3 columns; `field_id`, `region`, `yield`.
-- (c) Mean **37.48**; range **16.5**.
 </details>
 
 ### Question 9
@@ -369,9 +509,35 @@ total <- sum(bins)
 
 <details><summary>Answer</summary>
 
-- (a) `[1] 2900 4400 3750` -- displayed only, saved nowhere.
-- (b) Nothing prints (it is an assignment); the pane shows `bins` (the three values) and `total` = 5525.
-- (c) `bins_doubled <- bins * 2`.
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Run the lines to see what each one prints
+
+# Create the vector of bin weights
+bins <- c(1450, 2200, 1875)
+
+# Double it, without saving the result
+bins * 2
+
+# Sum, saved to total (an assignment prints nothing)
+total <- sum(bins)
+
+# (c) Keep the doubled vector for later
+bins_doubled <- bins * 2
+
+# Print it to confirm it was saved
+bins_doubled
+
+## (a) The second line prints [1] 2900 4400 3750 -- displayed only, saved
+## nowhere.
+## (b) The third line prints nothing (it is an assignment); afterwards the
+## Variables pane shows bins (the three values) and total = 5525.
+## (c) bins_doubled <- bins * 2 keeps the doubled vector.
+')
+```
+
 </details>
 
 ### Question 10
@@ -393,7 +559,10 @@ mean(v2)
 
 <details><summary>Answer</summary>
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
 # ---
 # Title: Comparing two canola farms
 # Author: Your Name
@@ -403,23 +572,29 @@ mean(v2)
 #   on Farm A and Farm B.
 # ---
 
-# Canola yields by field (bu/ac)
+# (a) Canola yields by field (bu/ac)
 farm_a <- c(47.2, 49.8, 46.5, 50.1, 48.4)
 farm_b <- c(38.9, 55.6, 44.2, 58.3, 41.0)
 
-# Centre
+# Centre: mean yield on each farm
 mean(farm_a)
 mean(farm_b)
 
-# Spread
+# (b) Spread: standard deviation on each farm
 sd(farm_a)
 sd(farm_b)
+
+# (b) Spread: range (maximum minus minimum) on each farm
 max(farm_a) - min(farm_a)
 max(farm_b) - min(farm_b)
+
+## (b) Farm A sd 1.57, range 3.6; Farm B sd 8.79, range 19.4.
+## (c) The means are close (48.4 vs 47.6), but Farm B yields swing far more
+## from field to field -- the spread on Farm B is five times the spread on
+## Farm A.
+')
 ```
 
-- (b) Farm A sd **1.57**, range **3.6**; Farm B sd **8.79**, range **19.4**.
-- (c) The means are close (48.4 vs 47.6), but Farm B's yields swing far more from field to field -- its spread is five times Farm A's.
 </details>
 
 # Section 2 — Reading and Inspecting Data
@@ -442,14 +617,36 @@ max(farm_b) - min(farm_b)
 
 <details><summary>Answer</summary>
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Sketch of the project folder layout:
+# project/
+#   analysis.R
+#   data/
+#     rm_canola_yields_1990_2025.csv
+
+# (b) Load the tidyverse
 library(tidyverse)
+
+# (b) Read the canola file with a relative path
 rm_canola <- read_csv("data/rm_canola_yields_1990_2025.csv")
-nrow(rm_canola); ncol(rm_canola); names(rm_canola)
+
+# (c) Number of rows
+nrow(rm_canola)
+
+# (c) Number of columns
+ncol(rm_canola)
+
+# (c) Column names
+names(rm_canola)
+
+## (c) I find the file has 10039 rows and 5 columns: Year, RM, Crop, Yield, Unit.
+## (d) The path is relative to the project folder, and the grader opens the same self-contained folder -- so "data/..." exists there too. A full path starting "C:/Users/..." names the user and folder layout of one particular computer, so it fails everywhere else.
+')
 ```
 
-- (c) **10,039 rows**, **5 columns**: `Year`, `RM`, `Crop`, `Yield`, `Unit`.
-- (d) The path is relative to the project folder, and the grader opens the same self-contained folder -- so `data/...` exists on their machine too. An absolute path names one particular computer's user and folder layout.
 </details>
 
 ### Question 12
@@ -462,9 +659,23 @@ nrow(rm_canola); ncol(rm_canola); names(rm_canola)
 
 <details><summary>Answer</summary>
 
-- (a) `Crop` and `Unit` are `<chr>`; `Year`, `RM`, and `Yield` are `<dbl>`.
-- (b) The row and column counts and its guess at each column's type (here `chr (2)` and `dbl (3)`). R guesses well but not perfectly, so the note is the first check that the file read the way you expect.
-- (c) `2024` is numeric; `"2024"` is character (text). Numbers stored as text stop behaving like numbers -- you cannot do arithmetic with them, and sorting turns alphabetical -- so a column you will compute with should show `<dbl>`, not `<chr>`.
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the tidyverse and read the canola file
+library(tidyverse)
+rm_canola <- read_csv("data/rm_canola_yields_1990_2025.csv")
+
+# (a) Structure: one line per column, with its type
+glimpse(rm_canola)
+
+## (a) Crop and Unit are text (<chr>); Year, RM, and Yield are numeric (<dbl>).
+## (b) The note reported the row and column counts and the type read_csv guessed for each column -- here chr (2) and dbl (3). R guesses well but not perfectly, so the note is the first check that the file read the way you expect.
+## (c) 2024 is a numeric value; "2024" is a character (text) value. Numbers stored as text stop behaving like numbers -- you cannot do arithmetic with them, and sorting turns alphabetical -- so a column we will compute with should show <dbl>, not <chr>.
+')
+```
+
 </details>
 
 ### Question 13
@@ -477,9 +688,23 @@ nrow(rm_canola); ncol(rm_canola); names(rm_canola)
 
 <details><summary>Answer</summary>
 
-- (a) Yield: min **1.9**, median **26.9**, max **61**. Years **1990** to **2025**.
-- (b) Yes -- everything sits between about 2 and 61 bu/ac, sensible for canola; the years run 1990--2025 as advertised; and `summary()` prints an `NA's` count only when a column has missing values -- no such line appears, so there are none.
-- (c) Not necessarily -- an RM average that low is what a severe drought or a widespread crop failure looks like. Extreme is not the same as wrong; it is a value to investigate, not delete.
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the tidyverse and read the canola file
+library(tidyverse)
+rm_canola <- read_csv("data/rm_canola_yields_1990_2025.csv")
+
+# (a) Summary of every column
+summary(rm_canola)
+
+## (a) I find Yield has minimum 1.9, median 26.9, and maximum 61.0, and Year runs from 1990 to 2025.
+## (b) The yields all sit between about 2 and 61 bu/ac, a sensible canola range; the years run 1990--2025 as the file name promises; and summary() prints an NA count under a column only when it has missing values -- no such line appears, so there are none.
+## (c) Not necessarily -- an RM average that low is what a severe drought or a widespread crop failure looks like. Extreme is not the same as wrong; it is a value to investigate, not delete.
+')
+```
+
 </details>
 
 ### Question 14
@@ -492,17 +717,31 @@ nrow(rm_canola); ncol(rm_canola); names(rm_canola)
 
 <details><summary>Answer</summary>
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the tidyverse and read the canola file
+library(tidyverse)
+rm_canola <- read_csv("data/rm_canola_yields_1990_2025.csv")
+
+# (a) Centre of the yields
 mean(rm_canola$Yield)
 median(rm_canola$Yield)
+
+# (a) Spread of the yields
 sd(rm_canola$Yield)
 var(rm_canola$Yield)
-quantile(rm_canola$Yield, 0.9)
+
+# (b) 90th percentile of the yields
+quantile(rm_canola$Yield, probs = 0.9)
+
+## (a) I find a mean of 28.29, a median of 26.9, a standard deviation of 10.06, and a variance of 101.21 -- the sd squared, in squared units.
+## (b) The 90th percentile is 42.5 bu/ac.
+## (c) A mean above the median suggests mild right skew: the very best RM-years pull the mean up more than the worst years pull it down.
+')
 ```
 
-- (a) Mean **28.29**, median **26.9**, sd **10.06**, variance **101.21** (the sd squared, in squared units).
-- (b) 90th percentile **42.5**.
-- (c) A mean above the median suggests mild right skew: the very best RM-years pull the mean up more than the worst years pull it down.
 </details>
 
 ### Question 15
@@ -523,10 +762,24 @@ Error in read_csv(...) : could not find function "read_csv"
 
 <details><summary>Answer</summary>
 
-- (a) The package is not loaded in this session; run `library(tidyverse)` first.
-- (b) Installing downloads the package onto the computer -- once per computer. Loading switches it on -- once per script or session. Installation does not carry across sessions as loaded.
-- (c) Quotes when you install (`install.packages("tidyverse")`), none when you load (`library(tidyverse)`).
-- (d) `readr` reads data, `dplyr` manipulates it, `tidyr` reshapes it, `ggplot2` makes graphs.
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) The most likely cause: read_csv lives in a package that is not loaded
+#     in this fresh session, so R cannot find the function. One line fixes it:
+library(tidyverse)
+
+# (a) With the package loaded, the same read line now works
+rm_yields <- read_csv("data/rm_yields_1990_2025.csv")
+
+## (a) The package that provides read_csv was not loaded in the session; running library(tidyverse) first fixes it.
+## (b) Installing downloads the package onto the computer -- that happens once per computer. Loading switches it on -- that happens once per script or session. A package installed last week is still installed, but a fresh session starts with nothing loaded.
+## (c) Quotes when you install, none when you load: install.packages("tidyverse") but library(tidyverse).
+## (d) The four core packages: readr reads data, dplyr manipulates it, tidyr reshapes it, ggplot2 makes graphs.
+')
+```
+
 </details>
 
 ## Manitoba Wheat Variety {.unnumbered}
@@ -545,14 +798,36 @@ Error in read_csv(...) : could not find function "read_csv"
 
 <details><summary>Answer</summary>
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Sketch of the project folder layout:
+# project/
+#   analysis.R
+#   data/
+#     mb_wheat_reported_2020_2025.csv
+
+# (b) Load the tidyverse
 library(tidyverse)
+
+# (b) Read the wheat file with a relative path
 mb_wheat <- read_csv("data/mb_wheat_reported_2020_2025.csv")
-nrow(mb_wheat); ncol(mb_wheat); names(mb_wheat)
+
+# (c) Number of rows
+nrow(mb_wheat)
+
+# (c) Number of columns
+ncol(mb_wheat)
+
+# (c) Column names
+names(mb_wheat)
+
+## (c) I find the file has 2398 rows and 7 columns: Year, Municipality, Variety, Farms, Acres, Yield_bu_ac, Reported.
+## (d) One row is one wheat variety grown in one municipality in one year -- its farm count, its acres, and its average yield.
+')
 ```
 
-- (c) **2,398 rows**, **7 columns**: `Year`, `Municipality`, `Variety`, `Farms`, `Acres`, `Yield_bu_ac`, `Reported`.
-- (d) One wheat variety grown in one municipality in one year -- its farm count, acres, and average yield.
 </details>
 
 ### Question 17
@@ -573,9 +848,22 @@ It works on their laptop and fails on everyone else's.
 
 <details><summary>Answer</summary>
 
-- (a) The absolute path names one machine's user folder, so it exists nowhere else; and the file is loose in Downloads under a space-filled name instead of renamed and placed in the project's `data/` folder.
-- (b) `mb_wheat <- read_csv("data/mb_wheat_reported_2020_2025.csv")`.
-- (c) That the folder opened in Positron is the project folder -- the one containing `data/`. Relative paths start from the opened folder.
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the tidyverse
+library(tidyverse)
+
+# (b) The read line rewritten the way the module recommends: the file renamed,
+#     moved into the data folder of the project, and read with a relative path
+mb_wheat <- read_csv("data/mb_wheat_reported_2020_2025.csv")
+
+## (a) Two problems. First, the path is absolute: it names the Downloads folder of one user on one machine, so it exists nowhere else. Second, the file is loose in Downloads under a name with spaces in it, instead of renamed and placed in the data folder of the project.
+## (c) Check that the folder opened in Positron is the project folder -- the one containing data/. Relative paths start from the opened folder.
+')
+```
+
 </details>
 
 ### Question 18
@@ -588,9 +876,26 @@ It works on their laptop and fails on everyone else's.
 
 <details><summary>Answer</summary>
 
-- (a) `Municipality` and `Variety` are `<chr>`; `Year`, `Farms`, `Acres`, `Yield_bu_ac` are `<dbl>`; `Reported` is `<lgl>`.
-- (b) All `TRUE` -- this is the reported-only file, with the suppressed (`FALSE`) rows removed.
-- (c) Yes -- a numeric column arriving as text means some value in it could not be read as a number, and calculations like `mean()` would fail on it.
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the tidyverse and read the wheat file
+library(tidyverse)
+mb_wheat <- read_csv("data/mb_wheat_reported_2020_2025.csv")
+
+# (a) Structure: one line per column, with its type
+glimpse(mb_wheat)
+
+# (b) The values the logical column holds
+summary(mb_wheat$Reported)
+
+## (a) Municipality and Variety are text (<chr>); Year, Farms, Acres, and Yield_bu_ac are numeric (<dbl>); Reported is logical (<lgl>).
+## (b) Reported holds only TRUE -- all 2398 of them. This is the reported-only file, with the suppressed (FALSE) rows removed, which is what the file name promises.
+## (c) Yes, it would be a problem -- a numeric column arriving as text means some value in it could not be read as a number, and calculations like mean() would fail on it.
+')
+```
+
 </details>
 
 ### Question 19
@@ -603,9 +908,23 @@ It works on their laptop and fails on everyone else's.
 
 <details><summary>Answer</summary>
 
-- (a) Yield: min **4.5**, median **62.2**, max **97.8**. Years **2020** to **2025**.
-- (b) Plausible -- most values sit tens-of-bushels, sensible for Manitoba wheat; no `NA's` lines appear, so no missing values in this file.
-- (c) Not necessarily -- a variety on a few drought- or flood-hit fields can genuinely average that low. Extreme is a value to investigate, not delete.
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the tidyverse and read the wheat file
+library(tidyverse)
+mb_wheat <- read_csv("data/mb_wheat_reported_2020_2025.csv")
+
+# (a) Summary of every column
+summary(mb_wheat)
+
+## (a) I find Yield_bu_ac has minimum 4.5, median 62.2, and maximum 97.8, and Year runs from 2020 to 2025.
+## (b) Plausible -- most yields sit in the tens of bushels, sensible for Manitoba spring wheat; and no NA count lines appear, so there are no missing values in this file.
+## (c) Not necessarily -- a variety grown on a few drought- or flood-hit fields can genuinely average that low. Extreme is a value to investigate, not delete.
+')
+```
+
 </details>
 
 ### Question 20
@@ -618,17 +937,31 @@ It works on their laptop and fails on everyone else's.
 
 <details><summary>Answer</summary>
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the tidyverse and read the wheat file
+library(tidyverse)
+mb_wheat <- read_csv("data/mb_wheat_reported_2020_2025.csv")
+
+# (a) Centre of the yields
 mean(mb_wheat$Yield_bu_ac)
 median(mb_wheat$Yield_bu_ac)
+
+# (a) Spread of the yields
 sd(mb_wheat$Yield_bu_ac)
 var(mb_wheat$Yield_bu_ac)
+
+# (c) Smallest and largest yield in one call
 range(mb_wheat$Yield_bu_ac)
+
+## (a) I find a mean of 61.16, a median of 62.2, a standard deviation of 12.38, and a variance of 153.34.
+## (b) A mean below the median suggests mild left skew: unusually low values pull the mean down more than the high values pull it up -- a tail of very poor variety-municipality observations mixed in with the normal ones.
+## (c) range() returns both ends as one vector: the smallest yield is 4.5 and the largest is 97.8 bu/ac.
+')
 ```
 
-- (a) Mean **61.16**, median **62.2**, sd **12.38**, variance **153.34**.
-- (b) Mild left skew: unusually *low* values pull the mean down more than the high values pull it up -- a tail of very poor variety-municipality observations mixed in with normal ones.
-- (c) `[1]  4.5 97.8` -- `range()` returns both ends as one vector.
 </details>
 
 # Section 3 — Data Manipulation Functions
@@ -649,17 +982,37 @@ range(mb_wheat$Yield_bu_ac)
 
 <details><summary>Answer</summary>
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the tidyverse
+library(tidyverse)
+
+# Read the long yield file
+rm_yields <- read_csv("data/rm_yields_1990_2025.csv")
+
+# (a) Keep only the Canola rows from 2024
 canola_2024 <- filter(rm_yields, Crop == "Canola" & Year == 2024)
+# Row count of the filtered data frame
 nrow(canola_2024)
+
+# (b) Keep only the RM and Yield columns
 canola_slim <- select(canola_2024, RM, Yield)
+# Column names of the slimmed version
 names(canola_slim)
+# Number of columns
 ncol(canola_slim)
+
+# (c) The original data frame, after (a) and (b)
+nrow(rm_yields)
+
+## I find 293 rows of 2024 canola.
+## The selected version has the columns RM and Yield, so 2 columns (and still 293 rows).
+## rm_yields itself still has 71104 rows: filter() and select() return new data frames and leave the original untouched.
+')
 ```
 
-- (a) **293 rows**.
-- (b) `RM`, `Yield`; **2 columns** (still 293 rows).
-- (c) Still **71,104** -- `filter()` and `select()` return new data frames and leave the original untouched.
 </details>
 
 ### Question 22
@@ -674,17 +1027,35 @@ ncol(canola_slim)
 
 <details><summary>Answer</summary>
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the tidyverse
+library(tidyverse)
+
+# Read the long yield file
+rm_yields <- read_csv("data/rm_yields_1990_2025.csv")
+
+# (a) Oats or Barley, using the | connector
 oats_barley <- filter(rm_yields, Crop == "Oats" | Crop == "Barley")
+# Row count of the filtered data frame
 nrow(oats_barley)
+
+# (b) The same filter written with %in%
 oats_barley2 <- filter(rm_yields, Crop %in% c("Oats", "Barley"))
+# The count should match (a)
 nrow(oats_barley2)
+
+# (c) Sort from highest yield to lowest
 arrange(oats_barley, desc(Yield))
+
+## I find 19709 rows both ways.
+## The top of the sorted table is a tie at 165.1 bu/ac: Oats in RM 369 in 2025 and Oats in RM 438 in 2020 share the maximum, so either is a correct top row.
+## (d) The & version asks for rows whose crop is Oats and Barley at the same time. No single row can satisfy both conditions, so zero rows come back. "Or" is the right connector, written |.
+')
 ```
 
-- (a, b) **19,709 rows** both ways.
-- (c) A tie at **165.1 bu/ac**: Oats in RM **369** (2025) and Oats in RM **438** (2020) share the maximum, so either is a correct top row.
-- (d) `&` requires both conditions true of the *same row*, and no single row's crop is both Oats and Barley. "Or" is the right connector.
 </details>
 
 ### Question 23
@@ -699,18 +1070,36 @@ arrange(oats_barley, desc(Yield))
 
 <details><summary>Answer</summary>
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the tidyverse
+library(tidyverse)
+
+# Read the long yield file
+rm_yields <- read_csv("data/rm_yields_1990_2025.csv")
+
+# (a) Spring Wheat at 60 bu/ac or better, all years
 sw_60 <- filter(rm_yields, Crop == "Spring Wheat" & Yield >= 60)
+# Row count of the filtered data frame
 nrow(sw_60)
+
+# (b) Keep only the 2023 rows of that result
 sw_60_2023 <- filter(sw_60, Year == 2023)
+# Row count of the second data frame
 nrow(sw_60_2023)
+
+# (c) Just RM and Yield, sorted best first
 sw_best <- select(sw_60_2023, RM, Yield)
 arrange(sw_best, desc(Yield))
+
+## I find 434 rows at 60 bu/ac or better, and 53 of them are from 2023.
+## RM 187 tops the 2023 list, at 74.7 bu/ac.
+## (d) filter(rm_yields, Yield >= 60 & !Crop == "Spring Wheat") -- the ! negates the crop condition.
+')
 ```
 
-- (a) **434 rows**. (b) **53 rows**.
-- (c) RM **187**, at **74.7 bu/ac**.
-- (d) `filter(rm_yields, Yield >= 60 & !Crop == "Spring Wheat")`.
 </details>
 
 ### Question 24
@@ -723,22 +1112,44 @@ arrange(sw_best, desc(Yield))
 
 <details><summary>Answer</summary>
 
-```r
-kept    <- select(rm_yields, Year, RM, Crop, Yield)
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the tidyverse
+library(tidyverse)
+
+# Read the long yield file
+rm_yields <- read_csv("data/rm_yields_1990_2025.csv")
+
+# (a) Keep four columns by naming them
+kept <- select(rm_yields, Year, RM, Crop, Yield)
+# The same four columns by dropping Unit
 dropped <- select(rm_yields, -Unit)
+# Confirm the two have the same column names
 names(kept)
 names(dropped)
-ranged  <- select(rm_yields, Year:Crop)
+# The adjacent-column range Year:Crop
+ranged <- select(rm_yields, Year:Crop)
+# Its column names
 names(ranged)
+
+# (b) Rename Yield in the full data
 renamed <- rename(rm_yields, yield_per_acre = Yield)
+# The new column names
 names(renamed)
+
+# (c) Peas in 2025, from the renamed data frame
 peas_2025 <- filter(renamed, Crop == "Peas" & Year == 2025)
+# Row count of the filtered data frame
 nrow(peas_2025)
+
+## Both versions have the columns Year, RM, Crop, Yield; the range version keeps Year, RM, Crop.
+## After the rename the columns are Year, RM, Crop, yield_per_acre, Unit.
+## I find 285 rows of 2025 peas.
+')
 ```
 
-- (a) Identical: `Year`, `RM`, `Crop`, `Yield` both ways; the range version keeps `Year`, `RM`, `Crop`.
-- (b) `Year`, `RM`, `Crop`, `yield_per_acre`, `Unit`.
-- (c) **285 rows**.
 </details>
 
 ### Question 25
@@ -753,19 +1164,36 @@ nrow(peas_2025)
 
 <details><summary>Answer</summary>
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the tidyverse
+library(tidyverse)
+
+# Read the long yield file
+rm_yields <- read_csv("data/rm_yields_1990_2025.csv")
+
+# (a) Canola in 2024
 canola_2024 <- filter(rm_yields, Crop == "Canola" & Year == 2024)
+# Add both converted columns in one mutate() call
 canola_2024 <- mutate(canola_2024,
-                      yield_t_ha  = Yield * 0.0560,
-                      yield_kg_ha = Yield * 56.0)
+                      yield_t_ha  = Yield * 0.0560,  # tonnes per hectare
+                      yield_kg_ha = Yield * 56.0)    # kilograms per hectare
+
+# (b) Mean of each new column
 mean(canola_2024$yield_t_ha)
 mean(canola_2024$yield_kg_ha)
+
+# (c) Sort by tonnes per hectare, best first
 arrange(canola_2024, desc(yield_t_ha))
+
+## I find means of 1.76 t/ha and 1764.11 kg/ha.
+## RM 493 tops the table, at 2.57 t/ha.
+## (d) The ratio of the means is 1000: both columns are the same yields scaled by constants, and 56.0 / 0.0560 = 1000 (a tonne is 1000 kg).
+')
 ```
 
-- (b) **1.76 t/ha** and **1,764.11 kg/ha**.
-- (c) RM **493**, at **2.57 t/ha**.
-- (d) 1,000 -- both columns are the same yields scaled by constants, and 56.0 / 0.0560 = 1000 (a tonne is 1,000 kg).
 </details>
 
 ## Manitoba Wheat Variety {.unnumbered}
@@ -782,16 +1210,35 @@ arrange(canola_2024, desc(yield_t_ha))
 
 <details><summary>Answer</summary>
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the tidyverse
+library(tidyverse)
+
+# Read the full Manitoba variety file, suppressed rows included
+mb <- read_csv("data/mb_wheat_varieties.csv")
+
+# (a) Keep the reported rows only
 mb_rep <- filter(mb, Reported == TRUE)
+# Row count of the filtered data frame
 nrow(mb_rep)
+
+# (b) Three columns from the reported rows
 mb_slim <- select(mb_rep, Municipality, Variety, Yield_bu_ac)
+# Its column names
 names(mb_slim)
+
+# (c) The full file, after (a) and (b)
+nrow(mb)
+
+## I find 2398 reported rows.
+## The selected columns are Municipality, Variety, Yield_bu_ac.
+## mb itself still has 5358 rows -- filtering returns a new data frame. The 2960 suppressed rows are simply absent from mb_rep; they were not deleted from anything.
+')
 ```
 
-- (a) **2,398 rows**.
-- (b) `Municipality`, `Variety`, `Yield_bu_ac`.
-- (c) `mb` still has **5,358** rows -- filtering returns a new data frame. The 2,960 suppressed rows are simply absent from `mb_rep`; they were not deleted from anything.
 </details>
 
 ### Question 27
@@ -804,15 +1251,32 @@ names(mb_slim)
 
 <details><summary>Answer</summary>
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the tidyverse
+library(tidyverse)
+
+# Read the full Manitoba variety file, then keep the reported rows
+mb <- read_csv("data/mb_wheat_varieties.csv")
+mb_rep <- filter(mb, Reported == TRUE)
+
+# (a) The two varieties, using the | connector
 two_var <- filter(mb_rep, Variety == "AAC BRANDON (BW 932)" | Variety == "AAC STARBUCK <SECAN>")
+# Row count of the filtered data frame
 nrow(two_var)
+
+# (b) The same filter written with %in%
 two_var2 <- filter(mb_rep, Variety %in% c("AAC BRANDON (BW 932)", "AAC STARBUCK <SECAN>"))
+# The count should match (a)
 nrow(two_var2)
+
+## I find 893 rows both ways.
+## (c) The & version demands both conditions true of the same row, and no single row has a variety that is both names at once. "Or" is the right connector, written |.
+')
 ```
 
-- (a, b) **893 rows** both ways.
-- (c) `&` demands both conditions true of the same row, and no single row's variety is both names at once. "Or" is the right connector.
 </details>
 
 ### Question 28
@@ -825,16 +1289,35 @@ nrow(two_var2)
 
 <details><summary>Answer</summary>
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the tidyverse
+library(tidyverse)
+
+# Read the full Manitoba variety file, then keep the reported rows
+mb <- read_csv("data/mb_wheat_varieties.csv")
+mb_rep <- filter(mb, Reported == TRUE)
+
+# (a) Reported yields above 80 bu/ac
 high <- filter(mb_rep, Yield_bu_ac > 80)
+# Row count of the filtered data frame
 nrow(high)
+
+# (b) The 2024 rows of that result
 high_2024 <- filter(high, Year == 2024)
+# Row count now
 nrow(high_2024)
+
+# (c) Sort the over-80 rows best first
 arrange(high, desc(Yield_bu_ac))
+
+## I find 97 rows above 80 bu/ac, 16 of them from 2024.
+## HILLSBURG-ROBLIN-SHELL RIVER tops the list, with BOLLES <SEED DEPOT> in 2022, at 97.8 bu/ac.
+')
 ```
 
-- (a) **97 rows**. (b) **16 rows**.
-- (c) HILLSBURG-ROBLIN-SHELL RIVER, `BOLLES <SEED DEPOT>`, in **2022**, at **97.8 bu/ac**.
 </details>
 
 ### Question 29
@@ -845,19 +1328,39 @@ arrange(high, desc(Yield_bu_ac))
 
 <details><summary>Answer</summary>
 
-```r
-kept    <- select(mb_rep, Year, Municipality, Variety, Yield_bu_ac)
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the tidyverse
+library(tidyverse)
+
+# Read the full Manitoba variety file, then keep the reported rows
+mb <- read_csv("data/mb_wheat_varieties.csv")
+mb_rep <- filter(mb, Reported == TRUE)
+
+# (a) Keep four columns by naming them
+kept <- select(mb_rep, Year, Municipality, Variety, Yield_bu_ac)
+# The same four columns by dropping the rest
 dropped <- select(mb_rep, -Farms, -Acres, -Reported)
+# Confirm the two have the same column names
 names(kept)
 names(dropped)
-ranged  <- select(mb_rep, Year:Variety)
+# The adjacent-column range Year:Variety
+ranged <- select(mb_rep, Year:Variety)
+# Its column names
 names(ranged)
+
+# (b) Rename the yield column
 renamed <- rename(mb_rep, yield = Yield_bu_ac)
+# The new column names
 names(renamed)
+
+## Both versions have the same four names, Year, Municipality, Variety, Yield_bu_ac; the range version keeps Year, Municipality, Variety.
+## The renamed data frame has the same seven columns, with yield in place of Yield_bu_ac.
+')
 ```
 
-- (a) Identical four names both ways; the range version keeps `Year`, `Municipality`, `Variety`.
-- (b) The same seven columns with `yield` in place of `Yield_bu_ac`.
 </details>
 
 ### Question 30
@@ -872,15 +1375,32 @@ names(renamed)
 
 <details><summary>Answer</summary>
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the tidyverse
+library(tidyverse)
+
+# Read the full Manitoba variety file, then keep the reported rows
+mb <- read_csv("data/mb_wheat_varieties.csv")
+mb_rep <- filter(mb, Reported == TRUE)
+
+# (a) Total bushels: acres times yield, in one mutate() call
 mb_rep <- mutate(mb_rep, total_bu = Acres * Yield_bu_ac)
+
+# (b) Mean of the new column
 mean(mb_rep$total_bu)
+
+# (c) Sort by total production, largest first
 arrange(mb_rep, desc(total_bu))
+
+## I find a mean of about 382865 bu.
+## PORTAGE LA PRAIRIE tops the table, at about 5.13 million bushels.
+## (d) total_bu measures production -- how much grain the planting actually produced -- rather than how well each acre yielded. A modest yield on enormous acres can out-produce a great yield on few.
+')
 ```
 
-- (b) Mean **382,865 bu**.
-- (c) PORTAGE LA PRAIRIE, at about **5.13 million bushels**.
-- (d) Production -- how much grain the planting actually produced -- rather than how well each acre yielded. A modest yield on enormous acres can out-produce a great yield on few.
 </details>
 
 # Section 4 — Pipelines and Grouped Summaries
@@ -901,15 +1421,36 @@ arrange(mb_rep, desc(total_bu))
 
 <details><summary>Answer</summary>
 
-```r
-rm_yields |>                              # take the data, THEN
-  filter(Crop == "Durum" & Year == 2025) |>  # keep durum in 2025, THEN
-  select(RM, Yield) |>                    # keep two columns, THEN
-  arrange(desc(Yield))                    # sort best-first
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the tidyverse
+library(tidyverse)
+
+# Read the long yield file
+rm_yields <- read_csv("data/rm_yields_1990_2025.csv")
+
+# (a) Durum in 2025, two columns, best first
+durum_2025 <- rm_yields |>                     # take the data, THEN
+  filter(Crop == "Durum" & Year == 2025) |>    # keep durum in 2025, THEN
+  select(RM, Yield) |>                         # keep two columns, THEN
+  arrange(desc(Yield))                         # sort best first
+
+# (b) How many rows the result has
+nrow(durum_2025)
+
+# The top of the sorted table
+head(durum_2025)
+
+# The top yields to one decimal, since the tibble display rounds
+head(durum_2025$Yield)
+
+## I find 189 rows; RM 369 had the best durum yield in 2025, at 105.6 bu/ac.
+## (c) Take rm_yields, then keep the 2025 durum rows, then keep the RM and Yield columns, then sort from highest yield to lowest.
+')
 ```
 
-- (b) **189 rows**; RM **369** at **105.6 bu/ac**.
-- (c) Take `rm_yields`, then keep the 2025 durum rows, then keep the RM and Yield columns, then sort from highest yield to lowest.
 </details>
 
 ### Question 32
@@ -922,15 +1463,33 @@ rm_yields |>                              # take the data, THEN
 
 <details><summary>Answer</summary>
 
-```r
-rm_yields |>
-  filter(Crop == "Flax" & Year >= 2020) |>
-  summarise(mean_yield = mean(Yield),
-            n = n())
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the tidyverse
+library(tidyverse)
+
+# Read the long yield file
+rm_yields <- read_csv("data/rm_yields_1990_2025.csv")
+
+# (a, b) Mean flax yield across 2020 to 2025, with the observation count
+flax_summary <- rm_yields |>
+  filter(Crop == "Flax" & Year >= 2020) |>     # flax from 2020 onward
+  summarise(mean_yield = mean(Yield),          # average yield
+            n = n())                           # rows behind the mean
+
+# Print the summary table
+flax_summary
+
+# The mean to more decimals than the tibble display shows
+flax_summary$mean_yield
+
+## I find a mean of 22.39 bu/ac from 1143 observations.
+## (c) A mean based on a handful of rows deserves less trust than one based on a thousand; the count tells the reader which they are looking at.
+')
 ```
 
-- (a, b) Mean **22.39 bu/ac** from **1,143** observations.
-- (c) A mean based on a handful of rows deserves less trust than one based on a thousand; the count tells the reader which they are looking at.
 </details>
 
 ### Question 33
@@ -943,15 +1502,27 @@ rm_yields |>
 
 <details><summary>Answer</summary>
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the tidyverse
+library(tidyverse)
+
+# Read the long yield file
+rm_yields <- read_csv("data/rm_yields_1990_2025.csv")
+
+# (a) Mean canola yield for each year from 2021 to 2025
 rm_yields |>
-  filter(Crop == "Canola" & Year >= 2021) |>
-  group_by(Year) |>
-  summarise(mean_yield = mean(Yield))
+  filter(Crop == "Canola" & Year >= 2021) |>   # canola, 2021 onward
+  group_by(Year) |>                            # one group per year
+  summarise(mean_yield = mean(Yield))          # average within each year
+
+## I find mean canola yields of 21.9 in 2021, 35.4 in 2022, 33.9 in 2023, 31.5 in 2024, and 43.9 in 2025. The worst year was 2021 and the best was 2025.
+## (c) Yes, the data agrees: the 2021 mean sits roughly a third below the surrounding years.
+')
 ```
 
-- (a, b) 2021 **21.9**, 2022 **35.4**, 2023 **33.9**, 2024 **31.5**, 2025 **43.9**. Worst 2021, best 2025.
-- (c) Yes -- the 2021 mean sits roughly a third below the surrounding years.
 </details>
 
 ### Question 34
@@ -964,15 +1535,33 @@ rm_yields |>
 
 <details><summary>Answer</summary>
 
-```r
-rm_yields |>
-  filter(Crop == "Lentils") |>
-  mutate(yield_kg_ha = Yield * 1.12) |>
-  summarise(mean_kg_ha = mean(yield_kg_ha))
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the tidyverse
+library(tidyverse)
+
+# Read the long yield file
+rm_yields <- read_csv("data/rm_yields_1990_2025.csv")
+
+# (a) Lentils, converted to kg/ha, then the mean of the converted column
+lentil_summary <- rm_yields |>
+  filter(Crop == "Lentils") |>                 # lentil rows only
+  mutate(yield_kg_ha = Yield * 1.12) |>        # lb/ac times 1.12 gives kg/ha
+  summarise(mean_kg_ha = mean(yield_kg_ha))    # average of the new column
+
+# Print the summary table
+lentil_summary
+
+# The mean to more decimals than the tibble display shows
+lentil_summary$mean_kg_ha
+
+## (b) I find a mean of 1353.4 kg/ha.
+## (c) The steps run top to bottom, each one feeding its output to the next. Putting summarise() before mutate() would fail because the data would already be collapsed to one row and the yield_kg_ha column would not exist yet.
+')
 ```
 
-- (b) **1,353.4 kg/ha**.
-- (c) Top to bottom -- each step's output feeds the next. After `summarise()` the data has collapsed to one row and the `yield_kg_ha` column would not exist yet to summarise.
 </details>
 
 ### Question 35
@@ -985,18 +1574,35 @@ rm_yields |>
 
 <details><summary>Answer</summary>
 
-```r
-crop_summary_2025 <- rm_yields |>
-  filter(Year == 2025) |>
-  group_by(Crop) |>
-  summarise(mean_yield = mean(Yield),
-            n = n()) |>
-  arrange(desc(mean_yield))
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the tidyverse
+library(tidyverse)
 
+# Read the long yield file
+rm_yields <- read_csv("data/rm_yields_1990_2025.csv")
+
+# (a) Each crop in 2025: mean yield and observation count, best first
+crop_summary_2025 <- rm_yields |>
+  filter(Year == 2025) |>                      # 2025 only
+  group_by(Crop) |>                            # one group per crop
+  summarise(mean_yield = mean(Yield),          # average yield
+            n = n()) |>                        # observation count
+  arrange(desc(mean_yield))                    # highest mean first
+
+# Print the sorted table
+crop_summary_2025
+
+# (b) Write the table to a csv
 write_csv(crop_summary_2025, "output/crop_summary_2025.csv")
+
+## I find Lentils on top at 1897 and Oats second at 97.5.
+## (c) The Unit column shows Lentils are recorded in pounds per acre, not bushels, so the first place row is not comparable to the rest. Among the bushel crops, Oats are the real standout at 97.5 bu/ac, with Barley next at 72.8. 2025 was a strong year across the board.
+')
 ```
 
-- (a, c) Lentils top the table at **1,897** -- but that is pounds per acre, not bushels. Among the bushel crops, Oats lead at **97.5 bu/ac** (Barley next at 72.8). 2025 was a strong year across the board.
 </details>
 
 ## Manitoba Wheat Variety {.unnumbered}
@@ -1013,15 +1619,36 @@ write_csv(crop_summary_2025, "output/crop_summary_2025.csv")
 
 <details><summary>Answer</summary>
 
-```r
-mb_rep |>                                          # take the reported rows, THEN
-  filter(Year == 2025) |>                          # keep 2025, THEN
-  select(Municipality, Variety, Yield_bu_ac) |>    # keep three columns, THEN
-  arrange(desc(Yield_bu_ac))                       # sort best-first
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the tidyverse
+library(tidyverse)
+
+# Read the full variety file
+mb <- read_csv("data/mb_wheat_varieties.csv")
+
+# Keep only the reported rows
+mb_rep <- filter(mb, Reported == TRUE)
+
+# (a) Reported 2025 rows, three columns, best first
+wheat_2025 <- mb_rep |>                              # take the reported rows, THEN
+  filter(Year == 2025) |>                            # keep 2025, THEN
+  select(Municipality, Variety, Yield_bu_ac) |>      # keep three columns, THEN
+  arrange(desc(Yield_bu_ac))                         # sort best first
+
+# (b) How many rows the result has
+nrow(wheat_2025)
+
+# The top of the sorted table
+head(wheat_2025)
+
+## I find 438 rows; LOUISE, growing SY MANNESS, tops the table at 96.3 bu/ac.
+## (c) Take the reported rows, then keep 2025, then keep three columns, then sort from highest yield to lowest.
+')
 ```
 
-- (b) **438 rows**; LOUISE, growing SY MANNESS, at **96.3 bu/ac**.
-- (c) Take the reported rows, then keep 2025, then keep three columns, then sort from highest yield to lowest.
 </details>
 
 ### Question 37
@@ -1034,14 +1661,35 @@ mb_rep |>                                          # take the reported rows, THE
 
 <details><summary>Answer</summary>
 
-```r
-mb_rep |>
-  summarise(mean_yield = mean(Yield_bu_ac),
-            n = n())
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the tidyverse
+library(tidyverse)
+
+# Read the full variety file
+mb <- read_csv("data/mb_wheat_varieties.csv")
+
+# Keep only the reported rows
+mb_rep <- filter(mb, Reported == TRUE)
+
+# (a) Overall mean yield and count across the reported rows
+overall_summary <- mb_rep |>
+  summarise(mean_yield = mean(Yield_bu_ac),    # average yield
+            n = n())                           # rows behind the mean
+
+# Print the summary table
+overall_summary
+
+# The mean to more decimals than the tibble display shows
+overall_summary$mean_yield
+
+## (b) I find a mean of 61.16 bu/ac from 2398 observations.
+## (c) A mean earns trust in proportion to what it is based on; the count tells the reader how much that is.
+')
 ```
 
-- (b) Mean **61.16 bu/ac** from **2,398** observations.
-- (c) A mean earns trust in proportion to what it is based on; the count tells the reader how much that is.
 </details>
 
 ### Question 38
@@ -1054,16 +1702,31 @@ mb_rep |>
 
 <details><summary>Answer</summary>
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the tidyverse
+library(tidyverse)
+
+# Read the full variety file
+mb <- read_csv("data/mb_wheat_varieties.csv")
+
+# Keep only the reported rows
+mb_rep <- filter(mb, Reported == TRUE)
+
+# (a) Each variety: mean yield and observation count, best first
 mb_rep |>
-  group_by(Variety) |>
-  summarise(mean_yield = mean(Yield_bu_ac),
-            n = n()) |>
-  arrange(desc(mean_yield))
+  group_by(Variety) |>                         # one group per variety
+  summarise(mean_yield = mean(Yield_bu_ac),    # average yield
+            n = n()) |>                        # observation count
+  arrange(desc(mean_yield))                    # highest mean first
+
+## (b) I find AAC WESTKING first at 79.2 bu/ac from 17 observations, then CDC GO (BW781) at 77.5 from a single observation.
+## (c) I would trust the AAC WESTKING mean more: seventeen municipality-years is evidence, while a single observation could be one lucky field in one good year.
+')
 ```
 
-- (b) AAC WESTKING, **79.2 bu/ac** from **17** observations; then CDC GO (BW781), **77.5** from **1**.
-- (c) WESTKING's -- seventeen municipality-years is evidence; a single observation could be one lucky field in one good year.
 </details>
 
 ### Question 39
@@ -1078,15 +1741,30 @@ A bushel of wheat is 60 lb, so one bu/ac is about 0.0673 t/ha.
 
 <details><summary>Answer</summary>
 
-```r
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the tidyverse
+library(tidyverse)
+
+# Read the full variety file
+mb <- read_csv("data/mb_wheat_varieties.csv")
+
+# Keep only the reported rows
+mb_rep <- filter(mb, Reported == TRUE)
+
+# (a) Convert to t/ha, then the mean for each year
 mb_rep |>
-  mutate(yield_t_ha = Yield_bu_ac * 0.0673) |>
-  group_by(Year) |>
-  summarise(mean_t_ha = mean(yield_t_ha))
+  mutate(yield_t_ha = Yield_bu_ac * 0.0673) |> # bu/ac times 0.0673 gives t/ha
+  group_by(Year) |>                            # one group per year
+  summarise(mean_t_ha = mean(yield_t_ha))      # average within each year
+
+## (b) I find a mean of 3.34 t/ha in 2021 and 4.58 t/ha in 2025.
+## (c) Each step feeds its output to the next; after summarise() the data has collapsed to one row per year and the yield_t_ha column would not exist to average.
+')
 ```
 
-- (b) 2021 **3.34 t/ha**; 2025 **4.58 t/ha**.
-- (c) Each step's output feeds the next -- after `summarise()` the data has collapsed to one row per year and the `yield_t_ha` column would not exist to average.
 </details>
 
 ### Question 40
@@ -1099,16 +1777,35 @@ mb_rep |>
 
 <details><summary>Answer</summary>
 
-```r
-variety_summary_2025 <- mb_rep |>
-  filter(Year == 2025) |>
-  group_by(Variety) |>
-  summarise(mean_yield = mean(Yield_bu_ac),
-            n = n()) |>
-  arrange(desc(mean_yield))
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the tidyverse
+library(tidyverse)
 
+# Read the full variety file
+mb <- read_csv("data/mb_wheat_varieties.csv")
+
+# Keep only the reported rows
+mb_rep <- filter(mb, Reported == TRUE)
+
+# (a) Each variety in 2025: mean reported yield and count, best first
+variety_summary_2025 <- mb_rep |>
+  filter(Year == 2025) |>                      # 2025 only
+  group_by(Variety) |>                         # one group per variety
+  summarise(mean_yield = mean(Yield_bu_ac),    # average yield
+            n = n()) |>                        # observation count
+  arrange(desc(mean_yield))                    # highest mean first
+
+# Print the top of the sorted table
+head(variety_summary_2025)
+
+# (b) Write the table to a csv
 write_csv(variety_summary_2025, "output/variety_summary_2025.csv")
+
+## (c) I find AAC WESTKING on top at 79.2 bu/ac from 17 observations. Rows with tiny counts carry far less evidence than their neighbours; some varieties appear only once or twice, so the n column is part of the answer, not decoration.
+')
 ```
 
-- (c) AAC WESTKING, **79.2 bu/ac** from 17 observations. Rows with tiny counts (some varieties appear once or twice) carry far less evidence than their neighbours -- the `n` column is part of the answer, not decoration.
 </details>
