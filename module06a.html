@@ -793,23 +793,71 @@ Figure&nbsp;17.4: The centre of each RM, plotted as if a degree of longitude equ
 </section>
 <section id="resolution-scale-and-extent" class="level2" data-number="17.2">
 <h2 data-number="17.2" class="anchored" data-anchor-id="resolution-scale-and-extent"><span class="header-section-number">17.2</span> Resolution, scale and extent</h2>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
+<p><strong>Resolution</strong> is the size of the smallest thing the data can tell apart. For a raster it is the cell: the Annual Crop Inventory’s cells are 30 metres, so a quarter section is about 27 cells across, and anything smaller than a cell – a slough’s edge, a yard site – is rounded into whichever class dominates the cell. Vector data has a resolution too, in how finely its boundaries are drawn; the RM file this chapter uses has been simplified to within a few hundred metres, which is fine for a provincial map and too coarse for measuring a boundary line. Data also has a resolution in time: a yield monitor logs a point every second, the crop inventory gives one value per year.</p>
+<p><strong>Extent</strong> is how much ground the data covers: one field for a machinery file, the province for the RM yields, all of Canada for the crop inventory.</p>
+<p>The two pull against each other. Fine cells over a large extent make enormous files, so most datasets choose one or the other, and a table’s place on that trade-off tells you what questions it can answer.</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Dataset</th>
+<th>Resolution</th>
+<th>Extent</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Yield monitor</td>
+<td>a point every second, a few metres apart</td>
+<td>one field</td>
+</tr>
+<tr class="even">
+<td>Annual Crop Inventory</td>
+<td>30-metre cells, once a year</td>
+<td>Canada</td>
+</tr>
+<tr class="odd">
+<td>RM crop yields</td>
+<td>one value per RM per year</td>
+<td>Saskatchewan</td>
+</tr>
+<tr class="even">
+<td>StatCan field crops</td>
+<td>one value per province per year</td>
+<td>Canada</td>
+</tr>
+</tbody>
+</table>
+<p>Matching the data to the question is mostly a matter of direction. Fine data can always be aggregated up to answer a coarse question – yield-monitor points average up to a field mean, ACI cells count up to an RM’s canola area. Going the other way is not possible: an RM yield says nothing about which quarters in the RM did well, and a provincial average hides the differences between RMs.</p>
+<p><a href="#fig-resolution" class="quarto-xref">Figure&nbsp;<span>17.5</span></a> shows what aggregation costs. It is the land from <a href="#fig-raster-field" class="quarto-xref">Figure&nbsp;<span>17.2</span></a> again, coarsened so that every 10-by-10 block of cells becomes one 300-metre cell holding the block’s most common class.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Coarsen the window: each 10-by-10 block of cells becomes one 300 m cell</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>coarse <span class="ot">&lt;-</span> field_classed <span class="sc">|&gt;</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">block_x =</span> <span class="fu">ceiling</span>(x <span class="sc">/</span> <span class="dv">10</span>),</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">block_y =</span> <span class="fu">ceiling</span>(y <span class="sc">/</span> <span class="dv">10</span>)) <span class="sc">|&gt;</span>       <span class="co"># assign each cell to a block</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(block_x, block_y, crop, colour) <span class="sc">|&gt;</span>   <span class="co"># cells of each class per block</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(n)) <span class="sc">|&gt;</span>                        <span class="co"># most common class first</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(block_x, block_y, <span class="at">.keep_all =</span> <span class="cn">TRUE</span>)  <span class="co"># keep it, one per block</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Draw the coarsened cells</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(coarse, <span class="fu">aes</span>(block_x, block_y, <span class="at">fill =</span> crop)) <span class="sc">+</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_tile</span>(<span class="at">colour =</span> <span class="st">"white"</span>, <span class="at">linewidth =</span> <span class="fl">0.3</span>) <span class="sc">+</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> palette) <span class="sc">+</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_fixed</span>() <span class="sc">+</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>() <span class="sc">+</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">fill =</span> <span class="cn">NULL</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div id="fig-resolution" class="quarto-float quarto-figure quarto-figure-center anchored" alt="A five-by-five grid of large coloured cells showing only the dominant crops of the same area, with the small features no longer visible.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-resolution-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="module06a_files/figure-html/fig-resolution-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure&nbsp;17.5: The land from Figure&nbsp;fig-raster-field in 300-metre cells. The large fields survive the coarsening; the wetland, the road allowance and the smaller bluffs are gone."><img src="module06a_files/figure-html/fig-resolution-1.png" class="img-fluid figure-img" alt="A five-by-five grid of large coloured cells showing only the dominant crops of the same area, with the small features no longer visible." width="537"></a>
 </div>
-<div class="callout-title-container flex-fill">
-Note
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-resolution-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;17.5: The land from <a href="#fig-raster-field" class="quarto-xref">Figure&nbsp;<span>17.2</span></a> in 300-metre cells. The large fields survive the coarsening; the wetland, the road allowance and the smaller bluffs are gone.
+</figcaption>
+</figure>
 </div>
 </div>
-<div class="callout-body-container callout-body">
-<p>This section is a draft outline.</p>
 </div>
-</div>
-<ul>
-<li>Spatial resolution, scale, and extent</li>
-<li>Agricultural examples at field, RM, provincial, and national scales</li>
-</ul>
 </section>
 <section id="where-agricultural-spatial-data-comes-from" class="level2" data-number="17.3">
 <h2 data-number="17.3" class="anchored" data-anchor-id="where-agricultural-spatial-data-comes-from"><span class="header-section-number">17.3</span> Where agricultural spatial data comes from</h2>
