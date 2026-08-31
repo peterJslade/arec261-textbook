@@ -156,96 +156,11 @@ head(tickets)
 ')
 ```
 
-Columns not named in `cols()` are still guessed. For a file you read repeatedly, stating the important types is worth doing: it documents what you expect, and when the file changes, the mismatch shows up at the read rather than three steps later when a summary comes back wrong. After checking all seven types, the compact equivalent is `col_types = "cccDcdc"`. Add `show_col_types = FALSE` only after you have made those choices explicit.
+Columns not named in `cols()` are still guessed.  We can read Excel files directly in R using the **readxl** package. 
 
-A value that does not fit the stated type does not stop the script. R puts in `NA`, warns, and records the problem, and `problems()` lists what it recorded. `grain_deliveries_messy.csv`, the file @sec-cleaning works through, has one weight typed with its unit:
+### Direct download {#sec-direct-download}
 
-```{r}
-#| eval: true
-#| echo: false
-console('
-# Read the messy deliveries file and require a numeric weight
-deliveries <- read_csv(
-  "practice/data/grain_deliveries_messy.csv",
-  col_types = cols(
-    # Parse weight as a double
-    weight_tonnes = col_double()
-  )
-)
-
-# List values that failed to parse
-problems(deliveries)
-')
-```
-
-
-### Excel files {#sec-readxl}
-
-We can read Excel files directly in R using the **readxl** package. It installs with the tidyverse but is not loaded by `library(tidyverse)`, so load it separately. Excel workbooks can contain many sheets. By default, `read_excel()` reads the first sheet, but the `sheet` argument can identify another sheet by name or position, such as `2` for the second sheet.
-
-Spreadsheets built by people often have something above the table: a title, a note about units or a blank row. R takes the first row as column names regardless. The `skip` argument tells R to ignore a stated number of rows at the top.
-
-The code below shows three attempts to read the barley workbook. The first reads the README sheet instead of the data. The second reads the correct sheet but treats its title as the header. The third reads the correct sheet and skips the three rows above the table.
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-# Load the package for reading Excel workbooks
-library(readxl)
-
-# Read the first sheet in the workbook
-barley_first_sheet <- read_excel(
-  "practice/data/sask_barley_2025.xlsx"
-)
-
-# Print the first six rows of the README sheet
-head(barley_first_sheet)
-
-# Read the Barley_2025 sheet without skipping its title rows
-barley_no_skip <- read_excel(
-  "practice/data/sask_barley_2025.xlsx",
-  sheet = "Barley_2025"
-)
-
-# Print the first six rows of the incorrectly imported table
-head(barley_no_skip)
-
-# Read the Barley_2025 sheet and skip the three title rows
-barley <- read_excel(
-  "practice/data/sask_barley_2025.xlsx",
-  sheet = "Barley_2025",
-  skip = 3
-)
-
-# Print the first six rows of the correctly imported table
-head(barley)
-')
-```
-
-An alternative to `skip` is to specify the range of cells to import. This can exclude both rows and columns.
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-# Read only cells A4 through C36 on the Barley_2025 sheet
-barley <- read_excel(
-  "practice/data/sask_barley_2025.xlsx",
-  range = "Barley_2025!A4:C36"
-)
-
-# Print the first six rows
-head(barley)
-')
-```
-
-`read_csv()` takes `skip` too. Print the object after reading it either way; the shape of what comes back is the quickest check that you read the right thing.
-
-### A file on the web {#sec-direct-download}
-
-`read_csv()` accepts a URL in place of a path, so the RM yields can be read straight from the dashboard:
-
+To this point, where he have used `read_csv()`, we have used a path on our computer as the file name.  We can also use a URL in place of a path.  For example, the average RM yields that we have been using in this course can be directly download from the Government of Saskatchewan's website. 
 ```{r}
 #| eval: true
 #| echo: false
@@ -256,41 +171,28 @@ rm_yields_url <- "https://dashboard.saskatchewan.ca/export/rm-yields-data/4950.c
 # Read the CSV directly from the web
 rm_yields <- read_csv(rm_yields_url)
 
+# Save a dated snapshot of the data in the project data folder
+write_csv(rm_yields, "data/rm_yields_2026-08-22.csv")
+
 # Print the first six rows
 head(rm_yields)
 ')
 ```
 
+Note that when we download the data it is best to always store a copy of the data on our computer.  This saves us from having to dowload the data multiple times, and protects us against the data provider alterning their url or removing the data completely.
 There are some issues with these data. For example, `Winter Wheat` contains a space, so R prints the name in backticks. We will standardize names in @sec-clean-names.
 
-### Keep a raw copy {#sec-raw-copy}
+### Downloading data via an R package {#sec-data-packages}
 
-The file at a URL can be revised or replaced; in this case, the RM data are updated at least once a year. After reading the data, save a dated copy so that you retain the version used in your analysis.
+Many data providers allow their data to be downloaded though an API (application programming interface).  Essentially, that data is kept o na server and a request can be sent to the server to ask for certain data.  For example, we could ask the Statistics Canada API for averge wheat yields in Saskatchewan from 2020-2025.  Querying APIs directly is a more advanced topic.  Fortunately, R packages exsit that will make these API calls for you, once you provide the information that you need.  Let's look at two of these pacakges:
 
-```{r}
-#| eval: true
-#| echo: false
-console('
-# Save a dated snapshot of the data in the project data folder
-write_csv(rm_yields, "data/rm_yields_2026-08-22.csv")
-')
-```
+1. **openmeteo** package is one example.  When you load this package you can use the function `weather_history()` to directly download data.  As with all functions, if you want to understand the arguments that you need to supply to weather history type `?weather_history` in your console.  In this case you will see that you need to supply at least three arguments, start, end and either hourly or daily:
 
-The URL above records where the data came from, and the date in the filename records when this copy was obtained. If the online file changes later, this dated snapshot preserves the data used for the analysis. Strictly speaking, `write_csv()` saves the values after R has read them rather than preserving the exact original file, but it captures the important practice at this stage: keep the version you actually used.
+2. **cansim** package allows you to download data from Statistics Canada.  The function `get_cansim()` allows you to download data from a specific table.  For example, if we wanted to download the nitrogen fertilizer price index (Table: 18-10-0258-01) we could use the following code:
 
-### Packages that wrap an API {#sec-data-packages}
 
-For many APIs a developer has created a package that builds the request for you and returns the data directly as a data frame.
 
-The **openmeteo** package is one example.  When you load this package you can use the function `weather_history()` to directly download data.  As with all functions, if you want to understand the arguments that you need to supply to weather history type `?weather_history` in your console.  In this case you will see that you need to supply at least three arguments, start, end and either hourly or daily:
-
-- start, end: Required. Start and end dates in ISO 8601 (e.g. "2020-12-31").
-
-- hourly, daily: At least one required. A weather variable accepted by the API, or list thereof. Details provided in the help description.
-
-Additionally, you can supply the units you want the data in (e.g., "mm" or "cm") and the timezone the hours/days refer to.
-
-Once again we can install the package using the following code:
+To use the openmeteo package, we first need to install it.  This is a bit of a special package as it doens't live on CRAN, but rather on GitHub.  To install it we first need to install the remotes package from CRAN, and then use that to install openmeteo from GitHub.
 
 ```r
 # Install remotes from CRAN
@@ -300,7 +202,15 @@ install.packages("remotes")
 remotes::install_github("tpisel/openmeteo")
 ```
 
-After installation, one function call returns a data frame with the Saskatoon precipitation data for May 2024:
+After installation, we can use the weather_history() function to download data.  This function requires four arguments:
+
+1. Location (in logitude and latitude)
+2. The start date/time of the data you want
+3. The end date/time of the data you want
+4. One of either hourly or daily, depending on the time scale of the data you want.  For these arguments you must specify the variable that you want: tempreature_2m, precipitation_sum, windspeed_10, etc.
+5. You can also specify the timezone of the data you want.  If you don't specify a timezone, the default is Grenwhich mean time.  That is to say if you ask for precipitation at 2pm, it will give you the precipitation at 2pm GMT, which is not very useful for us in Saskatchewan.  So we will specify the timezone as "America/Regina".
+
+For example, 
 
 ```{r}
 #| eval: true
@@ -309,13 +219,12 @@ console('
 # Load the Open-Meteo API wrapper
 library(openmeteo)
 
-# Request historical precipitation for Saskatoon
+# Request hourly precipitation for Saskatoon, May 1-5, 2024, in the America/Regina timezone
 saskatoon_rain_package <- weather_history(
   c(52.13, -106.67),
   start = "2024-05-01",
   end = "2024-05-05",
-  daily = "precipitation_sum",
-  timezone = "America/Regina"
+  hourly = "precipitation"
 )
 
 # Print the returned data frame
@@ -323,6 +232,55 @@ saskatoon_rain_package
 ')
 ```
 
+
+#### The cansim package {#sec-cansim}
+
+The **cansim** package downloads any Statistics Canada table by its table number. It installs from CRAN:
+
+```r
+# Install cansim from CRAN
+install.packages("cansim")
+```
+
+The main function is `get_cansim()`, which takes the table number as its only required argument. Earlier in the chapter we downloaded seeded acres by clicking through the website for table 32-10-0359-01. The same table arrives as a data frame in one call:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the Statistics Canada wrapper
+library(cansim)
+
+# Download table 32-10-0359-01 (seeded acres, production and yield)
+field_crops <- get_cansim("32-10-0359-01")
+
+# Print the dimensions of the table
+dim(field_crops)
+')
+```
+
+`get_cansim()` returns the whole table -- every province, crop, year and harvest disposition -- so it is large, and the numbers sit in a column named `VALUE`. The functions from @sec-dplyr-verbs cut it down to the piece you want:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Keep Saskatchewan canola seeded acres since 2015
+sask_canola_acres <- field_crops |>
+  filter(
+    GEO == "Saskatchewan",                              # Saskatchewan only
+    `Type of crop` == "Canola (rapeseed)",              # canola only
+    `Harvest disposition` == "Seeded area (acres)",     # seeded acres
+    REF_DATE >= 2015                                    # 2015 onward
+  ) |>
+  select(REF_DATE, GEO, VALUE)                          # keep three columns
+
+# Print the result
+sask_canola_acres
+')
+```
+
+The table number records exactly what was downloaded, and rerunning the script fetches the current version of the table. `get_cansim()` also caches the download, so a script that reads the same table twice only fetches it once.
 
 ## A final note on saving data {#sec-readme}
 
@@ -346,4 +304,5 @@ Then in the README.md you can log the provenance of each dataset.
 - **Microsoft** -- [What is Power Query?](https://learn.microsoft.com/en-us/power-query/power-query-what-is-power-query) and the [Web connector](https://learn.microsoft.com/en-us/power-query/connectors/web/web).
 - **readr** -- [column types](https://readr.tidyverse.org/articles/column-types.html); **readxl** -- [`read_excel()`](https://readxl.tidyverse.org/reference/read_excel.html).
 - **openmeteo** -- [package documentation and source code](https://github.com/tpisel/openmeteo).
+- **cansim** -- [package documentation](https://mountainmath.github.io/cansim/).
 :::
