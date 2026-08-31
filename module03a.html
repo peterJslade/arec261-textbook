@@ -573,10 +573,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#sec-r-getting" id="toc-sec-r-getting" class="nav-link" data-scroll-target="#sec-r-getting"><span class="header-section-number">7.5</span> Getting Data Into R</a>
   <ul>
   <li><a href="#sec-csv-files" id="toc-sec-csv-files" class="nav-link" data-scroll-target="#sec-csv-files"><span class="header-section-number">7.5.1</span> CSV, TSV and other delimited files</a></li>
-  <li><a href="#sec-readxl" id="toc-sec-readxl" class="nav-link" data-scroll-target="#sec-readxl"><span class="header-section-number">7.5.2</span> Excel files</a></li>
-  <li><a href="#sec-direct-download" id="toc-sec-direct-download" class="nav-link" data-scroll-target="#sec-direct-download"><span class="header-section-number">7.5.3</span> A file on the web</a></li>
-  <li><a href="#sec-raw-copy" id="toc-sec-raw-copy" class="nav-link" data-scroll-target="#sec-raw-copy"><span class="header-section-number">7.5.4</span> Keep a raw copy</a></li>
-  <li><a href="#sec-data-packages" id="toc-sec-data-packages" class="nav-link" data-scroll-target="#sec-data-packages"><span class="header-section-number">7.5.5</span> Packages that wrap an API</a></li>
+  <li><a href="#sec-direct-download" id="toc-sec-direct-download" class="nav-link" data-scroll-target="#sec-direct-download"><span class="header-section-number">7.5.2</span> Direct download</a></li>
+  <li><a href="#sec-data-packages" id="toc-sec-data-packages" class="nav-link" data-scroll-target="#sec-data-packages"><span class="header-section-number">7.5.3</span> Downloading data via an R package</a>
+  <ul class="collapse">
+  <li><a href="#sec-cansim" id="toc-sec-cansim" class="nav-link" data-scroll-target="#sec-cansim"><span class="header-section-number">7.5.3.1</span> The cansim package</a></li>
+  </ul></li>
   </ul></li>
   <li><a href="#sec-readme" id="toc-sec-readme" class="nav-link" data-scroll-target="#sec-readme"><span class="header-section-number">7.6</span> A final note on saving data</a></li>
   </ul>
@@ -857,191 +858,24 @@ date (1): delivery_date
 </div>
 </div>
 </div>
-<p>Columns not named in <code>cols()</code> are still guessed. For a file you read repeatedly, stating the important types is worth doing: it documents what you expect, and when the file changes, the mismatch shows up at the read rather than three steps later when a summary comes back wrong. After checking all seven types, the compact equivalent is <code>col_types = "cccDcdc"</code>. Add <code>show_col_types = FALSE</code> only after you have made those choices explicit.</p>
-<p>A value that does not fit the stated type does not stop the script. R puts in <code>NA</code>, warns, and records the problem, and <code>problems()</code> lists what it recorded. <code>grain_deliveries_messy.csv</code>, the file <a href="module03b.html" class="quarto-xref"><span>Chapter 8</span></a> works through, has one weight typed with its unit:</p>
+<p>Columns not named in <code>cols()</code> are still guessed. We can read Excel files directly in R using the <strong>readxl</strong> package.</p>
+</section>
+<section id="sec-direct-download" class="level3" data-number="7.5.2">
+<h3 data-number="7.5.2" class="anchored" data-anchor-id="sec-direct-download"><span class="header-section-number">7.5.2</span> Direct download</h3>
+<p>To this point, where he have used <code>read_csv()</code>, we have used a path on our computer as the file name. We can also use a URL in place of a path. For example, the average RM yields that we have been using in this course can be directly download from the Government of Saskatchewan’s website.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the messy deliveries file and require a numeric weight</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>deliveries <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"practice/data/grain_deliveries_messy.csv"</span>,</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">col_types =</span> <span class="fu">cols</span>(</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Parse weight as a double</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">weight_tonnes =</span> <span class="fu">col_double</span>()</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Store the direct download URL</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>rm_yields_url <span class="ot">&lt;-</span> <span class="st">"https://dashboard.saskatchewan.ca/export/rm-yields-data/4950.csv"</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the CSV directly from the web</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>rm_yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(rm_yields_url)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Save a dated snapshot of the data in the project data folder</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="fu">write_csv</span>(rm_yields, <span class="st">"data/rm_yields_2026-08-22.csv"</span>)</span>
 <span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co"># List values that failed to parse</span></span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="fu">problems</span>(deliveries)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="console-transcript">
-<pre><code>&gt; # Read the messy deliveries file and require a numeric weight
-&gt; deliveries &lt;- read_csv(
-+   "practice/data/grain_deliveries_messy.csv",
-+   col_types = cols(
-+     # Parse weight as a double
-+     weight_tonnes = col_double()
-+   )
-+ )
-Warning: One or more parsing issues, call `problems()` on your data frame for details,
-e.g.:
-  dat &lt;- vroom(...)
-  problems(dat)
-&gt; 
-&gt; # List values that failed to parse
-&gt; problems(deliveries)
-# A tibble: 1 × 5
-    row   col expected actual file                                              
-  &lt;int&gt; &lt;int&gt; &lt;chr&gt;    &lt;chr&gt;  &lt;chr&gt;                                             
-1    42     4 a double 38.2 t /home/runner/work/arec261-textbook/arec261-textbo…</code></pre>
-</div>
-</div>
-</div>
-</section>
-<section id="sec-readxl" class="level3" data-number="7.5.2">
-<h3 data-number="7.5.2" class="anchored" data-anchor-id="sec-readxl"><span class="header-section-number">7.5.2</span> Excel files</h3>
-<p>We can read Excel files directly in R using the <strong>readxl</strong> package. It installs with the tidyverse but is not loaded by <code>library(tidyverse)</code>, so load it separately. Excel workbooks can contain many sheets. By default, <code>read_excel()</code> reads the first sheet, but the <code>sheet</code> argument can identify another sheet by name or position, such as <code>2</code> for the second sheet.</p>
-<p>Spreadsheets built by people often have something above the table: a title, a note about units or a blank row. R takes the first row as column names regardless. The <code>skip</code> argument tells R to ignore a stated number of rows at the top.</p>
-<p>The code below shows three attempts to read the barley workbook. The first reads the README sheet instead of the data. The second reads the correct sheet but treats its title as the header. The third reads the correct sheet and skips the three rows above the table.</p>
-<div class="cell">
-<div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the package for reading Excel workbooks</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readxl)</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the first sheet in the workbook</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>barley_first_sheet <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"practice/data/sask_barley_2025.xlsx"</span></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the first six rows of the README sheet</span></span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(barley_first_sheet)</span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the Barley_2025 sheet without skipping its title rows</span></span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>barley_no_skip <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(</span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  <span class="st">"practice/data/sask_barley_2025.xlsx"</span>,</span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">sheet =</span> <span class="st">"Barley_2025"</span></span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the first six rows of the incorrectly imported table</span></span>
-<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(barley_no_skip)</span>
-<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the Barley_2025 sheet and skip the three title rows</span></span>
-<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>barley <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(</span>
-<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>  <span class="st">"practice/data/sask_barley_2025.xlsx"</span>,</span>
-<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>  <span class="at">sheet =</span> <span class="st">"Barley_2025"</span>,</span>
-<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>  <span class="at">skip =</span> <span class="dv">3</span></span>
-<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the first six rows of the correctly imported table</span></span>
-<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(barley)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="console-transcript">
-<pre><code>&gt; # Load the package for reading Excel workbooks
-&gt; library(readxl)
-&gt; 
-&gt; # Read the first sheet in the workbook
-&gt; barley_first_sheet &lt;- read_excel(
-+   "practice/data/sask_barley_2025.xlsx"
-+ )
-&gt; 
-&gt; # Print the first six rows of the README sheet
-&gt; head(barley_first_sheet)
-# A tibble: 6 × 1
-  `Saskatchewan Barley — Provincial Variety Yields, 2025`                   
-  &lt;chr&gt;                                                                     
-1 AREC 261 · teaching dataset                                               
-2 &lt;NA&gt;                                                                      
-3 What this is                                                              
-4 One row per barley variety grown in Saskatchewan in 2025.                 
-5 Acres  = total acres seeded to that variety across all 21 SCIC risk zones.
-6 Yield  = acreage-weighted average yield (bu/ac) across those zones —      
-&gt; 
-&gt; # Read the Barley_2025 sheet without skipping its title rows
-&gt; barley_no_skip &lt;- read_excel(
-+   "practice/data/sask_barley_2025.xlsx",
-+   sheet = "Barley_2025"
-+ )
-New names:
-• `` -&gt; `...2`
-• `` -&gt; `...3`
-&gt; 
-&gt; # Print the first six rows of the incorrectly imported table
-&gt; head(barley_no_skip)
-# A tibble: 6 × 3
-  `Saskatchewan Barley Varieties — 2025 (provincial)`                ...2  ...3 
-  &lt;chr&gt;                                                              &lt;chr&gt; &lt;chr&gt;
-1 Acres = total across all risk zones · Yield = acreage-weighted av… &lt;NA&gt;  &lt;NA&gt; 
-2 &lt;NA&gt;                                                               &lt;NA&gt;  &lt;NA&gt; 
-3 Variety                                                            Acres Yiel…
-4 SYNERGY AAC                                                        3926… 86.6 
-5 AUSTENSON CDC                                                      1976… 76.0…
-6 CONNECT AAC                                                        1430… 90.1 
-&gt; 
-&gt; # Read the Barley_2025 sheet and skip the three title rows
-&gt; barley &lt;- read_excel(
-+   "practice/data/sask_barley_2025.xlsx",
-+   sheet = "Barley_2025",
-+   skip = 3
-+ )
-&gt; 
-&gt; # Print the first six rows of the correctly imported table
-&gt; head(barley)
-# A tibble: 6 × 3
-  Variety        Acres `Yield (bu/ac)`   
-  &lt;chr&gt;          &lt;dbl&gt; &lt;chr&gt;             
-1 SYNERGY AAC   392684 86.6              
-2 AUSTENSON CDC 197626 76.099999999999994
-3 CONNECT AAC   143023 90.1              
-4 COPELAND CDC  125867 84.8              
-5 FRASER CDC     74958 88                
-6 CHURCHILL CDC  66119 93.7              </code></pre>
-</div>
-</div>
-</div>
-<p>An alternative to <code>skip</code> is to specify the range of cells to import. This can exclude both rows and columns.</p>
-<div class="cell">
-<div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Read only cells A4 through C36 on the Barley_2025 sheet</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>barley <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"practice/data/sask_barley_2025.xlsx"</span>,</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">range =</span> <span class="st">"Barley_2025!A4:C36"</span></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the first six rows</span></span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(barley)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="console-transcript">
-<pre><code>&gt; # Read only cells A4 through C36 on the Barley_2025 sheet
-&gt; barley &lt;- read_excel(
-+   "practice/data/sask_barley_2025.xlsx",
-+   range = "Barley_2025!A4:C36"
-+ )
-&gt; 
-&gt; # Print the first six rows
-&gt; head(barley)
-# A tibble: 6 × 3
-  Variety        Acres `Yield (bu/ac)`
-  &lt;chr&gt;          &lt;dbl&gt;           &lt;dbl&gt;
-1 SYNERGY AAC   392684            86.6
-2 AUSTENSON CDC 197626            76.1
-3 CONNECT AAC   143023            90.1
-4 COPELAND CDC  125867            84.8
-5 FRASER CDC     74958            88  
-6 CHURCHILL CDC  66119            93.7</code></pre>
-</div>
-</div>
-</div>
-<p><code>read_csv()</code> takes <code>skip</code> too. Print the object after reading it either way; the shape of what comes back is the quickest check that you read the right thing.</p>
-</section>
-<section id="sec-direct-download" class="level3" data-number="7.5.3">
-<h3 data-number="7.5.3" class="anchored" data-anchor-id="sec-direct-download"><span class="header-section-number">7.5.3</span> A file on the web</h3>
-<p><code>read_csv()</code> accepts a URL in place of a path, so the RM yields can be read straight from the dashboard:</p>
-<div class="cell">
-<div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Store the direct download URL</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>rm_yields_url <span class="ot">&lt;-</span> <span class="st">"https://dashboard.saskatchewan.ca/export/rm-yields-data/4950.csv"</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the CSV directly from the web</span></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>rm_yields <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(rm_yields_url)</span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the first six rows</span></span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(rm_yields)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the first six rows</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(rm_yields)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; # Store the direct download URL
 &gt; rm_yields_url &lt;- "https://dashboard.saskatchewan.ca/export/rm-yields-data/4950.csv"
@@ -1055,6 +889,9 @@ dbl (18): Year, RM, Winter Wheat, Canola, Spring Wheat, Mustard, Durum, Sunf...
 
 ℹ Use `spec()` to retrieve the full column specification for this data.
 ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+&gt; 
+&gt; # Save a dated snapshot of the data in the project data folder
+&gt; write_csv(rm_yields, "data/rm_yields_2026-08-22.csv")
 &gt; 
 &gt; # Print the first six rows
 &gt; head(rm_yields)
@@ -1073,81 +910,155 @@ dbl (18): Year, RM, Winter Wheat, Canola, Spring Wheat, Mustard, Durum, Sunf...
 </div>
 </div>
 </div>
-<p>There are some issues with these data. For example, <code>Winter Wheat</code> contains a space, so R prints the name in backticks. We will standardize names in <a href="module03b.html#sec-clean-names" class="quarto-xref"><span>Section 8.2.2.1</span></a>.</p>
+<p>Note that when we download the data it is best to always store a copy of the data on our computer. This saves us from having to dowload the data multiple times, and protects us against the data provider alterning their url or removing the data completely. There are some issues with these data. For example, <code>Winter Wheat</code> contains a space, so R prints the name in backticks. We will standardize names in <a href="module03b.html#sec-clean-names" class="quarto-xref"><span>Section 8.2.2.1</span></a>.</p>
 </section>
-<section id="sec-raw-copy" class="level3" data-number="7.5.4">
-<h3 data-number="7.5.4" class="anchored" data-anchor-id="sec-raw-copy"><span class="header-section-number">7.5.4</span> Keep a raw copy</h3>
-<p>The file at a URL can be revised or replaced; in this case, the RM data are updated at least once a year. After reading the data, save a dated copy so that you retain the version used in your analysis.</p>
+<section id="sec-data-packages" class="level3" data-number="7.5.3">
+<h3 data-number="7.5.3" class="anchored" data-anchor-id="sec-data-packages"><span class="header-section-number">7.5.3</span> Downloading data via an R package</h3>
+<p>Many data providers allow their data to be downloaded though an API (application programming interface). Essentially, that data is kept o na server and a request can be sent to the server to ask for certain data. For example, we could ask the Statistics Canada API for averge wheat yields in Saskatchewan from 2020-2025. Querying APIs directly is a more advanced topic. Fortunately, R packages exsit that will make these API calls for you, once you provide the information that you need. Let’s look at two of these pacakges:</p>
+<ol type="1">
+<li><p><strong>openmeteo</strong> package is one example. When you load this package you can use the function <code>weather_history()</code> to directly download data. As with all functions, if you want to understand the arguments that you need to supply to weather history type <code>?weather_history</code> in your console. In this case you will see that you need to supply at least three arguments, start, end and either hourly or daily:</p></li>
+<li><p><strong>cansim</strong> package allows you to download data from Statistics Canada. The function <code>get_cansim()</code> allows you to download data from a specific table. For example, if we wanted to download the nitrogen fertilizer price index (Table: 18-10-0258-01) we could use the following code:</p></li>
+</ol>
+<p>To use the openmeteo package, we first need to install it. This is a bit of a special package as it doens’t live on CRAN, but rather on GitHub. To install it we first need to install the remotes package from CRAN, and then use that to install openmeteo from GitHub.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Install remotes from CRAN</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">"remotes"</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Install openmeteo from GitHub</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"tpisel/openmeteo"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>After installation, we can use the weather_history() function to download data. This function requires four arguments:</p>
+<ol type="1">
+<li>Location (in logitude and latitude)</li>
+<li>The start date/time of the data you want</li>
+<li>The end date/time of the data you want</li>
+<li>One of either hourly or daily, depending on the time scale of the data you want. For these arguments you must specify the variable that you want: tempreature_2m, precipitation_sum, windspeed_10, etc.</li>
+<li>You can also specify the timezone of the data you want. If you don’t specify a timezone, the default is Grenwhich mean time. That is to say if you ask for precipitation at 2pm, it will give you the precipitation at 2pm GMT, which is not very useful for us in Saskatchewan. So we will specify the timezone as “America/Regina”.</li>
+</ol>
+<p>For example,</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Save a dated snapshot of the data in the project data folder</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">write_csv</span>(rm_yields, <span class="st">"data/rm_yields_2026-08-22.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="console-transcript">
-<pre><code>&gt; # Save a dated snapshot of the data in the project data folder
-&gt; write_csv(rm_yields, "data/rm_yields_2026-08-22.csv")</code></pre>
-</div>
-</div>
-</div>
-<p>The URL above records where the data came from, and the date in the filename records when this copy was obtained. If the online file changes later, this dated snapshot preserves the data used for the analysis. Strictly speaking, <code>write_csv()</code> saves the values after R has read them rather than preserving the exact original file, but it captures the important practice at this stage: keep the version you actually used.</p>
-</section>
-<section id="sec-data-packages" class="level3" data-number="7.5.5">
-<h3 data-number="7.5.5" class="anchored" data-anchor-id="sec-data-packages"><span class="header-section-number">7.5.5</span> Packages that wrap an API</h3>
-<p>For many APIs a developer has created a package that builds the request for you and returns the data directly as a data frame.</p>
-<p>The <strong>openmeteo</strong> package is one example. When you load this package you can use the function <code>weather_history()</code> to directly download data. As with all functions, if you want to understand the arguments that you need to supply to weather history type <code>?weather_history</code> in your console. In this case you will see that you need to supply at least three arguments, start, end and either hourly or daily:</p>
-<ul>
-<li><p>start, end: Required. Start and end dates in ISO 8601 (e.g.&nbsp;“2020-12-31”).</p></li>
-<li><p>hourly, daily: At least one required. A weather variable accepted by the API, or list thereof. Details provided in the help description.</p></li>
-</ul>
-<p>Additionally, you can supply the units you want the data in (e.g., “mm” or “cm”) and the timezone the hours/days refer to.</p>
-<p>Once again we can install the package using the following code:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Install remotes from CRAN</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">"remotes"</span>)</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Install openmeteo from GitHub</span></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"tpisel/openmeteo"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>After installation, one function call returns a data frame with the Saskatoon precipitation data for May 2024:</p>
-<div class="cell">
-<div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the Open-Meteo API wrapper</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(openmeteo)</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Request historical precipitation for Saskatoon</span></span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>saskatoon_rain_package <span class="ot">&lt;-</span> <span class="fu">weather_history</span>(</span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(<span class="fl">52.13</span>, <span class="sc">-</span><span class="fl">106.67</span>),</span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">start =</span> <span class="st">"2024-05-01"</span>,</span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">end =</span> <span class="st">"2024-05-05"</span>,</span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">daily =</span> <span class="st">"precipitation_sum"</span>,</span>
-<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">timezone =</span> <span class="st">"America/Regina"</span></span>
-<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the returned data frame</span></span>
-<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>saskatoon_rain_package</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the Open-Meteo API wrapper</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(openmeteo)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Request hourly precipitation for Saskatoon, May 1-5, 2024, in the America/Regina timezone</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>saskatoon_rain_package <span class="ot">&lt;-</span> <span class="fu">weather_history</span>(</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(<span class="fl">52.13</span>, <span class="sc">-</span><span class="fl">106.67</span>),</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">start =</span> <span class="st">"2024-05-01"</span>,</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">end =</span> <span class="st">"2024-05-05"</span>,</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">hourly =</span> <span class="st">"precipitation"</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the returned data frame</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>saskatoon_rain_package</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; # Load the Open-Meteo API wrapper
 &gt; library(openmeteo)
 &gt; 
-&gt; # Request historical precipitation for Saskatoon
+&gt; # Request hourly precipitation for Saskatoon, May 1-5, 2024, in the America/Regina timezone
 &gt; saskatoon_rain_package &lt;- weather_history(
 +   c(52.13, -106.67),
 +   start = "2024-05-01",
 +   end = "2024-05-05",
-+   daily = "precipitation_sum",
-+   timezone = "America/Regina"
++   hourly = "precipitation"
 + )
 &gt; 
 &gt; # Print the returned data frame
 &gt; saskatoon_rain_package
-# A tibble: 5 × 2
-  date       daily_precipitation_sum
-  &lt;date&gt;                       &lt;dbl&gt;
-1 2024-05-01                     7.5
-2 2024-05-02                     4.1
-3 2024-05-03                     2.8
-4 2024-05-04                     3  
-5 2024-05-05                     0  </code></pre>
+# A tibble: 120 × 2
+   datetime            hourly_precipitation
+   &lt;dttm&gt;                             &lt;dbl&gt;
+ 1 2024-05-01 00:00:00                  0.4
+ 2 2024-05-01 01:00:00                  0.4
+ 3 2024-05-01 02:00:00                  0.4
+ 4 2024-05-01 03:00:00                  0.5
+ 5 2024-05-01 04:00:00                  0.3
+ 6 2024-05-01 05:00:00                  0.1
+ 7 2024-05-01 06:00:00                  0.2
+ 8 2024-05-01 07:00:00                  0.2
+ 9 2024-05-01 08:00:00                  0.5
+10 2024-05-01 09:00:00                  0  
+# ℹ 110 more rows</code></pre>
 </div>
 </div>
 </div>
+<section id="sec-cansim" class="level4" data-number="7.5.3.1">
+<h4 data-number="7.5.3.1" class="anchored" data-anchor-id="sec-cansim"><span class="header-section-number">7.5.3.1</span> The cansim package</h4>
+<p>The <strong>cansim</strong> package downloads any Statistics Canada table by its table number. It installs from CRAN:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Install cansim from CRAN</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">"cansim"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The main function is <code>get_cansim()</code>, which takes the table number as its only required argument. Earlier in the chapter we downloaded seeded acres by clicking through the website for table 32-10-0359-01. The same table arrives as a data frame in one call:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the Statistics Canada wrapper</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(cansim)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Download table 32-10-0359-01 (seeded acres, production and yield)</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>field_crops <span class="ot">&lt;-</span> <span class="fu">get_cansim</span>(<span class="st">"32-10-0359-01"</span>)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the dimensions of the table</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(field_crops)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; # Load the Statistics Canada wrapper
+&gt; library(cansim)
+&gt; 
+&gt; # Download table 32-10-0359-01 (seeded acres, production and yield)
+&gt; field_crops &lt;- get_cansim("32-10-0359-01")
+Accessing CANSIM NDM product 32-10-0359 from Statistics Canada
+Parsing data
+&gt; 
+&gt; # Print the dimensions of the table
+&gt; dim(field_crops)
+[1] 390581     24</code></pre>
+</div>
+</div>
+</div>
+<p><code>get_cansim()</code> returns the whole table – every province, crop, year and harvest disposition – so it is large, and the numbers sit in a column named <code>VALUE</code>. The functions from <a href="module02c.html" class="quarto-xref"><span>Chapter 6</span></a> cut it down to the piece you want:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Keep Saskatchewan canola seeded acres since 2015</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>sask_canola_acres <span class="ot">&lt;-</span> field_crops <span class="sc">|&gt;</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    GEO <span class="sc">==</span> <span class="st">"Saskatchewan"</span>,                              <span class="co"># Saskatchewan only</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Type of crop</span><span class="st">`</span> <span class="sc">==</span> <span class="st">"Canola (rapeseed)"</span>,              <span class="co"># canola only</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Harvest disposition</span><span class="st">`</span> <span class="sc">==</span> <span class="st">"Seeded area (acres)"</span>,     <span class="co"># seeded acres</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    REF_DATE <span class="sc">&gt;=</span> <span class="dv">2015</span>                                    <span class="co"># 2015 onward</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(REF_DATE, GEO, VALUE)                          <span class="co"># keep three columns</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the result</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>sask_canola_acres</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; # Keep Saskatchewan canola seeded acres since 2015
+&gt; sask_canola_acres &lt;- field_crops |&gt;
++   filter(
++     GEO == "Saskatchewan",                              # Saskatchewan only
++     `Type of crop` == "Canola (rapeseed)",              # canola only
++     `Harvest disposition` == "Seeded area (acres)",     # seeded acres
++     REF_DATE &gt;= 2015                                    # 2015 onward
++   ) |&gt;
++   select(REF_DATE, GEO, VALUE)                          # keep three columns
+&gt; 
+&gt; # Print the result
+&gt; sask_canola_acres
+# A tibble: 12 × 3
+   REF_DATE GEO             VALUE
+   &lt;chr&gt;    &lt;fct&gt;           &lt;dbl&gt;
+ 1 2015     Saskatchewan 11150000
+ 2 2016     Saskatchewan 11250000
+ 3 2017     Saskatchewan 12730000
+ 4 2018     Saskatchewan 12350000
+ 5 2019     Saskatchewan 11775000
+ 6 2020     Saskatchewan 11339200
+ 7 2021     Saskatchewan 11980413
+ 8 2022     Saskatchewan 11393800
+ 9 2023     Saskatchewan 12400400
+10 2024     Saskatchewan 12085600
+11 2025     Saskatchewan 12187400
+12 2026     Saskatchewan 13386300</code></pre>
+</div>
+</div>
+</div>
+<p>The table number records exactly what was downloaded, and rerunning the script fetches the current version of the table. <code>get_cansim()</code> also caches the download, so a script that reads the same table twice only fetches it once.</p>
+</section>
 </section>
 </section>
 <section id="sec-readme" class="level2" data-number="7.6">
@@ -1176,6 +1087,7 @@ dbl (18): Year, RM, Winter Wheat, Canola, Spring Wheat, Mustard, Durum, Sunf...
 <li><strong>Microsoft</strong> – <a href="https://learn.microsoft.com/en-us/power-query/power-query-what-is-power-query">What is Power Query?</a> and the <a href="https://learn.microsoft.com/en-us/power-query/connectors/web/web">Web connector</a>.</li>
 <li><strong>readr</strong> – <a href="https://readr.tidyverse.org/articles/column-types.html">column types</a>; <strong>readxl</strong> – <a href="https://readxl.tidyverse.org/reference/read_excel.html"><code>read_excel()</code></a>.</li>
 <li><strong>openmeteo</strong> – <a href="https://github.com/tpisel/openmeteo">package documentation and source code</a>.</li>
+<li><strong>cansim</strong> – <a href="https://mountainmath.github.io/cansim/">package documentation</a>.</li>
 </ul>
 </div>
 </div>
