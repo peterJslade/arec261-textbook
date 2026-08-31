@@ -1,128 +1,33 @@
-# Querying Earth Engine from R {#sec-rgee-lab}
-
-Google Earth Engine is a public archive of satellite and geospatial data -- petabytes of it, including the Annual Crop Inventory -- attached to computers that will run analyses on it for you. You never download the archive. You send a request describing the data and the computation you want, Google's servers do the work, and the answer comes back to your session. It is the clearest example in this course of what an API buys you: the data stays on their side, and you get exactly the numbers you asked for.
-
-The **rgee** package lets you send those requests from R, which means everything after the request -- tidying, joining, plotting -- uses the tools you already know.
-
-## Learning Objectives {.unnumbered}
-
-::: {.objectives}
-By the end of this chapter you should be able to:
-
-1. Register for noncommercial Earth Engine access and connect to it from R.
-2. Request the Annual Crop Inventory values at a point, for every available year, with `ee_extract()`.
-3. Tidy the response and join on a lookup table to turn pixel codes into crop names.
-4. Plot a field's crop history.
-:::
+# Working with Real Machinery Data {#sec-machinery-data}
 
 ::: {.callout-note}
-The code in this chapter is shown but not executed by the book, because every Earth Engine request runs under a personal Google account. Your console output will differ in the details.
+This chapter is a draft outline. The sections below show what it will cover.
 :::
 
-## One-time setup
+This chapter imports a real harvest file and cleans it, using the Module 3 toolkit on data with machinery-specific problems.
 
-This setup is the price of admission for cloud APIs, and you pay it once. Budget 20 to 30 minutes.
+<!-- Dataset: US sample harvest data (e.g. the John Deere sample data) until a Canadian or synthetic Saskatchewan file is built. -->
 
-1. **A personal Google account.** Your USask account will not work here; any personal Gmail account does.
-2. **Register for Earth Engine.** Go to [code.earthengine.google.com/register](https://code.earthengine.google.com/register), sign in, and choose **Unpaid usage**, with **Academia & Research** as the use. The registration creates a *cloud project* with an id like `ee-yourname`. Write the id down -- R needs it every session.
-3. **Install rgee.** In R:
+## Importing machinery data
 
-```r
-# Install rgee from CRAN
-install.packages("rgee")
+- Importing a machinery shapefile
+- Reading the accompanying metadata
+- Parsing timestamps
+- Checking variable definitions and units
 
-# One-time: install the Python pieces rgee runs on
-rgee::ee_install()
-```
+## What needs cleaning
 
-`ee_install()` downloads and sets up its own copy of Python. Restart R when it finishes.
+- Zero-yield observations
+- Headland turns and header-up records
+- Partial swaths
+- Flow delay
+- GPS jumps
+- Duplicate observations
+- Missing values
+- Impossible speeds, distances, or yields
 
-4. **Connect.** In a fresh session:
+## Flagging and cleaning
 
-```r
-# Load the package
-library(rgee)
-
-# Connect to Earth Engine using your project id
-ee_Initialize(project = "ee-yourname")
-```
-
-The first `ee_Initialize()` opens a browser window and asks you to sign in and grant access. After that, the connection line at the top of your script is all it takes.
-
-::: {.callout-tip collapse="true" title="If the setup fights you"}
-- `ee_install()` errors part-way: restart R and run it again; it resumes.
-- `ee_Initialize()` complains the project does not exist or you lack permission: the id must match your registration exactly (check it at [code.earthengine.google.com](https://code.earthengine.google.com) under the profile icon), and registration must be complete.
-- The browser sign-in loops or hangs: run `ee_Authenticate()` on its own, then `ee_Initialize(project = "ee-yourname")`.
-- Anything about Python not found: run `rgee::ee_install()` again and restart R.
-:::
-
-## Requesting a field's history
-
-Pick a point you know: a home quarter, a family field, land you have worked on. Get its longitude and latitude from the [field viewer](practice/field_viewer/index.html) (the panel shows the coordinates of a click) or from Google Maps (right-click, the coordinates are the first menu entry -- note that Google shows latitude first, and the code below wants **longitude first**).
-
-```r
-# The location to look up, written as longitude then latitude
-field_point <- ee$Geometry$Point(c(-106.55, 52.19))
-
-# The Annual Crop Inventory: one raster image per year
-aci <- ee$ImageCollection("AAFC/ACI")$select("landcover")
-
-# Wrap the point as a feature collection, the shape ee_extract() expects
-field_fc <- ee$FeatureCollection(ee$Feature(field_point))
-
-# Ask the server for the pixel value at that point, in every year
-crops_wide <- ee_extract(x = aci, y = field_fc, scale = 30)
-
-# Print the result
-crops_wide
-```
-
-The whole exchange with Google is those few lines. `ee_extract()` builds the request, sends it, and hands back a plain data frame: one row, with one column per year, holding the pixel code the classification assigned to your point.
-
-## Tidying the answer
-
-The response is wide -- one column per year, with names like `X2009_landcover` -- and the values are codes, not crop names. Both problems have familiar fixes. The lookup table [`aci_crop_classes.csv`](practice/data/aci_crop_classes.csv) maps each code to its crop name and to AAFC's map colour; download it into your project's `data/` folder.
-
-```r
-# Load the tidyverse
-library(tidyverse)
-
-# Read the table that maps pixel codes to crop names and colours
-aci_classes <- read_csv("data/aci_crop_classes.csv")
-
-# Reshape to one row per year and attach the crop names
-crops <- crops_wide |>
-  pivot_longer(everything(),
-               names_to = "year",
-               values_to = "value") |>   # one row per year
-  mutate(year = parse_number(year)) |>   # "X2009_landcover" becomes 2009
-  left_join(aci_classes, by = "value")   # attach crop name and colour
-
-# Print the field's history
-crops
-```
-
-## Plotting the rotation
-
-One tile per year, coloured with AAFC's own palette:
-
-```r
-# Plot the crop history of the point
-ggplot(crops, aes(x = year, y = crop, fill = colour)) +
-  # One coloured tile per year
-  geom_tile() +
-  # The colour column already holds hex colours, so use them directly
-  scale_fill_identity() +
-  # Label the plot
-  labs(x = NULL, y = NULL,
-       title = "What grew at this point, 2009 onward")
-```
-
-A rotation reads directly off this plot: canola years, wheat years, the season a wet spring shows up as "Too wet to be seeded."
-
-## Exercises {.unnumbered}
-
-1. Plot the history of a field you know. In a comment, say where it is and how you chose it.
-2. Compare the classified crops with what you know was actually grown, for the years you know. Where the satellite disagrees with the record, say which you believe and why.
-3. Move the point a few hundred metres -- to a neighbouring field, or from the centre of a field to its edge -- and rerun. In a comment: which years changed, and what does that tell you about where classified data is trustworthy?
-4. The classification is right roughly 85 to 90 percent of the time for major crops. In one or two sentences: what is this dataset good for, and what should it not be used for?
+- Creating quality flags
+- Comparing raw and cleaned summaries
+- Documenting cleaning decisions

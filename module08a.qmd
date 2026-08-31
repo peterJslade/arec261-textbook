@@ -1,134 +1,160 @@
-# Seeing Relationships {#sec-seeing-relationships}
+# Obtaining Environmental and Remote-Sensing Data {#sec-rgee-lab}
 
-```{r}
-#| include: false
-#| eval: true
-source("_console.R")
-```
+Google Earth Engine is a public archive of satellite and geospatial data -- petabytes of it, including the Annual Crop Inventory -- attached to computers that will run analyses on it for you. You never download the archive. You send a request describing the data and the computation you want, Google's servers do the work, and the answer comes back to your session. It is the clearest example in this course of what an API buys you: the data stays on their side, and you get exactly the numbers you asked for.
 
-Modules 1 to 6 were about one variable at a time: how is yield distributed, what is the
-mean, what is the spread.  This module is about pairs of variables: does yield change with
-fertilizer, does price move with quality, do two crops rise and fall together.
-
-Almost every interesting question in data analysis is a question about a relationship.  The
-rest of the course is, in one way or another, about formalizing these questions.
+The **rgee** package lets you send those requests from R, which means everything after the request -- tidying, joining, plotting -- uses the tools you already know.
 
 ## Learning Objectives {.unnumbered}
 
 ::: {.objectives}
 By the end of this chapter you should be able to:
 
-1. Read a scatter plot before computing anything from it.
-2. Say whether a relationship looks linear, curved, or absent.
-3. Spot outliers and explain why one point can move a fitted line.
-4. Recognize spread that grows across the plot, and hidden subgroups.
+1. Register for noncommercial Earth Engine access and connect to it from R.
+2. Request the Annual Crop Inventory values at a point, for every available year, with `ee_extract()`.
+3. Tidy the response and join on a lookup table to turn pixel codes into crop names.
+4. Plot a field's crop history.
 :::
 
-## Look First {#sec-look-first}
+::: {.callout-note}
+The code in this chapter is shown but not executed by the book, because every Earth Engine request runs under a personal Google account. Your console output will differ in the details.
+:::
 
-You met the scatter plot in @sec-graphing-principles: one variable on each axis, a point for
-every observation.  Here we use it for a different purpose.  There it was a way to *show* a
-relationship to a reader.  Now it is a way to *find out* what the relationship is, before you
-put a number on it.
+## One-time setup
 
-The order matters.  Every summary in this module -- the correlation, the fitted line -- is a
-single number standing in for a whole cloud of points.  Each one assumes something about the
-shape of that cloud, and each one will hand you an answer whether or not the assumption holds.
-The plot is how you check.
+This setup is the price of admission for cloud APIs, and you pay it once. Budget 20 to 30 minutes.
 
-The dataset for this module is [`canola_trial.csv`](practice/data/canola_trial.csv).
-Download it into your project's `data/` folder and load it:
+1. **A personal Google account.** Your USask account will not work here; any personal Gmail account does.
+2. **Register for Earth Engine.** Go to [code.earthengine.google.com/register](https://code.earthengine.google.com/register), sign in, and choose **Unpaid usage**, with **Academia & Research** as the use. The registration creates a *cloud project* with an id like `ee-yourname`. Write the id down -- R needs it every session.
+3. **Install rgee.** In R:
 
 ```r
+# Install rgee from CRAN
+install.packages("rgee")
+
+# One-time: install the Python pieces rgee runs on
+rgee::ee_install()
+```
+
+`ee_install()` downloads and sets up its own copy of Python. Restart R when it finishes.
+
+4. **Connect.** In a fresh session:
+
+```r
+# Load the package
+library(rgee)
+
+# Connect to Earth Engine using your project id
+ee_Initialize(project = "ee-yourname")
+```
+
+The first `ee_Initialize()` opens a browser window and asks you to sign in and grant access. After that, the connection line at the top of your script is all it takes.
+
+::: {.callout-tip collapse="true" title="If the setup fights you"}
+- `ee_install()` errors part-way: restart R and run it again; it resumes.
+- `ee_Initialize()` complains the project does not exist or you lack permission: the id must match your registration exactly (check it at [code.earthengine.google.com](https://code.earthengine.google.com) under the profile icon), and registration must be complete.
+- The browser sign-in loops or hangs: run `ee_Authenticate()` on its own, then `ee_Initialize(project = "ee-yourname")`.
+- Anything about Python not found: run `rgee::ee_install()` again and restart R.
+:::
+
+## Requesting a field's history
+
+Pick a point you know: a home quarter, a family field, land you have worked on. Get its longitude and latitude from the [field viewer](practice/field_viewer/index.html) (the panel shows the coordinates of a click) or from Google Maps (right-click, the coordinates are the first menu entry -- note that Google shows latitude first, and the code below wants **longitude first**).
+
+```r
+# The location to look up, written as longitude then latitude
+field_point <- ee$Geometry$Point(c(-106.55, 52.19))
+
+# The Annual Crop Inventory: one raster image per year
+aci <- ee$ImageCollection("AAFC/ACI")$select("landcover")
+
+# Wrap the point as a feature collection, the shape ee_extract() expects
+field_fc <- ee$FeatureCollection(ee$Feature(field_point))
+
+# Ask the server for the pixel value at that point, in every year
+crops_wide <- ee_extract(x = aci, y = field_fc, scale = 30)
+
+# Print the result
+crops_wide
+```
+
+The whole exchange with Google is those few lines. `ee_extract()` builds the request, sends it, and hands back a plain data frame: one row, with one column per year, holding the pixel code the classification assigned to your point.
+
+## Tidying the answer
+
+The response is wide -- one column per year, with names like `X2009_landcover` -- and the values are codes, not crop names. Both problems have familiar fixes. The lookup table [`aci_crop_classes.csv`](practice/data/aci_crop_classes.csv) maps each code to its crop name and to AAFC's map colour; download it into your project's `data/` folder.
+
+```r
+# Load the tidyverse
 library(tidyverse)
 
-trial <- read_csv("data/canola_trial.csv")
+# Read the table that maps pixel codes to crop names and colours
+aci_classes <- read_csv("data/aci_crop_classes.csv")
+
+# Reshape to one row per year and attach the crop names
+crops <- crops_wide |>
+  pivot_longer(everything(),
+               names_to = "year",
+               values_to = "value") |>   # one row per year
+  mutate(year = parse_number(year)) |>   # "X2009_landcover" becomes 2009
+  left_join(aci_classes, by = "value")   # attach crop name and colour
+
+# Print the field's history
+crops
 ```
 
-It has 120 canola fields, each with a nitrogen rate (`fertilizer_kg_ha`), growing-season
-rainfall (`rainfall_mm`), the `variety` grown, and the `yield_bu_acre` harvested.
+## Plotting the rotation
 
-The workbook below opens to the **Scatter plots** sheet. Its point cloud is linked to the same 120 rows used in the R examples.
+One tile per year, coloured with AAFC's own palette:
 
-::: {.workbook-callout}
-<!-- Public view-only link expires 2026-11-20 under the University of Saskatchewan 90-day policy. -->
+```r
+# Plot the crop history of the point
+ggplot(crops, aes(x = year, y = crop, fill = colour)) +
+  # One coloured tile per year
+  geom_tile() +
+  # The colour column already holds hex colours, so use them directly
+  scale_fill_identity() +
+  # Label the plot
+  labs(x = NULL, y = NULL,
+       title = "What grew at this point, 2009 onward")
+```
 
-::: {.excel-embed}
-<iframe width="402" height="700" frameborder="0" scrolling="no" src="https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7B94760FBF-4CB2-4E6A-9381-3F1F435E1588%7D&action=embedview&wdAllowInteractivity=False&wdDownloadButton=True&wdInConfigurator=True&ActiveCell=%27Scatter%20plots%27!A1"></iframe>
+A rotation reads directly off this plot: canola years, wheat years, the season a wet spring shows up as "Too wet to be seeded."
+
+## Other external layers
+
+::: {.callout-note}
+This section is a draft outline.
 :::
 
-[Download this workbook](textbook_examples/mod07_relationships_excel.xlsx) · [Open online](https://usaskca1-my.sharepoint.com/:x:/g/personal/pjs998_usask_ca/IQC_D3aUskxqTpOBPx9DXhWIAajgK3Ypqpzoy0DySJzDG0Y?e=FhyD6v) (File → Save a Copy to view formulas and edit)
+- Satellite imagery and vegetation indices
+- Elevation and terrain data
+- Gridded precipitation and temperature
+- Weather-station observations
+- Soil and land-resource data
+
+## Resolution and measurement
+
+::: {.callout-note}
+This section is a draft outline.
 :::
 
-```r
-ggplot(trial, aes(x = fertilizer_kg_ha, y = yield_bu_acre)) +
-  geom_point()
-```
+- Spatial and temporal resolution
+- Direct measurements versus modelled or remotely sensed values
 
-## Four Things to Look For {#sec-what-to-look-for}
+## Snapshots and records
 
-### Is it a line, or a curve? {.unnumbered}
+::: {.callout-note}
+This section is a draft outline.
+:::
 
-The methods in this module fit straight lines.  If the cloud bends, a straight line will
-still be fitted, and it will still report a slope, and the slope will be misleading.
+- Saving a dated local snapshot
+- Recording sources, units, retrieval dates, and query parameters
 
-Curvature is common in agronomy.  Fertilizer response is the standard case: the first
-50 kg/ha of nitrogen buys a lot of yield, the next 50 buys less, and past some point more
-nitrogen does nothing.  That is a curve, and forcing a line through it understates the effect
-at low rates and overstates it at high ones.
+<!-- Give students cached copies of external data so authentication or outages never block the exercises. -->
 
-### Is one point running the show? {.unnumbered}
+## Exercises {.unnumbered}
 
-A single observation far from the rest can pull a fitted line a long way, particularly if it
-sits at the far left or right of the plot.  A point out at the edge has leverage: it is a long
-way from the centre of the data, so tilting the line toward it costs little elsewhere.
-
-When you see one, find out what it is before you decide what to do.  A field that yielded
-9 bu/ac because it was hailed out is a real observation, but it is not telling you about the
-fertilizer response, and it does not belong in a regression that is meant to.  A yield of
-340 bu/ac is a data-entry error.  Neither should be dropped silently -- say what you removed
-and why.
-
-### Does the spread stay the same? {.unnumbered}
-
-Look at how tightly the points hug the trend at the left of the plot, and compare it with the
-right.  If the scatter fans out -- tight at low values, wide at high ones -- the relationship
-is less predictable at one end than the other.
-
-The fitted line can still be a reasonable summary.  What breaks is the uncertainty around it,
-which is calculated assuming the scatter is even.  We will not do anything about that in this
-module; Modules 11 to 13 are where uncertainty gets treated properly.  For now, notice it and
-say so.
-
-### Is the cloud actually two clouds? {.unnumbered}
-
-Sometimes what looks like one relationship is two groups sitting in different places.  Two
-varieties with different yield potential, two soil zones, two years with different weather.
-Colour the points by a third variable and the structure appears:
-
-```r
-ggplot(trial, aes(x = fertilizer_kg_ha, y = yield_bu_acre, colour = variety)) +
-  geom_point()
-```
-
-This matters more than it looks.  A relationship computed across mixed groups can be quite
-different from the relationship within each one -- occasionally it even points the other way.
-That is a real phenomenon with a name, Simpson's paradox, and the multiple regression in
-@sec-multiple-regression is one way of dealing with it.
-
-## Anscombe's Quartet {#sec-anscombe}
-
-The argument for plotting first has a famous demonstration.  Frank Anscombe built four small
-datasets that share almost every summary statistic: the same means, the same standard
-deviations, the same correlation, the same fitted line.  Plotted, they look nothing alike --
-one is a tidy linear relationship, one is a clean curve, one is a perfect line with a single
-outlier dragging it, and one is a vertical stack with one point off to the side.
-
-It ships with R, so you can see it yourself:
-
-```r
-anscombe
-```
-
-Four numbers agreed on four datasets that have nothing in common.  Any of the summaries in
-this module can be computed on data it has no business describing.  Plot first.
+1. Plot the history of a field you know. In a comment, say where it is and how you chose it.
+2. Compare the classified crops with what you know was actually grown, for the years you know. Where the satellite disagrees with the record, say which you believe and why.
+3. Move the point a few hundred metres -- to a neighbouring field, or from the centre of a field to its edge -- and rerun. In a comment: which years changed, and what does that tell you about where classified data is trustworthy?
+4. The classification is right roughly 85 to 90 percent of the time for major crops. In one or two sentences: what is this dataset good for, and what should it not be used for?
