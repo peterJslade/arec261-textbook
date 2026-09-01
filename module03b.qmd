@@ -290,26 +290,15 @@ The quick check from the list -- the minimum and maximum of every numeric column
 The yield minimum is a missing-value code and the maximum is twenty times a real yield, and together they pull the mean eighteen bushels above the median. The N rate minimum and maximum are in different units. The last two columns refuse to summarize at all: the unit suffix and the missing-value codes make them text, which is issue 2 doing its damage before any analysis starts.
 
 
-### Data cleaning in Excel {#sec-cleaning-excel}
+## Data cleaning in Excel {#sec-cleaning-excel}
 
 The following Excel workbook shows some steps in checking and then cleaning the data.  In the DataSummary worksheet, the numeric variables are summarized, getting the mean, median, minimum and maximum and a histogram is plotted.  For the categorical variables, the `UNIQUE()` function is used to list the distinct values and the `COUNTIF()` function is used to count how many times each distinct value appears.  Finally, we counted the number of rows using `=ROWS(RawData!A2:A39)` and the number of distinct rows using `=ROWS(UNIQUE(RawData!A2:A39))`.  The difference between these two counts is the number of duplicate rows.
 
+After diagnosing these issues, the best way to clean the data is through a Power Query which creates a transparent and reproducible workflow.  The output of the Power Query is in the workbook and the video below explains the steps taken to clean the data.
 
-
-Unfortunately, in Excel there is not a great way to programmatically clean data so that it is transparent and reproducible.  In the clean data worksheet, I tried to do this using IF statements.  For example, since there are four ways Brandon is recorded, I used the following formula to standardize the variety name:
-
-`=IF(OR(RawData!B2="Brandon",RawData!B2="Brandon AAC",RawData!B2="Brndon"),"AAC Brandon",RawData!B2)`.
-
-This means if the raw cell holds any of the three stray spellings, the formula writes AAC Brandon; otherwise it copies the raw value across unchanged.  Copying the formula down the column applies the rule to every row, and because every cell in the Clean sheet points back at RawData, the raw file is never touched.
-
-Of course, if we had many more varieties with naming issues, this would become quite cumbersome.
-
-Other functions that I used in this worksheet include:
-
-- `DATEVALUE()` converts the seeding dates, which arrive as text in four different formats, into real Excel dates.
-- `VALUE(SUBSTITUTE(RawData!F2," t",""))` strips the " t" unit from the harvest weights so the column becomes numeric.
-- `IF()` conditions blank the -99 codes, the impossible yields and the moisture missing-value codes, and multiply the nitrogen rates reported in t/ha by 1000 so every rate is in kg/ha.
-- A running `COUNTIF(RawData!$A$2:$A2,RawData!A2)>1` flags the second appearance of a field ID, so the duplicate rows can be filtered out when saving a final copy.
+::: {.callout-note collapse="true" title="Video walkthrough of cleaning with Power Query"}
+{{< video https://youtu.be/lITVHVsyOX4 >}}
+:::
 
 ::: {.workbook-callout}
 <!-- Anyone-view link expires 2026-11-29 under the University of Saskatchewan 90-day policy. -->
