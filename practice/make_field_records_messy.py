@@ -15,7 +15,10 @@
 #   6. Mixed units            -- "N rate" is mostly kg/ha; ~30% of rows are
 #                                t/ha (values below 1)
 #   7. Inconsistent categories-- AAC Brandon appears as four spellings
-#   8. Mixed date formats     -- four formats cycle through "Seeded Date"
+#
+# A mixed-date-formats column existed in earlier versions but was cut as
+# too much for students; its random draws are kept below so every other
+# value in the file stays identical.
 #
 # Clean values are drawn with a fixed seed, so rerunning the script
 # reproduces the file exactly.
@@ -30,13 +33,6 @@ N = 36
 varieties_clean = ["AAC Viewfield", "CDC Landmark"]
 brandon_variants = ["AAC Brandon", "Brandon", "Brandon AAC", "Brndon"]
 
-date_formats = [
-    lambda m, d: f"{['May','May','May','Jun'][m]}-{d:02d}-2026",   # Sep-01-2026 style
-    lambda m, d: f"{[5,5,5,6][m]:02d}-{d:02d}-2026",               # 09-01-2026 style
-    lambda m, d: f"2026-{[5,5,5,6][m]:02d}-{d:02d}",               # ISO
-    lambda m, d: f"2026/{[5,5,5,6][m]:02d}/{d:02d}",               # slashed ISO
-]
-
 rows = []
 for i in range(1, N + 1):
     field_id = f"F{i:03d}"
@@ -47,9 +43,10 @@ for i in range(1, N + 1):
     else:
         variety = varieties_clean[i % 2 == 0 or (i // 3) % 2]
 
-    # seeding date in one of four formats
-    m, d = random.choice([0, 1, 2, 3]), random.randint(1, 28)
-    seeded = date_formats[i % 4](m, d)
+    # discarded draws from the cut date column, kept so the values below
+    # stay identical to earlier versions of the file
+    random.choice([0, 1, 2, 3])
+    random.randint(1, 28)
 
     # field size: quarters and half-sections dominate
     acres = random.choice([80, 120, 160, 160, 160, 160, 240, 320])
@@ -86,7 +83,7 @@ for i in range(1, N + 1):
     else:
         moisture = str(round(random.uniform(11.5, 16.5), 1))
 
-    rows.append([field_id, variety, seeded, str(acres), yield_val, weight, n_rate, moisture])
+    rows.append([field_id, variety, str(acres), yield_val, weight, n_rate, moisture])
 
 # exact duplicates of two rows, placed so both pairs sit in the
 # first eight rows of the file
@@ -96,7 +93,7 @@ rows.insert(7, rows[5])   # copy of F005 as the 8th row
 with open("data/field_records_messy.csv", "w", newline="") as f:
     w = csv.writer(f)
     # issue 1: every column name uses a different convention
-    w.writerow(["Field ID", "VARIETY_NAME", "SeededDate", "Acres",
+    w.writerow(["Field ID", "VARIETY_NAME", "Acres",
                 "Yield (bu/ac)", "harvest weight", "N rate", "Moisture %"])
     w.writerows(rows)
 

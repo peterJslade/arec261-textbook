@@ -3,7 +3,7 @@
 # Author: Your Name
 # Date: 2026-08-31
 # Description:
-#   Checks data/field_records_messy.csv for the eight data-quality issues
+#   Checks data/field_records_messy.csv for the seven data-quality issues
 #   from Module 3, fixes each one, and writes the cleaned file to
 #   output/field_records_clean.csv.
 # ---
@@ -45,8 +45,8 @@ nrow(distinct(records))
 # ============================================================
 
 records_clean <- records |>
-  distinct() |>      # issue 3: drop the exact duplicate rows
   clean_names() |>   # issue 1: every column name to snake case
+  distinct() |>      # issue 3: drop the exact duplicate rows
   rename(variety = variety_name,   # clearer names, with units where they matter
          weight_t = harvest_weight,
          n_rate_kg_ha = n_rate,
@@ -55,9 +55,6 @@ records_clean <- records |>
     # Issue 7: one spelling for the Brandon variety
     variety = if_else(variety %in% c("Brandon", "Brandon AAC", "Brndon"),
                       "AAC Brandon", variety),
-    # Issue 8: parse the mixed date formats (year-first, then month-first)
-    seeded_date = coalesce(ymd(seeded_date, quiet = TRUE),
-                           mdy(seeded_date, quiet = TRUE)),
     # Issues 4 and 5: the -99 code, the negative and the 1250 all become NA
     yield_bu_ac = if_else(yield_bu_ac <= 0 | yield_bu_ac > 200,
                           NA, yield_bu_ac),
