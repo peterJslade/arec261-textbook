@@ -660,7 +660,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>Find exact and conflicting duplicates.</li>
 <li>Find impossible values, inconsistent categories and mixed units.</li>
 <li>Recognize common codes for missing values and decide when observations can be dropped.</li>
-<li>Identify dates that were imported as text.</li>
 </ol>
 </div>
 </section>
@@ -1039,27 +1038,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Once you identify mixed units, convert all observations to a common unit and record that unit clearly in the column name or dataset documentation.</p></li>
 <li><p><strong>Inconsistent categories.</strong> Data based on individual reporting often contain categories recorded in inconsistent ways. For example, the same wheat variety might appear as <code>Brandon</code>, <code>AAC Brandon</code>, <code>Brandon AAC</code>, and <code>Brndon</code>.</p>
 <p>Listing the unique categories and counting the number of observations in each is a useful way to find these inconsistencies. You can then standardize the different versions under a single category, such as <code>AAC Brandon</code>.</p></li>
-<li><p><strong>Dates.</strong> Dates are formatted in many different ways, including <code>Sep-01-2026</code>, <code>09-01-2026</code>, <code>2026-09-01</code>, and <code>2026/09/01</code>.</p>
-<p>When a dataset is opened in Excel or imported into R, the software will try to determine the date format. If it guesses incorrectly, the dates may be misinterpreted or stored as text, preventing them from being sorted, grouped, or used in calculations.</p>
-<p>Numeric dates can be especially ambiguous. For example, <code>09-01-2026</code> could mean September 1 or January 9. When possible, use the unambiguous international format <code>YYYY-MM-DD</code>, such as <code>2026-09-01</code>.</p></li>
 </ol>
-<p>All eight issues appear together in <a href="practice/data/field_records_messy.csv"><code>field_records_messy.csv</code></a>, a season of spring wheat field records constructed for practice. The first ten rows:</p>
+<p>All seven issues appear together in <a href="practice/data/field_records_messy.csv"><code>field_records_messy.csv</code></a>, a season of spring wheat field records constructed for practice. The first ten rows:</p>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 11%">
-<col style="width: 11%">
-<col style="width: 11%">
-<col style="width: 14%">
-<col style="width: 14%">
-<col style="width: 11%">
-<col style="width: 14%">
-<col style="width: 11%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 12%">
+<col style="width: 16%">
+<col style="width: 12%">
 </colgroup>
 <thead>
 <tr class="header">
 <th>Field ID</th>
 <th>VARIETY_NAME</th>
-<th>SeededDate</th>
 <th style="text-align: right;">Acres</th>
 <th style="text-align: right;">Yield (bu/ac)</th>
 <th>harvest weight</th>
@@ -1071,7 +1065,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td>F001</td>
 <td>AAC Viewfield</td>
-<td>06-01-2026</td>
 <td style="text-align: right;">160</td>
 <td style="text-align: right;">67.6</td>
 <td>297.7 t</td>
@@ -1081,7 +1074,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="even">
 <td>F002</td>
 <td>Brandon</td>
-<td>2026-05-13</td>
 <td style="text-align: right;">320</td>
 <td style="text-align: right;">54.9</td>
 <td>476.0 t</td>
@@ -1091,7 +1083,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td>F003</td>
 <td>CDC Landmark</td>
-<td>2026/06/04</td>
 <td style="text-align: right;">120</td>
 <td style="text-align: right;">54.4</td>
 <td>172.6 t</td>
@@ -1101,7 +1092,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="even">
 <td>F002</td>
 <td>Brandon</td>
-<td>2026-05-13</td>
 <td style="text-align: right;">320</td>
 <td style="text-align: right;">54.9</td>
 <td>476.0 t</td>
@@ -1111,7 +1101,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td>F004</td>
 <td>Brandon AAC</td>
-<td>Jun-18-2026</td>
 <td style="text-align: right;">320</td>
 <td style="text-align: right;">-99</td>
 <td>642.5 t</td>
@@ -1121,7 +1110,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="even">
 <td>F005</td>
 <td>CDC Landmark</td>
-<td>06-06-2026</td>
 <td style="text-align: right;">320</td>
 <td style="text-align: right;">65.8</td>
 <td>561.5 t</td>
@@ -1131,7 +1119,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td>F006</td>
 <td>Brndon</td>
-<td>2026-05-24</td>
 <td style="text-align: right;">160</td>
 <td style="text-align: right;">50.8</td>
 <td>222.8 t</td>
@@ -1141,7 +1128,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="even">
 <td>F005</td>
 <td>CDC Landmark</td>
-<td>06-06-2026</td>
 <td style="text-align: right;">320</td>
 <td style="text-align: right;">65.8</td>
 <td>561.5 t</td>
@@ -1151,7 +1137,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td>F007</td>
 <td>AAC Viewfield</td>
-<td>2026/06/07</td>
 <td style="text-align: right;">80</td>
 <td style="text-align: right;">-12</td>
 <td>138.6 t</td>
@@ -1161,7 +1146,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="even">
 <td>F008</td>
 <td>AAC Brandon</td>
-<td>May-18-2026</td>
 <td style="text-align: right;">160</td>
 <td style="text-align: right;">60.3</td>
 <td>264.0 t</td>
@@ -1178,7 +1162,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>F007 has a yield of -12, which is impossible</li>
 <li>The nitrogen rates for F003 and F006 sit below 1 while the rest sit near 100 – tonnes against kilograms per hectare</li>
 <li>The same variety appears as Brandon, Brandon AAC, Brndon and AAC Brandon</li>
-<li>The seeding dates cycle through four formats</li>
 </ol>
 <p>The quick check from the list – the minimum and maximum of every numeric column – surfaces more, computed here over the full file:</p>
 <table class="caption-top table">
@@ -1255,32 +1238,56 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="sec-cleaning-r" class="level2" data-number="8.5">
 <h2 data-number="8.5" class="anchored" data-anchor-id="sec-cleaning-r"><span class="header-section-number">8.5</span> Data cleaning in R</h2>
+<p>Data cleaning is – in my view – easier in R than in Excel. We can write a easy to read R script that can be applied to any dataset.</p>
+<p>The following code solves the seven issues above. There are a few new functions that we need to learn. The first, and most important, is <code>if_else()</code>.</p>
 <p>In R the whole job fits in one script: read the raw file, check it, apply the cleaning rules and write the cleaned copy somewhere else. The script is the record of what was done, and when a new version of the raw file arrives it can be rerun from the top. The full script is <a href="practice/field_records_cleaning.R"><code>field_records_cleaning.R</code></a>; this section walks through it in stages.</p>
 <p>The header describes the script, and the read step already deals with part of issue 4: the <code>na</code> argument of <code>read_csv()</code> lists the codes that mean missing, so <code>N/A</code>, <code>missing</code> and the blank cell all become <code>NA</code> on the way in.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ---</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Title: Checking and cleaning the field records</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Author: Your Name</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Date: 2026-08-31</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Description:</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co">#   Checks data/field_records_messy.csv for the eight data-quality issues</span></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co">#   from Module 3, fixes each one, and writes the cleaned file to</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="co">#   output/field_records_clean.csv.</span></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="co"># ---</span></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Load packages</span></span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(janitor)</span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================================</span></span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Read</span></span>
-<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================================</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co"># This script loads field_records_messy.csv, checks for data quality and cleads the data.</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co"># ---</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Load packages</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(janitor)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================================</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Read</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================================</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the file, declaring the missing-value codes up front (issue 4)</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>records <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>  <span class="st">"data/field_records_messy.csv"</span>,</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">na =</span> <span class="fu">c</span>(<span class="st">""</span>, <span class="st">"N/A"</span>, <span class="st">"missing"</span>)</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the file, declaring the missing-value codes up front (issue 4)</span></span>
-<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>records <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
-<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>  <span class="st">"data/field_records_messy.csv"</span>,</span>
-<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>  <span class="at">na =</span> <span class="fu">c</span>(<span class="st">""</span>, <span class="st">"N/A"</span>, <span class="st">"missing"</span>)</span>
-<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Column names and types as they arrived</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(records)</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a><span class="do">## This reveals a first set of issues: harvest weight is text when it should be numeric.  Moreover, column names are a mess.</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a><span class="co"># Summary of every column: the min and max expose the planted problems</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(records)</span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a><span class="do">##This reveals further issues with the minimum and maximum of yield, and the minimum and 1st quartile of the nitrogen rate.  We might want to plot the histogram of the nitrogen rate to visualize the issue.</span></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(records<span class="sc">$</span><span class="st">`</span><span class="at">N rate</span><span class="st">`</span>, <span class="at">breaks =</span><span class="dv">20</span>)</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a><span class="co"># Count the categories: the same variety appears under four spellings</span></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>records <span class="sc">|&gt;</span></span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(VARIETY_NAME, <span class="at">sort =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a><span class="co"># Count the rows, then the distinct rows: the difference is the duplicates</span></span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(records)</span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(<span class="fu">distinct</span>(records))</span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a><span class="do">## We can dig futher into all these issues by visualizing/sorting the data in our Positron viewer, or printing it in the console.</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="module03b_files/figure-html/unnamed-chunk-4-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4"><img src="module03b_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></a></p>
+</figure>
+</div>
+</div>
 <div class="cell-output-display">
 <div class="console-transcript">
 <pre><code>&gt; library(janitor)
@@ -1294,44 +1301,20 @@ The following objects are masked from 'package:stats':
 +   "data/field_records_messy.csv",
 +   na = c("", "N/A", "missing")
 + )
-Rows: 38 Columns: 8
+Rows: 38 Columns: 7
 ── Column specification ────────────────────────────────────────────────────────
 Delimiter: ","
-chr (4): Field ID, VARIETY_NAME, SeededDate, harvest weight
+chr (3): Field ID, VARIETY_NAME, harvest weight
 dbl (4): Acres, Yield (bu/ac), N rate, Moisture %
 
 ℹ Use `spec()` to retrieve the full column specification for this data.
-ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-</div>
-</div>
-</div>
-<p>The checks mirror the DataSummary worksheet. <code>summary()</code> gives the minimum, maximum, mean and median of every numeric column, <code>count()</code> plays the role of <code>UNIQUE()</code> and <code>COUNTIF()</code>, and comparing <code>nrow()</code> of the data with <code>nrow()</code> of its distinct rows counts the duplicates.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================================</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Check</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================================</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Column names and types as they arrived</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(records)</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Summary of every column: the min and max expose the planted problems</span></span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(records)</span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Count the categories: the same variety appears under four spellings</span></span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>records <span class="sc">|&gt;</span></span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(VARIETY_NAME, <span class="at">sort =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Count the rows, then the distinct rows: the difference is the duplicates</span></span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(records)</span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(<span class="fu">distinct</span>(records))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell">
-<div class="cell-output-display">
-<div class="console-transcript">
-<pre><code>&gt; glimpse(records)
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+&gt; 
+&gt; glimpse(records)
 Rows: 38
-Columns: 8
+Columns: 7
 $ `Field ID`       &lt;chr&gt; "F001", "F002", "F003", "F002", "F004", "F005", "F006…
 $ VARIETY_NAME     &lt;chr&gt; "AAC Viewfield", "Brandon", "CDC Landmark", "Brandon"…
-$ SeededDate       &lt;chr&gt; "06-01-2026", "2026-05-13", "2026/06/04", "2026-05-13…
 $ Acres            &lt;dbl&gt; 160, 320, 120, 320, 320, 320, 160, 320, 80, 160, 160,…
 $ `Yield (bu/ac)`  &lt;dbl&gt; 67.6, 54.9, 54.4, 54.9, -99.0, 65.8, 50.8, 65.8, -12.…
 $ `harvest weight` &lt;chr&gt; "297.7 t", "476.0 t", "172.6 t", "476.0 t", "642.5 t"…
@@ -1339,22 +1322,24 @@ $ `N rate`         &lt;dbl&gt; 97.100, 96.200, 0.081, 96.200, 116.700, 89.900, 0
 $ `Moisture %`     &lt;dbl&gt; 12.4, 14.7, 12.3, 14.7, 15.4, 12.3, NA, 12.3, 14.5, 1…
 &gt; 
 &gt; summary(records)
-      Field ID     VARIETY_NAME     SeededDate     Acres      
- Length   :38   Length   :38    Length   :38   Min.   : 80.0  
- N.unique :36   N.unique : 6    N.unique :29   1st Qu.:160.0  
- N.blank  : 0   N.blank  : 0    N.blank  : 0   Median :160.0  
- Min.nchar: 4   Min.nchar: 6    Min.nchar:10   Mean   :191.6  
- Max.nchar: 4   Max.nchar:13    Max.nchar:11   3rd Qu.:240.0  
-                                               Max.   :320.0  
-                                                              
- Yield (bu/ac)       harvest weight     N rate           Moisture %     
- Min.   : -99.00   Length   :38     Min.   :  0.0800   Min.   :  11.60  
- 1st Qu.:  51.55   N.unique :36     1st Qu.:  0.1293   1st Qu.:  12.40  
- Median :  55.85   N.blank  : 0     Median : 89.9000   Median :  14.70  
- Mean   :  74.47   Min.nchar: 7     Mean   : 71.5021   Mean   : 299.33  
- 3rd Qu.:  61.58   Max.nchar: 7     3rd Qu.:104.0500   3rd Qu.:  15.45  
- Max.   :1250.00                    Max.   :135.9000   Max.   :9999.00  
-                                                       NAs    :3        
+      Field ID     VARIETY_NAME     Acres       Yield (bu/ac)    
+ Length   :38   Length   :38    Min.   : 80.0   Min.   : -99.00  
+ N.unique :36   N.unique : 6    1st Qu.:160.0   1st Qu.:  51.55  
+ N.blank  : 0   N.blank  : 0    Median :160.0   Median :  55.85  
+ Min.nchar: 4   Min.nchar: 6    Mean   :191.6   Mean   :  74.47  
+ Max.nchar: 4   Max.nchar:13    3rd Qu.:240.0   3rd Qu.:  61.58  
+                                Max.   :320.0   Max.   :1250.00  
+                                                                 
+   harvest weight     N rate           Moisture %     
+ Length   :38     Min.   :  0.0800   Min.   :  11.60  
+ N.unique :36     1st Qu.:  0.1293   1st Qu.:  12.40  
+ N.blank  : 0     Median : 89.9000   Median :  14.70  
+ Min.nchar: 7     Mean   : 71.5021   Mean   : 299.33  
+ Max.nchar: 7     3rd Qu.:104.0500   3rd Qu.:  15.45  
+                  Max.   :135.9000   Max.   :9999.00  
+                                     NAs    :3        
+&gt; 
+&gt; hist(records$`N rate`, breaks = 20)
 &gt; 
 &gt; records |&gt;
 +   count(VARIETY_NAME, sort = TRUE)
@@ -1376,82 +1361,186 @@ $ `Moisture %`     &lt;dbl&gt; 12.4, 14.7, 12.3, 14.7, 15.4, 12.3, NA, 12.3, 14.
 </div>
 </div>
 <p>The transcript shows the problems found earlier: the yield runs from -99 to 1250, the moisture maximum is the 9999 code, the harvest weight arrived as text, the variety appears under four spellings, and the file has 38 rows but only 36 distinct ones.</p>
-<p>The cleaning itself is one pipe, with a comment on each rule naming the issue it resolves. Two functions are new. <code>parse_number()</code> pulls the number out of text such as <code>142.9 t</code>, which fixes issue 2. For the dates, <code>ymd()</code> parses the year-first formats and <code>mdy()</code> the month-first ones; each returns <code>NA</code> for formats it does not recognize, and <code>coalesce()</code> keeps the first non-missing of the two, so all four formats become real dates. The yield rule blanks the -99 code, the negative and the 1250 rather than correcting them, because there is nothing defensible to replace them with.</p>
+<p>Now let’s clean the data. We will use a few different new functions:</p>
+<ul>
+<li><code>clean_names()</code> converts every column name to snake case, which fixes issue 1. For example, <code>VARIETY_NAME</code> becomes <code>variety_name</code>.</li>
+<li><code>rename()</code> if we are still not happy with just using clean_names(), we can rename columns to whatever we want. For example, <code>variety_name</code> could be renamed to <code>variety</code>.</li>
+<li><code>if_else()</code> is a conditional function. Similar to <code>IF</code> in Excel, it takes three arguments: a condition, a value to return if the condition is true, and a value to return if the condition is false. For example, <code>mutate(yield = if_else(yield &lt; 0, NA, yield))</code> would mean to mutate the yield column such that, if the yield is less than 0 replace it with NA and otherwise return what was in the yield column.</li>
+<li><code>parse_number()</code> removes text from numbers, so that <code>142.9 t</code> becomes <code>142.9</code>.</li>
+</ul>
+<p>The yield rule blanks the -99 code, the negative and the 1250 rather than correcting them, because there is nothing defensible to replace them with.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="do">## We can clean column names using the clean_names() function from the janitor package.  It converts all column names to lower case and replaces spaces with underscores.</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>records_clean_names <span class="ot">&lt;-</span> records <span class="sc">|&gt;</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">clean_names</span>()</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(records_clean_names)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="do">## We can remove duplicate rows using the distinct() function.  It removes any rows that are identical to another row in the dataset.  This is useful for removing accidental duplicates that may have been introduced during data entry or data processing.</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>records_unique <span class="ot">&lt;-</span> <span class="fu">distinct</span>(records_clean_names)</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(records_unique)</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="do">## We can strip the unit text from the weights and make them numeric using the parse_number() function.  This function extracts the numeric part of a string and converts it to a numeric value.  This is useful for cleaning up data that may have been entered with units or other text.</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>records_weight_fix <span class="ot">&lt;-</span> records_clean_names <span class="sc">|&gt;</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">harvest_weight =</span> <span class="fu">parse_number</span>(harvest_weight))</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>records_weight_fix<span class="sc">$</span>harvest_weight</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a><span class="do">## We can change yields below 0 and above 200 to NA using the if_else() function.  This function allows us to create a new variable based on a condition.  In this case, we are creating a new variable called yield_bu_ac that is equal to the original yield_bu_ac variable if it is between 0 and 200, and NA otherwise.</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>records_yield_fix <span class="ot">&lt;-</span> records_clean_names <span class="sc">|&gt;</span></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">yield_bu_ac =</span> <span class="fu">if_else</span>(yield_bu_ac <span class="sc">&lt;=</span> <span class="dv">0</span> <span class="sc">|</span> yield_bu_ac <span class="sc">&gt;</span> <span class="dv">200</span>,</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>                                <span class="cn">NA</span>,</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>                                yield_bu_ac))</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(records_yield_fix<span class="sc">$</span>yield_bu_ac)</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a><span class="do">## We can fix the variety names in the same way using the if_else() function.  The three arguments would say if variety is one of "Brandon", "Brandon AAC", or "Brndon", then replace it with "AAC Brandon", otherwise leave it as is.</span></span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>records_variety_fix <span class="ot">&lt;-</span> records_clean_names <span class="sc">|&gt;</span></span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">variety_name =</span> <span class="fu">if_else</span>(variety_name <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Brandon"</span>, <span class="st">"Brandon AAC"</span>, <span class="st">"Brndon"</span>),</span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>                           <span class="st">"AAC Brandon"</span>,</span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>                           variety_name))</span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>records_variety_fix <span class="sc">|&gt;</span></span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(variety_name, <span class="at">sort =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="console-transcript">
+<pre><code>&gt; ## We can clean column names using the clean_names() function from the janitor package.  It converts all column names to lower case and replaces spaces with underscores.
+&gt; 
+&gt; records_clean_names &lt;- records |&gt;
++   clean_names()
+&gt; 
+&gt; names(records_clean_names)
+[1] "field_id"         "variety_name"     "acres"            "yield_bu_ac"     
+[5] "harvest_weight"   "n_rate"           "moisture_percent"
+&gt; 
+&gt; ## We can remove duplicate rows using the distinct() function.  It removes any rows that are identical to another row in the dataset.  This is useful for removing accidental duplicates that may have been introduced during data entry or data processing.
+&gt; 
+&gt; records_unique &lt;- distinct(records_clean_names)
+&gt; 
+&gt; nrow(records_unique)
+[1] 36
+&gt; 
+&gt; ## We can strip the unit text from the weights and make them numeric using the parse_number() function.  This function extracts the numeric part of a string and converts it to a numeric value.  This is useful for cleaning up data that may have been entered with units or other text.
+&gt; 
+&gt; records_weight_fix &lt;- records_clean_names |&gt;
++   mutate(harvest_weight = parse_number(harvest_weight))
+&gt; 
+&gt; records_weight_fix$harvest_weight
+ [1] 297.7 476.0 172.6 476.0 642.5 561.5 222.8 561.5 138.6 264.0 226.5 256.6
+[13] 481.3 402.2 269.8 249.6 234.9 225.5 418.7 283.2 177.8 323.9 431.7 492.0
+[25] 365.8 150.5 226.1 252.7 120.3 191.4 268.5 237.8 189.5 195.9 386.2 185.9
+[37] 215.8 255.6
+&gt; 
+&gt; ## We can change yields below 0 and above 200 to NA using the if_else() function.  This function allows us to create a new variable based on a condition.  In this case, we are creating a new variable called yield_bu_ac that is equal to the original yield_bu_ac variable if it is between 0 and 200, and NA otherwise.
+&gt; 
+&gt; records_yield_fix &lt;- records_clean_names |&gt;
++   mutate(yield_bu_ac = if_else(yield_bu_ac &lt;= 0 | yield_bu_ac &gt; 200,
++                                 NA,
++                                 yield_bu_ac))
+&gt; 
+&gt; summary(records_yield_fix$yield_bu_ac)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max.     NAs 
+  41.50   53.20   57.50   57.24   62.00   76.60       5 
+&gt; 
+&gt; ## We can fix the variety names in the same way using the if_else() function.  The three arguments would say if variety is one of "Brandon", "Brandon AAC", or "Brndon", then replace it with "AAC Brandon", otherwise leave it as is.
+&gt; 
+&gt; records_variety_fix &lt;- records_clean_names |&gt;
++     mutate(variety_name = if_else(variety_name %in% c("Brandon", "Brandon AAC", "Brndon"),
++                            "AAC Brandon",
++                            variety_name))
+&gt; 
+&gt; records_variety_fix |&gt;
++   count(variety_name, sort = TRUE)
+# A tibble: 3 × 2
+  variety_name      n
+  &lt;chr&gt;         &lt;int&gt;
+1 AAC Brandon      19
+2 CDC Landmark     13
+3 AAC Viewfield     6</code></pre>
+</div>
+</div>
+</div>
+<p>The mutate() function allows us to apply a series of transformations to the columns, including parsing numbers, replacing impossible values with NA, converting units and standardizing category names. Putting the steps together in one pipe, with a <code>rename()</code> to give the numeric columns names that carry their units:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================================</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Clean</span></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================================</span></span>
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>records_clean <span class="ot">&lt;-</span> records <span class="sc">|&gt;</span></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>() <span class="sc">|&gt;</span>      <span class="co"># issue 3: drop the exact duplicate rows</span></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">clean_names</span>() <span class="sc">|&gt;</span>   <span class="co"># issue 1: every column name to snake case</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">clean_names</span>() <span class="sc">|&gt;</span>   <span class="co"># issue 1: every column name to snake case</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>() <span class="sc">|&gt;</span>      <span class="co"># issue 3: drop the exact duplicate rows</span></span>
 <span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">variety =</span> variety_name,   <span class="co"># clearer names, with units where they matter</span></span>
 <span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>         <span class="at">weight_t =</span> harvest_weight,</span>
 <span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>         <span class="at">n_rate_kg_ha =</span> n_rate,</span>
 <span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>         <span class="at">moisture_pct =</span> moisture_percent) <span class="sc">|&gt;</span></span>
 <span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Issue 7: one spelling for the Brandon variety</span></span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">variety =</span> <span class="fu">if_else</span>(variety <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Brandon"</span>, <span class="st">"Brandon AAC"</span>, <span class="st">"Brndon"</span>),</span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>                      <span class="st">"AAC Brandon"</span>, variety),</span>
-<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Issue 8: parse the mixed date formats (year-first, then month-first)</span></span>
-<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">seeded_date =</span> <span class="fu">coalesce</span>(<span class="fu">ymd</span>(seeded_date, <span class="at">quiet =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>                           <span class="fu">mdy</span>(seeded_date, <span class="at">quiet =</span> <span class="cn">TRUE</span>)),</span>
-<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Issues 4 and 5: the -99 code, the negative and the 1250 all become NA</span></span>
-<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">yield_bu_ac =</span> <span class="fu">if_else</span>(yield_bu_ac <span class="sc">&lt;=</span> <span class="dv">0</span> <span class="sc">|</span> yield_bu_ac <span class="sc">&gt;</span> <span class="dv">200</span>,</span>
-<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>                          <span class="cn">NA</span>, yield_bu_ac),</span>
-<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Issue 2: strip the unit text from the weights and make them numeric</span></span>
-<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">weight_t =</span> <span class="fu">parse_number</span>(weight_t),</span>
-<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Issue 6: rates below 1 are t/ha, so convert them to kg/ha</span></span>
-<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">n_rate_kg_ha =</span> <span class="fu">if_else</span>(n_rate_kg_ha <span class="sc">&lt;</span> <span class="dv">1</span>,</span>
-<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>                           n_rate_kg_ha <span class="sc">*</span> <span class="dv">1000</span>, n_rate_kg_ha),</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Issue 2: strip the unit text from the weights and make them numeric</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">weight_t =</span> <span class="fu">parse_number</span>(weight_t),</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Issues 4 and 5: the -99 code, the negative and the 1250 all become NA</span></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">yield_bu_ac =</span> <span class="fu">if_else</span>(yield_bu_ac <span class="sc">&lt;=</span> <span class="dv">0</span> <span class="sc">|</span> yield_bu_ac <span class="sc">&gt;</span> <span class="dv">200</span>,</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>                          <span class="cn">NA</span>,</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>                          yield_bu_ac),</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Issue 6: rates below 1 are t/ha, so convert them to kg/ha</span></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">n_rate_kg_ha =</span> <span class="fu">if_else</span>(n_rate_kg_ha <span class="sc">&lt;</span> <span class="dv">1</span>,</span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>                           n_rate_kg_ha <span class="sc">*</span> <span class="dv">1000</span>,</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>                           n_rate_kg_ha),</span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Issue 7: one spelling for the Brandon variety</span></span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">variety =</span> <span class="fu">if_else</span>(variety <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Brandon"</span>, <span class="st">"Brandon AAC"</span>, <span class="st">"Brndon"</span>),</span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>                      <span class="st">"AAC Brandon"</span>,</span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>                      variety),</span>
 <span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Issue 4 again: the 9999 moisture code becomes NA</span></span>
-<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">moisture_pct =</span> <span class="fu">if_else</span>(moisture_pct <span class="sc">&gt;</span> <span class="dv">100</span>, <span class="cn">NA</span>, moisture_pct)</span>
-<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the cleaned data</span></span>
-<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a>records_clean</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">moisture_pct =</span> <span class="fu">if_else</span>(moisture_pct <span class="sc">&gt;</span> <span class="dv">100</span>,</span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>                          <span class="cn">NA</span>,</span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a>                          moisture_pct)</span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the cleaned data</span></span>
+<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a>records_clean</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell">
 <div class="cell-output-display">
 <div class="console-transcript">
 <pre><code>&gt; records_clean &lt;- records |&gt;
-+   distinct() |&gt;
 +   clean_names() |&gt;
++   distinct() |&gt;
 +   rename(variety = variety_name,
 +          weight_t = harvest_weight,
 +          n_rate_kg_ha = n_rate,
 +          moisture_pct = moisture_percent) |&gt;
 +   mutate(
-+     variety = if_else(variety %in% c("Brandon", "Brandon AAC", "Brndon"),
-+                       "AAC Brandon", variety),
-+     seeded_date = coalesce(ymd(seeded_date, quiet = TRUE),
-+                            mdy(seeded_date, quiet = TRUE)),
++     weight_t = parse_number(weight_t),
 +     yield_bu_ac = if_else(yield_bu_ac &lt;= 0 | yield_bu_ac &gt; 200,
 +                           NA, yield_bu_ac),
-+     weight_t = parse_number(weight_t),
 +     n_rate_kg_ha = if_else(n_rate_kg_ha &lt; 1,
 +                            n_rate_kg_ha * 1000, n_rate_kg_ha),
++     variety = if_else(variety %in% c("Brandon", "Brandon AAC", "Brndon"),
++                       "AAC Brandon", variety),
 +     moisture_pct = if_else(moisture_pct &gt; 100, NA, moisture_pct)
 +   )
 &gt; 
 &gt; records_clean
-# A tibble: 36 × 8
-   field_id variety       seeded_date acres yield_bu_ac weight_t n_rate_kg_ha
-   &lt;chr&gt;    &lt;chr&gt;         &lt;date&gt;      &lt;dbl&gt;       &lt;dbl&gt;    &lt;dbl&gt;        &lt;dbl&gt;
- 1 F001     AAC Viewfield 2026-06-01    160        67.6     298.         97.1
- 2 F002     AAC Brandon   2026-05-13    320        54.9     476          96.2
- 3 F003     CDC Landmark  2026-06-04    120        54.4     173.         81  
- 4 F004     AAC Brandon   2026-06-18    320        NA       642.        117. 
- 5 F005     CDC Landmark  2026-06-06    320        65.8     562.         89.9
- 6 F006     AAC Brandon   2026-05-24    160        50.8     223.        113  
- 7 F007     AAC Viewfield 2026-06-07     80        NA       139.        136. 
- 8 F008     AAC Brandon   2026-05-18    160        60.3     264         127. 
- 9 F009     CDC Landmark  2026-05-20    160        51.5     226.         81  
-10 F010     AAC Brandon   2026-05-19    160        58.9     257.         92.4
-# ℹ 26 more rows
-# ℹ 1 more variable: moisture_pct &lt;dbl&gt;</code></pre>
+# A tibble: 36 × 7
+   field_id variety       acres yield_bu_ac weight_t n_rate_kg_ha moisture_pct
+   &lt;chr&gt;    &lt;chr&gt;         &lt;dbl&gt;       &lt;dbl&gt;    &lt;dbl&gt;        &lt;dbl&gt;        &lt;dbl&gt;
+ 1 F001     AAC Viewfield   160        67.6     298.         97.1         12.4
+ 2 F002     AAC Brandon     320        54.9     476          96.2         14.7
+ 3 F003     CDC Landmark    120        54.4     173.         81           12.3
+ 4 F004     AAC Brandon     320        NA       642.        117.          15.4
+ 5 F005     CDC Landmark    320        65.8     562.         89.9         12.3
+ 6 F006     AAC Brandon     160        50.8     223.        113           NA  
+ 7 F007     AAC Viewfield    80        NA       139.        136.          14.5
+ 8 F008     AAC Brandon     160        60.3     264         127.          12.4
+ 9 F009     CDC Landmark    160        51.5     226.         81           13.7
+10 F010     AAC Brandon     160        58.9     257.         92.4         16.4
+# ℹ 26 more rows</code></pre>
 </div>
 </div>
 </div>
-<p>Check again before trusting the result. The ranges are now sane, the dates are real dates, and the Brandon spellings have collapsed into one.</p>
+<p>Check again before trusting the result. The ranges are now sane and the Brandon spellings have collapsed into one.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================================</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Check again</span></span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================================</span></span>
@@ -1472,22 +1561,22 @@ $ `Moisture %`     &lt;dbl&gt; 12.4, 14.7, 12.3, 14.7, 15.4, 12.3, NA, 12.3, 14.
 <div class="cell-output-display">
 <div class="console-transcript">
 <pre><code>&gt; summary(records_clean)
-      field_id       variety    seeded_date             acres      
- Length   :36   Length   :36   Min.   :2026-05-02   Min.   : 80.0  
- N.unique :36   N.unique : 3   1st Qu.:2026-05-15   1st Qu.:160.0  
- N.blank  : 0   N.blank  : 0   Median :2026-05-18   Median :160.0  
- Min.nchar: 4   Min.nchar:11   Mean   :2026-05-23   Mean   :184.4  
- Max.nchar: 4   Max.nchar:13   3rd Qu.:2026-06-01   3rd Qu.:240.0  
-                               Max.   :2026-06-27   Max.   :320.0  
-                                                                   
-  yield_bu_ac       weight_t      n_rate_kg_ha     moisture_pct  
- Min.   :41.50   Min.   :120.3   Min.   : 80.00   Min.   :11.60  
- 1st Qu.:53.05   1st Qu.:210.8   1st Qu.: 89.78   1st Qu.:12.40  
- Median :57.50   Median :254.2   Median :103.45   Median :14.60  
- Mean   :57.04   Mean   :291.4   Mean   :105.85   Mean   :14.08  
- 3rd Qu.:61.15   3rd Qu.:370.9   3rd Qu.:124.83   3rd Qu.:15.43  
- Max.   :76.60   Max.   :642.5   Max.   :135.90   Max.   :16.50  
- NAs    :5                                        NAs    :4      
+      field_id       variety       acres        yield_bu_ac       weight_t    
+ Length   :36   Length   :36   Min.   : 80.0   Min.   :41.50   Min.   :120.3  
+ N.unique :36   N.unique : 3   1st Qu.:160.0   1st Qu.:53.05   1st Qu.:210.8  
+ N.blank  : 0   N.blank  : 0   Median :160.0   Median :57.50   Median :254.2  
+ Min.nchar: 4   Min.nchar:11   Mean   :184.4   Mean   :57.04   Mean   :291.4  
+ Max.nchar: 4   Max.nchar:13   3rd Qu.:240.0   3rd Qu.:61.15   3rd Qu.:370.9  
+                               Max.   :320.0   Max.   :76.60   Max.   :642.5  
+                                               NAs    :5                      
+  n_rate_kg_ha     moisture_pct  
+ Min.   : 80.00   Min.   :11.60  
+ 1st Qu.: 89.78   1st Qu.:12.40  
+ Median :103.45   Median :14.60  
+ Mean   :105.85   Mean   :14.08  
+ 3rd Qu.:124.83   3rd Qu.:15.43  
+ Max.   :135.90   Max.   :16.50  
+                  NAs    :4      
 &gt; 
 &gt; records_clean |&gt;
 +   count(variety, sort = TRUE)
