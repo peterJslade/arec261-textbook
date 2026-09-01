@@ -18,39 +18,21 @@ trial_data <- readr::read_csv("practice/data/canola_trial.csv", show_col_types =
 :::
 :::
 
-In the last chapter, we created small datasets directly in R. Real data analysis usually
-starts somewhere else: with a file. That creates a few practical questions. Where should the
-file go? How does R find it? How do we bring it into R? And once it is there, how do we
-check that R has read it correctly?
+In the last chapter, we created small datasets directly in R. Real data analysis usually starts with a file. That creates a few practical questions. Where should the file go? How does R find it? How do we bring it into R? And once it is there, how do we check that R has read it correctly?
 
-This chapter develops a simple workflow for working with real data: keep everything for an
-analysis in one project folder, refer to files with relative paths, use packages to add
-functions to R, read the data from a CSV file, and inspect it before doing any analysis.
-These habits are not exciting, but they prevent a remarkable number of problems later.
+This chapter develops a simple workflow for working with real data: keep everything for an analysis in one project folder, refer to files with relative paths, use packages to add functions to R, read the data from a CSV file, and inspect it before doing any analysis. These habits are not exciting, but they prevent a remarkable number of problems later.
 
 The data we will work with is a small .csv file of canola yield trials (hypothetical data): 120 fields, each with an ID, a fertilizer rate, growing-season rainfall, a variety, and a yield.  It can be downloaded here: [`canola_trial.csv`](practice/data/canola_trial.csv).
 
-## Learning Objectives {.unnumbered}
 
-::: {.objectives}
-By the end of this chapter you should be able to:
+## Setting up a project folder {#sec-project-folder}
 
-1. Set up a self-contained project folder for an analysis.
-2. Explain the difference between an absolute and a relative path.
-3. Install and load an R package, and explain the difference between the two.
-4. Read a CSV file into R as a data frame.
-5. Inspect a new dataset and identify common problems.
-6. Calculate basic summary statistics.
-:::
-
-## One Folder Per Project {#sec-project-folder}
-
-The temptation after downloading the csv file is to get it loaded into R as quickly as possible.  However, it is worth taking a minute (and it only takes less than a minute!) to set up a project folder.  The folder will eventually hold your data, code, and output.  For complex projects, it would be best to separate these into subfolders.  Our project might look like this:
+The temptation after downloading the csv file is to get it loaded into R as quickly as possible.  However, it is worth taking a minute (and it only takes less than a minute!) to set up a project folder.  The folder will eventually hold your data, code, and output.  For complex projects, it would be best to separate these into subfolders.  A typical project might look like this:
 
 ```
 canola_yields/
   data/
-    canola_trial.csv          <- exactly as it arrived
+    canola_trial.csv          
   code/
     1_clean.R
     2_analysis.R
@@ -60,18 +42,14 @@ canola_yields/
   README.md
 ```
 
-`data/` contains the original data; `code/` contains the scripts, numbered in the order they
-run; `output/` contains tables, figures, and other results the scripts produce; and
-`README.md` holds notes explaining the project. The exact folder names matter less than the
-principle: **the project is self-contained**. If you zip `canola_yields/` and send it to
-somebody else, they have everything they need to run your analysis. A script that reaches
-out to a file elsewhere on your hard drive will not travel like that.
+- `data/` contains the original data; 
+- `code/` contains the scripts, numbered in the order they
+run; 
+- `output/` contains tables, figures, and other results the scripts produce; and
+- `README.md` holds notes explaining the project. This becomes more important when we start using AI tools.
 
-**Raw data is never edited.**  Suppose `canola_trial.csv` contains an obvious typo. You
-could open the file in Excel, fix the cell, and save -- but then there is no record of what
-you changed, and you have written over the only copy of what you were given. Keep the
-original file exactly as it arrived and make the correction in your R script, where it
-leaves a trail: what changed, and how.
+
+The exact folder names matter less than the principle: **the project is self-contained**. If you zip `canola_yields/` and send it to somebody else, they have everything they need to run your analysis. 
 
 You can create all this in **Positron** by selecting **File → New Folder from Template…**. After you create the folder you will see a file explorer tab open on the left pane of Positron.  When you save data or files in your folder you will see them appear in this tab.  You can also add new subfolders and files in this pane by either right-clicking in the pane or using the new-folder button.
 
@@ -79,7 +57,7 @@ You can create all this in **Positron** by selecting **File → New Folder from 
 
 Creating a project folder is important for two reasons.  First, it allows you to read in data using relative paths (discussed in @sec-reading-data).  Second, when using AI tools you can choose to provide them access to your whole folder, and they can read all the files and data within that folder to get the context for your entire project (discussed in Module 5).
 
-An alternative set-up you might want for this class is to just have an AREC_261 folder with subfolders branching off from there.  For example:
+An alternative set-up you might want for this class is to have an AREC_261 folder with subfolders branching off from there.  For example:
 
 ```
 AREC_261/
@@ -94,6 +72,9 @@ AREC_261/
 ```
 
 Note that I have subfolders for each module in the `code/` and `output/` folders.  But since the datasets we use will be shared across modules, I have just one `data/` folder.  Others might prefer a different structure.    
+
+A final note:  *Never overwrite your raw data*.  Suppose `canola_trial.csv` contains an obvious typo. You could open the file in Excel, fix the cell, and save -- but then there is no record of what you changed. Keep the original file exactly as it arrived and make the correction in your R script, where it
+leaves a trail: what changed, and how.
 
 ## Packages {#sec-packages}
 
@@ -132,8 +113,7 @@ So what is this *tidyverse* package?  It is actually a collection of packages th
 | `tidyr`   | reshaping data    |
 | `ggplot2` | making graphs     |
 
-Installing the tidyverse installs these and several others, and `library(tidyverse)` loads
-the core packages at once. 
+Installing the tidyverse installs these and several others, and `library(tidyverse)` loads the core packages at once. 
 
 ::: {.callout-tip collapse="true"}
 ## Other resources — packages and the tidyverse
@@ -196,10 +176,6 @@ read_csv("data/canola_trial.csv")
 
 -- then R prints the data to the console but does not save it anywhere. This is the same displaying-versus-saving distinction from the last chapter: without the assignment, there is no object to work with afterwards.
 
-The note `read_csv` prints is its guess at each column's **type** -- `chr` for text and
-`dbl` for numbers in the output above. R guesses well but not perfectly, which is one reason
-we always inspect a dataset after reading it.
-
 ::: {.callout-note}
 ## Windows note
 
@@ -211,26 +187,9 @@ means something special inside an R string. Write forward slashes even on Window
 ::: {.callout-tip}
 ## File names
 
-Two rules save a lot of trouble. Use short descriptive names without spaces or punctuation:
-`yield_data_final.csv`, not `Field Yields FINAL!!.csv`. And write dates as YYYY-MM-DD:
-`2026-09-15_deliveries.csv` sorts chronologically on its own, and `Sept15.csv` does not.
+Use short descriptive names without spaces or punctuation:
+`yield_data_final.csv`, not `Field Yields FINAL!!.csv`. 
 :::
-
-### When R cannot find the file {.unnumbered}
-
-A common error looks like this:
-
-```
-Error: 'data/canola_trial.csv' does not exist in current working directory (...)
-```
-
-Do not start changing the code randomly. Check two things, in order:
-
-- **Did you open the correct project folder?** **File → Open Folder…** in Positron; the
-  folder you open should contain `data/`.
-- **Where does R think it is?** Run `getwd()` and look at the folder it prints. Starting
-  from that folder, can you go into a folder called `data` and find `canola_trial.csv`? If
-  yes, the path works.
 
 ## Inspecting the Data {#sec-inspecting-data}
 
