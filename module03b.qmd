@@ -8,19 +8,6 @@ source("_console.R")
 
 A file that opens without an error may still contain duplicate rows, inconsistent names, mixed units and missing values recorded as ordinary text. Data cleaning takes up a large part of most data analysis projects. Unfortunately, it is also the dullest part of the job. This chapter is about finding common problems and recording what you did about them.
 
-## Learning Objectives {.unnumbered}
-
-::: {.objectives}
-By the end of this chapter you should be able to:
-
-1. Explain what tidy data means and compare long and wide forms of the same data.
-2. Reshape data in Excel with Power Query and in R with `pivot_longer()` and `pivot_wider()`.
-3. Conduct an initial data-quality check using summaries, visualizations and relationships among variables.
-4. Clean column names with `rename()` and `janitor::clean_names()`.
-5. Find exact and conflicting duplicates.
-6. Find impossible values, inconsistent categories and mixed units.
-7. Recognize common codes for missing values and decide when observations can be dropped.
-:::
 
 ## Data shape {#sec-tidy-data}
 
@@ -60,8 +47,10 @@ When you open a table, write down what one row represents and what each column r
 
 ### Data shape in Excel {#sec-unpivot}
 
+::: {.video-callout}
 ::: {.callout-note collapse="true" title="Video walkthrough of this section"}
 {{< video https://youtu.be/tIWh5nmnUso >}}
+:::
 :::
 
 The RM yields file (@sec-direct-download) is wide, with one column for each crop. Power Query calls the wide-to-long operation **Unpivot**. Import the CSV with **Data > Get Data > From Text/CSV**, choose **Transform Data**, select `Year` and `RM`, and then choose **Transform > Unpivot Columns > Unpivot Other Columns**. Rename the two new columns `crop` and `yield_bu_ac` before loading the result.
@@ -76,8 +65,10 @@ Power Query returns 15,478 rows because **Unpivot Other Columns** drops source c
 
 ### Data shape in R {#sec-reshaping}
 
+::: {.video-callout}
 ::: {.callout-note collapse="true" title="Video walkthrough of this section"}
 {{< video https://youtu.be/bL24bFKpvSg >}}
+:::
 :::
 
 `pivot_longer()` does the same job as Unpivot. It takes several columns, puts their names in one column and puts their values in another. Here is the RM yields table:
@@ -284,10 +275,16 @@ The yield minimum is a missing-value code and the maximum is twenty times a real
 
 ## Data cleaning in Excel {#sec-cleaning-excel}
 
+::: {.video-callout}
+::: {.callout-note collapse="true" title="Video walkthrough of this section"}
+{{< video https://youtu.be/lITVHVsyOX4 >}}
+:::
+:::
+
 The following Excel workbook shows some steps in checking and then cleaning the data.  In the DataSummary worksheet, the numeric variables are summarized, getting the mean, median, minimum and maximum and a histogram is plotted.  For the categorical variables, the `UNIQUE()` function is used to list the distinct values and the `COUNTIF()` function is used to count how many times each distinct value appears.  Finally, we counted the number of rows using `=ROWS(RawData!A2:A39)` and the number of distinct rows using `=ROWS(UNIQUE(RawData!A2:A39))`.  The difference between these two counts is the number of duplicate rows.
 
 
-After diagnosing these issues, the best way to clean the data is through a Power Query which creates a transparent and reproducible workflow.  The output of the Power Query is in the workbook and the video below explains the steps taken to clean the data.
+After diagnosing these issues, the best way to clean the data is through a Power Query which creates a transparent and reproducible workflow.  The output of the Power Query is in the workbook and the video at the top of this section explains the steps taken to clean the data.
 
 ::: {.workbook-callout}
 <!-- Anyone-view link expires 2026-11-29 under the University of Saskatchewan 90-day policy. -->
@@ -297,10 +294,6 @@ After diagnosing these issues, the best way to clean the data is through a Power
 :::
 
 [Download this workbook](textbook_examples/mod03_field_records_cleaning.xlsx) · [Open online](https://usaskca1-my.sharepoint.com/:x:/g/personal/pjs998_usask_ca/IQARIWupQ2l6SLHNK4SJIFi7AaPD784L8M-lxPSEBlwjw2I?e=Gd8AR1) (File → Save a Copy to view formulas and edit)
-:::
-
-::: {.callout-note collapse="true" title="Video walkthrough of cleaning with Power Query"}
-{{< video https://youtu.be/lITVHVsyOX4 >}}
 :::
 
 ## Data cleaning in R {#sec-cleaning-r}
