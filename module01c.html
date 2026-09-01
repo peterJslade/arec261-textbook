@@ -777,8 +777,8 @@ window.Quarto = {
 </tr>
 </tbody>
 </table>
-<p>The tempting move is a plain <code>=AVERAGE(C2:C6)</code>, which gives 52.5 bu/ac. But that treats the 95-acre Creek field exactly the same as the 310-acre Home field – as if each field were one “vote.” That is not what “the average yield across the farm” means. A field three times the size should count three times as much.</p>
-<p>The right calculation weights each yield by its acres: multiply each field’s yield by its acres, add those up (that is total production, in bushels), and divide by the total acres:</p>
+<p>The tempting move is a plain <code>=AVERAGE(C2:C6)</code>, which gives 52.5 bu/ac. But that treats the 95-acre <em>Creek</em> field exactly the same as the 310-acre <em>Home</em> field – as if each field were one “vote.” That is not what “the average yield across the farm” means. A field three times the size should count three times as much.</p>
+<p>The right calculation weights each yield by its acres. To do this, multiply each field’s yield by its acres, add those up (that is total production, in bushels), and divide by the total acres:</p>
 <p><span class="math display">\[
 \bar{x}_w = \frac{\sum w_i\, x_i}{\sum w_i}
 = \frac{\text{total bushels}}{\text{total acres}}
@@ -803,13 +803,12 @@ window.Quarto = {
 <li>Mean noticeably above median. The distribution may be right-skewed, with some unusually high values pulling the mean upward. Think of farm incomes with a small number of very high-income farms, or field sizes with a few enormous fields – the mean can be substantially higher than the value for a typical observation.</li>
 <li>Mean noticeably below median. The distribution may be left-skewed, with some unusually low values pulling the mean downward. Think of crop yields when a small number of badly drought-hit fields have very low yields – those fields can pull the mean below what a typical field produced.</li>
 </ul>
-<p>So a handy rule of thumb is to compute both and look at the gap. A large gap is a clue that the distribution may be skewed or contain extreme values. When that happens, look more closely at the data and consider whether the median gives a better description of a typical observation. A small gap means the mean and median are telling a similar story.</p>
-<p>We will see skewness directly when we look at histograms in <a href="#sec-charts" class="quarto-xref"><span>Section 3.4</span></a>.</p>
+<p>So when summarizing data, always compute both statistics and look at how they differ.</p>
 </section>
 <section id="mode" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="mode">Mode</h3>
-<p>The <strong>mode</strong> is the most frequently occurring value. In Excel: <code>=MODE.SNGL(A1:A5)</code> for a single mode, or <code>=MODE.MULT(A1:A5)</code> if you want all of them (for data with multiple modes). On the five yields we have been working with, every value appears once, so <code>=MODE.SNGL(A1:A5)</code> returns the <code>#N/A</code> error – Excel’s way of saying there is no mode to report.</p>
-<p>The mode is most useful for <strong>categorical data</strong> (“what is the most common crop in this region?”) or for <strong>discrete numeric data</strong> with repeated values. For continuous measurements like yields, the mode is usually less useful because exact values may rarely repeat, and which values repeat can depend on how precisely the data is measured or rounded.</p>
+<p>The <strong>mode</strong> is the most frequently occurring value. In Excel: <code>=MODE.SNGL(A1:A5)</code> for a single mode, or <code>=MODE.MULT(A1:A5)</code> if you want all of them (for data with multiple modes).</p>
+<p>The mode is most useful for <strong>categorical data</strong> (“what is the most common crop in this region?”) or for <strong>discrete numeric data</strong> with repeated values. For continuous measurements like yields, the mode is usually less useful because exact values may rarely repeat.</p>
 <div class="workbook-callout">
 <p>The <strong>Centre</strong> tab of the workbook below computes all four of these on 32 Saskatchewan barley varieties. Column D holds production (acres × yield), which is what the weighted average needs.</p>
 <div class="excel-embed">
@@ -871,12 +870,7 @@ window.Quarto = {
 <li><code>=QUARTILE.INC(A1:A100, 1)</code> – the first quartile (<span class="math inline">\(Q_1\)</span>).</li>
 <li><code>=QUARTILE.INC(A1:A100, 3)</code> – the third quartile (<span class="math inline">\(Q_3\)</span>).</li>
 </ul>
-<p>(Excel has both <code>.INC</code> and <code>.EXC</code> variants – inclusive and exclusive. For this course use <code>.INC</code>.)</p>
 <p>Percentiles are used whenever we want to describe where an observation stands relative to others. Standardized test scores are often reported as percentiles, economists use income percentiles to compare households across the income distribution, and agricultural analysts might ask whether a farm’s yield falls in the bottom 10% or whether a variety performs in the top quartile.</p>
-<p>The distance between the first and third quartile is the <strong>interquartile range</strong>, or IQR – the width of the middle half of the data. We return to it as a measure of spread below (<a href="#sec-spread" class="quarto-xref"><span>Section 3.3</span></a>), but it also gives us a common rule for deciding when a value is unusual enough to be worth a second look. Anything below Q1 − 1.5 × IQR, or above Q3 + 1.5 × IQR, is conventionally called an outlier. Those two cutoffs are sometimes called the lower and upper <strong>fences</strong>.</p>
-<pre><code>=QUARTILE.INC(C2:C33,1) - 1.5*(QUARTILE.INC(C2:C33,3) - QUARTILE.INC(C2:C33,1))</code></pre>
-<p>The 1.5 is a convention, not a result – there is nothing special about it beyond long use. Notice what the rule depends on. The fences are built from the IQR, so a dataset whose middle half is tightly packed will flag values that a more spread-out dataset would treat as ordinary. Whether a number counts as an outlier depends on how tight the bulk of the data is, not only on how far out the number sits.</p>
-<p>A value falling outside the fences is not necessarily wrong. It might be a recording error, or it might be the most interesting observation you have.</p>
 <div class="workbook-callout">
 <p>The <strong>Location</strong> tab computes the quartiles and the 10th and 90th percentiles on the same barley data.</p>
 <div class="excel-embed">
@@ -966,11 +960,11 @@ Figure&nbsp;3.1: Thirty farm yields, each dot one field. Both sets average 40 bu
 </figcaption>
 </figure>
 </div>
-<p>For a data analyst, the spread is very informative. If the values are spread out then we should be curious about what causes this spread. If these fields are far away from each other then maybe the spread is due to weather. But if they are in the same Township, with reasonably similar weather, then it may be due to management practices such as varietal choice, nitrogen application rates, or seeding dates. When we are dealing with large datasets it can be difficult to just look at how spread out points are on a one-dimensional graph. It is therefore handy to be able to distill the spread of data into a single number. In this section we will examine several different measures of spread, each of which has its strengths and weaknesses.</p>
+<p>For a data analyst, the spread is very informative. If the values are spread out then we should be curious about what causes this spread. If these fields are far away from each other then maybe the spread is due to weather. But if they are in the same Township, with reasonably similar weather, then it may be due to management practices such as varietal choice, nitrogen application rates, or seeding dates. When we are dealing with large datasets it can be difficult to just look at how spread out points are on a one-dimensional graph. It is therefore handy to be able to distill the spread of data into a single number. In this section, we will examine several different measures of spread, each of which has its strengths and weaknesses.</p>
 <section id="range" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="range">Range</h3>
 <p>The simplest measure of spread is the <strong>range</strong>: the maximum value minus the minimum value. In Excel: <code>=MAX(A1:A100) - MIN(A1:A100)</code>. The range is easy to understand, but it is very sensitive to extreme values – a single unusual observation can change it dramatically.</p>
-<p>Suppose, for example, that one of the tightly clustered fields in <a href="#fig-spread-hail" class="quarto-xref">Figure&nbsp;<span>3.2</span></a> experiences a hailstorm that wipes out its crop. That single field increases the range from 7.5 to 41.3 bu/ac – more than five times larger – even though only one of the 30 fields has changed. The interquartile range, described below, barely moves, from 2.8 to 3.0 bu/ac, because it focuses on the middle half of the data rather than the extremes.</p>
+<p>Suppose, for example, that one of the tightly clustered fields in <a href="#fig-spread-hail" class="quarto-xref">Figure&nbsp;<span>3.2</span></a> experiences a hailstorm that wipes out its crop. That single field increases the range from 7.5 to 41.3 bu/ac – more than five times larger – even though only one of the 30 fields has changed.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-spread-hail" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -985,7 +979,6 @@ Figure&nbsp;3.2: One hailed-out field. The range explodes; the interquartile ran
 </div>
 </div>
 </div>
-<p>This problem is even greater if we have a dataset with hundreds or thousands of observations.</p>
 <p>A potentially more useful measure is the <strong>interquartile range</strong> or IQR, which measures the difference between the first and third quartile. In other words, half the data lie within the interquartile range. In Excel: <code>=QUARTILE.INC(A1:A100, 3)-QUARTILE.INC(A1:A100, 1)</code>. However, whereas the range was too sensitive to outliers, the IQR might not tell us enough about data in the tail of the distribution.</p>
 </section>
 <section id="mean-absolute-deviation" class="level3 unnumbered">
@@ -1020,12 +1013,12 @@ s = \sqrt{s^2} = \sqrt{\frac{1}{n-1} \sum_{i=1}^{n} (x_i - \bar{x})^2}
 </section>
 <section id="coefficient-of-variation" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="coefficient-of-variation">Coefficient of Variation</h3>
-<p>A sometimes helpful, sometimes misleading measure of spread is the <strong>coefficient of variation (CV)</strong>, which is the standard deviation divided by the mean:</p>
+<p>A sometimes helpful, but sometimes misleading, measure of spread is the <strong>coefficient of variation (CV)</strong>, which is the standard deviation divided by the mean:</p>
 <p><span class="math display">\[
 CV = \frac{s}{\bar{x}}
 \]</span></p>
-<p>I say it is helpful because it can compare the spread of two datasets with very different means. Suppose barley averages 55 bu/ac with a standard deviation of 11 (CV = 11/55 = 0.20), while wheat averages 40 bu/ac with a standard deviation of 10 (CV = 10/40 = 0.25). Wheat’s standard deviation is <em>smaller</em> in absolute terms (10 vs 11), yet relative to its own average, wheat is <em>more</em> variable (CV 0.25 vs 0.20). The CV captures that relative variability: a CV of 0.1 means the standard deviation is 10% of the mean. So the CV lets you fairly compare the variability of two things measured on very different scales.</p>
-<p>However, in other contexts – particularly when the data can be close to zero or negative – the CV can be misleading. Suppose we wanted to compare the variability of farm income in a “good” year to farm incomes in a “bad” year. In a bad year, the mean of income might be close to zero or negative. In that case, the CV would explode to infinity or become negative. Use the coefficient of variation with caution.</p>
+<p>I say it is helpful because it can compare the spread of two datasets with very different means. Suppose barley averages 55 bu/ac with a standard deviation of 11 (CV = 11/55 = 0.20), while wheat averages 40 bu/ac with a standard deviation of 10 (CV = 10/40 = 0.25). Wheat’s standard deviation is <em>smaller</em> in absolute terms (10 vs 11), yet relative to its own average, wheat is <em>more</em> variable (CV 0.25 vs 0.20).</p>
+<p>However, in other contexts – particularly when the mean of the data is zero or negative – the CV can be misleading. Suppose we wanted to compare the variability of farm income in a “good” year to farm incomes in a “bad” year. In a bad year, the mean of income might be close to zero or negative. In that case, the CV would explode to infinity or become negative.</p>
 <div class="workbook-callout">
 <p>The <strong>Spread</strong> tab works through the five measures Excel computes directly on the barley varieties, so you can see how each responds to the same data.</p>
 <div class="excel-embed">
@@ -1117,10 +1110,10 @@ Figure&nbsp;3.3: Two datasets with the same mean and the same range, but very di
 </figcaption>
 </figure>
 </div>
-<p>The two clusters in panel A are a signal worth chasing: perhaps those farms differ in variety, soil zone, or seeding date, and what looks like one population is really two. Note also that the mean of 40 bu/ac in panel A describes a yield that almost no farm actually achieved – a good reminder that a summary statistic is not a substitute for looking at your data.</p>
+<p>The two clusters in panel A are quite informative about the data: perhaps those farms differ in variety, soil zone, or seeding date, and what looks like one population is really two. Note also that the mean of 40 bu/ac in panel A describes a yield that almost no farm actually achieved – a good reminder that a summary statistic is not a substitute for looking at your data.</p>
 <p>Perhaps the simplest way to visualize the shape of a distribution is with a histogram. A histogram divides the range of the data into bins and uses bars to show how many observations fall into each one. It lets you see at a glance whether the data is roughly symmetric (balanced around the centre), skewed (stretched farther in one direction than the other, as we discussed in <a href="#sec-central-tendency" class="quarto-xref"><span>Section 3.1</span></a>), or contains outliers (a few observations sitting far from the rest).</p>
-<p>How to make one in Excel: select the data, then choose Insert → Statistical Chart → Histogram. Right-click the horizontal axis and choose Format Axis to control the bin width.</p>
-<p>Tips: Bin width matters. Too few bins can hide important features of the distribution; too many can make random variation look important. As a rough starting point, try about <span class="math inline">\(\sqrt{n}\)</span> bins, where <span class="math inline">\(n\)</span> is the number of observations. Then try a few different bin widths and check whether the main features of the distribution remain visible.</p>
+<p>How to make one in Excel: select the data, then choose Insert → Statistical Chart → Histogram. Right-click the horizontal axis and choose Format Axis to control the bin width. (The video for this section shows you exactly how to do this).</p>
+<p>The number of bins you choose for a histogram matters. Too few bins can hide important features of the distribution; too many can make random variation look important. As a rough starting point, try about <span class="math inline">\(\sqrt{n}\)</span> bins, where <span class="math inline">\(n\)</span> is the number of observations. Then try a few different bin widths and check whether the main features of the distribution remain visible.</p>
 <div class="workbook-callout">
 <p>The <strong>Histogram</strong> tab contains three histograms. In my view the first one has a reasonable number of bins. The next two have too many and too few.</p>
 <div class="excel-embed">

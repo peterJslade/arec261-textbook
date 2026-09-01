@@ -687,13 +687,14 @@ ul.task-list li input[type="checkbox"] {
 <section id="sec-conditional-plural" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="sec-conditional-plural"><code>COUNTIFS</code>, <code>SUMIFS</code>, and <code>AVERAGEIFS</code></h3>
 <p><code>COUNTIF</code> and its relatives test one condition. Often you need two. In a dataset with one row per province, crop and year, “the average canola yield in Ontario” is a question about two columns at once, and no single-condition function can answer it.</p>
-<p>The plural forms take any number of conditions:</p>
-<pre><code>=AVERAGEIFS(E2:E1068, C2:C1068, "Canola", B2:B1068, "Ontario")</code></pre>
-<p>The argument order is different from <code>AVERAGEIF</code>. The range being averaged comes <strong>first</strong>, followed by pairs: a range to test, then the condition to test it for. Add as many pairs as you need and Excel keeps only the rows that satisfy all of them.</p>
-<p><code>COUNTIFS</code> has no value range, so it is pairs all the way down:</p>
+<p>In the following formula</p>
 <pre><code>=COUNTIFS(A2:A1068, 2023, C2:C1068, "Canola")</code></pre>
-<p><code>SUMIFS</code> works like <code>AVERAGEIFS</code> – sum range first, then the pairs.</p>
-<p>The conditions can use comparisons as well as exact matches. To average canola yields only in years after 2020:</p>
+<p>Excel will include row 2 in its count if <code>A2</code> contains 2023 <em>and</em> <code>C2</code> contains Canola, row 3 if <code>A3</code> contains 2023 <em>and</em> <code>C3</code> contains Canola, and so on. It will not include row 2 if either condition fails. The formula will return the number of rows that meet both conditions.</p>
+<p>The argument order for <code>AVERAGEIFS</code> and <code>SUMIFS</code> are a bit different from <code>AVERAGEIF</code> and <code>SUMIF</code>. The range being averaged comes <strong>first</strong>, followed by pairs: a range to test, then the condition to test it for. Add as many pairs as you need and Excel keeps only the rows that satisfy all of them.</p>
+<p>For eaxmple in,</p>
+<pre><code>=AVERAGEIFS(E2:E1068, C2:C1068, "Canola", B2:B1068, "Ontario")</code></pre>
+<p>Excel will include <code>E2</code> in the acverage if <code>C2</code> contains Canola <em>and</em> <code>B2</code> contains Ontario; it will include <code>E3</code> if <code>C3</code> contains Canola <em>and</em> <code>B3</code> contains Ontario, and so on. The formula returns the average of all the values in column E that meet both conditions.</p>
+<p>All the conditional functions can use comparisons as well as exact matches. To average canola yields only in years after 2020:</p>
 <pre><code>=AVERAGEIFS(E2:E1068, C2:C1068, "Canola", A2:A1068, "&gt;2020")</code></pre>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
@@ -810,7 +811,7 @@ ul.task-list li input[type="checkbox"] {
 <p>Sorting and filtering are different from the functions we have used so far. Rather than calculating a new value, they change how the data in a worksheet is displayed and organized. The examples below use the same eight fields as before.</p>
 <section id="sorting" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="sorting">Sorting</h3>
-<p><strong>Sorting</strong> changes the order of the rows in a dataset. Click any cell in the column you want to sort by, then use <strong>Sort &amp; Filter</strong> on the Home tab (or the corresponding buttons on the Data tab):</p>
+<p><strong>Sorting</strong> changes the order of the rows in a dataset. Click any cell in the column you want to sort by, then use <strong>Sort &amp; Filter</strong> on the Home tab.</p>
 <div id="fig-sort-menu" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-sort-menu-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -832,7 +833,6 @@ Figure&nbsp;2.2: Sorted by acres. Every row has moved as a unit – Airport stil
 </figcaption>
 </figure>
 </div>
-<p>That last point is the one to be careful about. Excel moved whole rows because the cursor was sitting inside the table. If you instead select a single column and sort <em>that</em>, Excel reorders the cells in that column and leaves every other column in the same order (usually Excel will catch you and ask if you want to “Expand the selection” before doing this).</p>
 </section>
 <section id="filtering" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="filtering">Filtering</h3>
@@ -882,28 +882,9 @@ Figure&nbsp;2.6: Three canola fields left. Note the row numbers – 1, 2, 3, the
 <p>Notice that the row numbers are no longer consecutive. The gaps indicate that some rows are hidden by the filter. This is an easy way to tell that you are viewing only part of the dataset. Nothing has been deleted – clearing the filter makes all of the observations visible again.</p>
 <p><code>Ctrl+Shift+L</code> on Windows or <code>⌘⇧F</code> on a Mac toggles filters on and off.</p>
 <p><a href="textbook_examples/mod01_sorting_filtering.xlsx">Download the sorting and filtering workbook</a> to sort and filter the fields yourself. The workbook includes a practice sheet to fill in.</p>
-<div class="callout callout-style-default callout-warning callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Warning</span>Filters hide rows from <em>you</em>, not from your formulas
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>If you filter a column to show only 2023 and then write <code>=AVERAGE(E2:E10650)</code>, Excel still averages every row – including the hidden ones. Filtering changes which rows you can see; it does not change the range used by an ordinary formula. You could therefore get the 1990–2025 average when you thought you were calculating the average for 2023.</p>
-<p>To calculate a statistic for a <em>subset</em> of the data, you have several options:</p>
-<ul>
-<li><strong>Use a conditional function</strong> such as <code>AVERAGEIF</code>, <code>SUMIF</code>, or <code>COUNTIF</code>. For example, <code>=AVERAGEIF(A2:A10650,2023,E2:E10650)</code> calculates the average of column E only for observations from 2023.</li>
-<li><strong>Copy the filtered observations to a new sheet</strong> if you actually need a separate dataset containing only those observations. But be careful about creating unnecessary copies of your data.</li>
-<li><code>SUBTOTAL</code> and <code>AGGREGATE</code> are functions that can calculate using only visible rows and therefore respond to filters. We will not cover them in this course.</li>
-</ul>
-<p>Filtering is useful for exploring a subset of your data, but do not assume that a formula uses only the rows you can see.</p>
-</div>
-</div>
+<p>Note that filters hide rows from you, but those hidden rows are still part of the datasets and would be included in formulas. If you filter a column to show only 2023 and then write <code>=AVERAGE(E2:E10650)</code>, Excel still averages every row – including the hidden ones. To calculate a statistic for a <em>subset</em> of the data, you can use the conditional functions we covered earlier. Or, if you want to only use the filtered data for some analysis you can copy and paste that data into a new worksheet. :::</p>
 <div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-7-contents" aria-controls="callout-7" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -912,7 +893,7 @@ Figure&nbsp;2.6: Three canola fields left. Note the row numbers – 1, 2, 3, the
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-7" class="callout-7-contents callout-collapse collapse">
+<div id="callout-6" class="callout-6-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <ul>
 <li><strong>Excel for Dummies</strong> – <em>Microsoft 365 Excel for Dummies</em>, the chapter on sorting and filtering data.</li>
@@ -939,7 +920,7 @@ Figure&nbsp;2.6: Three canola fields left. Note the row numbers – 1, 2, 3, the
 <p>Wide data is often easy for people to read and convenient for calculations involving individual columns. If you want the average canola yield, for example, you can simply average the Canola column. Long data is particularly useful when you want to group or summarize observations by a variable. In the long table, Crop is a variable that Excel can use to divide the observations into groups.</p>
 <p>This becomes important for PivotTables. If we want a PivotTable showing average yield by crop, Excel needs Crop to be a field that it can group by. The long format provides exactly that: one column identifying the crop and another containing the yield.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-8-contents" aria-controls="callout-8" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-7-contents" aria-controls="callout-7" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -948,7 +929,7 @@ Figure&nbsp;2.6: Three canola fields left. Note the row numbers – 1, 2, 3, the
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-8" class="callout-8-contents callout-collapse collapse">
+<div id="callout-7" class="callout-7-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <ul>
 <li><strong>R for Data Science (Wickham)</strong> – the <a href="https://r4ds.hadley.nz/data-tidy">Data tidying chapter</a> is the definitive treatment of tidy data and the wide/long distinction (we return to this in Module 3).</li>
@@ -962,7 +943,7 @@ Figure&nbsp;2.6: Three canola fields left. Note the row numbers – 1, 2, 3, the
 <h2 data-number="2.5" class="anchored" data-anchor-id="sec-pivottables"><span class="header-section-number">2.5</span> PivotTables</h2>
 <div class="video-callout">
 <div class="callout callout-style-default callout-note callout-titled" title="Video walkthrough of this section">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-9-contents" aria-controls="callout-9" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-8-contents" aria-controls="callout-8" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -971,14 +952,14 @@ Figure&nbsp;2.6: Three canola fields left. Note the row numbers – 1, 2, 3, the
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-9" class="callout-9-contents callout-collapse collapse">
+<div id="callout-8" class="callout-8-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <div class="quarto-video ratio ratio-16x9"><iframe data-external="1" src="https://www.youtube.com/embed/vIREF828bts" title="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe></div>
 </div>
 </div>
 </div>
 </div>
-<p>PivotTables are best understood by seeing them in action. The video below shows one being built; the text here is the reference to come back to.</p>
+<p>PivotTables are best understood by seeing them in action. The video above shows one being built – I would suggest wathicn the video before reading on.</p>
 <p>A <strong>PivotTable</strong> summarizes a dataset by category – average yield by crop, total acres by year, or average yield by crop and year – without requiring you to write formulas. This is one reason why long data is so useful: the variables stored in columns can become the categories that a PivotTable groups by.</p>
 <p>You build a PivotTable by dragging the variable you want to group by into one box and the variable you want to summarize into another. The name comes from how easily you can <strong>pivot</strong> the resulting table: put crops down the rows and years across the columns, swap them, or add another variable to create more detailed groups – all by dragging fields to different positions.</p>
 <p>The workbook below puts this to work. Its Data tab contains the full variety-yield file: one row per risk zone, crop, variety and year – 14,700 rows, far too many to usefully inspect one at a time. The PivotTable tab summarizes them in one table: average barley yield by variety and year, with the risk zone available as a filter. Swap <code>Crop</code> in the filter, or drag <code>Risk_Zone</code> into Rows, and the same 14,700 rows answer a different question.</p>
@@ -998,7 +979,7 @@ Figure&nbsp;2.6: Three canola fields left. Note the row numbers – 1, 2, 3, the
 <p>Selecting a cell in a PivotTable and choosing Insert → PivotChart creates a chart tied to the table. Filter or rearrange the PivotTable and the chart follows, which is the advantage over copying numbers into an ordinary chart. Give it a title and label the axes as you would any chart.</p>
 <p>Finally, before interpreting any summary, check the units. The crops in this workbook are not all measured in the same units: cereals and canola are in bushels per acre, while pulse crops such as lentils and chickpeas are reported in <em>pounds</em> per acre. A PivotTable that averages yield across all crops mixes the two. Excel will happily average pounds per acre together with bushels per acre and return a number – but that number has no meaningful interpretation. Keep <code>Crop</code> in the filter, or in Rows, so every cell of the summary is one crop in one unit.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-10-contents" aria-controls="callout-10" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-9-contents" aria-controls="callout-9" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -1007,7 +988,7 @@ Figure&nbsp;2.6: Three canola fields left. Note the row numbers – 1, 2, 3, the
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-10" class="callout-10-contents callout-collapse collapse">
+<div id="callout-9" class="callout-9-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <ul>
 <li><strong>Excel for Dummies</strong> – <em>Microsoft Excel Data Analysis for Dummies</em> (3rd ed.), the PivotTable chapters (this is one of the book’s strongest topics).</li>

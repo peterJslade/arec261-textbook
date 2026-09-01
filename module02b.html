@@ -605,14 +605,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#learning-objectives" id="toc-learning-objectives" class="nav-link active" data-scroll-target="#learning-objectives">Learning Objectives</a></li>
-  <li><a href="#sec-project-folder" id="toc-sec-project-folder" class="nav-link" data-scroll-target="#sec-project-folder"><span class="header-section-number">5.1</span> One Folder Per Project</a></li>
+  <li><a href="#sec-project-folder" id="toc-sec-project-folder" class="nav-link active" data-scroll-target="#sec-project-folder"><span class="header-section-number">5.1</span> Setting up a project folder</a></li>
   <li><a href="#sec-packages" id="toc-sec-packages" class="nav-link" data-scroll-target="#sec-packages"><span class="header-section-number">5.2</span> Packages</a></li>
   <li><a href="#sec-tidyverse" id="toc-sec-tidyverse" class="nav-link" data-scroll-target="#sec-tidyverse"><span class="header-section-number">5.3</span> The Tidyverse</a></li>
-  <li><a href="#sec-reading-data" id="toc-sec-reading-data" class="nav-link" data-scroll-target="#sec-reading-data"><span class="header-section-number">5.4</span> Reading Data from CSV</a>
-  <ul>
-  <li><a href="#when-r-cannot-find-the-file" id="toc-when-r-cannot-find-the-file" class="nav-link" data-scroll-target="#when-r-cannot-find-the-file">When R cannot find the file</a></li>
-  </ul></li>
+  <li><a href="#sec-reading-data" id="toc-sec-reading-data" class="nav-link" data-scroll-target="#sec-reading-data"><span class="header-section-number">5.4</span> Reading Data from CSV</a></li>
   <li><a href="#sec-inspecting-data" id="toc-sec-inspecting-data" class="nav-link" data-scroll-target="#sec-inspecting-data"><span class="header-section-number">5.5</span> Inspecting the Data</a></li>
   <li><a href="#sec-r-summary-stats" id="toc-sec-r-summary-stats" class="nav-link" data-scroll-target="#sec-r-summary-stats"><span class="header-section-number">5.6</span> Summary Statistics in R</a></li>
   <li><a href="#sec-data-workflow" id="toc-sec-data-workflow" class="nav-link" data-scroll-target="#sec-data-workflow"><span class="header-section-number">5.7</span> Full Script</a></li>
@@ -659,29 +655,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<p>In the last chapter, we created small datasets directly in R. Real data analysis usually starts somewhere else: with a file. That creates a few practical questions. Where should the file go? How does R find it? How do we bring it into R? And once it is there, how do we check that R has read it correctly?</p>
+<p>In the last chapter, we created small datasets directly in R. Real data analysis usually starts with a file. That creates a few practical questions. Where should the file go? How does R find it? How do we bring it into R? And once it is there, how do we check that R has read it correctly?</p>
 <p>This chapter develops a simple workflow for working with real data: keep everything for an analysis in one project folder, refer to files with relative paths, use packages to add functions to R, read the data from a CSV file, and inspect it before doing any analysis. These habits are not exciting, but they prevent a remarkable number of problems later.</p>
 <p>The data we will work with is a small .csv file of canola yield trials (hypothetical data): 120 fields, each with an ID, a fertilizer rate, growing-season rainfall, a variety, and a yield. It can be downloaded here: <a href="practice/data/canola_trial.csv"><code>canola_trial.csv</code></a>.</p>
-<section id="learning-objectives" class="level2 unnumbered">
-<h2 class="unnumbered anchored" data-anchor-id="learning-objectives">Learning Objectives</h2>
-<div class="objectives">
-<p>By the end of this chapter you should be able to:</p>
-<ol type="1">
-<li>Set up a self-contained project folder for an analysis.</li>
-<li>Explain the difference between an absolute and a relative path.</li>
-<li>Install and load an R package, and explain the difference between the two.</li>
-<li>Read a CSV file into R as a data frame.</li>
-<li>Inspect a new dataset and identify common problems.</li>
-<li>Calculate basic summary statistics.</li>
-</ol>
-</div>
-</section>
 <section id="sec-project-folder" class="level2" data-number="5.1">
-<h2 data-number="5.1" class="anchored" data-anchor-id="sec-project-folder"><span class="header-section-number">5.1</span> One Folder Per Project</h2>
-<p>The temptation after downloading the csv file is to get it loaded into R as quickly as possible. However, it is worth taking a minute (and it only takes less than a minute!) to set up a project folder. The folder will eventually hold your data, code, and output. For complex projects, it would be best to separate these into subfolders. Our project might look like this:</p>
+<h2 data-number="5.1" class="anchored" data-anchor-id="sec-project-folder"><span class="header-section-number">5.1</span> Setting up a project folder</h2>
+<p>The temptation after downloading the csv file is to get it loaded into R as quickly as possible. However, it is worth taking a minute (and it only takes less than a minute!) to set up a project folder. The folder will eventually hold your data, code, and output. For complex projects, it would be best to separate these into subfolders. A typical project might look like this:</p>
 <pre><code>canola_yields/
   data/
-    canola_trial.csv          &lt;- exactly as it arrived
+    canola_trial.csv          
   code/
     1_clean.R
     2_analysis.R
@@ -689,8 +671,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     yield_by_variety.png
     summary_table.csv
   README.md</code></pre>
-<p><code>data/</code> contains the original data; <code>code/</code> contains the scripts, numbered in the order they run; <code>output/</code> contains tables, figures, and other results the scripts produce; and <code>README.md</code> holds notes explaining the project. The exact folder names matter less than the principle: <strong>the project is self-contained</strong>. If you zip <code>canola_yields/</code> and send it to somebody else, they have everything they need to run your analysis. A script that reaches out to a file elsewhere on your hard drive will not travel like that.</p>
-<p><strong>Raw data is never edited.</strong> Suppose <code>canola_trial.csv</code> contains an obvious typo. You could open the file in Excel, fix the cell, and save – but then there is no record of what you changed, and you have written over the only copy of what you were given. Keep the original file exactly as it arrived and make the correction in your R script, where it leaves a trail: what changed, and how.</p>
+<ul>
+<li><code>data/</code> contains the original data;</li>
+<li><code>code/</code> contains the scripts, numbered in the order they run;</li>
+<li><code>output/</code> contains tables, figures, and other results the scripts produce; and</li>
+<li><code>README.md</code> holds notes explaining the project. This becomes more important when we start using AI tools.</li>
+</ul>
+<p>The exact folder names matter less than the principle: <strong>the project is self-contained</strong>. If you zip <code>canola_yields/</code> and send it to somebody else, they have everything they need to run your analysis.</p>
 <p>You can create all this in <strong>Positron</strong> by selecting <strong>File → New Folder from Template…</strong>. After you create the folder you will see a file explorer tab open on the left pane of Positron. When you save data or files in your folder you will see them appear in this tab. You can also add new subfolders and files in this pane by either right-clicking in the pane or using the new-folder button.</p>
 <div id="fig-project-explorer" class="screenshot quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -703,7 +690,7 @@ Figure&nbsp;5.1: The Explorer pane after creating and opening the project folder
 </figure>
 </div>
 <p>Creating a project folder is important for two reasons. First, it allows you to read in data using relative paths (discussed in <a href="#sec-reading-data" class="quarto-xref"><span>Section 5.4</span></a>). Second, when using AI tools you can choose to provide them access to your whole folder, and they can read all the files and data within that folder to get the context for your entire project (discussed in Module 5).</p>
-<p>An alternative set-up you might want for this class is to just have an AREC_261 folder with subfolders branching off from there. For example:</p>
+<p>An alternative set-up you might want for this class is to have an AREC_261 folder with subfolders branching off from there. For example:</p>
 <pre><code>AREC_261/
   code/
     module_1/
@@ -714,6 +701,7 @@ Figure&nbsp;5.1: The Explorer pane after creating and opening the project folder
     module_2/
   README.md</code></pre>
 <p>Note that I have subfolders for each module in the <code>code/</code> and <code>output/</code> folders. But since the datasets we use will be shared across modules, I have just one <code>data/</code> folder. Others might prefer a different structure.</p>
+<p>A final note: <em>Never overwrite your raw data</em>. Suppose <code>canola_trial.csv</code> contains an obvious typo. You could open the file in Excel, fix the cell, and save – but then there is no record of what you changed. Keep the original file exactly as it arrived and make the correction in your R script, where it leaves a trail: what changed, and how.</p>
 </section>
 <section id="sec-packages" class="level2" data-number="5.2">
 <h2 data-number="5.2" class="anchored" data-anchor-id="sec-packages"><span class="header-section-number">5.2</span> Packages</h2>
@@ -833,7 +821,6 @@ dbl (3): fertilizer_kg_ha, rainfall_mm, yield_bu_acre
 <p>One should also note that if we just read in the data but don’t assign it to <code>trial_data</code> – for example if we just run:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">read_csv</span>(<span class="st">"data/canola_trial.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>– then R prints the data to the console but does not save it anywhere. This is the same displaying-versus-saving distinction from the last chapter: without the assignment, there is no object to work with afterwards.</p>
-<p>The note <code>read_csv</code> prints is its guess at each column’s <strong>type</strong> – <code>chr</code> for text and <code>dbl</code> for numbers in the output above. R guesses well but not perfectly, which is one reason we always inspect a dataset after reading it.</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -857,36 +844,26 @@ dbl (3): fertilizer_kg_ha, rainfall_mm, yield_bu_acre
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Two rules save a lot of trouble. Use short descriptive names without spaces or punctuation: <code>yield_data_final.csv</code>, not <code>Field Yields FINAL!!.csv</code>. And write dates as YYYY-MM-DD: <code>2026-09-15_deliveries.csv</code> sorts chronologically on its own, and <code>Sept15.csv</code> does not.</p>
+<p>Use short descriptive names without spaces or punctuation: <code>yield_data_final.csv</code>, not <code>Field Yields FINAL!!.csv</code>.</p>
 </div>
 </div>
-<section id="when-r-cannot-find-the-file" class="level3 unnumbered">
-<h3 class="unnumbered anchored" data-anchor-id="when-r-cannot-find-the-file">When R cannot find the file</h3>
-<p>A common error looks like this:</p>
-<pre><code>Error: 'data/canola_trial.csv' does not exist in current working directory (...)</code></pre>
-<p>Do not start changing the code randomly. Check two things, in order:</p>
-<ul>
-<li><strong>Did you open the correct project folder?</strong> <strong>File → Open Folder…</strong> in Positron; the folder you open should contain <code>data/</code>.</li>
-<li><strong>Where does R think it is?</strong> Run <code>getwd()</code> and look at the folder it prints. Starting from that folder, can you go into a folder called <code>data</code> and find <code>canola_trial.csv</code>? If yes, the path works.</li>
-</ul>
-</section>
 </section>
 <section id="sec-inspecting-data" class="level2" data-number="5.5">
 <h2 data-number="5.5" class="anchored" data-anchor-id="sec-inspecting-data"><span class="header-section-number">5.5</span> Inspecting the Data</h2>
 <p>Successfully reading a file does not mean you are ready to analyze it. Inspect it first:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>trial_data              <span class="co"># prints the data frame (first 10 rows)</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(trial_data)        <span class="co"># number of rows</span></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ncol</span>(trial_data)        <span class="co"># number of columns</span></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(trial_data)       <span class="co"># column names</span></span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(trial_data)     <span class="co"># compact column-by-column view, with types</span></span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(trial_data)     <span class="co"># quick summary of every column</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>trial_data              <span class="co"># prints the data frame (first 10 rows)</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(trial_data)        <span class="co"># number of rows</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ncol</span>(trial_data)        <span class="co"># number of columns</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(trial_data)       <span class="co"># column names</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(trial_data)     <span class="co"># compact column-by-column view, with types</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(trial_data)     <span class="co"># quick summary of every column</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; trial_data              # prints the data frame (first 10 rows)
 # A tibble: 120 × 5
@@ -979,17 +956,17 @@ $ yield_bu_acre    &lt;dbl&gt; 56.7, 62.0, 53.6, 51.2, 49.2, 51.2, 49.0, 56.8, 6
 <p>Once the data are in R, we can calculate the same summary statistics we used in Excel. <code>yield_bu_acre</code> is a column of the data frame <code>trial_data</code>, so we refer to it as <code>trial_data$yield_bu_acre</code>:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(trial_data<span class="sc">$</span>yield_bu_acre)</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="fu">median</span>(trial_data<span class="sc">$</span>yield_bu_acre)</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="fu">sd</span>(trial_data<span class="sc">$</span>yield_bu_acre)</span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="fu">range</span>(trial_data<span class="sc">$</span>yield_bu_acre)                        <span class="co"># returns c(min, max)</span></span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(trial_data<span class="sc">$</span>yield_bu_acre, <span class="fu">c</span>(<span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>)) <span class="co"># percentiles</span></span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="fu">IQR</span>(trial_data<span class="sc">$</span>yield_bu_acre)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(trial_data<span class="sc">$</span>yield_bu_acre)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">median</span>(trial_data<span class="sc">$</span>yield_bu_acre)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="fu">sd</span>(trial_data<span class="sc">$</span>yield_bu_acre)</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="fu">range</span>(trial_data<span class="sc">$</span>yield_bu_acre)                        <span class="co"># returns c(min, max)</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(trial_data<span class="sc">$</span>yield_bu_acre, <span class="fu">c</span>(<span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>)) <span class="co"># percentiles</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="fu">IQR</span>(trial_data<span class="sc">$</span>yield_bu_acre)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="console-transcript">
 <pre><code>&gt; mean(trial_data$yield_bu_acre)
 [1] 53.39917
@@ -1037,38 +1014,38 @@ $ yield_bu_acre    &lt;dbl&gt; 56.7, 62.0, 53.6, 51.2, 49.2, 51.2, 49.0, 56.8, 6
 <section id="sec-data-workflow" class="level2" data-number="5.7">
 <h2 data-number="5.7" class="anchored" data-anchor-id="sec-data-workflow"><span class="header-section-number">5.7</span> Full Script</h2>
 <p>The whole chapter fits in one script – the <code>code/1_canola_trial_script.R</code> we started in <a href="#sec-reading-data" class="quarto-xref"><span>Section 5.4</span></a>, now complete with every inspection and summary statistic from the chapter:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ---</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Title: Canola trial data</span></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Author: Your Name</span></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Date: 2026-09-29</span></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Description:</span></span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="co">#   Reads in the canola trial data and summarizes the</span></span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="co">#   variables in the data.</span></span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="co"># ---</span></span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Load packages</span></span>
-<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Read in the data</span></span>
-<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>trial_data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/canola_trial.csv"</span>)</span>
-<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Inspect the structure</span></span>
-<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>trial_data           <span class="co"># print the first rows</span></span>
-<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(trial_data)     <span class="co"># number of rows</span></span>
-<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a><span class="fu">ncol</span>(trial_data)     <span class="co"># number of columns</span></span>
-<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(trial_data)    <span class="co"># column names</span></span>
-<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(trial_data)  <span class="co"># columns, types, and first values</span></span>
-<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a><span class="co"># Inspect the values</span></span>
-<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(trial_data)</span>
-<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a><span class="co"># Summary statistics for yield</span></span>
-<span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(trial_data<span class="sc">$</span>yield_bu_acre)</span>
-<span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a><span class="fu">median</span>(trial_data<span class="sc">$</span>yield_bu_acre)</span>
-<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a><span class="fu">sd</span>(trial_data<span class="sc">$</span>yield_bu_acre)</span>
-<span id="cb15-30"><a href="#cb15-30" aria-hidden="true" tabindex="-1"></a><span class="fu">range</span>(trial_data<span class="sc">$</span>yield_bu_acre)</span>
-<span id="cb15-31"><a href="#cb15-31" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(trial_data<span class="sc">$</span>yield_bu_acre, <span class="fu">c</span>(<span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>))</span>
-<span id="cb15-32"><a href="#cb15-32" aria-hidden="true" tabindex="-1"></a><span class="fu">IQR</span>(trial_data<span class="sc">$</span>yield_bu_acre)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ---</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Title: Canola trial data</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Author: Your Name</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Date: 2026-09-29</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Description:</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="co">#   Reads in the canola trial data and summarizes the</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="co">#   variables in the data.</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="co"># ---</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Load packages</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Read in the data</span></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>trial_data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/canola_trial.csv"</span>)</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Inspect the structure</span></span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>trial_data           <span class="co"># print the first rows</span></span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(trial_data)     <span class="co"># number of rows</span></span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a><span class="fu">ncol</span>(trial_data)     <span class="co"># number of columns</span></span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(trial_data)    <span class="co"># column names</span></span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(trial_data)  <span class="co"># columns, types, and first values</span></span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a><span class="co"># Inspect the values</span></span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(trial_data)</span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a><span class="co"># Summary statistics for yield</span></span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(trial_data<span class="sc">$</span>yield_bu_acre)</span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a><span class="fu">median</span>(trial_data<span class="sc">$</span>yield_bu_acre)</span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a><span class="fu">sd</span>(trial_data<span class="sc">$</span>yield_bu_acre)</span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a><span class="fu">range</span>(trial_data<span class="sc">$</span>yield_bu_acre)</span>
+<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(trial_data<span class="sc">$</span>yield_bu_acre, <span class="fu">c</span>(<span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>))</span>
+<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a><span class="fu">IQR</span>(trial_data<span class="sc">$</span>yield_bu_acre)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
 </section>
