@@ -211,7 +211,7 @@ When something looks wrong:
 4. Record any correction, conversion or exclusion in a reproducible cleaning step.
 5. If the correct treatment remains uncertain, report that uncertainty and compare the results with and without the questionable observations.
 
-## Common data quality issues
+## Common data quality issues {#sec-quality-issues}
 
 These are the issues I most commonly encounter with datasets:
 
@@ -297,10 +297,6 @@ The following Excel workbook shows some steps in checking and then cleaning the 
 
 After diagnosing these issues, the best way to clean the data is through a Power Query which creates a transparent and reproducible workflow.  The output of the Power Query is in the workbook and the video below explains the steps taken to clean the data.
 
-::: {.callout-note collapse="true" title="Video walkthrough of cleaning with Power Query"}
-{{< video https://youtu.be/lITVHVsyOX4 >}}
-:::
-
 ::: {.workbook-callout}
 <!-- Anyone-view link expires 2026-11-29 under the University of Saskatchewan 90-day policy. -->
 
@@ -311,127 +307,40 @@ After diagnosing these issues, the best way to clean the data is through a Power
 [Download this workbook](textbook_examples/mod03_field_records_cleaning.xlsx) · [Open online](https://usaskca1-my.sharepoint.com/:x:/g/personal/pjs998_usask_ca/IQARIWupQ2l6SLHNK4SJIFi7AaPD784L8M-lxPSEBlwjw2I?e=Gd8AR1) (File → Save a Copy to view formulas and edit)
 :::
 
-The moisture column has more ways of saying missing than the N/A shown in the preview above -- open the full file and find the rest. [An R script](practice/field_records_cleaning.R) works through the same checks and cleaning in R and writes the cleaned file to `output/`.
-
-
-
-
-
-The first step in Excel is to inspect the raw data, not to start replacing values. Summaries and graphs help us find the rows that need attention. We can then use formulas or Power Query to record what we changed while keeping the original columns intact.
-
-#### Summarize and visualize the raw data {.unnumbered}
-
-The workbook below contains 19 grain-delivery tickets. Columns A through F hold the data as they arrived. We will begin with the two numeric measurements: `weight_tonnes` in `D5:D23` and `moisture_pct` in `E5:E23`.
-
-For the weight column, calculate:
-
-- the number of observations with `=COUNT(D5:D23)`;
-- the mean with `=AVERAGE(D5:D23)`;
-- the median with `=MEDIAN(D5:D23)`;
-- the minimum with `=MIN(D5:D23)`;
-- the maximum with `=MAX(D5:D23)`; and
-- the number of blanks with `=COUNTBLANK(D5:D23)`.
-
-There are 19 recorded weights. Their mean is 33.9 tonnes, their median is 36.5 tonnes, and they range from -12.4 to 48.1 tonnes. The negative minimum cannot be a delivery weight, but the summary does not tell us why it is negative or what value should replace it.
-
-Repeat the same calculations for `moisture_pct`. There are 18 recorded values and one blank. The mean is 9.17%, the median is 9.25%, and the values range from 0.099% to 14.6%. The minimum is suspicious because the other moisture readings are between 7% and 14.6%. It may have been entered as a proportion rather than a percentage.
-
-The summary statistics identify the extreme values, but a graph shows how those values relate to the rest of the data. Select the weight column and choose **Insert > Insert Statistic Chart > Histogram**. Repeat this for moisture. The weight histogram has one observation separated from the positive delivery weights. The moisture histogram has one observation close to zero and the remaining values between 7% and 14.6%.
-
-A histogram does not tell us that an unusual value is wrong. It tells us which observations to investigate. We still need the source record or a documented rule before changing a value.
-
-::: {.workbook-callout}
-<!-- Public view-only link expires 2026-11-20 under the University of Saskatchewan 90-day policy. -->
-
-::: {.excel-embed}
-<iframe width="402" height="700" frameborder="0" scrolling="no" src="https://usaskca1-my.sharepoint.com/:x:/g/personal/pjs998_usask_ca/IQDIaxNv25afSa5LoEz9-G3tAXoBxYJcoWjP4fMOie4JVrQ?e=PsWLYM&action=embedview&wdAllowInteractivity=False&wdDownloadButton=True&wdInConfigurator=True&ActiveCell=%27Cleaning%27!A1"></iframe>
+::: {.callout-note collapse="true" title="Video walkthrough of cleaning with Power Query"}
+{{< video https://youtu.be/lITVHVsyOX4 >}}
 :::
 
-[Download this workbook](textbook_examples/mod03_cleaning_excel.xlsx) · [Open online](https://usaskca1-my.sharepoint.com/:x:/g/personal/pjs998_usask_ca/IQDIaxNv25afSa5LoEz9-G3tAXoBxYJcoWjP4fMOie4JVrQ?e=PsWLYM) (File → Save a Copy to view formulas and edit)
-:::
+## Data cleaning in R {#sec-cleaning-r}
 
-#### Cleaning with formulas {.unnumbered}
+In R the whole job fits in one script: read the raw file, check it, apply the cleaning rules and write the cleaned copy somewhere else. The script is the record of what was done, and when a new version of the raw file arrives it can be rerun from the top. The full script is [`field_records_cleaning.R`](practice/field_records_cleaning.R); this section walks through it in stages.
 
-Once we know where the problems are, formulas can create cleaned columns beside the raw data. In the workbook, column G standardizes crop names, column H converts the moisture value recorded as a proportion, column I counts repeated ticket numbers and column J flags the negative weight. The original values remain in columns A through F so that every change can be traced back.
-
-The filter dropdown is useful for checking categories because it lists each distinct value. It reveals that `barley`, `Barley` and other capitalization differences would be treated as separate groups. Excel's summary functions also ignore text in a numeric range, so add a separate check such as `=SUMPRODUCT(--ISTEXT(D5:D23))`. A value written as `38.2 t` would otherwise disappear from the mean, minimum and maximum without producing an error.
-
-Formulas work well when the cleaning rules are short and the raw and cleaned values need to remain visible together. Avoid using Find & Replace on the raw columns. It changes the values in place and leaves no record of what was replaced.
-
-#### Cleaning with Power Query {.unnumbered}
-
-Power Query has recorded steps for the same work:
-
-- **Remove Top Rows** and **Use First Row as Headers** deal with files that begin with a title or notes.
-- The type icon in a column header sets a column to Text, Whole Number, Decimal or Date. A value that cannot be converted becomes an error that can be inspected.
-- **Transform > Format > Trim** removes extra spaces, and **Capitalize Each Word** standardizes capitalization.
-- **Replace Values** handles synonyms and missing-value codes. Power Query stores a missing value as `null`.
-- **Remove Duplicates** drops exact duplicates. To find a repeated identifier with different values, use **Group By** to count rows for each identifier and filter to counts above one.
-- **Split Column > By Delimiter** separates values that were stored together.
-- **Fill > Down** copies a category into blank cells below it when a spreadsheet records the label only once for a group of rows.
-
-For dates, set `delivery_date` to Date and inspect conversion errors. If the whole source uses another convention, choose **Change Type > Using Locale** and state that convention. Opening the CSV directly lets Excel guess each cell: an ambiguous value such as `03/11/2025` can become the wrong date without an error. Power Query Editor requires a current desktop version of Excel 365 and is not available in Excel for the web.
-
-Each operation appears in the **Applied Steps** list. Clicking a step shows the table at that point. When a new version of the source file arrives, **Refresh** runs the steps again.
-
-### Data cleaning in R {#sec-cleaning-r}
-
-The R examples use [`grain_deliveries_messy.csv`](practice/data/grain_deliveries_messy.csv), a synthetic file constructed for this chapter to contain the problems discussed below. Read it without letting `read_csv()` trim spaces so that we can see the spaces in some crop names:
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-suppressPackageStartupMessages({
-  library(tidyverse)
-  library(janitor)
-})
-
-# Read the file and identify common missing-value codes
-deliveries <- read_csv(
-  "practice/data/grain_deliveries_messy.csv",
-  na = c("", "NA", "N/A", "-", "."),
-  trim_ws = FALSE
-)
-
-glimpse(deliveries)
-')
-```
-
-The output already shows two problems. `weight_tonnes` was read as text because one value contains a unit, and `delivery_date` is text because the file mixes date formats. `read_csv()` normally removes leading and trailing spaces; `trim_ws = FALSE` is used here only to keep that problem visible. `str_squish()` remains useful for doubled internal spaces and for text imported through other routes.
-
-#### Awkward Column Names {#sec-clean-names}
-
-Column names such as `Yield (bu/ac)`, `REGION_NAME` and `Field ID Number` are cumbersome in code. When columns name have spaces, you need to use back ticks when referring to them (e.g. `data$`Yield (bu/ac)`` [CORRECT BY BACK TICKS TO BE VISIBLE]).  It is almost always best to use only lower cases, as R (and other software programs) are case-sensitive. 
-
-This book uses **snake case**: lower-case words separated by underscores, such as `yield_bu_ac`, `region_name` and `field_id`.   Some people prefer using dots intead of underscores (e.g. `yield.bu.ac`). Personally, I find that underscores look a bit nicer.
-
-Use `rename()` when only a few names need changing. The new name goes on the left and the old name on the right:
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-# Make a small table with awkward names
-awkward_names <- tibble(
-  `Weight (t)` = c(42.1, 37.8),
-  CROP_NAME = c("Canola", "Wheat")
-)
-
-awkward_names |>
-  rename(
-    weight_tonnes = `Weight (t)`,
-    crop = CROP_NAME
-  )
-')
-```
-
-Another option is to use the `clean_names()` function from the `janitor` package, which converts every column name in a data frame to snake case. 
+The header describes the script, and the read step already deals with part of issue 4: the `na` argument of `read_csv()` lists the codes that mean missing, so `N/A`, `missing` and the blank cell all become `NA` on the way in.
 
 ```r
-# Install janitor package (if not installed already)
-install.packages("janitor")
+# ---
+# Title: Checking and cleaning the field records
+# Author: Your Name
+# Date: 2026-08-31
+# Description:
+#   Checks data/field_records_messy.csv for the eight data-quality issues
+#   from Module 3, fixes each one, and writes the cleaned file to
+#   output/field_records_clean.csv.
+# ---
 
+# Load packages
+library(tidyverse)
+library(janitor)
+
+# ============================================================
+# Read
+# ============================================================
+
+# Read the file, declaring the missing-value codes up front (issue 4)
+records <- read_csv(
+  "data/field_records_messy.csv",
+  na = c("", "N/A", "missing")
+)
 ```
 
 ```{r}
@@ -440,351 +349,151 @@ install.packages("janitor")
 console('
 library(janitor)
 
-# Clean every column name in one call
-awkward_names |>
-  clean_names() |>
-  names()
-
-deliveries <- deliveries |> clean_names()
-')
-```
-
-
-
-
-
-
-#### Text in a Numeric Column {#sec-text-numbers}
-
-The first `glimpse()` reported `weight_tonnes` as `<chr>`, or character text. One row contains `"38.2 t"`, so `read_csv()` could not treat the whole column as numeric. Find the values containing something other than a number, decimal point or minus sign:
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-# Find weights containing a unit or other text
-deliveries |>
-  filter(str_detect(weight_tonnes, "[^0-9.-]")) |>
-  select(ticket_id, weight_tonnes)
-')
-```
-
-The file was constructed with every weight in tonnes, so the suffix can be removed. In real work, that fact must come from a data dictionary or the person who made the file. `parse_number()` keeps the numeric part:
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-# Convert the weight column after checking its units
-deliveries <- deliveries |>
-  mutate(weight_tonnes = parse_number(weight_tonnes))
-
-glimpse(deliveries)
-')
-```
-
-If the suffix indicated a different unit, removing it would give the wrong answer. Convert the value to the common unit before discarding the label.
-
-#### Duplicates {#sec-duplicates}
-
-An **exact duplicate** repeats the entire row. `duplicated()` finds the later copy, while `distinct()` keeps one copy of every unique row:
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-# Show exact duplicates
-deliveries |>
-  get_dupes()
-
-nrow(deliveries)
-
-# Keep one copy of each unique row
-deliveries <- deliveries |> distinct()
-nrow(deliveries)
-')
-```
-
-A **conflicting duplicate** repeats an identifier but not the whole row. Ticket `T0030` appears with two different weights, so `distinct()` keeps both. Count the identifier to find it:
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-# Find and inspect repeated ticket numbers
-deliveries |>
-  get_dupes(ticket_id)
-')
-```
-
-The data alone does not say which row is correct. Check the source record. If that is impossible, report how the conflict was handled.
-
-#### Impossible Values {#sec-impossible-values}
-
-Every numeric variable has a possible range. A delivery weight cannot be negative and a moisture percentage cannot be 250. `summary()` is a quick way to inspect the minimum and maximum:
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-# Inspect the ranges of the numeric measurements
-deliveries |>
-  select(weight_tonnes, moisture_pct) |>
-  summary()
-
-# Display values outside their possible ranges
-deliveries |>
-  filter(weight_tonnes <= 0 | moisture_pct > 100) |>
-  select(ticket_id, weight_tonnes, moisture_pct)
-')
-```
-
-A negative weight may be a sign error or a reversed transaction. A moisture value of 250 may have lost its decimal point. Those are possible explanations, not facts. Correct a value only when the source supports the correction.
-
-Here the synthetic file provides no defensible replacement values. Record that decision by treating the three impossible measurements as missing rather than silently carrying them into later summaries:
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-# Mark values outside the possible range as missing.
-# This records a decision; it does not invent a correction.
-deliveries <- deliveries |>
-  mutate(
-    weight_tonnes = if_else(
-      weight_tonnes <= 0,
-      NA,
-      weight_tonnes
-    ),
-    moisture_pct = if_else(
-      moisture_pct > 100,
-      NA,
-      moisture_pct
-    )
-  )
-')
-```
-
-An extreme value can still be valid. A canola yield of 95 bu/ac is unusual, but it may belong to a very good field. Check it against the source and, if uncertainty remains, compare the analysis with and without it.
-
-#### Inconsistent Categories {#sec-categories}
-
-Several spellings of the same category produce separate groups. Count each categorical column before using it in `group_by()`:
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-# Count the crop names as they arrived
-deliveries |>
-  count(crop, sort = TRUE)
-')
-```
-
-Capitalization and spaces can be standardized with string functions:
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-# Remove extra spaces and use consistent capitalization
-deliveries <- deliveries |>
-  mutate(crop = str_squish(crop),
-         crop = str_to_title(crop))
-
-deliveries |>
-  count(crop, sort = TRUE)
-')
-```
-
-Synonyms require an explicit decision. This file contains none after spacing and capitalization are standardized. When documentation says that two labels mean the same thing, put that mapping in the script; for example:
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-# Reconcile known synonyms while leaving other values unchanged
-deliveries <- deliveries |>
-  mutate(crop = case_when(
-    crop == "Canola/Rapeseed" ~ "Canola",
-    crop == "Soybean" ~ "Soybeans",
-    TRUE ~ crop
-  ))
-
-deliveries |>
-  count(crop, sort = TRUE)
-')
-```
-
-The output is unchanged because those two labels are illustrative and do not occur in this file. A mapping should change data only when the documented source labels are present.
-
-#### Mixed Units {#sec-mixed-units}
-
-Most moisture readings in the file are percentages near 8 to 15. Three values are below 1, which is not a plausible moisture percentage here; the intended construction of this teaching file confirms that they are proportions such as `0.099` rather than `9.9`. The values are numeric, so they produce no parsing error.
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-# Find moisture readings recorded as decimal proportions
-sum(deliveries$moisture_pct < 1, na.rm = TRUE)
-
-deliveries |>
-  filter(moisture_pct < 1) |>
-  select(ticket_id, moisture_pct)
-
-# Convert decimal proportions to percentages
-deliveries <- deliveries |>
-  mutate(
-    moisture_pct = if_else(
-      moisture_pct < 1,
-      moisture_pct * 100,
-      moisture_pct
-    )
-  )
-')
-```
-
-This rule depends on subject knowledge: a grain moisture value below 1 percent is not plausible here. If the file contains a unit column, use that column in `case_when()` instead of inferring the unit from the size of the value.
-
-#### Missing Values {#sec-missing-values}
-
-R represents a missing value as `NA`. Most calculations involving `NA` return `NA`. The canola trial data has three fields with no rainfall reading:
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-# Read a file containing three missing rainfall values
-trial_data <- read_csv(
-  "practice/data/canola_trial.csv",
-  show_col_types = FALSE
+records <- read_csv(
+  "data/field_records_messy.csv",
+  na = c("", "N/A", "missing")
 )
-
-mean(trial_data$rainfall_mm)
-mean(trial_data$rainfall_mm, na.rm = TRUE)
-')
+', echo = FALSE)
 ```
 
-The first call returns `NA` because three rainfall values are unknown. The second calculates the mean from the observed values. The argument `na.rm = TRUE` makes that decision visible. Many Excel functions skip blank cells automatically, so the missing values need to be counted separately there.
-
-##### Missing values in disguise {.unnumbered}
-
-A blank cell, `"NA"`, `"N/A"`, `"-"`, `"."` and `-999` may all mean that no value was recorded. The `na` argument in the first `read_csv()` call told R which text codes to treat as missing.
-
-Count missing values in every column before deciding what to do with them:
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-# Count missing values in each column
-deliveries |>
-  summarise(
-    across(everything(), \\(x) sum(is.na(x)))
-  )
-')
-```
-
-A numeric code such as `-999` is more dangerous. R reads it as a number and includes it in calculations. `summary()` exposes it as an implausible minimum unless it is converted to `NA` when the file is read.
-
-##### Working with missing values {.unnumbered}
-
-`is.na()` identifies missing values and `drop_na()` removes rows that contain them:
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-# Count missing weights
-sum(is.na(deliveries$weight_tonnes))
-
-# Count rows retained after dropping any missing value
-deliveries |>
-  drop_na() |>
-  nrow()
-
-# Count rows retained when only analysis variables matter
-deliveries |>
-  drop_na(weight_tonnes, moisture_pct) |>
-  nrow()
-
-# Calculate a mean from the observed moisture readings
-mean(deliveries$moisture_pct, na.rm = TRUE)
-')
-```
-
-The impossible-value decision above created missing values: there are now two missing weights and three missing moisture readings. The mean excludes the flagged moisture value of 250 rather than allowing it to distort the result. Dropping every incomplete row can remove far more data than dropping rows missing the variables used in a particular calculation.
-
-##### When is dropping safe? {.unnumbered}
-
-The answer depends on whether the chance a value is missing depends on the value itself. If a rain gauge failed at arbitrary times, the observed days may still represent the season, although there are fewer of them. If low-yielding farms were less likely to report, the remaining records will overstate average yield. In the deliveries file, omitting the three missing moisture readings would be less concerning if records were left blank for administrative reasons than if unusually wet loads were more likely to go unrecorded. Record how many values were missing, which observations were excluded and why the exclusion seemed reasonable.
-
-#### Dates Stored as Text {#sec-dates-text}
-
-`glimpse()` reported `delivery_date` as `<chr>` because most rows use `2025-09-07` while two use day/month/year. Text dates sort alphabetically and cannot be used in date arithmetic.
-
-Parse the expected format and inspect the rows that fail. `lubridate::ymd()` warns when a value does not follow year-month-day order:
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-# Parse dates written as year-month-day
-deliveries_with_dates <- deliveries |>
-  mutate(date_parsed = lubridate::ymd(delivery_date))
-
-# Display dates written in a different format
-deliveries_with_dates |>
-  filter(is.na(date_parsed)) |>
-  select(ticket_id, delivery_date)
-')
-```
-
-The value `03/11/2025` is ambiguous on its own. The other exceptional value, `15/10/2025`, can only be day/month/year, and all deliveries occur from September through November, so the teaching file's intended convention is day/month/year for both exceptional rows. Parse each stated format and combine the results:
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-deliveries <- deliveries |>
-  mutate(
-    delivery_date = coalesce(
-      lubridate::ymd(delivery_date, quiet = TRUE),
-      lubridate::dmy(delivery_date, quiet = TRUE)
-    )
-  )
-
-deliveries |>
-  select(ticket_id, delivery_date) |>
-  filter(ticket_id %in% c("T0004", "T0047"))
-
-glimpse(deliveries$delivery_date)
-')
-```
-
-The choice of day/month/year comes from the file's construction and context, not from the ambiguous value alone. The final check is that the column is `<date>`, not `<chr>` (@sec-csv-files).
-
-Once the checks are complete, write a derived file rather than editing the raw input:
+The checks mirror the DataSummary worksheet. `summary()` gives the minimum, maximum, mean and median of every numeric column, `count()` plays the role of `UNIQUE()` and `COUNTIF()`, and comparing `nrow()` of the data with `nrow()` of its distinct rows counts the duplicates.
 
 ```r
-write_csv(
-  deliveries,
-  "data/processed/grain_deliveries_clean.csv"
-)
+# ============================================================
+# Check
+# ============================================================
+
+# Column names and types as they arrived
+glimpse(records)
+
+# Summary of every column: the min and max expose the planted problems
+summary(records)
+
+# Count the categories: the same variety appears under four spellings
+records |>
+  count(VARIETY_NAME, sort = TRUE)
+
+# Count the rows, then the distinct rows: the difference is the duplicates
+nrow(records)
+nrow(distinct(records))
 ```
 
-The raw file remains unchanged, the script records every decision, and rerunning it regenerates the clean file—the same principle as **Refresh** in Power Query.
+```{r}
+#| eval: true
+#| echo: false
+console('
+glimpse(records)
 
-### A Checklist {#sec-cleaning-checklist .unnumbered}
+summary(records)
 
-Use these checks on a new file:
+records |>
+  count(VARIETY_NAME, sort = TRUE)
 
-1. Use `glimpse()` to check the dimensions, column names and types.
-2. Write down what one row represents and whether the table is tidy.
-3. Use `summary()` to inspect the ranges of numeric variables.
-4. Use `count()` on categorical variables and look for spelling and spacing differences.
-5. Check for exact duplicates and repeated identifiers.
-6. Count `NA`s in every column and look for other missing-value codes.
-7. Check that units are consistent and dates were read as dates.
-8. Record every correction, exclusion and assumption in the script or Power Query steps.
+nrow(records)
+nrow(distinct(records))
+', echo = FALSE)
+```
+
+The transcript shows the problems found earlier: the yield runs from -99 to 1250, the moisture maximum is the 9999 code, the harvest weight arrived as text, the variety appears under four spellings, and the file has 38 rows but only 36 distinct ones.
+
+The cleaning itself is one pipe, with a comment on each rule naming the issue it resolves. Two functions are new. `parse_number()` pulls the number out of text such as `142.9 t`, which fixes issue 2. For the dates, `ymd()` parses the year-first formats and `mdy()` the month-first ones; each returns `NA` for formats it does not recognize, and `coalesce()` keeps the first non-missing of the two, so all four formats become real dates. The yield rule blanks the -99 code, the negative and the 1250 rather than correcting them, because there is nothing defensible to replace them with.
+
+```r
+# ============================================================
+# Clean
+# ============================================================
+
+records_clean <- records |>
+  distinct() |>      # issue 3: drop the exact duplicate rows
+  clean_names() |>   # issue 1: every column name to snake case
+  rename(variety = variety_name,   # clearer names, with units where they matter
+         weight_t = harvest_weight,
+         n_rate_kg_ha = n_rate,
+         moisture_pct = moisture_percent) |>
+  mutate(
+    # Issue 7: one spelling for the Brandon variety
+    variety = if_else(variety %in% c("Brandon", "Brandon AAC", "Brndon"),
+                      "AAC Brandon", variety),
+    # Issue 8: parse the mixed date formats (year-first, then month-first)
+    seeded_date = coalesce(ymd(seeded_date, quiet = TRUE),
+                           mdy(seeded_date, quiet = TRUE)),
+    # Issues 4 and 5: the -99 code, the negative and the 1250 all become NA
+    yield_bu_ac = if_else(yield_bu_ac <= 0 | yield_bu_ac > 200,
+                          NA, yield_bu_ac),
+    # Issue 2: strip the unit text from the weights and make them numeric
+    weight_t = parse_number(weight_t),
+    # Issue 6: rates below 1 are t/ha, so convert them to kg/ha
+    n_rate_kg_ha = if_else(n_rate_kg_ha < 1,
+                           n_rate_kg_ha * 1000, n_rate_kg_ha),
+    # Issue 4 again: the 9999 moisture code becomes NA
+    moisture_pct = if_else(moisture_pct > 100, NA, moisture_pct)
+  )
+
+# Print the cleaned data
+records_clean
+```
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+records_clean <- records |>
+  distinct() |>
+  clean_names() |>
+  rename(variety = variety_name,
+         weight_t = harvest_weight,
+         n_rate_kg_ha = n_rate,
+         moisture_pct = moisture_percent) |>
+  mutate(
+    variety = if_else(variety %in% c("Brandon", "Brandon AAC", "Brndon"),
+                      "AAC Brandon", variety),
+    seeded_date = coalesce(ymd(seeded_date, quiet = TRUE),
+                           mdy(seeded_date, quiet = TRUE)),
+    yield_bu_ac = if_else(yield_bu_ac <= 0 | yield_bu_ac > 200,
+                          NA, yield_bu_ac),
+    weight_t = parse_number(weight_t),
+    n_rate_kg_ha = if_else(n_rate_kg_ha < 1,
+                           n_rate_kg_ha * 1000, n_rate_kg_ha),
+    moisture_pct = if_else(moisture_pct > 100, NA, moisture_pct)
+  )
+
+records_clean
+', echo = FALSE)
+```
+
+Check again before trusting the result. The ranges are now sane, the dates are real dates, and the Brandon spellings have collapsed into one.
+
+```r
+# ============================================================
+# Check again
+# ============================================================
+
+# The same checks on the cleaned data: sane ranges, one Brandon spelling
+summary(records_clean)
+
+records_clean |>
+  count(variety, sort = TRUE)
+
+# ============================================================
+# Write
+# ============================================================
+
+# Save the cleaned file to output; the raw file is never edited
+write_csv(records_clean, "output/field_records_clean.csv")
+```
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+summary(records_clean)
+
+records_clean |>
+  count(variety, sort = TRUE)
+
+write_csv(records_clean, "output/field_records_clean.csv")
+', echo = FALSE)
+```
+
+The cleaned file goes to `output/` and the raw file is never edited. If a corrected version of the raw data arrives, rerunning the script applies the same rules and rebuilds the cleaned file.
+
