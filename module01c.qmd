@@ -73,9 +73,9 @@ Return to the five wheat fields from the [ranges and functions section](module01
 | **5** | Home   |   310 |          55.7 |
 | **6** | Rented |   175 |          44.3 |
 
-The tempting move is a plain `=AVERAGE(C2:C6)`, which gives 52.5 bu/ac. But that treats the 95-acre Creek field exactly the same as the 310-acre Home field -- as if each field were one "vote." That is not what "the average yield across the farm" means. A field three times the size should count three times as much.
+The tempting move is a plain `=AVERAGE(C2:C6)`, which gives 52.5 bu/ac. But that treats the 95-acre *Creek* field exactly the same as the 310-acre *Home* field -- as if each field were one "vote." That is not what "the average yield across the farm" means. A field three times the size should count three times as much.
 
-The right calculation weights each yield by its acres: multiply each field's yield by its acres, add those up (that is total production, in bushels), and divide by the total acres:
+The right calculation weights each yield by its acres.  To do this, multiply each field's yield by its acres, add those up (that is total production, in bushels), and divide by the total acres:
 
 $$
 \bar{x}_w = \frac{\sum w_i\, x_i}{\sum w_i}
@@ -110,15 +110,13 @@ You now have two answers to "what is a typical value?" -- and comparing them can
 - Mean noticeably above median. The distribution may be right-skewed, with some unusually high values pulling the mean upward. Think of farm incomes with a small number of very high-income farms, or field sizes with a few enormous fields -- the mean can be substantially higher than the value for a typical observation.
 - Mean noticeably below median. The distribution may be left-skewed, with some unusually low values pulling the mean downward. Think of crop yields when a small number of badly drought-hit fields have very low yields -- those fields can pull the mean below what a typical field produced.
 
-So a handy rule of thumb is to compute both and look at the gap. A large gap is a clue that the distribution may be skewed or contain extreme values. When that happens, look more closely at the data and consider whether the median gives a better description of a typical observation. A small gap means the mean and median are telling a similar story.
-
-We will see skewness directly when we look at histograms in @sec-charts.
+So when summarizing data, always compute both statistics and look at thow they differ.
 
 ### Mode {.unnumbered}
 
-The **mode** is the most frequently occurring value. In Excel: `=MODE.SNGL(A1:A5)` for a single mode, or `=MODE.MULT(A1:A5)` if you want all of them (for data with multiple modes). On the five yields we have been working with, every value appears once, so `=MODE.SNGL(A1:A5)` returns the `#N/A` error -- Excel's way of saying there is no mode to report.
+The **mode** is the most frequently occurring value. In Excel: `=MODE.SNGL(A1:A5)` for a single mode, or `=MODE.MULT(A1:A5)` if you want all of them (for data with multiple modes). 
 
-The mode is most useful for **categorical data** ("what is the most common crop in this region?") or for **discrete numeric data** with repeated values.  For continuous measurements like yields, the mode is usually less useful because exact values may rarely repeat, and which values repeat can depend on how precisely the data is measured or rounded.
+The mode is most useful for **categorical data** ("what is the most common crop in this region?") or for **discrete numeric data** with repeated values.  For continuous measurements like yields, the mode is usually less useful because exact values may rarely repeat.
 
 ::: {.workbook-callout}
 The **Centre** tab of the workbook below computes all four of these on 32 Saskatchewan barley varieties. Column D holds production (acres × yield), which is what the weighted average needs.
@@ -161,29 +159,7 @@ In Excel:
 - `=QUARTILE.INC(A1:A100, 1)` -- the first quartile ($Q_1$).
 - `=QUARTILE.INC(A1:A100, 3)` -- the third quartile ($Q_3$).
 
-(Excel has both `.INC` and `.EXC` variants -- inclusive and exclusive. For this course use `.INC`.)
-
 Percentiles are used whenever we want to describe where an observation stands relative to others. Standardized test scores are often reported as percentiles, economists use income percentiles to compare households across the income distribution, and agricultural analysts might ask whether a farm’s yield falls in the bottom 10% or whether a variety performs in the top quartile.
-
-The distance between the first and third quartile is the **interquartile range**, or IQR -- the
-width of the middle half of the data. We return to it as a measure of spread below
-(@sec-spread), but it also gives us a common rule for deciding when a value is unusual enough
-to be worth a second look. Anything below Q1 − 1.5 × IQR, or above Q3 + 1.5 × IQR, is
-conventionally called an outlier. Those two cutoffs are sometimes called the lower and upper
-**fences**.
-
-```
-=QUARTILE.INC(C2:C33,1) - 1.5*(QUARTILE.INC(C2:C33,3) - QUARTILE.INC(C2:C33,1))
-```
-
-The 1.5 is a convention, not a result -- there is nothing special about it beyond long use.
-Notice what the rule depends on. The fences are built from the IQR, so a dataset whose middle
-half is tightly packed will flag values that a more spread-out dataset would treat as ordinary.
-Whether a number counts as an outlier depends on how tight the bulk of the data is, not only
-on how far out the number sits.
-
-A value falling outside the fences is not necessarily wrong. It might be a recording error, or
-it might be the most interesting observation you have.
 
 ::: {.workbook-callout}
 The **Location** tab computes the quartiles and the 10th and 90th percentiles on the same barley data.
@@ -233,13 +209,13 @@ strip_plot(yields_wide,  "A. Yields spread widely",     mean_at = 40)
 strip_plot(yields_tight, "B. Yields clustered tightly", mean_at = 40)
 ```
 
-For a data analyst, the spread is very informative.  If the values are spread out then we should be curious about what causes this spread.  If these fields are far away from each other then maybe the spread is due to weather.  But if they are in the same Township, with reasonably similar weather, then it may be due to management practices such as varietal choice, nitrogen application rates, or seeding dates.  When we are dealing with large datasets it can be difficult to just look at how spread out points are on a one-dimensional graph.  It is therefore handy to be able to distill the spread of data into a single number.  In this section we will examine several different measures of spread, each of which has its strengths and weaknesses.
+For a data analyst, the spread is very informative.  If the values are spread out then we should be curious about what causes this spread.  If these fields are far away from each other then maybe the spread is due to weather.  But if they are in the same Township, with reasonably similar weather, then it may be due to management practices such as varietal choice, nitrogen application rates, or seeding dates.  When we are dealing with large datasets it can be difficult to just look at how spread out points are on a one-dimensional graph.  It is therefore handy to be able to distill the spread of data into a single number.  In this section, we will examine several different measures of spread, each of which has its strengths and weaknesses.
 
 ### Range {.unnumbered}
 
 The simplest measure of spread is the **range**: the maximum value minus the minimum value. In Excel: `=MAX(A1:A100) - MIN(A1:A100)`. The range is easy to understand, but it is very sensitive to extreme values -- a single unusual observation can change it dramatically.
 
-Suppose, for example, that one of the tightly clustered fields in @fig-spread-hail experiences a hailstorm that wipes out its crop. That single field increases the range from 7.5 to 41.3 bu/ac -- more than five times larger -- even though only one of the 30 fields has changed. The interquartile range, described below, barely moves, from 2.8 to 3.0 bu/ac, because it focuses on the middle half of the data rather than the extremes.
+Suppose, for example, that one of the tightly clustered fields in @fig-spread-hail experiences a hailstorm that wipes out its crop. That single field increases the range from 7.5 to 41.3 bu/ac -- more than five times larger -- even though only one of the 30 fields has changed. 
 
 ```{r}
 #| label: fig-spread-hail
@@ -255,7 +231,7 @@ strip_plot(head(sort(yields_tight), -1),
            highlight = 3, highlight_label = "hail-damaged field")
 ```
 
-This problem is even greater if we have a dataset with hundreds or thousands of observations.
+
 
 A potentially more useful measure is the **interquartile range** or IQR, which measures the difference between the first and third quartile.  In other words, half the data lie within the interquartile range.  In Excel: `=QUARTILE.INC(A1:A100, 3)-QUARTILE.INC(A1:A100, 1)`.  However, whereas the range was too sensitive to outliers, the IQR might not tell us enough about data in the tail of the distribution.  
 
@@ -303,15 +279,15 @@ Standard deviation will show up everywhere in the rest of this course.
 
 ### Coefficient of Variation {.unnumbered}
 
-A sometimes helpful, sometimes misleading measure of spread is the **coefficient of variation (CV)**, which is the standard deviation divided by the mean:
+A sometimes helpful, but sometimes misleading, measure of spread is the **coefficient of variation (CV)**, which is the standard deviation divided by the mean:
 
 $$
 CV = \frac{s}{\bar{x}}
 $$
 
-I say it is helpful because it can compare the spread of two datasets with very different means. Suppose barley averages 55 bu/ac with a standard deviation of 11 (CV = 11/55 = 0.20), while wheat averages 40 bu/ac with a standard deviation of 10 (CV = 10/40 = 0.25). Wheat's standard deviation is *smaller* in absolute terms (10 vs 11), yet relative to its own average, wheat is *more* variable (CV 0.25 vs 0.20). The CV captures that relative variability: a CV of 0.1 means the standard deviation is 10% of the mean. So the CV lets you fairly compare the variability of two things measured on very different scales.
+I say it is helpful because it can compare the spread of two datasets with very different means. Suppose barley averages 55 bu/ac with a standard deviation of 11 (CV = 11/55 = 0.20), while wheat averages 40 bu/ac with a standard deviation of 10 (CV = 10/40 = 0.25). Wheat's standard deviation is *smaller* in absolute terms (10 vs 11), yet relative to its own average, wheat is *more* variable (CV 0.25 vs 0.20). 
 
-However, in other contexts -- particularly when the data can be close to zero or negative -- the CV can be misleading. Suppose we wanted to compare the variability of farm income in a "good" year to farm incomes in a "bad" year.  In a bad year, the mean of income might be close to zero or negative.  In that case, the CV would explode to infinity or become negative.  Use the coefficient of variation with caution.
+However, in other contexts -- particularly when the mean of the data is zero or negative -- the CV can be misleading. Suppose we wanted to compare the variability of farm income in a "good" year to farm incomes in a "bad" year.  In a bad year, the mean of income might be close to zero or negative.  In that case, the CV would explode to infinity or become negative.  
 
 ::: {.workbook-callout}
 The **Spread** tab works through the five measures Excel computes directly on the barley varieties, so you can see how each responds to the same data.
@@ -362,13 +338,13 @@ strip_plot(shapes$unimodal, "B. Dense in the middle, thinning toward the edges",
            xlim = c(20, 60), mean_at = 40)
 ```
 
-The two clusters in panel A are a signal worth chasing: perhaps those farms differ in variety, soil zone, or seeding date, and what looks like one population is really two. Note also that the mean of 40 bu/ac in panel A describes a yield that almost no farm actually achieved -- a good reminder that a summary statistic is not a substitute for looking at your data.
+The two clusters in panel A are quite informative about the data:  perhaps those farms differ in variety, soil zone, or seeding date, and what looks like one population is really two. Note also that the mean of 40 bu/ac in panel A describes a yield that almost no farm actually achieved -- a good reminder that a summary statistic is not a substitute for looking at your data.
 
 Perhaps the simplest way to visualize the shape of a distribution is with a histogram. A histogram divides the range of the data into bins and uses bars to show how many observations fall into each one. It lets you see at a glance whether the data is roughly symmetric (balanced around the centre), skewed (stretched farther in one direction than the other, as we discussed in @sec-central-tendency), or contains outliers (a few observations sitting far from the rest).
 
-How to make one in Excel: select the data, then choose Insert → Statistical Chart → Histogram. Right-click the horizontal axis and choose Format Axis to control the bin width.
+How to make one in Excel: select the data, then choose Insert → Statistical Chart → Histogram. Right-click the horizontal axis and choose Format Axis to control the bin width.  (The video for this section shows you exactly how to do this).
 
-Tips: Bin width matters. Too few bins can hide important features of the distribution; too many can make random variation look important. As a rough starting point, try about $\sqrt{n}$ bins, where $n$ is the number of observations. Then try a few different bin widths and check whether the main features of the distribution remain visible.
+The number of bins you choose for a histogram matters.  Too few bins can hide important features of the distribution; too many can make random variation look important. As a rough starting point, try about $\sqrt{n}$ bins, where $n$ is the number of observations. Then try a few different bin widths and check whether the main features of the distribution remain visible.
 
 ::: {.workbook-callout}
 The **Histogram** tab contains three histograms.  In my view the first one has a reasonable number of bins.  The next two have too many and too few.
