@@ -30,23 +30,7 @@ something from the Excel modules:
 Once you understand these operations, most everyday data manipulation in R is a matter of
 combining them.
 
-## Learning Objectives {.unnumbered}
-
-::: {.objectives}
-By the end of this chapter you should be able to:
-
-1. Use `filter()`, `select()`, `mutate()`, and `arrange()` to manipulate a data frame.
-2. Chain several operations together using the pipe, `|>`.
-3. Use `summarise()` to calculate statistics from a data frame.
-4. Use `group_by()` with `summarise()` to calculate statistics separately for groups.
-5. Read a longer pipeline from top to bottom and explain what each step does.
-6. Save a result to a CSV file.
-7. Read an R error message and track down what caused it.
-:::
-
-## The Data {.unnumbered}
-
-We continue with the canola trial data from the last chapter, in the same project folder.
+We will continue with the canola trial data from the last chapter, in the same project folder.
 Since this chapter does a new job, it gets a new script: `code/2_data_manipulation.R`.
 Start it with a header, then load the tidyverse and read the data in:
 
@@ -93,7 +77,7 @@ Each function takes the data frame as its first argument, followed by what to do
 
 ### `filter()`: Keep Certain Rows
 
-`filter()` keeps the rows that satisfy a condition:
+`filter()` keeps the rows that satisfy a condition.  It's two arguments are the data frame and the condition.  For example, to keep only the fields with yields above 50 bushels per acre:
 
 ```{r}
 #| eval: true
@@ -103,9 +87,7 @@ filter(trial_data, yield_bu_acre > 50)
 ')
 ```
 
-Read this as: from `trial_data`, keep the rows where `yield_bu_acre` is greater than 50.
-
-Notice that `filter()` displays the high-yielding fields but does not remove the other fields from `trial_data` -- check `nrow(trial_data)` and all 120 rows are still there. Every function in this chapter works the same way: it takes a data frame as input and returns a *new* data frame as output, and if we only display that output, R does not save it. To keep a result, assign it to an object:
+Notice that `filter()` displays the high-yielding fields but does not remove the other fields from `trial_data` -- check `nrow(trial_data)` and all 120 rows are still there. Every function in this chapter works the same way: it takes a data frame as input and returns a *new* data frame as output.  Running the above code will only display that output, R does not save it. To keep a result, assign it to an object:
 
 ```{r}
 #| eval: true
@@ -129,7 +111,7 @@ filter(trial_data, variety == "InVigor")
 ')
 ```
 
-Note the **two** equals signs: `==` asks whether two things are equal, so `variety == "InVigor"` asks "is `variety` equal to `"InVigor"`?". A single `=` has a different job in R -- naming arguments, as in `mean(x, na.rm = TRUE)` -- so writing `variety = "InVigor"` inside `filter()` will not do what you want. Also note the quotation marks: `"InVigor"` with quotes is text; `InVigor` without quotes would be read as the name of an object, which probably doesn't exist and would cause an error.
+Note the **two** equals signs: `==` asks whether two things are equal, so `variety == "InVigor"` asks "is `variety` equal to `"InVigor"`?". Also note the quotation marks: `"InVigor"` with quotes is text; `InVigor` without quotes would be read as the name of an object, which probably doesn't exist and would cause an error.
 
 You can combine conditions with `&` (and -- both must be true), `|` (or -- at least one must be true), and `!` (not):
 
@@ -166,7 +148,7 @@ filter(trial_data, variety %in% c("InVigor", "DEKALB"))
 
 ### `arrange()`: Sort Rows
 
-`arrange()` changes the order of the rows. `arrange(trial_data, yield_bu_acre)` sorts from lowest yield to highest.  If you want to arrange from highest to lowest then use the `desc()` (descending order) function. 
+The function `arrange()` changes the order of the rows.  It also takes a minimum of two arguments: the data frame and the variable to sort by.  The code `arrange(trial_data, yield_bu_acre)` sorts from lowest yield to highest.  If you want to arrange from highest to lowest then use the `desc()` (descending order) function. 
 
 ```{r}
 #| eval: true
@@ -195,7 +177,7 @@ arrange(trial_data, variety, desc(yield_bu_acre))
 
 ### `select()`: Keep Certain Columns
 
-`select()` chooses variables rather than observations:
+`select()` chooses variables rather than observations.  It's arguments are the data frame and the names of the variables to keep.  For example, to keep only the field ID, variety, and yield:
 
 ```{r}
 #| eval: true
@@ -222,12 +204,9 @@ select(trial_data, field_id:rainfall_mm)
 
 A relative of `select()` is `rename()`, which changes a column's name without dropping anything: `rename(trial_data, yield = yield_bu_acre)`.
 
-Keep the pair straight: `filter()` works on rows, `select()` on columns.
-
 ### `mutate()`: Create or Change Columns
 
-`mutate()` creates a new variable or changes an existing one. Suppose we want yield in
-tonnes per hectare rather than bushels per acre. Note that we would almost always want to save the output of mutate to perform some function on the resulting data frame.  We can save the data by the same name, which would overwrite the existing data frame with the new data frame with the new or created column.
+Potentially the most useful function is `mutate()`, which creates a new variable or changes an existing one. Suppose we want yield in tonnes per hectare rather than bushels per acre. We can accomplish this by running the code:
 
 ```{r}
 #| eval: true
@@ -241,7 +220,7 @@ head(trial_data)
 ')
 ```
 
-The result contains all the original columns plus a new `yield_t_ha`. Read the expression as: create `yield_t_ha` and set it equal to `yield_bu_acre` × 0.0560. This is the R version of adding a formula column in Excel.
+Note that we have saved the resulting data frame back into `trial_data`. In R we can always overwrite an object.  The result contains all the original columns plus a new `yield_t_ha`. Read the expression as: create `yield_t_ha` and set it equal to `yield_bu_acre` × 0.0560. 
 
 You can create several variables in one call:
 
@@ -262,7 +241,6 @@ print(trial_data)
 In the second variable the hectares cancel -- fertilizer and yield are both per hectare -- leaving kilograms of nitrogen per tonne of grain.
 
 
-
 ## The Pipe `|>` {#sec-pipe}
 
 ::: {.video-callout}
@@ -271,7 +249,7 @@ In the second variable the hectares cancel -- fertilizer and yield are both per 
 :::
 :::
 
-Real questions usually take more than one function. Suppose we want to know: among the InVigor fields, what are the field IDs and yields, ordered from highest to lowest? We know every operation we need -- filter to InVigor, select the two columns, arrange by descending yield. We can do this using the **pipe**, which is written as `|>`.  The pipe takes whatever is on its *left* and feeds it as the first argument to the function on its *right*.  Essentially, think of the pipe as a command that says "then".  For example, suppose we want to
+Many questions that we want to resolve require more than one function. Suppose we want to know: among the InVigor fields, what are the field IDs and yields, ordered from highest to lowest? We know every operation we need -- filter to InVigor, select the two columns, arrange by descending yield. We can combine these using the **pipe**, which is written as `|>`.  The pipe takes whatever is on its *left* and feeds it as the first argument to the function on its *right*.  Essentially, think of the pipe as a command that says "then".  For example, suppose we want to
 
 - filter the data to InVigor, THEN
 - select the columns field_id and yield_bu_acre, THEN
@@ -290,7 +268,16 @@ trial_data |>                         ##Take our trial data THEN
 ')
 ```
 
-One thing to note is that we have split this code across multiple lines. R knows that when a line ends with the pipe `|>`, the command is not finished, so it continues reading the next line. This lets us write a long sequence of operations across several lines rather than cramming everything onto one line.
+One thing to note is that we have split this code across multiple lines.  We could have written it all one one line as:
+```{r}
+#| eval: true
+#| echo: false
+console('
+trial_data |> filter(variety == "InVigor") |> select(field_id, yield_bu_acre) |> arrange(desc(yield_bu_acre))
+')
+```
+
+This becomes difficult to read. R knows that when a line ends with the pipe `|>`, the command is not finished, so it continues reading the next line. This lets us write a long sequence of operations across several lines rather than cramming everything onto one line.
 
 This is not something special about the pipe. More generally, R will keep reading whenever it can tell that a command is incomplete. For example, we can also split a function across multiple lines:
 
@@ -306,8 +293,7 @@ filter(trial_data, yield_bu_acre > 50)
   
 ')
 ```
-In the first command, the opening parenthesis `(` tells R that the command is not yet complete. R therefore keeps reading until it reaches the closing parenthesis `)`. This means that we can split R code across multiple lines when doing so makes it easier to read. For example, the piping example above would be difficult to read if we put everything on one line. In contrast, our simple filter() command is easier to read on a single line. Use line breaks when they make your code clearer.  The same is true of indentation.  Common practice is to always have a line break and indentation after a pipe.
-
+In the first command, the opening parenthesis `(` tells R that the command will not be complete until there is a closing parenthesis `)`. 
 
 To keep a result, assign the whole pipeline to an object:
 
