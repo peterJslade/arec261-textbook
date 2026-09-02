@@ -355,7 +355,7 @@ Suppose there are four fields:
 #| echo: false
 console('
 # (a) Crop grown: character, so the values are quoted
-crop      <- c("Canola", "Wheat", "Peas", "Canola")
+crop      <- c("Canola", "Wheat", "Peas", "Barley")
 
 # Seeded acres: numeric, no quotes
 acres     <- c(160, 320, 240, 130)
@@ -363,7 +363,7 @@ acres     <- c(160, 320, 240, 130)
 # Irrigated or not: logical, no quotes
 irrigated <- c(TRUE, FALSE, FALSE, TRUE)
 
-# (c) Combine the three vectors into a data frame
+# (b) Combine the three vectors into a data frame
 trial <- data.frame(crop = crop,
                     acres = acres,
                     irrigated = irrigated)
@@ -495,9 +495,6 @@ max(durum_fields$yield) - min(durum_fields$yield)
 ## range 16.5.
 ')
 ```
-
-</details>
-
 
 </details>
 
@@ -897,12 +894,14 @@ mb_wheat <- read_csv("data/mb_wheat_reported_2020_2025.csv")
 # (a) The 5th and 95th percentiles in one call
 quantile(mb_wheat$Yield_bu_ac, probs = c(0.05, 0.95))
 
+## (a) I find percentiles of 38.8 and 78.8 bu/ac.
+
+## (b) A result at the 95th percentile yielded 78.8 bu/ac -- only one in
+## twenty municipality-variety results beat that.
+
 # (c) The gap between them
 quantile(mb_wheat$Yield_bu_ac, probs = 0.95) - quantile(mb_wheat$Yield_bu_ac, probs = 0.05)
 
-## I find percentiles of 38.8 and 78.8 bu/ac.
-## (b) A result at the 95th percentile yielded 78.8 bu/ac -- only one in
-## twenty municipality-variety results beat that.
 ## (c) The gap is about 40 bu/ac, and it holds the middle 90% of results.
 ')
 ```
@@ -978,18 +977,20 @@ sw_60 <- filter(rm_yields, Crop == "Spring Wheat" & Yield >= 60)
 # Row count of the filtered data frame
 nrow(sw_60)
 
+## (a) I find 434 rows at 60 bu/ac or better.
+
 # (b) Keep only the 2023 rows of that result
 sw_60_2023 <- filter(sw_60, Year == 2023)
 # Row count of the second data frame
 nrow(sw_60_2023)
 
+## (b) 53 of them are from 2023.
+
 # (c) Just RM and Yield, sorted best first
 sw_best <- select(sw_60_2023, RM, Yield)
 arrange(sw_best, desc(Yield))
 
-## I find 434 rows at 60 bu/ac or better, and 53 of them are from 2023.
-## RM 187 tops the 2023 list, at 74.7 bu/ac.
-## (d) filter(rm_yields, Yield >= 60 & !(Crop == "Spring Wheat")) -- the ! negates the crop condition.
+## (c) RM 187 tops the 2023 list, at 74.7 bu/ac.
 ')
 ```
 
@@ -1026,12 +1027,11 @@ oats_barley2 <- filter(rm_yields, Crop %in% c("Oats", "Barley"))
 # The count should match (a)
 nrow(oats_barley2)
 
-# (c) Sort from highest yield to lowest
-arrange(oats_barley, desc(Yield))
+## I find 19,709 rows both ways.
 
-## I find 19709 rows both ways.
-## The top of the sorted table is a tie at 165.1 bu/ac: Oats in RM 369 in 2025 and Oats in RM 438 in 2020 share the maximum, so either is a correct top row.
-## (d) The & version asks for rows whose crop is Oats and Barley at the same time. No single row can satisfy both conditions, so zero rows come back. "Or" is the right connector, written |.
+## (c) It returns zero rows. The & version asks for rows whose crop is
+## Oats and Barley at the same time, and no single row can satisfy both
+## conditions. "Or" is the right connector, written |.
 ')
 ```
 
@@ -1069,12 +1069,9 @@ canola_2024 <- mutate(canola_2024,
 mean(canola_2024$yield_t_ha)
 mean(canola_2024$yield_kg_ha)
 
-# (c) Sort by tonnes per hectare, best first
-arrange(canola_2024, desc(yield_t_ha))
+## (b) I find means of 1.76 t/ha and 1764.11 kg/ha.
 
-## I find means of 1.76 t/ha and 1764.11 kg/ha.
-## RM 493 tops the table, at 2.57 t/ha.
-## (d) The ratio of the means is 1000: both columns are the same yields scaled by constants, and 56.0 / 0.0560 = 1000 (a tonne is 1000 kg).
+## (c) The ratio of the means is 1000: both columns are the same yields scaled by constants, and 56.0 / 0.0560 = 1000 (a tonne is 1000 kg).
 ')
 ```
 
@@ -1112,14 +1109,12 @@ canola_25 <- mutate(canola_25, revenue_per_ac = Yield * price)
 # (b) Best revenue first
 arrange(canola_25, desc(revenue_per_ac))
 
+## (b) I find RM 287 on top at $866.20 per acre.
+
 # (c) Mean revenue per acre
 mean(canola_25$revenue_per_ac)
 
-## I find RM 287 on top at $866.20 per acre, and a mean of $623.94.
-## (d) Revenue is yield times the same price for every RM, so multiplying
-## by a constant cannot reorder anyone. The rankings would only disagree if
-## the price differed across RMs -- different grades, hauling deductions,
-## or locally negotiated prices.
+## (c) The mean is $623.94 per acre.
 ')
 ```
 
@@ -1485,8 +1480,8 @@ rm_yields |>
   group_by(Year) |>                               # one group per year
   summarise(mean_revenue = mean(revenue_per_ac))  # average within each year
 
-## I find mean revenues of $481.11 in 2023, $447.33 in 2024, and $623.94
-## in 2025.
+## (b) I find mean revenues of $481.11 in 2023, $447.33 in 2024, and
+## $623.94 in 2025.
 ')
 ```
 
@@ -1698,7 +1693,7 @@ mb_wheat |>
             n = n()) |>                     # rows behind the average
   arrange(desc(mean_yield))                 # best municipality first
 
-## I find LOUISE on top at 72.86 bu/ac, backed by 26 observations.
+## (b) I find LOUISE on top at 72.86 bu/ac, backed by 26 observations.
 ## (c) Two different things could put a municipality here: genuinely better
 ## growing conditions, or a mix that happens to lean on high-yielding
 ## varieties. The mean pools varieties, so the ranking cannot tell the
@@ -1736,8 +1731,9 @@ variety_2023 <- mb_wheat |>
   arrange(desc(mean_yield))                 # best mean first
 variety_2023
 
-## I find AC BARRIE (BW 661) with the best 2023 mean, 67.3 bu/ac -- from a
-## single observation. The largest count is AAC BRANDON (BW 932), with 84.
+## (b) I find AC BARRIE (BW 661) with the best 2023 mean, 67.3 bu/ac --
+## from a single observation. The largest count is AAC BRANDON (BW 932),
+## with 84.
 ## (c) They are not the same variety. The mean measures how well a variety
 ## did where it was grown; the count measures how widely it was grown. A
 ## chart-topping mean on n = 1 is one municipality having a good year.
