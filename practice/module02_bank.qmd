@@ -1262,7 +1262,7 @@ nrow(mb_wheat)
 
 **(b)** Write the same filter using `%in%` and confirm the count matches.
 
-**(c)** What would the same condition written with `&` instead of `|` return? In a comment: explain why.
+**(c)** If in part (a) you used `&` instead of `|`, what would the result be?  Explain.
 
 <details><summary>Answer</summary>
 
@@ -1285,7 +1285,7 @@ two_var2 <- filter(mb_wheat, Variety %in% c("AAC BRANDON (BW 932)", "AAC STARBUC
 nrow(two_var2)
 
 ## I find 893 rows both ways.
-## (c) The & version demands both conditions true of the same row, and no single row has a variety that is both names at once. "Or" is the right connector, written |.
+## (c) It would return zero rows. The & version demands both conditions true of the same row, and no single row has a variety that is both names at once. "Or" is the right connector, written |.
 ')
 ```
 
@@ -1294,50 +1294,11 @@ nrow(two_var2)
 ### Question 29
 *The Manitoba wheat file contains one municipality-variety-year result per row.*
 
-**(a)** Make a version of the data with only `Year`, `Municipality`, `Variety`, and `Yield_bu_ac` -- once using the adjacent range `Year:Variety` plus `Yield_bu_ac`, and once by dropping `Farms`, `Acres`, and `Reported`. Save both and confirm that they have the same column names.
-
-**(b)** Rename `Yield_bu_ac` to `yield`, saving the result, and show the new column names.
-
-<details><summary>Answer</summary>
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-# Load the tidyverse and read the data
-library(tidyverse)
-mb_wheat <- read_csv("data/mb_wheat_reported_2020_2025.csv")
-
-# (a) Keep the adjacent range plus the yield column
-kept <- select(mb_wheat, Year:Variety, Yield_bu_ac)
-# The same four columns by dropping the rest
-dropped <- select(mb_wheat, -Farms, -Acres, -Reported)
-# Confirm the two have the same column names
-names(kept)
-names(dropped)
-# (b) Rename the yield column
-renamed <- rename(mb_wheat, yield = Yield_bu_ac)
-# The new column names
-names(renamed)
-
-## Both versions have the same four names: Year, Municipality, Variety,
-## and Yield_bu_ac.
-## The renamed data frame has the same seven columns, with yield in place of Yield_bu_ac.
-')
-```
-
-</details>
-
-### Question 30
-*The Manitoba wheat file contains one municipality-variety-year result per row.*
-
 **(a)** Use one `mutate()` to add `acres_per_farm` (acres divided by farms), saving the result.
 
 **(b)** Sort by `acres_per_farm`, largest first, and report the top municipality and variety.
 
-**(c)** Compute the mean of `acres_per_farm`.
-
-**(d)** In a comment: what does this column measure, and why is it a different fact about a variety than its total acres?
+**(c)** Compute the mean of `acres_per_farm`. In a comment, explain what this number means in the context of the data.
 
 <details><summary>Answer</summary>
 
@@ -1355,14 +1316,50 @@ mb_wheat <- mutate(mb_wheat, acres_per_farm = Acres / Farms)
 # (b) Largest first
 arrange(mb_wheat, desc(acres_per_farm))
 
+## (b) I find MOUNTAIN growing SY MANNESS on top, at 1,587 acres per farm.
+
 # (c) The average across rows
 mean(mb_wheat$acres_per_farm)
 
-## I find MOUNTAIN growing SY MANNESS on top, at 1,587 acres per farm,
-## against an average of 370.
-## (d) It measures how concentrated a variety is in the hands of its
-## growers -- few farms each seeding a lot, or many farms dabbling. Total
-## acres says how much land; acres per farm says how it is held.
+## (c) The mean is 370: in a typical municipality-variety-year result,
+## each farm growing that variety seeded about 370 acres of it. It
+## measures how concentrated a variety is in the hands of its growers --
+## a different fact from how much land it covers in total.
+')
+```
+
+</details>
+
+### Question 30
+*The Manitoba wheat file contains one municipality-variety-year result per row.*
+
+**(a)** Use one `mutate()` to add `total_bu`, each result's total production in bushels (acres times yield), saving the result.
+
+**(b)** Sort by `total_bu`, largest first, and report the top municipality and variety.
+
+**(c)** In a comment: the highest-yielding result in the data is not the top producer. What does it take to top this list?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the tidyverse and read the data
+library(tidyverse)
+mb_wheat <- read_csv("data/mb_wheat_reported_2020_2025.csv")
+
+# (a) Total production: acres times the per-acre yield
+mb_wheat <- mutate(mb_wheat, total_bu = Acres * Yield_bu_ac)
+
+# (b) Largest first
+arrange(mb_wheat, desc(total_bu))
+
+## (b) I find PORTAGE LA PRAIRIE growing AAC BRANDON (BW 932) in 2020 on
+## top, at about 5.1 million bushels.
+## (c) Acreage. The top producer yielded a modest 68.8 bu/ac but on
+## 74,604 acres, while the highest-yielding result (97.8 bu/ac) sat on
+## under 2,000 acres. Total production rewards land as much as yield.
 ')
 ```
 
