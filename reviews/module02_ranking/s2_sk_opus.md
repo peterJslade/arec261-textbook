@@ -1,0 +1,16 @@
+# Section 2 SK (Saskatchewan RM Canola) — ranking of E11-E15 vs N11-N15
+
+Criteria: (a) fit to the question-writing rules in CLAUDE.md; (b) coverage of Section 2 skills — project folders, relative paths, `read_csv`, `glimpse`/`summary`, `$`-statistics, inspection habits; (c) distinctness within the block; (d) usability as an 8-10 minute question gradable from a submitted R script; (e) pedagogical value.
+
+1. **E13** — `summary()` plus the module's inspection checklist plus "is 1.9 bu/ac an error or a drought?"; the block's best question, because it teaches the judgment that separates inspecting data from reading numbers off a screen, and every part is gradable from the script.
+2. **E14** — the block's workhorse computation: `$`-statistics, `quantile(probs =)`, and a mean-median skew reading that ties Module 2 mechanics back to Module 1 concepts; matches the sample test's Section 2 exactly, so it calibrates the whole block.
+3. **N11** — `head()`, what one row represents, `range()` on Year, then rows ÷ years compared against the ~295 RMs; the arithmetic sanity-check in (d) is a genuine analyst move and is the most distinct idea anywhere in these ten.
+4. **E11** — the only question that exercises the project folder and relative path end to end, with the portability comment as the payoff; (a)'s "sketch the layout in a comment" is a little artificial, but it is the one part of the module no other question reaches.
+5. **E12** — `glimpse()`, the `read_csv` message, and numeric-vs-text storage; the read-the-message habit appears nowhere else, though four all-comment parts make it lighter to grade than to answer and thin the 8-10 minutes.
+6. **N12** — `$`-statistics with p10/p90 and the sd-versus-percentile-gap comparison; the interpretive angle is good and (c) is a sharper spread question than E14's, but the computations sit squarely on top of E14 in the same block.
+7. **N13** — cross-checking `summary()` against `mean()`/`median()` then explaining the missing-`$` error; (c) is worth keeping, but (a) and (b) are E13 and E14 pushed together and the cross-check part is close to the "confirm the count" busywork the rules cut.
+8. **N14** — relative path, the missing-`data/` what-if, and the neighbour's-Desktop portability comment; it is E11 with the reporting parts removed, so it is both a near-duplicate and too slight for a full test question, and (c) invents a fictional third party where the rules want the check anchored to the student's own work.
+9. **E15** — an error-message diagnosis that never runs any R: install-versus-load and the quotes rule are worth testing, but (d) — name the four core tidyverse packages and their jobs — is pure recall, and a question answered entirely in comments gives the TA nothing to grade on follow-through.
+10. **N15** — (a) is self-defeating: it tells students `filter` is a Module 3 tool when this bank's own vocabulary note lists `filter` as available, and steers them instead to `rm_canola$Yield[rm_canola$Year >= 2016]`, bracket subsetting that the vocabulary note does not include; the parenthetical is also a meta-note to the reader rather than the scaffold the rules ask for, and (b)'s "give two kinds of explanation" is an essay prompt, not a Section 2 skill.
+
+RANKING: E13,E14,N11,E11,E12,N12,N13,N14,E15,N15

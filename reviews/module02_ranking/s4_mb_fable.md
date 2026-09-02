@@ -1,0 +1,14 @@
+# Section 4 MB (Manitoba Wheat Variety) — ranking of E36–E40 vs N36–N40
+
+1. E38 — The canonical group_by + summarise(mean, n()) + arrange question, and its (c) (a first-place variety observed exactly once vs 17 times) is the sharpest, most gradable interpretive part in the block; exactly Section 4's headline skill at the right length.
+2. E40 — The capstone: filter to a year, group, summarise mean and count, sort, save, write_csv — the only clean test of write_csv in the block, house-style wording throughout, and a (c) that makes the n column do real work.
+3. N38 — sum(Acres) by variety is the one genuinely different summary operation in the pool, and the (c) (what would totalling a per-acre yield produce, and why is it meaningless) teaches a real statistical point about summing rates; concise and gradable.
+4. E39 — mutate-then-group_by-then-summarise with the why-must-mutate-come-first comment tests pipeline ordering, the concept the section is actually about; its (c) does echo Q34's SK answer, but within this block it is distinct.
+5. N36 — Municipality-level mean + count with a good confounding question (better land vs better variety mix could each top the table); structurally a near-twin of E38, which costs it distinctness, but the (c) does different conceptual work and the skills coverage is dead-on.
+6. E36 — The clean intro pipeline (filter, select, arrange, read it aloud) with strong rules fit and easy grading, but it exercises no summarise/group_by/n()/write_csv, so it tests the least of Section 4's new material; it also mirrors Q31's SK pattern almost part for part.
+7. N37 — Counting rows per year is a distinct use of n() and the coverage-vs-yield idea is worthwhile, but the stem prescribes the recipe in the task sentence ("group_by plus summarise(n = n())") against the ask-for-the-quantity rule, and the (c) ("what kind of mistake does knowing the coverage protect you from") is vague enough to grade inconsistently.
+8. E37 — An ungrouped summarise with mean and n() is legitimate but thin: likely under the 8-minute floor, and its (c) rationale is nearly word-for-word the answer already given in Q32 and repeated in E38/E40, adding a fourth pass over the count-trust theme.
+9. N39 — Filter to a year, group by variety, mean + count, sort, save: the same pipeline as E40 minus write_csv, and its (c) reprises E38's mean-vs-count theme; the top-by-mean vs top-by-count twist is nice but not enough to escape near-duplicate status.
+10. N40 — Fuses E39's conversion stem (same 0.0673 sentence) with E40's save-and-write_csv and N36's municipality grouping, so every element already exists elsewhere in the pool; "keep municipalities and sort best-first" is ambiguous as an instruction, and its (c) is the block's third repeat of how-many-observations-back-this-mean.
+
+RANKING: E38,E40,N38,E39,N36,E36,N37,E37,N39,N40
