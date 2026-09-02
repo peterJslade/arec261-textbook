@@ -1,0 +1,2490 @@
+# Module 3 — Test Bank {.unnumbered}
+
+```{r}
+#| include: false
+#| eval: true
+# console() renders a code listing plus the console session it produces.
+source("../_console.R")
+suppressMessages(library(tidyverse))
+suppressMessages(library(janitor))
+```
+
+::: {.callout-note}
+## How this test bank works
+
+This bank holds **60 questions**, fifteen in each section. Every question comes with its own small dataset, about twenty rows, so you can see the whole table and check your result by eye. On the real test you receive **four questions -- one from each section** -- and the four files that go with them.
+
+Module 3 teaches the same operations in Excel (Power Query) and in R, and you can answer with either tool. Submit **one file**: an R script, or an Excel workbook whose queries are still attached (the Applied Steps pane is how the TA sees your work). The only exceptions are the questions that use the `openmeteo` and `cansim` packages, which are R questions. Each question is designed to take about **8--10 minutes**.
+
+Expand each **Answer** block to check your work. The answers are R scripts with the console session they produce; where the Power Query route differs in a way that matters, a line after the transcript says how.
+:::
+
+**The data.** One download: [`module03_bank_data.zip`](data/module03/module03_bank_data.zip). Unzip it into your project's `data/` folder, so that the files sit in `data/module03/`. Each question links to its own file as well. The files describe one farm world: twenty named fields, five elevators, five weather stations and the spring wheat varieties grown around Rosetown. Yields are in bushels per acre unless a question says otherwise; delivery weights are in tonnes.
+
+Two questions in Section 4 use the chapter's real files instead: [`rm_yields_2015_2024.csv`](data/rm_yields_2015_2024.csv), [`rm_lookup.csv`](data/rm_lookup.csv) and [`station_precip.csv`](data/station_precip.csv), which sit in `data/`.
+
+**Grading model.** **20%** for presentation -- in R, a header block, comments in the style of the module, clearly labelled question sections, and a script that runs from top to bottom in a fresh session; in Excel, one worksheet per question, each query named for its question, and the steps left in place. The remaining **80%** is split evenly across the four questions, and evenly across the parts within each question. Parts are marked on **follow-through**: if an early part is wrong but the later parts are correctly worked *from your own earlier answer*, the later parts still earn full marks. Where a part asks for a sentence, write it as a comment in your script or in a cell beside your query output.
+
+> **Vocabulary note.** Everything here uses Module 2 tools plus the Module 3 functions: `read_csv()` with `col_types`, `cols()`, `col_character()`, `col_date()`, `na`, `skip` and `col_names`; `read_delim()`, `read_tsv()` and `read_csv2()`; `write_csv()`; `weather_history()` from openmeteo and `get_cansim()` from cansim; `pivot_longer()` (with `cols`, `names_to`, `values_to`, `values_drop_na` and `names_sep`) and `pivot_wider()` (with `names_from` and `values_from`); `clean_names()`, `distinct()`, `parse_number()`, `if_else()`, `count()`, `summary()` and `glimpse()`; and `left_join()`, `inner_join()`, `full_join()` and `anti_join()` with `join_by()` and `relationship`. In Power Query the same jobs are **From Text/CSV** (with its delimiter and locale settings), **Change Type**, **Replace Values**, **Remove Rows**, **Remove Duplicates**, **Unpivot Columns**, **Pivot Column**, **Merge Queries** and **Group By**.
+
+::: {.callout-note collapse="true"}
+## A sample test, with a full-marks answer script
+
+A real test looks like this -- one question from each section:
+
+1. *Read the ticket file so that `ticket_id`, `permit_book` and `lot_code` stay as text. Report the number of tickets and the total weight delivered. In a comment: what happens to `permit_book` if you let R guess its type?* (`q01_tickets.csv`)
+2. *The wide table has one row per field and one column per crop, with blanks where a field did not grow a crop. Make it long, once keeping the blanks and once dropping them, and report the two row counts. Then compute the mean yield of each crop.* (`q17_field_crops_wide.csv`)
+3. *The field records have awkward column names and some exact duplicate rows. Standardize the names, count the rows before and after removing duplicates, and compute the mean yield of the deduplicated data.* (`q31_records.csv`)
+4. *Join the crop prices onto the field table. Report the rows before and after, the fields whose crop has no price, and total revenue where a price exists. In a comment: when would you choose an inner join instead?* (`q47_fields.csv`, `q47_prices.csv`)
+
+And here is a script that would earn full marks, including all of the presentation component -- with the console session it produces shown beneath it:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# ---
+# Title: Module 3 test
+# Author: Jordan Field
+# Date: 2026-10-29
+# Description:
+#   Answers to the four test questions, one section per block.
+#   Sentence answers are written as comments below each result.
+# ---
+
+# Load packages
+library(tidyverse)
+library(janitor)
+
+# ============================================================
+# Section 1: reading the ticket file
+# ============================================================
+
+# Read the tickets, keeping the identifiers as text
+tickets <- read_csv(
+  "data/module03/q01_tickets.csv",
+  col_types = cols(
+    ticket_id   = col_character(),
+    permit_book = col_character(),
+    lot_code    = col_character()
+  )
+)
+
+# Number of tickets and total tonnes delivered
+nrow(tickets)
+sum(tickets$weight_tonnes)
+
+# Left to guess, permit_book becomes a number: sixteen digits do not
+# fit in a double exactly, so R prints 4.52e15 and the last digits
+# are gone. As text every digit survives.
+
+# ============================================================
+# Section 2: wide to long
+# ============================================================
+
+# Read the wide table: one row per field, one column per crop
+wide <- read_csv("data/module03/q17_field_crops_wide.csv")
+
+# Long, keeping the blanks as NA
+long_all <- wide |>
+  pivot_longer(cols = -field, names_to = "crop", values_to = "yield_bu_ac")
+nrow(long_all)
+
+# Long, dropping the blanks
+long <- wide |>
+  pivot_longer(cols = -field, names_to = "crop", values_to = "yield_bu_ac",
+               values_drop_na = TRUE)
+nrow(long)
+
+# Mean yield by crop
+long |>
+  summarise(mean_yield = mean(yield_bu_ac), .by = crop)
+
+# ============================================================
+# Section 3: names and duplicates
+# ============================================================
+
+# Read the records and standardize the names
+records <- read_csv("data/module03/q31_records.csv") |>
+  clean_names()
+
+# Rows before and after dropping exact duplicates
+nrow(records)
+records_clean <- distinct(records)
+nrow(records_clean)
+
+# Mean yield of the deduplicated data
+mean(records_clean$yield_bu_ac)
+
+# ============================================================
+# Section 4: prices onto fields
+# ============================================================
+
+# Read the two tables
+fields <- read_csv("data/module03/q47_fields.csv")
+prices <- read_csv("data/module03/q47_prices.csv")
+
+# Many fields share a crop; each crop has one price
+with_price <- fields |>
+  left_join(prices, by = join_by(crop), relationship = "many-to-one")
+nrow(fields)
+nrow(with_price)
+
+# Fields whose crop has no price
+anti_join(fields, prices, by = join_by(crop))
+
+# Revenue where a price exists
+with_price |>
+  mutate(revenue = yield_bu_ac * acres * price_per_bu) |>
+  summarise(total_revenue = sum(revenue, na.rm = TRUE))
+
+# An inner join is the right choice when the analysis only makes sense
+# for fields with a price, such as a revenue per acre comparison, and
+# the unpriced fields should not appear at all rather than appear as NA.
+')
+```
+:::
+
+---
+
+# Section 1 — Reading Data
+
+*These questions are about getting a file into the tool without damaging it: identifiers that must stay text, delimiters that are not commas, missing-value codes, rows that are not data, and data that arrives from a package or a URL rather than a file. In Power Query, every one of the file questions starts with **Data > Get Data > From Text/CSV > Transform Data**; the settings in that dialog and the first few Applied Steps are the answer.*
+
+### Question 1
+
+*The file [`q01_tickets.csv`](data/module03/q01_tickets.csv) holds twenty grain delivery tickets: a five-digit ticket number, a sixteen-digit permit-book number, a lot code, the delivery date, crop, weight in tonnes, moisture percentage, elevator and postal code.*
+
+**(a)** Read the file so that `ticket_id`, `permit_book` and `lot_code` stay as text.
+
+**(b)** Report the number of tickets and the total weight delivered.
+
+**(c)** In a comment: what happens to `permit_book` if you let the tool guess its type, and why does that matter for an identifier?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Read the tickets, stating the types of the identifier columns
+tickets <- read_csv(
+  "data/module03/q01_tickets.csv",
+  col_types = cols(
+    ticket_id   = col_character(),
+    permit_book = col_character(),
+    lot_code    = col_character()
+  )
+)
+glimpse(tickets)
+
+# (b) Number of tickets and total tonnes
+nrow(tickets)
+sum(tickets$weight_tonnes)
+
+## (c) Guessed, permit_book is read as a number and printed as 4.52e15.
+## A double cannot hold sixteen digits exactly, so the last digits are
+## lost, and two different permit books can end up identical. An
+## identifier is never added or averaged, so it should be text.
+')
+```
+
+Power Query: in the editor, select the three columns and use **Transform > Data Type > Text**; if the preview has already turned `permit_book` into a number, delete the automatic **Changed Type** step first.
+
+</details>
+
+### Question 2
+
+*The file [`q02_tickets.csv`](data/module03/q02_tickets.csv) holds twenty grain delivery tickets with the same columns as Question 1.*
+
+**(a)** Open the file in Excel by double-clicking it. In a comment: what has happened to `lot_code` and to `permit_book`?
+
+**(b)** Now bring the file in properly -- in R with `col_types`, or in Excel through **From Text/CSV** with the three identifier columns set to Text -- and confirm the values survived.
+
+**(c)** Count the tickets for each crop.
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+## (a) Double-clicked, Excel reads lot codes such as 3-2 as dates (2-Mar)
+## and shows permit_book in scientific notation, 4.52E+15, with the last
+## digits replaced by zeros. Both changes happen without a warning that
+## names the columns.
+
+# (b) Read with the identifier columns declared as text
+tickets <- read_csv(
+  "data/module03/q02_tickets.csv",
+  col_types = cols(
+    ticket_id   = col_character(),
+    permit_book = col_character(),
+    lot_code    = col_character()
+  )
+)
+head(tickets, 3)
+
+# (c) Tickets per crop
+count(tickets, crop)
+')
+```
+
+</details>
+
+### Question 3
+
+*The file [`q03_tickets_semicolon.csv`](data/module03/q03_tickets_semicolon.csv) is the ticket table exported from a European accounting system: fields are separated by semicolons and the decimal mark is a comma (`42,4` means 42.4 tonnes).*
+
+**(a)** Read the file so that `weight_tonnes` and `moisture_pct` arrive as numbers (`read_csv2()` handles this layout; in Power Query, set the delimiter and use **File Origin / Locale** for the decimal mark).
+
+**(b)** Report the mean weight per ticket and the heaviest ticket.
+
+**(c)** In a comment: what do the two numeric columns look like if the file is read with ordinary `read_csv()`?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Semicolon delimiter and decimal comma
+tickets <- read_csv2(
+  "data/module03/q03_tickets_semicolon.csv",
+  col_types = cols(ticket_id = col_character(),
+                   permit_book = col_character(),
+                   lot_code = col_character())
+)
+glimpse(tickets)
+
+# (b) Mean and maximum weight
+mean(tickets$weight_tonnes)
+max(tickets$weight_tonnes)
+
+## (c) read_csv() sees no commas between fields, so every line lands in
+## one column whose name is the whole header line. Nothing is numeric.
+')
+```
+
+</details>
+
+### Question 4
+
+*The file [`q04_tickets.tsv`](data/module03/q04_tickets.tsv) is the ticket table with fields separated by tabs.*
+
+**(a)** Read the file, keeping the identifiers as text.
+
+**(b)** Count the tickets delivered to each elevator and report the elevator with the most.
+
+**(c)** In a comment: how could you tell, before reading it, that this file is not comma-separated?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Tab-separated file
+tickets <- read_tsv(
+  "data/module03/q04_tickets.tsv",
+  col_types = cols(ticket_id = col_character(),
+                   permit_book = col_character(),
+                   lot_code = col_character())
+)
+
+# (b) Tickets per elevator, most first
+tickets |>
+  count(elevator) |>
+  arrange(desc(n))
+
+## (c) The .tsv extension, and opening it in a text editor: the fields
+## are separated by wide gaps with no commas anywhere on a line.
+')
+```
+
+</details>
+
+### Question 5
+
+*The file [`q05_tickets_na.csv`](data/module03/q05_tickets_na.csv) is the ticket table, but the moisture tester was down for some deliveries. Those rows carry `-99` or `n/a` in `moisture_pct`.*
+
+**(a)** Read the file so that both codes become missing values, using the `na` argument of `read_csv()` (in Power Query, **Replace Values** to null, then **Change Type**).
+
+**(b)** Report how many tickets have no moisture reading and the mean moisture of the rest.
+
+**(c)** In a comment: what would the mean have been if `-99` had been left as a number, and why does that make it worse than `n/a`?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Both codes mean missing
+tickets <- read_csv(
+  "data/module03/q05_tickets_na.csv",
+  na = c("", "NA", "-99", "n/a"),
+  col_types = cols(ticket_id = col_character(),
+                   permit_book = col_character(),
+                   lot_code = col_character())
+)
+
+# (b) summary() reports the count of NAs; mean needs na.rm
+summary(tickets$moisture_pct)
+mean(tickets$moisture_pct, na.rm = TRUE)
+
+## (c) With -99 kept as a number the column would still be numeric and
+## the mean would fall below zero, an impossible moisture. The n/a code
+## at least forces the column to text and makes the problem visible;
+## -99 is a number that quietly poisons every average it touches.
+')
+```
+
+</details>
+
+### Question 6
+
+*The file [`q06_tickets_notes.csv`](data/module03/q06_tickets_notes.csv) is the ticket table as the elevator emailed it: two lines of notes and a blank line sit above the column headings.*
+
+**(a)** Read the file so that the column headings are the real ones (`skip` in `read_csv()`; **Remove Top Rows** then **Use First Row as Headers** in Power Query).
+
+**(b)** Report the number of columns and the number of tickets.
+
+**(c)** In a comment: what does the tool do with the notes if you do not skip them?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Skip the three lines above the header
+tickets <- read_csv(
+  "data/module03/q06_tickets_notes.csv",
+  skip = 3,
+  col_types = cols(ticket_id = col_character(),
+                   permit_book = col_character(),
+                   lot_code = col_character())
+)
+
+# (b) Columns and rows
+ncol(tickets)
+nrow(tickets)
+
+## (c) The first note becomes the column heading of a one-column table,
+## and every ticket is a single text cell. No column is numeric.
+')
+```
+
+</details>
+
+### Question 7
+
+*The file [`q07_tickets_units.csv`](data/module03/q07_tickets_units.csv) is the ticket table with a units row directly under the column headings (`t` under the weight, `%` under the moisture).*
+
+**(a)** Read the file so that the units row is not treated as data. One way: `skip = 2` with `col_names` set to the nine column names.
+
+**(b)** Report the total weight delivered.
+
+**(c)** In a comment: what happens to the weight column if the units row is read as data?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Skip the header and the units row, then supply the names
+tickets <- read_csv(
+  "data/module03/q07_tickets_units.csv",
+  skip = 2,
+  col_names = c("ticket_id", "permit_book", "lot_code", "delivery_date",
+                "crop", "weight_tonnes", "moisture_pct", "elevator",
+                "postal_code"),
+  col_types = cols(ticket_id = col_character(),
+                   permit_book = col_character(),
+                   lot_code = col_character())
+)
+
+# (b) Total tonnes
+sum(tickets$weight_tonnes)
+
+## (c) The letter t sits in the first data row, so the whole column is
+## read as text and sum() refuses to add it.
+')
+```
+
+</details>
+
+### Question 8
+
+*The file [`q08_tickets_bushels.csv`](data/module03/q08_tickets_bushels.csv) records each delivery in bushels, typed with a thousands separator and the unit (`1,454 bu`).*
+
+**(a)** Read the file and use `glimpse()` to show what type the bushels column arrived as.
+
+**(b)** Convert it to a number with `parse_number()` inside `mutate()` (in Power Query, **Replace Values** to remove the unit, then **Change Type**).
+
+**(c)** Report total bushels and the mean per ticket.
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Read and inspect the types
+tickets <- read_csv("data/module03/q08_tickets_bushels.csv",
+                    col_types = cols(ticket_id = col_character()))
+glimpse(tickets)
+
+# (b) The unit makes the column text; parse_number() drops the unit
+# and the thousands separator together
+tickets <- tickets |>
+  mutate(bushels = parse_number(bushels))
+
+# (c) Total and mean bushels
+sum(tickets$bushels)
+mean(tickets$bushels)
+')
+```
+
+</details>
+
+### Question 9
+
+*The file [`q09_tickets_stray.csv`](data/module03/q09_tickets_stray.csv) is the ticket table. One moisture reading was typed as `tr`, the tester's code for a trace reading.*
+
+**(a)** Read the file and run `glimpse()`. In a comment: which column has the wrong type, and why did one cell change the whole column?
+
+**(b)** Read the file again so that the column is numeric, and report the mean moisture.
+
+**(c)** In a comment: is treating `tr` as missing the only reasonable choice? What else could it become?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) First read: moisture_pct arrives as character
+tickets <- read_csv("data/module03/q09_tickets_stray.csv",
+                    col_types = cols(ticket_id = col_character(),
+                                     permit_book = col_character(),
+                                     lot_code = col_character()))
+glimpse(tickets)
+
+## (a) moisture_pct is text. A column has one type, so a single value
+## that cannot be a number forces every value in the column to text.
+
+# (b) Declare tr as a missing-value code
+tickets <- read_csv("data/module03/q09_tickets_stray.csv",
+                    na = c("", "NA", "tr"),
+                    col_types = cols(ticket_id = col_character(),
+                                     permit_book = col_character(),
+                                     lot_code = col_character()))
+mean(tickets$moisture_pct, na.rm = TRUE)
+
+## (c) A trace reading means a very small amount, so replacing tr with 0
+## (or a small value) is defensible and keeps the ticket in the average.
+## Either choice should be written down; the wrong choice is leaving the
+## column as text.
+')
+```
+
+</details>
+
+### Question 10
+
+*The ticket file for this question is not on your computer. It is served from the course site at
+`https://raw.githubusercontent.com/peterJslade/arec261-textbook/main/practice/data/module03/q10_tickets.csv`.*
+
+**(a)** Read the file directly from the URL, keeping the identifiers as text.
+
+**(b)** Save a dated snapshot of it under `output/` with `write_csv()` (in Power Query, **From Web**, then load to a sheet).
+
+**(c)** Report the number of tickets and the mean weight. In a comment: why keep a local copy at all when the URL works?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) A URL works in place of a path
+url <- "https://raw.githubusercontent.com/peterJslade/arec261-textbook/main/practice/data/module03/q10_tickets.csv"
+tickets <- read_csv(url,
+                    col_types = cols(ticket_id = col_character(),
+                                     permit_book = col_character(),
+                                     lot_code = col_character()))
+
+# (b) Dated snapshot
+write_csv(tickets, "output/q10_tickets_2026-09-02.csv")
+
+# (c) Count and mean weight
+nrow(tickets)
+mean(tickets$weight_tonnes)
+
+## (c) The provider can move, revise or delete the file. A dated copy
+## means the script still runs, and the numbers in a report can be
+## traced to the version of the data that produced them.
+')
+```
+
+</details>
+
+### Question 11
+
+*This question uses the `openmeteo` package. Rosetown is at latitude 51.55, longitude -108.00.*
+
+**(a)** Download daily precipitation totals for Rosetown for May 2024 with `weather_history()`, asking for the daily variable `precipitation_sum`.
+
+**(b)** Report total precipitation for the month and the date of the wettest day.
+
+**(c)** In a comment: Open-Meteo is a model, not a rain gauge. What does that mean for how you would describe this number in a report?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Daily precipitation for Rosetown, May 2024
+library(openmeteo)
+rain <- weather_history(c(51.55, -108.00),
+                        start = "2024-05-01", end = "2024-05-31",
+                        daily = "precipitation_sum")
+head(rain)
+
+# (b) Monthly total and the wettest day
+sum(rain$daily_precipitation_sum)
+rain |>
+  arrange(desc(daily_precipitation_sum)) |>
+  head(1)
+
+## (c) The values are estimates from a weather model on a grid, not a
+## reading at Rosetown. Report them as modelled precipitation and expect
+## them to differ from the nearest station, especially for single days.
+')
+```
+
+</details>
+
+### Question 12
+
+*This question uses the `openmeteo` package. Saskatoon is at latitude 52.13, longitude -106.67.*
+
+**(a)** Download the daily maximum temperature (`temperature_2m_max`) for Saskatoon for July 2023.
+
+**(b)** Report the hottest day and its temperature, and count the days above 30 degrees.
+
+**(c)** In a comment: the request has a start date, an end date and a location written into the script. Why is that better than a spreadsheet you downloaded from a website?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Daily maximum temperature for Saskatoon, July 2023
+library(openmeteo)
+temps <- weather_history(c(52.13, -106.67),
+                         start = "2023-07-01", end = "2023-07-31",
+                         daily = "temperature_2m_max")
+
+# (b) Hottest day, and days above 30 degrees
+temps |>
+  arrange(desc(daily_temperature_2m_max)) |>
+  head(1)
+sum(temps$daily_temperature_2m_max > 30)
+
+## (c) The script records exactly what was asked for. Anyone can rerun
+## it, change one date, or point it at another town, and the result is
+## reproducible; a downloaded spreadsheet records none of the choices.
+')
+```
+
+</details>
+
+### Question 13
+
+*This question uses the `cansim` package. Statistics Canada table 32-10-0359-01 holds seeded area, production and yield for field crops by province. Crops are named as in the table (`Canola (rapeseed)`, `Lentils`) and the measures sit in `Harvest disposition`.*
+
+**(a)** Download the table with `get_cansim()`.
+
+**(b)** Filter to Saskatchewan canola production in metric tonnes for 2020 onward and keep the year and value.
+
+**(c)** Report the year with the lowest production. In a comment: what happened in that year?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Download the whole table
+library(cansim)
+field_crops <- get_cansim("32-10-0359-01")
+
+# (b) Saskatchewan canola production since 2020
+sk_canola <- field_crops |>
+  filter(GEO == "Saskatchewan",
+         `Type of crop` == "Canola (rapeseed)",
+         `Harvest disposition` == "Production (metric tonnes)",
+         REF_DATE >= 2020) |>
+  select(REF_DATE, VALUE)
+sk_canola
+
+# (c) Lowest year first
+arrange(sk_canola, VALUE)
+
+## (c) 2021 is the low year: the drought across the Prairies cut canola
+## production by about a third from the year before.
+')
+```
+
+</details>
+
+### Question 14
+
+*This question uses the `cansim` package and the same table as Question 13.*
+
+**(a)** Download the table and filter to lentil production in metric tonnes for 2024 in Manitoba, Saskatchewan and Alberta.
+
+**(b)** One of the three values is NA. In a comment: what does a missing value mean in a Statistics Canada table like this one? Then compute the share of the published total that Saskatchewan produced.
+
+**(c)** In a comment: the table also has a row for `Prairie provinces`. Why is that row not simply the sum of the two published values?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Lentil production, 2024, three provinces
+library(cansim)
+field_crops <- get_cansim("32-10-0359-01")
+lentils <- field_crops |>
+  filter(GEO %in% c("Manitoba", "Saskatchewan", "Alberta"),
+         `Type of crop` == "Lentils",
+         `Harvest disposition` == "Production (metric tonnes)",
+         REF_DATE == 2024) |>
+  select(GEO, VALUE)
+lentils
+
+## (b) Manitoba is NA: Statistics Canada suppresses a value when too
+## few farms report it, or does not estimate a crop that small in a
+## province. It is not zero.
+
+# (b) Saskatchewan share of the published total
+lentils |>
+  mutate(share = VALUE / sum(VALUE, na.rm = TRUE))
+
+## (c) The Prairie row is built before suppression, so it includes
+## whatever Manitoba grew. Saskatchewan plus Alberta falls short of it
+## by the amount that was withheld.
+')
+```
+
+</details>
+
+### Question 15
+
+*The file [`q15_tickets.csv`](data/module03/q15_tickets.csv) was emailed to you by the Rosetown elevator office on 2026-09-15 as their record of your fall deliveries.*
+
+**(a)** Read the file, keeping the identifiers as text, and write a comment block at the top of your script in the form of a README entry: where the file came from, when, what one row represents, the units of the numeric columns, and the path where the untouched raw copy lives in your project.
+
+**(b)** Create a processed copy with the moisture column removed and save it under `output/` with `write_csv()`.
+
+**(c)** In a comment: why is the raw file never edited, even to fix an obvious typo?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+## (a) README entry
+## Source: Rosetown elevator office, sent by email 2026-09-15.
+## Raw copy: data/raw/q15_tickets.csv, unchanged.
+## One row = one delivery ticket. weight_tonnes in tonnes,
+## moisture_pct in percent, delivery_date as yyyy-mm-dd.
+
+# (a) Read the raw file
+tickets <- read_csv("data/module03/q15_tickets.csv",
+                    col_types = cols(ticket_id = col_character(),
+                                     permit_book = col_character(),
+                                     lot_code = col_character()))
+
+# (b) Processed copy without the moisture column
+tickets_out <- select(tickets, -moisture_pct)
+write_csv(tickets_out, "output/q15_tickets_processed.csv")
+names(tickets_out)
+
+## (c) The raw file is the evidence of what arrived. Every change lives
+## in the script, so it can be seen, questioned and rerun when a new
+## version of the file comes; an edit made by hand leaves no trace.
+')
+```
+
+</details>
+
+# Section 2 — Data Shape
+
+*These questions are about moving a table between wide and long and saying what one row represents in each. In R the tools are `pivot_longer()` and `pivot_wider()`; in Power Query, **Unpivot Columns** (and **Unpivot Other Columns**) and **Pivot Column**. Note the one difference between the tools: Unpivot drops blank cells, while `pivot_longer()` keeps them as NA unless you add `values_drop_na = TRUE`.*
+
+### Question 16
+
+*The file [`q16_field_crops_wide.csv`](data/module03/q16_field_crops_wide.csv) has one row per field and one column per crop, holding that crop's yield on that field in bu/ac.*
+
+**(a)** In a comment: what does one row represent in this table, and what would one row represent in the long version?
+
+**(b)** Make the table long, with a `crop` column and a `yield_bu_ac` column, and report the number of rows.
+
+**(c)** Compute the mean yield of each crop from the long table.
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+## (a) Wide: one row is a field, with five yields across it. Long: one
+## row is a field-crop pair, with a single yield.
+
+# (b) Wide to long
+wide <- read_csv("data/module03/q16_field_crops_wide.csv")
+long <- wide |>
+  pivot_longer(cols = -field, names_to = "crop", values_to = "yield_bu_ac")
+nrow(long)
+
+# (c) Mean yield by crop
+long |>
+  summarise(mean_yield = mean(yield_bu_ac), .by = crop)
+')
+```
+
+</details>
+
+### Question 17
+
+*The file [`q17_field_crops_wide.csv`](data/module03/q17_field_crops_wide.csv) has one row per field and one column per crop, with blank cells where a field did not grow that crop.*
+
+**(a)** Make the table long twice: once keeping the blanks (as NA) and once dropping them. Report the two row counts.
+
+**(b)** In a comment: which count does Power Query's **Unpivot Other Columns** give, and why?
+
+**(c)** Compute the mean yield of each crop and the number of fields that grew it.
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Long, keeping and then dropping the blanks
+wide <- read_csv("data/module03/q17_field_crops_wide.csv")
+long_all <- wide |>
+  pivot_longer(cols = -field, names_to = "crop", values_to = "yield_bu_ac")
+nrow(long_all)
+long <- wide |>
+  pivot_longer(cols = -field, names_to = "crop", values_to = "yield_bu_ac",
+               values_drop_na = TRUE)
+nrow(long)
+
+## (b) Unpivot gives the smaller count. It drops null cells, so a field
+## that did not grow a crop simply has no row for it.
+
+# (c) Mean yield and count of fields by crop
+long |>
+  summarise(mean_yield = mean(yield_bu_ac), fields = n(), .by = crop)
+')
+```
+
+</details>
+
+### Question 18
+
+*The file [`q18_field_crops_long.csv`](data/module03/q18_field_crops_long.csv) is long: one row per field and crop, with the yield in bu/ac. Each field grew three crops.*
+
+**(a)** Make the table wide, one column per crop.
+
+**(b)** Report which field had the highest canola yield, and which fields did not grow canola.
+
+**(c)** In a comment: which shape would you hand to someone reading the numbers, and which would you use for a PivotTable or a `group_by()`?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Long to wide
+long <- read_csv("data/module03/q18_field_crops_long.csv")
+wide <- long |>
+  pivot_wider(names_from = crop, values_from = yield_bu_ac)
+wide
+
+# (b) Highest canola, then the fields with no canola (NA in the column)
+wide |>
+  arrange(desc(Canola)) |>
+  select(field, Canola)
+
+## (c) The wide table is easier to read across; the long table is the
+## one to summarise, because crop is a column you can group or filter by.
+')
+```
+
+</details>
+
+### Question 19
+
+*The file [`q19_canola_years_wide.csv`](data/module03/q19_canola_years_wide.csv) has one row per field and one column per year, `yield_2021` through `yield_2025`, holding canola yields in bu/ac.*
+
+**(a)** Make the table long with a `year` column and a `yield_bu_ac` column.
+
+**(b)** The `year` column comes out as text (`"yield_2021"`). Turn it into a number with `parse_number()`.
+
+**(c)** Compute the mean yield in each year and report the best year.
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Years into rows
+wide <- read_csv("data/module03/q19_canola_years_wide.csv")
+long <- wide |>
+  pivot_longer(cols = -field, names_to = "year", values_to = "yield_bu_ac")
+head(long, 3)
+
+# (b) The column names become text; pull the number out
+long <- long |>
+  mutate(year = parse_number(year))
+head(long, 3)
+
+# (c) Mean yield by year, best first
+long |>
+  summarise(mean_yield = mean(yield_bu_ac), .by = year) |>
+  arrange(desc(mean_yield))
+')
+```
+
+</details>
+
+### Question 20
+
+*The file [`q20_crop_year_wide.csv`](data/module03/q20_crop_year_wide.csv) has one row per field and four yield columns whose names carry both a crop and a year: `canola_2024`, `canola_2025`, `wheat_2024`, `wheat_2025`.*
+
+**(a)** Make the table long so that crop and year are separate columns (`pivot_longer()` can split a name on the underscore with `names_to = c("crop", "year")` and `names_sep = "_"`).
+
+**(b)** Report the number of rows and what one row now represents.
+
+**(c)** Compute the mean yield for each crop in each year.
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Split each column name into crop and year
+wide <- read_csv("data/module03/q20_crop_year_wide.csv")
+long <- wide |>
+  pivot_longer(cols = -field,
+               names_to = c("crop", "year"), names_sep = "_",
+               values_to = "yield_bu_ac")
+
+# (b) Rows: one per field, crop and year
+nrow(long)
+head(long, 4)
+
+# (c) Mean yield by crop and year
+long |>
+  summarise(mean_yield = mean(yield_bu_ac), .by = c(crop, year))
+')
+```
+
+Power Query: after **Unpivot Other Columns**, use **Split Column > By Delimiter** on the attribute column to separate crop and year.
+
+</details>
+
+### Question 21
+
+*The file [`q21_precip_wide.csv`](data/module03/q21_precip_wide.csv) has one row per weather station and one column per month, `jan` through `dec`, holding 2024 precipitation in millimetres.*
+
+**(a)** Make the table long with a `month` column and a `precip_mm` column.
+
+**(b)** Compute growing-season precipitation (May to August) for each station.
+
+**(c)** Report the wettest and driest station over that season.
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Months into rows
+wide <- read_csv("data/module03/q21_precip_wide.csv")
+long <- wide |>
+  pivot_longer(cols = -station, names_to = "month", values_to = "precip_mm")
+
+# (b) May to August total by station
+season <- long |>
+  filter(month %in% c("may", "jun", "jul", "aug")) |>
+  summarise(precip_may_aug_mm = sum(precip_mm), .by = station)
+
+# (c) Wettest first
+arrange(season, desc(precip_may_aug_mm))
+')
+```
+
+</details>
+
+### Question 22
+
+*The file [`q22_variety_long.csv`](data/module03/q22_variety_long.csv) is long: one row per spring wheat variety and year, with the yield in bu/ac, for four varieties over 2022 to 2025.*
+
+**(a)** Make a table for a report with one row per variety and one column per year.
+
+**(b)** Report which variety had the highest yield in 2025 and which had the lowest in 2022.
+
+**(c)** In a comment: this wide table is easier to read but harder to analyse. Give one calculation that is simple on the long table and awkward on the wide one.
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Years across the top
+long <- read_csv("data/module03/q22_variety_long.csv")
+wide <- long |>
+  pivot_wider(names_from = year, values_from = yield_bu_ac)
+wide
+
+# (b) Best in 2025, worst in 2022
+arrange(wide, desc(`2025`))
+arrange(wide, `2022`)
+
+## (c) The mean yield of each variety across all years: one summarise()
+## on the long table, but a formula across four columns on the wide one
+## that has to change whenever a year is added.
+')
+```
+
+</details>
+
+### Question 23
+
+*The file [`q23_measures_long.csv`](data/module03/q23_measures_long.csv) has three rows per field: one for `yield_bu_ac`, one for `acres` and one for `moisture_pct`, with the value in a `value` column.*
+
+**(a)** In a comment: why is this table not tidy, even though it is long?
+
+**(b)** Make it wide so that each measure is its own column.
+
+**(c)** Compute each field's production in bushels and the total for the farm.
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+## (a) The measure column mixes three different variables, and the
+## value column holds yields, acres and percentages in one place. Each
+## variable should have its own column.
+
+# (b) Measures into columns
+long <- read_csv("data/module03/q23_measures_long.csv")
+wide <- long |>
+  pivot_wider(names_from = measure, values_from = value)
+wide
+
+# (c) Production per field and the total
+wide <- wide |>
+  mutate(production_bu = yield_bu_ac * acres)
+sum(wide$production_bu)
+')
+```
+
+</details>
+
+### Question 24
+
+*The file [`q24_prices_wide.csv`](data/module03/q24_prices_wide.csv) has one row per crop and one column per elevator, holding the price offered in dollars per bushel.*
+
+**(a)** Make the table long with an `elevator` column and a `price_per_bu` column.
+
+**(b)** For each crop, compute the spread between the highest and lowest price, and report the crop where it pays most to shop around.
+
+**(c)** For each elevator, compute the mean price across crops.
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Elevators into rows
+wide <- read_csv("data/module03/q24_prices_wide.csv")
+long <- wide |>
+  pivot_longer(cols = -crop, names_to = "elevator", values_to = "price_per_bu")
+
+# (b) Spread by crop, widest first
+long |>
+  summarise(spread = max(price_per_bu) - min(price_per_bu), .by = crop) |>
+  arrange(desc(spread))
+
+# (c) Mean price by elevator
+long |>
+  summarise(mean_price = mean(price_per_bu), .by = elevator)
+')
+```
+
+</details>
+
+### Question 25
+
+*The file [`q25_farm_fields_wide.csv`](data/module03/q25_farm_fields_wide.csv) has one row per farm, field and year, with four crop columns of yields in bu/ac and blanks where a crop was not grown.*
+
+**(a)** Make the table long, dropping the blanks. Three columns identify a row here; in Power Query you would select all three before **Unpivot Other Columns**.
+
+**(b)** Report the number of rows and, in a comment, what one row represents.
+
+**(c)** Save the long table under `output/` with `write_csv()`, then compute each farm's mean canola yield across both years.
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Three identifying columns stay; the crop columns go long
+wide <- read_csv("data/module03/q25_farm_fields_wide.csv")
+long <- wide |>
+  pivot_longer(cols = Canola:Peas, names_to = "crop", values_to = "yield_bu_ac",
+               values_drop_na = TRUE)
+
+# (b) Rows: one per farm, field, year and crop actually grown
+nrow(long)
+
+# (c) Save, then mean canola by farm
+write_csv(long, "output/q25_farm_fields_long.csv")
+long |>
+  filter(crop == "Canola") |>
+  summarise(mean_canola = mean(yield_bu_ac), .by = farm)
+')
+```
+
+</details>
+
+### Question 26
+
+*The file [`q26_field_crops_long.csv`](data/module03/q26_field_crops_long.csv) is long: one row per field and crop grown, with the yield in bu/ac. Fields grew between two and four crops.*
+
+**(a)** Make the table wide with one column per crop.
+
+**(b)** Report how many cells are NA in the wide table, using `summary()`.
+
+**(c)** In a comment: what does an NA mean in this table, and why would filling it with 0 be wrong?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Crops into columns
+long <- read_csv("data/module03/q26_field_crops_long.csv")
+wide <- long |>
+  pivot_wider(names_from = crop, values_from = yield_bu_ac)
+wide
+
+# (b) summary() counts the NAs in each column
+summary(wide)
+
+## (c) NA means the field did not grow that crop, so there is no yield
+## to record. A zero would say the crop was grown and produced nothing,
+## and it would drag every mean and total down.
+')
+```
+
+</details>
+
+### Question 27
+
+*The file [`q27_soil_wide.csv`](data/module03/q27_soil_wide.csv) has one row per field with three soil-test columns: nitrogen, phosphorus and potassium, all in parts per million.*
+
+**(a)** Make the table long with a `nutrient` column and a `ppm` column.
+
+**(b)** Compute the mean of each nutrient across fields.
+
+**(c)** Report the field with the highest phosphorus reading.
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Nutrients into rows
+wide <- read_csv("data/module03/q27_soil_wide.csv")
+long <- wide |>
+  pivot_longer(cols = -field, names_to = "nutrient", values_to = "ppm")
+
+# (b) Mean by nutrient
+long |>
+  summarise(mean_ppm = mean(ppm), .by = nutrient)
+
+# (c) Highest phosphorus
+long |>
+  filter(nutrient == "p_ppm") |>
+  arrange(desc(ppm)) |>
+  head(1)
+')
+```
+
+</details>
+
+### Question 28
+
+*The file [`q28_field_crops_wide.csv`](data/module03/q28_field_crops_wide.csv) has one row per field and one column per crop, with four blank cells.*
+
+**(a)** Make the table long, dropping the blanks, and then wide again.
+
+**(b)** Report the dimensions of the original and of the round-tripped table.
+
+**(c)** In a comment: the blanks came back as NA. When would a wide-long-wide round trip change the table, and when is it harmless?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Wide to long to wide
+wide <- read_csv("data/module03/q28_field_crops_wide.csv")
+back <- wide |>
+  pivot_longer(cols = -field, names_to = "crop", values_to = "yield_bu_ac",
+               values_drop_na = TRUE) |>
+  pivot_wider(names_from = crop, values_from = yield_bu_ac)
+
+# (b) Same shape both times
+dim(wide)
+dim(back)
+back
+
+## (c) Dropping NAs then widening restores them, so nothing is lost here.
+## The round trip changes the table only when a whole row or a whole
+## column was blank: with no values left, that field or crop disappears
+## and does not come back.
+')
+```
+
+</details>
+
+### Question 29
+
+*The file [`q29_deliveries_wide.csv`](data/module03/q29_deliveries_wide.csv) has one row per crop and one column per month, September to December, holding tonnes delivered.*
+
+**(a)** Make the table long with a `month` column and a `tonnes` column.
+
+**(b)** Compute total tonnes per crop and total tonnes per month.
+
+**(c)** Report the busiest month and, in a comment, why the long table makes both totals the same kind of calculation.
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Months into rows
+wide <- read_csv("data/module03/q29_deliveries_wide.csv")
+long <- wide |>
+  pivot_longer(cols = -crop, names_to = "month", values_to = "tonnes")
+
+# (b) Totals by crop, then by month
+long |>
+  summarise(total_t = sum(tonnes), .by = crop)
+long |>
+  summarise(total_t = sum(tonnes), .by = month) |>
+  arrange(desc(total_t))
+
+## (c) In the long table month and crop are both columns, so either can
+## be the grouping variable in the same summarise(). In the wide table a
+## crop total adds across a row and a month total adds down a column.
+')
+```
+
+</details>
+
+### Question 30
+
+*The file [`q30_trial_wide.csv`](data/module03/q30_trial_wide.csv) is a variety trial: one row per spring wheat variety and one column per trial site, holding the yield in bu/ac.*
+
+**(a)** You want the mean yield of each variety across sites, and a PivotTable or grouped summary with site as the grouping variable. In a comment: which shape do you need, and why does the wide table not work for the second task?
+
+**(b)** Reshape accordingly and compute both summaries.
+
+**(c)** Report the best variety and the best site.
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+## (a) Long. In the wide table site is spread across column headings, so
+## there is no site column to group by or to drop on a PivotTable axis.
+
+# (b) Sites into rows, then both summaries
+wide <- read_csv("data/module03/q30_trial_wide.csv")
+long <- wide |>
+  pivot_longer(cols = -variety, names_to = "site", values_to = "yield_bu_ac")
+by_variety <- long |>
+  summarise(mean_yield = mean(yield_bu_ac), .by = variety) |>
+  arrange(desc(mean_yield))
+by_site <- long |>
+  summarise(mean_yield = mean(yield_bu_ac), .by = site) |>
+  arrange(desc(mean_yield))
+
+# (c) Best variety and best site on top
+by_variety
+by_site
+')
+```
+
+</details>
+
+# Section 3 — Cleaning Data
+
+*These questions are about finding what is wrong with a file before fixing it. Each file carries two or three of the seven problems from the chapter: awkward names, text in numeric columns, duplicates, missing-value codes, impossible values, mixed units and inconsistent categories. The diagnosis is part of the answer: show the check that found the problem, then the fix. In R the tools are `summary()`, `count()`, `nrow()` against `distinct()`, `clean_names()`, `parse_number()` and `if_else()`; in Power Query, **Column Profile**, **Remove Duplicates**, **Replace Values**, **Change Type** and **Conditional Column**.*
+
+### Question 31
+
+*The file [`q31_records.csv`](data/module03/q31_records.csv) holds one season of spring wheat field records: field ID, variety, acres, yield in bu/ac, harvest weight in tonnes, nitrogen rate in kg/ha and moisture percent. The column names were typed by hand, and the office pasted some rows in twice.*
+
+**(a)** Read the file and standardize the column names with `clean_names()`. Report the new names.
+
+**(b)** Count the rows, then count the distinct rows. Report how many duplicates there are and remove them.
+
+**(c)** Compute the mean yield and total acres of the deduplicated data. In a comment: what would the duplicates have done to the total acres?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Read and standardize the names
+records <- read_csv("data/module03/q31_records.csv") |>
+  clean_names()
+names(records)
+
+# (b) Rows before and after distinct()
+nrow(records)
+records_clean <- distinct(records)
+nrow(records_clean)
+
+# (c) Mean yield and total acres without the duplicates
+mean(records_clean$yield_bu_ac)
+sum(records_clean$acres)
+
+## (c) Each duplicate adds its acres again, so the farm would appear
+## larger than it is by the acres of the three repeated fields.
+')
+```
+
+</details>
+
+### Question 32
+
+*The file [`q32_records.csv`](data/module03/q32_records.csv) holds spring wheat field records. The harvest weights were typed with their unit, as `297.7 t`.*
+
+**(a)** Read the file, clean the names, and run `summary()` on the harvest weight column. In a comment: what does the output tell you about the column type?
+
+**(b)** Make the column numeric with `parse_number()` and rename it so the unit is in the name.
+
+**(c)** Report total harvest weight and the mean weight per acre.
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Read, clean names, inspect the weight column
+records <- read_csv("data/module03/q32_records.csv") |>
+  clean_names()
+summary(records$harvest_weight)
+
+## (a) summary() gives a length and nothing else, no minimum, mean or
+## maximum: the unit text made the whole column text.
+
+# (b) Strip the unit and put it in the column name
+records <- records |>
+  mutate(weight_t = parse_number(harvest_weight)) |>
+  select(-harvest_weight)
+
+# (c) Total weight, and weight per acre
+sum(records$weight_t)
+mean(records$weight_t / records$acres)
+')
+```
+
+</details>
+
+### Question 33
+
+*The file [`q33_records.csv`](data/module03/q33_records.csv) holds spring wheat field records. Fields whose yield was never recorded carry `-99` in the yield column.*
+
+**(a)** Read the file with the code declared as missing in `read_csv()`, and clean the names.
+
+**(b)** Report how many yields are missing and the mean of the rest.
+
+**(c)** Compute the mean again with `-99` left in the data (a second read without the `na` argument is fine). In a comment: how far off is it, and why is a code like `-99` more dangerous than a blank cell?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Declare the missing-value code on the way in
+records <- read_csv("data/module03/q33_records.csv",
+                    na = c("", "NA", "-99")) |>
+  clean_names()
+
+# (b) Count of NAs and the mean of the recorded yields
+summary(records$yield_bu_ac)
+mean(records$yield_bu_ac, na.rm = TRUE)
+
+# (c) The same mean with the code treated as a yield
+raw <- read_csv("data/module03/q33_records.csv") |>
+  clean_names()
+mean(raw$yield_bu_ac)
+
+## (c) Four values of -99 pull the mean down by about thirty bushels.
+## A blank cell becomes NA and mean() refuses to give an answer until
+## you deal with it; -99 is a valid number, so nothing complains.
+')
+```
+
+</details>
+
+### Question 34
+
+*The file [`q34_records.csv`](data/module03/q34_records.csv) holds spring wheat field records. Two yields cannot be right: one is negative and one is above 1,000 bu/ac.*
+
+**(a)** Read the file, clean the names, and use `summary()` to show the two problem values.
+
+**(b)** Set yields below 0 or above 200 to NA with `if_else()`, keeping the original column beside the new one.
+
+**(c)** Report the mean and maximum yield before and after. In a comment: why replace the values with NA rather than delete the two rows?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) The minimum and maximum give the problem away
+records <- read_csv("data/module03/q34_records.csv") |>
+  clean_names()
+summary(records$yield_bu_ac)
+
+# (b) Impossible yields become NA in a new column
+records <- records |>
+  mutate(yield_clean = if_else(yield_bu_ac < 0 | yield_bu_ac > 200,
+                               NA, yield_bu_ac))
+
+# (c) Before and after
+mean(records$yield_bu_ac)
+max(records$yield_bu_ac)
+mean(records$yield_clean, na.rm = TRUE)
+max(records$yield_clean, na.rm = TRUE)
+
+## (c) The other columns on those rows (acres, variety, nitrogen) are
+## fine and still count in every other summary. Deleting the rows would
+## throw away good data to remove one bad number.
+')
+```
+
+</details>
+
+### Question 35
+
+*The file [`q35_records.csv`](data/module03/q35_records.csv) holds spring wheat field records. The nitrogen rate should be in kg/ha, but some operators recorded it in tonnes per hectare.*
+
+**(a)** Read the file, clean the names, and run `summary()` on the nitrogen column. In a comment: what pattern in the minimum and quartiles reveals the mixed units?
+
+**(b)** Count the rows recorded in t/ha (rates below 1), then convert them to kg/ha with `if_else()`.
+
+**(c)** Report the mean nitrogen rate before and after the conversion.
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) The distribution has a cluster near zero
+records <- read_csv("data/module03/q35_records.csv") |>
+  clean_names()
+summary(records$n_rate)
+
+## (a) The minimum is a fraction of one while the median is near 100.
+## Nitrogen rates do not spread that way; the small values are a
+## second unit, tonnes rather than kilograms.
+
+# (b) How many are in t/ha, then convert
+sum(records$n_rate < 1)
+records <- records |>
+  mutate(n_rate_kg_ha = if_else(n_rate < 1, n_rate * 1000, n_rate))
+
+# (c) Mean before and after
+mean(records$n_rate)
+mean(records$n_rate_kg_ha)
+')
+```
+
+</details>
+
+### Question 36
+
+*The file [`q36_records.csv`](data/module03/q36_records.csv) holds spring wheat field records for two varieties. One of them was typed several different ways.*
+
+**(a)** Read the file, clean the names, and count the rows for each variety spelling.
+
+**(b)** Standardize the spellings with `if_else()` and `%in%`, and count again.
+
+**(c)** Report the mean yield of each variety after the fix. In a comment: what would the by-variety comparison have looked like before it?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) The spellings show up in a count
+records <- read_csv("data/module03/q36_records.csv") |>
+  clean_names()
+count(records, variety_name)
+
+# (b) One name for the Brandon variety
+records <- records |>
+  mutate(variety = if_else(variety_name %in% c("Brandon", "Brandon AAC", "Brndon"),
+                           "AAC Brandon", variety_name))
+count(records, variety)
+
+# (c) Mean yield by variety
+records |>
+  summarise(mean_yield = mean(yield_bu_ac), fields = n(), .by = variety)
+
+## (c) Five varieties instead of two, with the Brandon fields split into
+## groups of two, so each Brandon mean would rest on two fields.
+')
+```
+
+</details>
+
+### Question 37
+
+*The file [`q37_field_crops.csv`](data/module03/q37_field_crops.csv) holds one row per field with the crop grown, acres and yield in bu/ac. The crop names were entered by several people.*
+
+**(a)** Read the file and count the rows by crop. In a comment: how many distinct spellings are there for three crops? Two values in the file also carry a trailing space; say what each tool does with those.
+
+**(b)** Standardize the crop names with `if_else()` and `%in%`, and count again.
+
+**(c)** Compute total acres by crop after the fix.
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Count by the crop column as typed
+fields <- read_csv("data/module03/q37_field_crops.csv")
+count(fields, crop)
+
+## (a) Eight spellings for three crops. The file has ten: read_csv()
+## trims spaces around values on the way in, so the two trailing-space
+## values merge with their clean spelling. Power Query keeps the space,
+## and Canola-with-a-space counts as a separate value until you Trim.
+
+# (b) One spelling per crop
+fields <- fields |>
+  mutate(crop = if_else(crop %in% c("canola", "CANOLA", "Canola "), "Canola", crop),
+         crop = if_else(crop %in% c("spring wheat", "Spring wheat"), "Spring Wheat", crop),
+         crop = if_else(crop %in% c("barley", "Barley "), "Barley", crop))
+count(fields, crop)
+
+# (c) Acres by crop
+fields |>
+  summarise(acres = sum(acres), .by = crop)
+')
+```
+
+Power Query: **Transform > Format > Trim** and **Capitalize Each Word** fix most of this in two steps; the count of distinct values in **Column Profile** shows whether anything is left.
+
+</details>
+
+### Question 38
+
+*The file [`q38_records.csv`](data/module03/q38_records.csv) holds spring wheat field records. Two fields appear twice, but the two rows for each field disagree on the yield.*
+
+**(a)** Read the file and clean the names. Show that `nrow()` and `nrow(distinct())` agree, and in a comment say why that check misses these duplicates.
+
+**(b)** Find the repeated fields with `count()` on the field ID.
+
+**(c)** In a comment: which row of each pair would you keep, and what would you do before deciding? Then compute the mean yield with the duplicates still in, and note in a comment whether removing them could change it much.
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Exact-duplicate check finds nothing
+records <- read_csv("data/module03/q38_records.csv") |>
+  clean_names()
+nrow(records)
+nrow(distinct(records))
+
+## (a) distinct() removes rows that are identical in every column. These
+## pairs differ in one cell, so both rows survive.
+
+# (b) Repeated field IDs
+records |>
+  count(field_id) |>
+  filter(n > 1)
+
+# (c) Mean with both rows of each pair still in
+mean(records$yield_bu_ac)
+
+## (c) There is no way to tell from the file which yield is right. Go
+## back to the source (the combine monitor, the elevator tickets) before
+## choosing, and flag both rows in the meantime. The two pairs differ by
+## about four bushels, so the mean over twenty fields moves by a few
+## tenths whichever row is kept.
+')
+```
+
+</details>
+
+### Question 39
+
+*The file [`q39_production.csv`](data/module03/q39_production.csv) holds one row per field with acres, yield in bu/ac and total production in bushels as reported by the operator.*
+
+**(a)** Compute the production implied by acres times yield, and the difference from the reported figure.
+
+**(b)** Flag the rows where the two disagree by more than one bushel, using `if_else()`, and report how many.
+
+**(c)** In a comment: for each flagged row, which of the three numbers is most likely wrong, and what would you check?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Implied production and the gap
+prod <- read_csv("data/module03/q39_production.csv") |>
+  mutate(implied_bu = acres * yield_bu_ac,
+         gap = production_bu - implied_bu)
+
+# (b) Flag disagreements and count them
+prod <- prod |>
+  mutate(flag = if_else(gap > 1 | gap < -1, TRUE, FALSE))
+sum(prod$flag)
+filter(prod, flag)
+
+## (c) One row is about 40 percent low and one about 30 percent high,
+## which looks like a typo in one of the three numbers; the row that is
+## ten times too high is almost certainly a misplaced decimal in
+## production. Check the
+## delivery tickets for that field, which record tonnes hauled.
+')
+```
+
+</details>
+
+### Question 40
+
+*The file [`q40_records.csv`](data/module03/q40_records.csv) holds spring wheat field records. The moisture column has a typo above 100 percent and two rows carrying the code `9999`.*
+
+**(a)** Read the file, clean the names, and use `summary()` to show the problem.
+
+**(b)** Set moisture values above 100 to NA with `if_else()`.
+
+**(c)** Report the mean moisture before and after, and how many fields tested above 14.5 percent after the fix.
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Maximum gives it away
+records <- read_csv("data/module03/q40_records.csv") |>
+  clean_names()
+summary(records$moisture_percent)
+
+# (b) Nothing above 100 is a moisture reading
+records <- records |>
+  mutate(moisture_pct = if_else(moisture_percent > 100, NA, moisture_percent))
+
+# (c) Before and after, then the count above 14.5
+mean(records$moisture_percent)
+mean(records$moisture_pct, na.rm = TRUE)
+sum(records$moisture_pct > 14.5, na.rm = TRUE)
+')
+```
+
+</details>
+
+### Question 41
+
+*The file [`q41_canola_status.csv`](data/module03/q41_canola_status.csv) holds one row per canola field with acres, yield in bu/ac and a status column: `harvested`, `hailed out` or `not reported`. Both hailed-out and unreported fields carry a yield of 0.*
+
+**(a)** Count the fields by status.
+
+**(b)** The zeros mean two different things. Make a new yield column in which unreported fields are NA and hailed-out fields keep their zero, using `if_else()`.
+
+**(c)** Report the mean yield of the original column, of the new column, and of harvested fields only. In a comment: which mean answers the question "what did the canola yield this year"?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Fields by status
+canola <- read_csv("data/module03/q41_canola_status.csv")
+count(canola, status)
+
+# (b) Unreported is missing; hailed out is a real zero
+canola <- canola |>
+  mutate(yield_clean = if_else(status == "not reported", NA, yield_bu_ac))
+
+# (c) Three means
+mean(canola$yield_bu_ac)
+mean(canola$yield_clean, na.rm = TRUE)
+canola |>
+  filter(status == "harvested") |>
+  summarise(mean_yield = mean(yield_bu_ac))
+
+## (c) The second. A hailed-out field did yield zero and belongs in the
+## farm average; an unreported field tells you nothing and should not
+## pull the mean down. The harvested-only mean answers a different
+## question, how the crop did where it survived.
+')
+```
+
+</details>
+
+### Question 42
+
+*The file [`q42_records.csv`](data/module03/q42_records.csv) holds spring wheat field records with every problem from the chapter at once: awkward names, units typed into the weights, exact duplicates, `-99` and `N/A` and `9999` as missing codes, an impossible yield, nitrogen in two units and a variety spelled four ways.*
+
+**(a)** Read the file and, in a comment, list the problems you find and the check that found each one.
+
+**(b)** Write one pipeline that fixes all of them and saves the cleaned table under `output/` with `write_csv()`.
+
+**(c)** Report the number of rows before and after, and the mean yield and mean nitrogen rate of the cleaned data.
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Read with the text codes declared missing, then look
+raw <- read_csv("data/module03/q42_records.csv",
+                na = c("", "NA", "N/A", "-99"))
+names(raw)
+summary(raw)
+count(raw, VARIETY_NAME)
+nrow(raw)
+nrow(distinct(raw))
+
+## (a) names(): spaces and capitals. summary(): Harvest Weight is text
+## (units in the cells), Yield has a maximum of 1250, N Rate has a
+## minimum near 0.1 (t/ha), Moisture has a maximum of 9999. count():
+## Brandon under four spellings. nrow() vs distinct(): two duplicates.
+
+# (b) One pipeline for all of it
+clean <- raw |>
+  clean_names() |>
+  distinct() |>
+  rename(variety = variety_name, moisture_pct = moisture_percent) |>
+  mutate(
+    weight_t = parse_number(harvest_weight),
+    yield_bu_ac = if_else(yield_bu_ac < 0 | yield_bu_ac > 200, NA, yield_bu_ac),
+    n_rate_kg_ha = if_else(n_rate < 1, n_rate * 1000, n_rate),
+    moisture_pct = if_else(moisture_pct > 100, NA, moisture_pct),
+    variety = if_else(variety %in% c("Brandon", "Brandon AAC", "Brndon"),
+                      "AAC Brandon", variety)
+  ) |>
+  select(-harvest_weight, -n_rate)
+write_csv(clean, "output/q42_records_clean.csv")
+
+# (c) Rows before and after; means of the cleaned data
+nrow(raw)
+nrow(clean)
+mean(clean$yield_bu_ac, na.rm = TRUE)
+mean(clean$n_rate_kg_ha)
+count(clean, variety)
+')
+```
+
+</details>
+
+### Question 43
+
+*The file [`q43_tickets_grade.csv`](data/module03/q43_tickets_grade.csv) holds delivery tickets with the grade assigned at the elevator. Grades should be `1`, `2`, `3` or `Feed`, but the column was typed by hand.*
+
+**(a)** Read the file, keeping `ticket_id` as text, and count the tickets by grade as typed.
+
+**(b)** Standardize the grades with `if_else()` and `%in%`.
+
+**(c)** Report the tonnes delivered in each grade after the fix.
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Grades as typed
+tickets <- read_csv("data/module03/q43_tickets_grade.csv",
+                    col_types = cols(ticket_id = col_character()))
+count(tickets, grade)
+
+# (b) Four grades
+tickets <- tickets |>
+  mutate(grade = if_else(grade %in% c("feed", "FEED"), "Feed", grade),
+         grade = if_else(grade == "No. 1", "1", grade),
+         grade = if_else(grade == "No. 2", "2", grade))
+count(tickets, grade)
+
+# (c) Tonnes by grade
+tickets |>
+  summarise(tonnes = sum(weight_tonnes), .by = grade)
+')
+```
+
+Power Query: one grade in the file is typed with a leading space. `read_csv()` trims it; Power Query does not, so **Trim** the column before replacing values.
+
+</details>
+
+### Question 44
+
+*The file [`q44_records.csv`](data/module03/q44_records.csv) holds spring wheat field records. Three yields look wrong but none is impossible.*
+
+**(a)** Read the file, clean the names, and add a `suspect` column that is TRUE for yields below 10 or above 90 bu/ac.
+
+**(b)** Report how many fields are flagged and list them.
+
+**(c)** Compute the mean yield of all fields and of the unflagged fields. In a comment: why flag rather than remove, and what would change your mind about the field near 97 bu/ac?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Flag the outliers without touching the values
+records <- read_csv("data/module03/q44_records.csv") |>
+  clean_names() |>
+  mutate(suspect = if_else(yield_bu_ac < 10 | yield_bu_ac > 90, TRUE, FALSE))
+
+# (b) How many, and which
+sum(records$suspect)
+filter(records, suspect)
+
+# (c) Mean with and without the flagged fields
+mean(records$yield_bu_ac)
+records |>
+  filter(!suspect) |>
+  summarise(mean_yield = mean(yield_bu_ac))
+
+## (c) A flag keeps the value and the doubt together, so the analysis can
+## be run both ways and the reader can see which rows were questioned.
+## A yield near 97 is high for spring wheat but has been recorded on
+## irrigated land; if the field is irrigated, or the harvest weight
+## agrees with the yield, the flag comes off.
+')
+```
+
+</details>
+
+### Question 45
+
+*The file [`q45_field_crops.csv`](data/module03/q45_field_crops.csv) holds one row per field with the crop, acres and yield in bu/ac. Two yields stand out: an oats field near 140 and a spring wheat field above 200.*
+
+**(a)** Use `summary()` and `arrange()` to find the two high yields.
+
+**(b)** A single cutoff cannot judge both, because oats yields run much higher than wheat. Add a `limit` column with `if_else()` that is 150 for oats and 100 for the other crops, then flag yields above their limit.
+
+**(c)** Report which field is flagged. In a comment: why is the oats yield plausible and the wheat yield not, and what does this say about cleaning rules that ignore what the values mean?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) The two highest yields
+fields <- read_csv("data/module03/q45_field_crops.csv")
+summary(fields$yield_bu_ac)
+fields |>
+  arrange(desc(yield_bu_ac)) |>
+  head(3)
+
+# (b) A limit that depends on the crop
+fields <- fields |>
+  mutate(limit = if_else(crop == "Oats", 150, 100),
+         flag = if_else(yield_bu_ac > limit, TRUE, FALSE))
+
+# (c) Only the wheat field is flagged
+filter(fields, flag)
+
+## (c) Oats commonly yield well over 100 bu/ac, so 138 is a good field,
+## not an error. Spring wheat has never yielded 210 on a farm field. A
+## rule that ignores the crop would either flag the oats or pass the
+## wheat; cleaning needs to know what the numbers are supposed to be.
+')
+```
+
+</details>
+
+# Section 4 — Merging Data
+
+*These questions give you two or three small tables and ask you to combine them. Every answer has the same skeleton: name the key, say whether the match is one-to-one, many-to-one or many-to-many, join, and compare the row counts before and after. In R the tools are `left_join()`, `inner_join()`, `full_join()` and `anti_join()` with `join_by()`; in Power Query, **Merge Queries** with the join kind set in the dialog, and the match count it reports along the bottom.*
+
+### Question 46
+
+*The file [`q46_fields.csv`](data/module03/q46_fields.csv) has one row per field with the crop, acres and yield in bu/ac. The file [`q46_prices.csv`](data/module03/q46_prices.csv) has one row per crop with the price in dollars per bushel.*
+
+**(a)** In a comment: what is the key, and is the match one-to-one, many-to-one or many-to-many?
+
+**(b)** Join the price onto every field with a left join, stating the relationship, and report the row counts before and after.
+
+**(c)** Compute each field's revenue and the total for the farm.
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+## (a) The key is crop. Many fields share a crop and each crop has one
+## price, so the join is many-to-one.
+
+# (b) Left join, rows before and after
+fields <- read_csv("data/module03/q46_fields.csv")
+prices <- read_csv("data/module03/q46_prices.csv")
+with_price <- fields |>
+  left_join(prices, by = join_by(crop), relationship = "many-to-one")
+nrow(fields)
+nrow(with_price)
+
+# (c) Revenue per field and the farm total
+with_price <- with_price |>
+  mutate(revenue = yield_bu_ac * acres * price_per_bu)
+select(with_price, field, crop, revenue)
+sum(with_price$revenue)
+')
+```
+
+</details>
+
+### Question 47
+
+*The file [`q47_fields.csv`](data/module03/q47_fields.csv) has one row per field with the crop, acres and yield. The file [`q47_prices.csv`](data/module03/q47_prices.csv) has one row per crop with the price, but one crop grown on the farm is not in it.*
+
+**(a)** Before joining, use `anti_join()` to list the fields whose crop has no price.
+
+**(b)** Join the prices with a left join and then with an inner join, and report the row count of each result.
+
+**(c)** Compute total revenue where a price exists. In a comment: which join would you use for a table that lists every field, and which for a revenue-per-acre comparison?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Fields with no matching price
+fields <- read_csv("data/module03/q47_fields.csv")
+prices <- read_csv("data/module03/q47_prices.csv")
+anti_join(fields, prices, by = join_by(crop))
+
+# (b) Left keeps every field; inner keeps the matched ones
+left  <- left_join(fields, prices, by = join_by(crop), relationship = "many-to-one")
+inner <- inner_join(fields, prices, by = join_by(crop), relationship = "many-to-one")
+nrow(left)
+nrow(inner)
+
+# (c) Revenue where the price is known
+left |>
+  mutate(revenue = yield_bu_ac * acres * price_per_bu) |>
+  summarise(total_revenue = sum(revenue, na.rm = TRUE))
+
+## (c) Left for the field list, so the flax fields still appear with NA
+## for price. Inner for the comparison, because a field without a price
+## has no revenue per acre and should not be in that table at all.
+')
+```
+
+</details>
+
+### Question 48
+
+*The file [`q48_fields.csv`](data/module03/q48_fields.csv) has one row per field, identified by `field_id`. The file [`q48_soil.csv`](data/module03/q48_soil.csv) has one row per field, identified by `Field`, with the soil zone and organic matter percent.*
+
+**(a)** The key has different names in the two tables. Join them with `join_by(field_id == Field)` and report the row counts before and after.
+
+**(b)** In a comment: what kind of match is this, and what would a row count larger than the field table tell you?
+
+**(c)** Compute the mean yield in each soil zone.
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Different key names on the two sides
+fields <- read_csv("data/module03/q48_fields.csv")
+soil <- read_csv("data/module03/q48_soil.csv")
+merged <- fields |>
+  left_join(soil, by = join_by(field_id == Field), relationship = "one-to-one")
+nrow(fields)
+nrow(merged)
+
+## (b) One-to-one: each field appears once in both tables. More rows
+## after the join would mean a field appears twice in the soil table,
+## and its yield row has been duplicated.
+
+# (c) Mean yield by soil zone
+merged |>
+  summarise(mean_yield = mean(yield_bu_ac), fields = n(), .by = soil_zone)
+')
+```
+
+</details>
+
+### Question 49
+
+*Three files. [`q49_yields.csv`](data/module03/q49_yields.csv) has one row per field and year with the canola yield. [`q49_stations.csv`](data/module03/q49_stations.csv) has one row per field naming its nearest weather station. [`q49_rain.csv`](data/module03/q49_rain.csv) has one row per station and year with May to August precipitation in millimetres.*
+
+**(a)** Join the station onto the yields, then the rain onto that, matching on station and year together. Report the row count after each join.
+
+**(b)** In a comment: why does the second join need two columns in its key, and what would happen with station alone?
+
+**(c)** Compute the mean yield and mean precipitation in each year, and say in a comment whether the wettest year was the best.
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Two joins, row counts after each
+yields <- read_csv("data/module03/q49_yields.csv")
+stations <- read_csv("data/module03/q49_stations.csv")
+rain <- read_csv("data/module03/q49_rain.csv")
+with_station <- yields |>
+  left_join(stations, by = join_by(field), relationship = "many-to-one")
+nrow(with_station)
+merged <- with_station |>
+  left_join(rain, by = join_by(station, year), relationship = "many-to-one")
+nrow(merged)
+
+## (b) A station has one rain value per year, so station and year
+## together identify a row of the rain table. On station alone every
+## field-year would match all three years of its station and the table
+## would triple.
+
+# (c) Yield and rain by year
+merged |>
+  summarise(mean_yield = mean(yield_bu_ac),
+            mean_rain = mean(precip_may_aug_mm), .by = year)
+')
+```
+
+</details>
+
+### Question 50
+
+*The file [`q50_fields.csv`](data/module03/q50_fields.csv) has one row per field with the crop, acres and yield. The file [`q50_prices.csv`](data/module03/q50_prices.csv) has two rows per crop: a 2024 price and a 2025 price.*
+
+**(a)** Try a left join with `relationship = "many-to-one"`. In a comment: what does the error say, and why is it right to stop you?
+
+**(b)** Filter the price table to 2025 and join again. Report the row counts.
+
+**(c)** Compute total revenue at 2025 prices. In a comment: what total would the join without a filter and without the relationship check have produced?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) The lookup has two rows per crop, so the join refuses
+fields <- read_csv("data/module03/q50_fields.csv")
+prices <- read_csv("data/module03/q50_prices.csv")
+fields |>
+  left_join(prices, by = join_by(crop), relationship = "many-to-one")
+
+## (a) The error says a row of fields matched more than one row of
+## prices. It stops the join because two prices per crop would double
+## every field and double the revenue.
+
+# (b) One price per crop
+prices_2025 <- filter(prices, year == 2025)
+with_price <- fields |>
+  left_join(prices_2025, by = join_by(crop), relationship = "many-to-one")
+nrow(fields)
+nrow(with_price)
+
+# (c) Total revenue at 2025 prices
+with_price |>
+  mutate(revenue = yield_bu_ac * acres * price_per_bu) |>
+  summarise(total_revenue = sum(revenue))
+
+## (c) Forty rows and a total that adds the 2024 and 2025 revenue of
+## every field together, close to double the right number.
+')
+```
+
+Power Query: the Merge dialog reports the match count; forty matches for twenty rows is the same warning.
+
+</details>
+
+### Question 51
+
+*The file [`q51_fields.csv`](data/module03/q51_fields.csv) has one row per field with the crop, acres and yield. The file [`q51_prices.csv`](data/module03/q51_prices.csv) has one row per crop. Some fields were entered with the crop in lower case.*
+
+**(a)** Use `anti_join()` to find the fields whose crop does not match a price, and in a comment say why they fail.
+
+**(b)** Fix the crop names with `if_else()` and join.
+
+**(c)** Report the number of fields with a missing price before and after the fix, and total revenue after it.
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Unmatched fields
+fields <- read_csv("data/module03/q51_fields.csv")
+prices <- read_csv("data/module03/q51_prices.csv")
+anti_join(fields, prices, by = join_by(crop))
+
+## (a) Keys are matched character for character; canola and Canola are
+## different values, in R and in Power Query.
+
+# (b) Standardize, then join
+before <- left_join(fields, prices, by = join_by(crop), relationship = "many-to-one")
+fields <- fields |>
+  mutate(crop = if_else(crop == "canola", "Canola", crop))
+after <- left_join(fields, prices, by = join_by(crop), relationship = "many-to-one")
+
+# (c) Missing prices before and after, and revenue after
+summary(before$price_per_bu)
+summary(after$price_per_bu)
+after |>
+  mutate(revenue = yield_bu_ac * acres * price_per_bu) |>
+  summarise(total_revenue = sum(revenue))
+')
+```
+
+</details>
+
+### Question 52
+
+*The file [`q52_fields_2024.csv`](data/module03/q52_fields_2024.csv) lists the fields farmed in 2024 with that year's crop; [`q52_fields_2025.csv`](data/module03/q52_fields_2025.csv) does the same for 2025. Some fields were rented out after 2024 and some were taken on in 2025.*
+
+**(a)** Use `anti_join()` in both directions to list the fields dropped after 2024 and the fields new in 2025.
+
+**(b)** Use `full_join()` to build one table with every field from either year, and report its row count.
+
+**(c)** In a comment: how does the full join show which fields were in only one year, and how many fields were in both?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Dropped fields, then new fields
+f24 <- read_csv("data/module03/q52_fields_2024.csv")
+f25 <- read_csv("data/module03/q52_fields_2025.csv")
+anti_join(f24, f25, by = join_by(field))
+anti_join(f25, f24, by = join_by(field))
+
+# (b) Every field from either year
+both <- full_join(f24, f25, by = join_by(field))
+nrow(both)
+both
+
+## (c) A field in only one year has NA in the other years columns. With
+## 16 fields in 2024, 17 in 2025 and 20 in the full join, 13 were
+## farmed in both years.
+')
+```
+
+</details>
+
+### Question 53
+
+*The file [`q53_fields.csv`](data/module03/q53_fields.csv) has one row per field with the crop, acres and yield. The file [`q53_buyers.csv`](data/module03/q53_buyers.csv) has one row per crop and elevator, with the price that elevator offers for that crop. Each crop has two or three buyers.*
+
+**(a)** Join the buyers onto the fields with `relationship = "many-to-many"`. Report the row count and, in a comment, why it is larger than the field table and why that is correct here.
+
+**(b)** For each field, find the best price offered for its crop.
+
+**(c)** Compute the farm's total revenue if every field sells to its best buyer.
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Every field paired with every buyer of its crop
+fields <- read_csv("data/module03/q53_fields.csv")
+buyers <- read_csv("data/module03/q53_buyers.csv")
+offers <- fields |>
+  left_join(buyers, by = join_by(crop), relationship = "many-to-many")
+nrow(offers)
+
+## (a) A crop appears many times in both tables, so each field gets one
+## row per buyer of its crop. That is the table we want: one row per
+## field-and-offer.
+
+# (b) Best price per field
+best <- offers |>
+  summarise(best_price = max(price_per_bu),
+            acres = max(acres), yield_bu_ac = max(yield_bu_ac), .by = field)
+best
+
+# (c) Revenue at the best price
+best |>
+  mutate(revenue = yield_bu_ac * acres * best_price) |>
+  summarise(total_revenue = sum(revenue))
+')
+```
+
+</details>
+
+### Question 54
+
+*This question uses the chapter files. [`rm_yields_2015_2024.csv`](data/rm_yields_2015_2024.csv) is wide, one row per RM and year with a column per crop. [`rm_lookup.csv`](data/rm_lookup.csv) has one row per RM with its name, census division and nearest weather station.*
+
+**(a)** Make the yields long, clean the names, and join the lookup onto the 2024 canola rows. Report the row counts before and after the join.
+
+**(b)** Compute the mean 2024 canola yield in each census division and report the top three.
+
+**(c)** In a comment: what does each row of the result represent, and what was each row of the input?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Long yields, then the lookup
+yields <- read_csv("data/rm_yields_2015_2024.csv")
+rms <- read_csv("data/rm_lookup.csv") |>
+  clean_names()
+canola_2024 <- yields |>
+  pivot_longer(cols = `Spring Wheat`:Peas, names_to = "crop",
+               values_to = "yield_bu_ac", values_drop_na = TRUE) |>
+  clean_names() |>
+  filter(crop == "Canola", year == 2024)
+nrow(canola_2024)
+merged <- canola_2024 |>
+  left_join(rms, by = join_by(rm == rm_number), relationship = "many-to-one")
+nrow(merged)
+
+# (b) Mean by census division, top three
+merged |>
+  summarise(mean_yield = mean(yield_bu_ac), rms = n(), .by = census_division) |>
+  arrange(desc(mean_yield)) |>
+  head(3)
+
+## (c) Each input row was one RM in 2024; each result row is a census
+## division, with its RMs collapsed into one mean.
+')
+```
+
+</details>
+
+### Question 55
+
+*This question uses the chapter files: [`rm_yields_2015_2024.csv`](data/rm_yields_2015_2024.csv), [`rm_lookup.csv`](data/rm_lookup.csv) and [`station_precip.csv`](data/station_precip.csv), which has one row per station and year with May to August precipitation.*
+
+**(a)** Build the canola table for 2021 with the nearest station and that station's 2021 precipitation attached. Two joins; the second matches on station and year.
+
+**(b)** Compute the mean canola yield for the RMs nearest each station, together with the station's precipitation, and sort by precipitation.
+
+**(c)** In a comment: was the driest station's group the lowest-yielding? What can and cannot be concluded from one year.
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Long canola for 2021, then two joins
+yields <- read_csv("data/rm_yields_2015_2024.csv")
+rms <- read_csv("data/rm_lookup.csv") |>
+  clean_names()
+rain <- read_csv("data/station_precip.csv") |>
+  clean_names()
+canola_2021 <- yields |>
+  pivot_longer(cols = `Spring Wheat`:Peas, names_to = "crop",
+               values_to = "yield_bu_ac", values_drop_na = TRUE) |>
+  clean_names() |>
+  filter(crop == "Canola", year == 2021) |>
+  left_join(rms, by = join_by(rm == rm_number), relationship = "many-to-one") |>
+  left_join(rain, by = join_by(weather_station == station, year),
+            relationship = "many-to-one")
+nrow(canola_2021)
+
+# (b) Yield by station group, driest first
+canola_2021 |>
+  summarise(mean_yield = mean(yield_bu_ac), rms = n(),
+            rain_mm = max(precip_may_aug_mm), .by = weather_station) |>
+  arrange(rain_mm)
+
+## (c) Not quite. The three driest stations are among the lowest
+## yields, but the lowest group of all, Swift Current, had middling
+## rain. One year of sixteen stations shows that dry areas yielded less
+## in 2021; it cannot separate rain from heat, soil or anything else
+## that differs between those areas.
+')
+```
+
+</details>
+
+### Question 56
+
+*The file [`q56_deliveries.csv`](data/module03/q56_deliveries.csv) has one row per delivery ticket with the field it came from and the weight in tonnes. The file [`q56_fields.csv`](data/module03/q56_fields.csv) has one row per field with its crop and acres.*
+
+**(a)** Join the field information onto the deliveries. In a comment: which table is on the left, and why?
+
+**(b)** Compute total tonnes delivered from each field.
+
+**(c)** Compute tonnes per acre by crop, and report which fields have no deliveries at all.
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Deliveries on the left: one row per ticket is what we want to keep
+deliveries <- read_csv("data/module03/q56_deliveries.csv",
+                       col_types = cols(ticket_id = col_character()))
+fields <- read_csv("data/module03/q56_fields.csv")
+merged <- deliveries |>
+  left_join(fields, by = join_by(field), relationship = "many-to-one")
+nrow(deliveries)
+nrow(merged)
+
+## (a) Deliveries. Each ticket needs its field details; putting fields on
+## the left would keep fields with no tickets and give them NA weights.
+
+# (b) Tonnes by field
+by_field <- merged |>
+  summarise(tonnes = sum(weight_tonnes), acres = max(acres), crop = max(crop),
+            .by = field)
+by_field
+
+# (c) Tonnes per acre by crop, then fields with no tickets
+by_field |>
+  summarise(t_per_ac = sum(tonnes) / sum(acres), .by = crop)
+anti_join(fields, deliveries, by = join_by(field))
+')
+```
+
+</details>
+
+### Question 57
+
+*The file [`q57_deliveries.csv`](data/module03/q57_deliveries.csv) has one row per delivery ticket with the field name and the weight. The file [`q57_fields.csv`](data/module03/q57_fields.csv) is the field register. Three tickets have the field name mistyped.*
+
+**(a)** Use `anti_join()` to list the tickets whose field is not in the register.
+
+**(b)** In a comment: for each, which field was meant, and how can you tell? Then fix them with `if_else()`.
+
+**(c)** Join and compute total tonnes by crop. In a comment: what would the crop totals have looked like if you had joined without checking?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Tickets with no matching field
+deliveries <- read_csv("data/module03/q57_deliveries.csv",
+                       col_types = cols(ticket_id = col_character()))
+fields <- read_csv("data/module03/q57_fields.csv")
+anti_join(deliveries, fields, by = join_by(field))
+
+## (b) Kestral is Kestrel, Meadow Vale is Meadowvale, home is Home: each
+## is one letter, a space or a capital away from a name in the register.
+
+# (b) Fix the three names
+deliveries <- deliveries |>
+  mutate(field = if_else(field == "Kestral", "Kestrel", field),
+         field = if_else(field == "Meadow Vale", "Meadowvale", field),
+         field = if_else(field == "home", "Home", field))
+nrow(anti_join(deliveries, fields, by = join_by(field)))
+
+# (c) Tonnes by crop
+deliveries |>
+  left_join(fields, by = join_by(field), relationship = "many-to-one") |>
+  summarise(tonnes = sum(weight_tonnes), .by = crop)
+
+## (c) The three tickets would have NA for crop, so a fourth group named
+## NA would hold their tonnes and every real crop total would be short.
+')
+```
+
+</details>
+
+### Question 58
+
+*The file [`q58_fields.csv`](data/module03/q58_fields.csv) has one row per field with the crop, acres and yield. The file [`q58_prices.csv`](data/module03/q58_prices.csv) has prices for only three of the five crops grown.*
+
+**(a)** Join with a left join and with an inner join. Report the row counts and the number of fields with no price.
+
+**(b)** Compute total revenue from each result.
+
+**(c)** In a comment: the two totals agree. Why? And which table would you give someone who asked for the farm's revenue, and what would you tell them?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Both joins
+fields <- read_csv("data/module03/q58_fields.csv")
+prices <- read_csv("data/module03/q58_prices.csv")
+left  <- left_join(fields, prices, by = join_by(crop), relationship = "many-to-one")
+inner <- inner_join(fields, prices, by = join_by(crop), relationship = "many-to-one")
+nrow(left)
+nrow(inner)
+nrow(anti_join(fields, prices, by = join_by(crop)))
+
+# (b) Revenue from each
+left |>
+  mutate(revenue = yield_bu_ac * acres * price_per_bu) |>
+  summarise(total_revenue = sum(revenue, na.rm = TRUE))
+inner |>
+  mutate(revenue = yield_bu_ac * acres * price_per_bu) |>
+  summarise(total_revenue = sum(revenue))
+
+## (c) They agree because na.rm drops exactly the rows the inner join
+## never had. Neither is the farm revenue: it is the revenue of the
+## priced fields. Hand over the left-join table, which shows the fields
+## that are missing a price, and say the total excludes them.
+')
+```
+
+</details>
+
+### Question 59
+
+*The file [`q59_fields.csv`](data/module03/q59_fields.csv) has one row per field with the crop, acres and yield in the unit that crop is sold in: bu/ac for most crops, lb/ac for lentils. The file [`q59_units.csv`](data/module03/q59_units.csv) has one row per crop with that unit and the factor that converts it to kg/ha.*
+
+**(a)** Join the units table onto the fields and report the row counts.
+
+**(b)** Compute every yield in kg/ha.
+
+**(c)** Compute the mean yield of each crop in kg/ha, and in a comment say why the mean of the original yield column across all fields is meaningless.
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# (a) Units onto fields
+fields <- read_csv("data/module03/q59_fields.csv")
+units <- read_csv("data/module03/q59_units.csv")
+merged <- fields |>
+  left_join(units, by = join_by(crop), relationship = "many-to-one")
+nrow(fields)
+nrow(merged)
+
+# (b) A common unit
+merged <- merged |>
+  mutate(yield_kg_ha = yield * kg_ha_per_unit)
+
+# (c) Mean by crop in kg/ha
+merged |>
+  summarise(mean_kg_ha = mean(yield_kg_ha), .by = crop)
+
+## (c) The original column mixes bushels and pounds. Averaging a lentil
+## field at 1800 with a canola field at 45 adds two different units.
+')
+```
+
+</details>
+
+### Question 60
+
+*Three files. [`q60_fields.csv`](data/module03/q60_fields.csv) has one row per spring wheat field with its variety, acres, yield and the elevator it delivers to. [`q60_seed.csv`](data/module03/q60_seed.csv) has one row per variety with the seed cost per acre. [`q60_elevators.csv`](data/module03/q60_elevators.csv) has one row per elevator with its wheat price per bushel.*
+
+**(a)** Before joining, in a comment: name the key for each of the two joins, the kind of match, and the row count you expect after each.
+
+**(b)** Do both joins and check your predictions.
+
+**(c)** Compute each field's revenue, seed cost and margin (revenue minus seed cost), and report the farm total margin and the field with the highest margin per acre.
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+## (a) Join 1: key variety, many-to-one, 20 rows after.
+## Join 2: key elevator, many-to-one, still 20 rows.
+
+# (b) Both joins
+fields <- read_csv("data/module03/q60_fields.csv")
+seed <- read_csv("data/module03/q60_seed.csv")
+elevators <- read_csv("data/module03/q60_elevators.csv")
+merged <- fields |>
+  left_join(seed, by = join_by(variety), relationship = "many-to-one") |>
+  left_join(elevators, by = join_by(elevator), relationship = "many-to-one")
+nrow(merged)
+
+# (c) Revenue, seed cost, margin
+merged <- merged |>
+  mutate(revenue = yield_bu_ac * acres * wheat_price_per_bu,
+         seed_cost = seed_cost_per_ac * acres,
+         margin = revenue - seed_cost,
+         margin_per_ac = margin / acres)
+sum(merged$margin)
+merged |>
+  arrange(desc(margin_per_ac)) |>
+  select(field, variety, elevator, margin_per_ac) |>
+  head(1)
+')
+```
+
+</details>
