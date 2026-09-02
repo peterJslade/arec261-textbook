@@ -1333,11 +1333,11 @@ mean(mb_wheat$acres_per_farm)
 ### Question 30
 *This question uses: [mb_wheat_reported_2020_2025.csv](data/mb_wheat_reported_2020_2025.csv)*
 
-**(a)** Use one `mutate()` to add `total_bu`, each result's total production in bushels (acres times yield), saving the result.
+**(a)** Use one `mutate()` to add `total_bu`, each variety's total production in a municipality in bushels (acres times yield), saving the result.
 
 **(b)** Sort by `total_bu`, largest first, and report the top municipality and variety.
 
-**(c)** In a comment: the highest-yielding result in the data is not the top producer. What does it take to top this list?
+**(c)** In a comment: why is the highest-yielding observation not the one with the greatest production?
 
 <details><summary>Answer</summary>
 
@@ -1416,7 +1416,7 @@ write_csv(crop_summary_2025, "output/crop_summary_2025.csv")
 ### Question 32
 *This question uses: [rm_yields_1990_2025.csv](data/rm_yields_1990_2025.csv)*
 
-**(a)** In one pipeline: filter to Lentils from 2021 through 2025, convert to kg/ha with `mutate()` (multiply by 1.12), and compute the mean converted yield and `n()` for each year. Sort from highest mean to lowest and save the result as `lentil_summary`.
+**(a)** In one pipeline: filter to Lentils from 2021 through 2025, convert from lb/acre to kg/ha with `mutate()` (multiply by 1.12), and compute the mean converted yield and `n()` for each year. Sort from highest mean to lowest and save the result as `lentil_summary`.
 
 **(b)** Report the highest and lowest annual means and the counts behind them.
 
@@ -1461,11 +1461,9 @@ lentil_summary
 
 Canola is selling at $14.20 per bushel.
 
-**(a)** In one pipeline: filter to Canola 2023-2025, add `revenue_per_ac` with `mutate()`, then compute the mean revenue for each year.
+**(a)** In one pipeline: filter to Canola observations in 2023-2025, add `revenue_per_ac` with `mutate()`, then compute the mean revenue for each year.
 
 **(b)** Report the three yearly means.
-
-**(c)** In a comment: your pipeline has four steps. Say what each hands to the next, in order.
 
 <details><summary>Answer</summary>
 
@@ -1489,9 +1487,6 @@ rm_yields |>
 
 ## I find mean revenues of $481.11 in 2023, $447.33 in 2024, and $623.94
 ## in 2025.
-## (c) filter hands the recent canola rows to mutate; mutate hands the same
-## rows plus the revenue column to group_by; group_by hands the grouped
-## rows to summarise, which collapses each year to one number.
 ')
 ```
 
@@ -1502,9 +1497,7 @@ rm_yields |>
 
 **(a)** In one pipeline, compute the mean canola yield for **each year** from 2021 to 2025 (filter first, then group).
 
-**(b)** Report the five means. Which year was worst, and which best?
-
-**(c)** In a comment: 2021 was a severe drought year in Saskatchewan. Does the data agree?
+**(b)** 2021 was a severe drought year in Saskatchewan. Does the data agree?
 
 <details><summary>Answer</summary>
 
@@ -1524,8 +1517,7 @@ rm_yields |>
   group_by(Year) |>                            # one group per year
   summarise(mean_yield = mean(Yield))          # average within each year
 
-## I find mean canola yields of 21.9 in 2021, 35.4 in 2022, 33.9 in 2023, 31.5 in 2024, and 43.9 in 2025. The worst year was 2021 and the best was 2025.
-## (c) Yes, the data agrees: the 2021 mean sits roughly a third below the surrounding years.
+## (b) Yes, the data agrees: the 2021 mean sits roughly a third below the surrounding years.
 ')
 ```
 
@@ -1534,7 +1526,7 @@ rm_yields |>
 ### Question 35
 *This question uses: [rm_yields_1990_2025.csv](data/rm_yields_1990_2025.csv)*
 
-**(a)** In one pipeline: filter to Flax from 2020 through 2025, compute each RM's `mean_yield` and `n()`, retain RMs with at least four observations, and sort from highest mean to lowest. Save the result as `flax_summary`.
+**(a)** In one pipeline: filter to Flax from 2020 through 2025, compute each RM's `mean_yield` and number of observations, retain RMs with at least four observations, and sort from highest mean to lowest. Save the result as `flax_summary`.
 
 **(b)** Report the top RM, its mean, and its count.
 
@@ -1572,94 +1564,14 @@ flax_summary
 
 </details>
 
-### Question 36
-*This question uses: [rm_yields_1990_2025.csv](data/rm_yields_1990_2025.csv)*
-
-**(a)** Write a pipeline, one step per line with a short comment on each step, that filters `rm_yields` to Durum in 2025, keeps only the `RM` and `Yield` columns, and sorts the result from highest yield to lowest.
-
-**(b)** Run it. How many rows are in the resulting data frame, and which RM had the best durum yield in 2025, at what value?
-
-**(c)** In a comment: which step changes the number of rows, which changes the columns, and which only changes their order?
-
-<details><summary>Answer</summary>
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-# Load the tidyverse
-library(tidyverse)
-
-# Read the long yield file
-rm_yields <- read_csv("data/rm_yields_1990_2025.csv")
-
-# (a) Durum in 2025, two columns, best first
-durum_2025 <- rm_yields |>                     # take the data, THEN
-  filter(Crop == "Durum" & Year == 2025) |>    # keep durum in 2025, THEN
-  select(RM, Yield) |>                         # keep two columns, THEN
-  arrange(desc(Yield))                         # sort best first
-
-# (b) How many rows the result has
-nrow(durum_2025)
-
-# The top of the sorted table
-head(durum_2025)
-
-# The top yields to one decimal, since the tibble display rounds
-head(durum_2025$Yield)
-
-## I find 189 rows; RM 369 had the best durum yield in 2025, at 105.6 bu/ac.
-## (c) filter() changes the number of rows, select() changes the columns,
-## and arrange() changes only the row order.
-')
-```
-
-</details>
-
-### Question 37
-*This question uses: [rm_yields_1990_2025.csv](data/rm_yields_1990_2025.csv)*
-
-**(a)** In one pipeline: filter to Spring Wheat in 2025, compute the mean, the standard deviation, and `n()` in one `summarise()`.
-
-**(b)** Report the three values.
-
-**(c)** In a comment: what does the standard deviation describe here -- variation across what units, over what period?
-
-<details><summary>Answer</summary>
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-# Load the tidyverse and read the data
-library(tidyverse)
-rm_yields <- read_csv("data/rm_yields_1990_2025.csv")
-
-# (a) 2025 spring wheat: mean, sd, and count in one summarise
-rm_yields |>
-  filter(Crop == "Spring Wheat" & Year == 2025) |>   # 2025 spring wheat rows
-  summarise(mean_yield = mean(Yield),                # average across RMs
-            sd_yield = sd(Yield),                    # spread across RMs
-            n = n())                                 # observations behind them
-
-## I find a mean of 52.96 and an sd of 14.67 from 283 RMs.
-## (c) The sd describes how much RM average yields varied from RM to RM
-## across Saskatchewan in that one year -- geography, not time.
-')
-```
-
-</details>
-
 ## Manitoba Wheat Variety {.unnumbered}
 
-### Question 38
+### Question 36
 *This question uses: [mb_wheat_reported_2020_2025.csv](data/mb_wheat_reported_2020_2025.csv)*
 
-**(a)** In one pipeline, compute each variety's total acres (`sum(Acres)`), sorted largest first.
+**(a)** In one pipeline, compute each variety's total acres (`sum(Acres)`), sorted greatest to least.  
 
-**(b)** Report the top variety and its total.
-
-**(c)** In a comment: totalling acres makes sense, but what would totalling `Yield_bu_ac` produce, and why is that number meaningless?
+**(b)** In a comment: totalling acres makes sense, but what would totalling `Yield_bu_ac` produce, and why is that number meaningless?
 
 <details><summary>Answer</summary>
 
@@ -1677,9 +1589,8 @@ mb_wheat |>
   summarise(total_acres = sum(Acres)) |>  # acres are amounts, so they add
   arrange(desc(total_acres))              # biggest variety first
 
-## I find AAC BRANDON (BW 932) on top at about 6.74 million acres, with
-## AAC STARBUCK second at about 2.50 million.
-## (c) Totalling Yield_bu_ac would add per-acre rates across rows -- a
+
+## (b) Totalling Yield_bu_ac would add per-acre rates across rows -- a
 ## number with no physical meaning, since a rate says how much each acre
 ## gave, not how much there was. Acres are an amount, so their total is a
 ## real quantity of land.
@@ -1688,14 +1599,14 @@ mb_wheat |>
 
 </details>
 
-### Question 39
+### Question 37
 *This question uses: [mb_wheat_reported_2020_2025.csv](data/mb_wheat_reported_2020_2025.csv)*
 
-**(a)** In one pipeline, compute each variety's mean yield and observation count, sorted from highest mean to lowest.
+**(a)** In one pipeline, compute each variety's mean yield and observation count, sorted by mean yield from greatest to least.
 
 **(b)** Report the top two varieties, their means, and their counts.
 
-**(c)** In a comment: the second-place variety was observed exactly once. Which of the two means would you trust more, and why?
+**(c)** In a comment: Report the count of the top three varieties.  Do you find the average yield of each variety trustworthy?
 
 <details><summary>Answer</summary>
 
@@ -1715,62 +1626,22 @@ mb_wheat |>
   arrange(desc(mean_yield))                    # highest mean first
 
 ## (b) I find AAC WESTKING first at 79.2 bu/ac from 17 observations, then CDC GO (BW781) at 77.5 from a single observation.
-## (c) I would trust the AAC WESTKING mean more. It uses seventeen
-## municipality-year results, while the CDC GO mean uses one published
-## municipality-year result.
+## (c) The top three counts are 17 (AAC WESTKING), 1 (CDC GO), and
+## 2 (AAC SPIKE). I would trust the AAC WESTKING mean: seventeen
+## municipality-year results is a reasonable base. The other two rest on
+## one or two results, so their averages could be one municipality having
+## a good year.
 ')
 ```
 
 </details>
 
-### Question 40
-*This question uses: [mb_wheat_reported_2020_2025.csv](data/mb_wheat_reported_2020_2025.csv)*
-
-**(a)** Write a pipeline, one step per line with a short comment on each, that filters the data to 2025, keeps `Municipality`, `Variety`, and `Yield_bu_ac`, and sorts best-first.
-
-**(b)** Run it. How many rows are in the resulting data frame, and which municipality and variety top it, at what yield?
-
-**(c)** In a comment: why must the Year filter come before `select()` in this pipeline? What would happen if you selected the three output columns first?
-
-<details><summary>Answer</summary>
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-# Load the tidyverse and read the data
-library(tidyverse)
-mb_wheat <- read_csv("data/mb_wheat_reported_2020_2025.csv")
-
-# (a) Reported 2025 rows, three columns, best first
-wheat_2025 <- mb_wheat |>                              # take the data, THEN
-  filter(Year == 2025) |>                            # keep 2025, THEN
-  select(Municipality, Variety, Yield_bu_ac) |>      # keep three columns, THEN
-  arrange(desc(Yield_bu_ac))                         # sort best first
-
-# (b) How many rows the result has
-nrow(wheat_2025)
-
-# The top of the sorted table
-head(wheat_2025)
-
-## I find 438 rows; LOUISE, growing SY MANNESS, tops the table at 96.3 bu/ac.
-## (c) The Year filter must run before select() because the selected output
-## does not keep Year. Selecting first would remove the column that the
-## next step needs and filter() would fail.
-')
-```
-
-</details>
-
-### Question 41
+### Question 38
 *This question uses: [mb_wheat_reported_2020_2025.csv](data/mb_wheat_reported_2020_2025.csv)*
 
 **(a)** In one pipeline: for **2025 only**, compute each variety's mean reported yield and observation count, sorted best-first, and save the result as `variety_summary_2025`.
 
 **(b)** Write the table to `output/variety_summary_2025.csv`.
-
-**(c)** Report the top row. In a comment: the table also contains varieties observed only twice -- what should a reader keep in mind when comparing rows?
 
 <details><summary>Answer</summary>
 
@@ -1796,13 +1667,12 @@ head(variety_summary_2025)
 # (b) Write the table to a csv
 write_csv(variety_summary_2025, "output/variety_summary_2025.csv")
 
-## (c) I find AAC WESTKING on top at 79.2 bu/ac from 17 observations. Rows with tiny counts carry far less evidence than their neighbours; some varieties appear only once or twice, so the n column is part of the answer, not decoration.
 ')
 ```
 
 </details>
 
-### Question 42
+### Question 39
 *This question uses: [mb_wheat_reported_2020_2025.csv](data/mb_wheat_reported_2020_2025.csv)*
 
 **(a)** In one pipeline, compute each municipality's mean yield and observation count, sorted from highest mean to lowest.
@@ -1838,7 +1708,7 @@ mb_wheat |>
 
 </details>
 
-### Question 43
+### Question 40
 *This question uses: [mb_wheat_reported_2020_2025.csv](data/mb_wheat_reported_2020_2025.csv)*
 
 **(a)** In one pipeline: filter the data to 2023, compute each variety's mean yield and count, sort best-first, and save the result.
@@ -1876,45 +1746,3 @@ variety_2023
 
 </details>
 
-### Question 44
-*This question uses: [mb_wheat_reported_2020_2025.csv](data/mb_wheat_reported_2020_2025.csv)*
-
-A bushel of wheat is 60 lb, so one bu/ac is about 0.0673 t/ha.
-
-**(a)** In one pipeline: convert yields to t/ha with `mutate()`, compute each municipality's mean t/ha and count, keep municipalities and sort best-first, and save the result as `muni_summary`.
-
-**(b)** Write the table to `output/muni_summary.csv`.
-
-**(c)** Report the top municipality. In a comment: its mean rests on how many observations, and how does that shape your confidence in the ranking?
-
-<details><summary>Answer</summary>
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-# Load the tidyverse and read the data
-library(tidyverse)
-mb_wheat <- read_csv("data/mb_wheat_reported_2020_2025.csv")
-
-# (a) Municipality means in t/ha with counts, best first
-muni_summary <- mb_wheat |>
-  mutate(yield_t_ha = Yield_bu_ac * 0.0673) |>   # convert the rate
-  group_by(Municipality) |>                      # one group per municipality
-  summarise(mean_t_ha = mean(yield_t_ha),        # average within it
-            n = n()) |>                          # rows behind the average
-  arrange(desc(mean_t_ha))                       # best first
-muni_summary
-
-# (b) Write the table to the output folder
-write_csv(muni_summary, "output/muni_summary.csv")
-
-## I find LOUISE on top at 4.90 t/ha, resting on 26 observations.
-## (c) Twenty-six municipality-variety-year results give the mean a broader
-## base than a municipality with only a few results. The count does not
-## remove differences in the mix of varieties, but it shows how much data
-## supports each mean.
-')
-```
-
-</details>
