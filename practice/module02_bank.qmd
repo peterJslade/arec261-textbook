@@ -31,10 +31,47 @@ You submit a single R script: a header block at the top, a clearly labelled sect
 
 A real test looks like this -- one question from each section:
 
-1. *Five canola fields yielded 52.3, 47.8, 55.1, 44.6, and 50.9 bu/ac, on 160, 320, 240, 130, and 200 acres. Create the two vectors; convert the yields to t/ha; compute the mean and sd of the yields; compute total production and the acreage-weighted average yield.*
-2. *Compute the mean, median, and standard deviation of canola `Yield`, and its 90th percentile. In a comment: the mean sits a little above the median -- what does that direction of gap suggest about the shape of canola yields?*
-3. *Filter to the lentil rows, saving as `lentils` (how many rows?); add a `yield_kg_ha` column (multiply by 1.12), saving back to `lentils`; compute the mean of the new column and of the original, and check their ratio.*
-4. *In one pipeline, compute each RM's mean Spring Wheat yield across all years, sorted best-first. Report the top three RMs. In a comment: what did each row of the input represent, and what does each row of the result represent?*
+**Question 1**
+
+*Five canola fields yielded 52.3, 47.8, 55.1, 44.6, and 50.9 bu/ac, on 160, 320, 240, 130, and 200 acres.*
+
+**(a)** Create a vector `yields` and a vector `acres` holding these values.
+
+**(b)** Create a vector `yields_t_ha` converting the yields to tonnes per hectare (multiply by 0.0560) in one line.
+
+**(c)** Compute the mean and standard deviation of `yields`.
+
+**(d)** Compute total production in bushels, and the farm's average yield weighted by acres. In a comment: why does the weighted average differ from the plain mean?
+
+**Question 2**
+
+*The Saskatchewan canola file contains one RM-year average yield per row, measured in bu/ac.*
+
+**(a)** Compute the mean, median, and standard deviation of `Yield`.
+
+**(b)** Compute its 90th percentile.
+
+**(c)** In a comment: the mean sits a little above the median -- what does that direction of gap suggest about the shape of canola yields?
+
+**Question 3**
+
+*The full RM file holds all eight crops; lentil yields are recorded in lb/ac.*
+
+**(a)** Filter to the lentil rows, saving the result as `lentils`. How many rows are there?
+
+**(b)** Add a `yield_kg_ha` column (multiply by 1.12), saving back to `lentils`.
+
+**(c)** Compute the mean of the new column and of the original column, and check their ratio. In a comment: why is the ratio the conversion factor?
+
+**Question 4**
+
+*Using the full eight-crop RM file.*
+
+**(a)** In one pipeline, compute each RM's mean Spring Wheat yield across all years, sorted best-first.
+
+**(b)** Report the top three RMs in a comment.
+
+**(c)** In a comment: what did each row of the input represent, and what does each row of the result represent?
 
 And here is a script that would earn full marks, including all of the presentation component -- with the console session it produces shown beneath it:
 
@@ -58,11 +95,11 @@ library(tidyverse)
 # Question 1
 # ============================================================
 
-# Yields (bu/ac) and field sizes (acres)
+# (a) Yields (bu/ac) and field sizes (acres)
 yields <- c(52.3, 47.8, 55.1, 44.6, 50.9)
 acres  <- c(160, 320, 240, 130, 200)
 
-# (a/b) Convert every yield to tonnes per hectare in one step
+# (b) Convert every yield to tonnes per hectare in one step
 yields_t_ha <- yields * 0.0560
 yields_t_ha
 
@@ -74,7 +111,7 @@ sd(yields)     # 4.06 bu/ac
 total_bu <- sum(yields * acres)
 total_bu                 # 52,866 bu
 total_bu / sum(acres)    # 50.35 bu/ac
-# The weighted average differs from the plain mean because the
+# (d) The weighted average differs from the plain mean because the
 # fields differ in size, so each yield should count by its acres.
 
 # ============================================================
@@ -84,15 +121,15 @@ total_bu / sum(acres)    # 50.35 bu/ac
 # Read the canola file using a relative path from the project folder
 rm_canola <- read_csv("data/rm_canola_yields_1990_2025.csv")
 
-# Centre and spread of the canola yields
+# (a) Centre and spread of the canola yields
 mean(rm_canola$Yield)      # 28.29 bu/ac
 median(rm_canola$Yield)    # 26.9 bu/ac
 sd(rm_canola$Yield)        # 10.06 bu/ac
 
-# 90th percentile
+# (b) 90th percentile
 quantile(rm_canola$Yield, 0.9)   # 42.5 bu/ac
 
-# The mean sits a little above the median, which suggests mild
+# (c) The mean sits a little above the median, which suggests mild
 # right skew: the best RM-years pull the mean up more than the
 # worst years pull it down.
 
@@ -103,32 +140,33 @@ quantile(rm_canola$Yield, 0.9)   # 42.5 bu/ac
 # Read the full eight-crop file
 rm_yields <- read_csv("data/rm_yields_1990_2025.csv")
 
-# Keep only the lentil rows
+# (a) Keep only the lentil rows
 lentils <- filter(rm_yields, Crop == "Lentils")
 nrow(lentils)    # 6,338 rows
 
-# Add the converted column (1 lb/ac is about 1.12 kg/ha) and
+# (b) Add the converted column (1 lb/ac is about 1.12 kg/ha) and
 # overwrite lentils with the version that has the extra column
 lentils <- mutate(lentils, yield_kg_ha = Yield * 1.12)
 
-# Means of the new and original columns
+# (c) Means of the new and original columns
 mean(lentils$yield_kg_ha)   # 1,353.4 kg/ha
 mean(lentils$Yield)         # 1,208.39 lb/ac
-# Their ratio is 1.12, the conversion factor -- multiplying every
+# (c) Their ratio is 1.12, the conversion factor -- multiplying every
 # value by a constant multiplies the mean by the same constant.
 
 # ============================================================
 # Question 4
 # ============================================================
 
+# (a) Mean spring wheat yield by RM, best first
 rm_yields |>                              # take the data, THEN
   filter(Crop == "Spring Wheat") |>       # keep spring wheat, THEN
   group_by(RM) |>                         # split the rows by RM, THEN
   summarise(mean_yield = mean(Yield)) |>  # one row per RM: its mean, THEN
   arrange(desc(mean_yield))               # best RMs on top
 
-# Top three: RM 369 (47.6), RM 333 (47.2), RM 368 (47.2) bu/ac.
-# Each input row was one RM-year observation of spring wheat; each
+# (b) Top three: RM 369 (47.6), RM 333 (47.2), RM 368 (47.2) bu/ac.
+# (c) Each input row was one RM-year observation of spring wheat; each
 # result row is one RM, its years collapsed into a single mean.
 ')
 ```
