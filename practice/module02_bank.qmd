@@ -300,7 +300,7 @@ yields <- c(31.7, 28.4, 33.9, 30.2)
 console('
 # (a) Run as saved, the script fails on line 1: mean(yields) is asked for
 # before yields exists in the fresh session, so R stops with
-# "object of type ... not found" -- object yields not found.
+# R reports that the object yields was not found.
 
 # (b) The working order, with a header
 # ---
@@ -724,7 +724,7 @@ Four oat fields yielded 84.3, 91.7, 77.2, and 88.5 bu/ac, and oats are selling a
 
 **(c)** Compute the mean revenue per acre.
 
-**(d)** In a comment: the price rises to $4.60. What two lines would you rerun to update every answer, and why is that easier than if you had typed the price into each formula?
+**(d)** In a comment: the price rises to $4.60. What value would you change, and which lines would you rerun to update the results? Why is that easier than typing the price into each calculation?
 
 <details><summary>Answer</summary>
 
@@ -762,9 +762,11 @@ mean(revenue)
 
 ### Question 15
 
+*The Saskatchewan canola file contains one RM-year average yield per row, measured in bu/ac.*
+
 **(a)** Run `summary(rm_canola)`. From its output, report the minimum, median, and maximum of `Yield`, and the first and last `Year`.
 
-**(b)** In a comment: work through the module's inspection questions for this file. Are the yields roughly between 10 and 60 bu/ac, a typical canola range? Are the years what the file name promises? Are there missing values?
+**(b)** In a comment: are most yields in a plausible range for canola, and do the extremes need investigation? Are the years what the file name promises? Are there missing values?
 
 **(c)** The minimum is below 2 bu/ac. In a comment: is a canola yield that low necessarily a data error? What kind of year could produce it?
 
@@ -782,14 +784,18 @@ rm_canola <- read_csv("data/rm_canola_yields_1990_2025.csv")
 summary(rm_canola)
 
 ## (a) I find Yield has minimum 1.9, median 26.9, and maximum 61.0, and Year runs from 1990 to 2025.
-## (b) The yields all sit between about 2 and 61 bu/ac, a sensible canola range; the years run 1990--2025 as the file name promises; and summary() prints an NA count under a column only when it has missing values -- no such line appears, so there are none.
-## (c) Not necessarily -- an RM average that low is what a severe drought or a widespread crop failure looks like. Extreme is not the same as wrong; it is a value to investigate, not delete.
+## (b) Most yields are plausible for canola, but the values near 2 bu/ac
+## deserve investigation. The years run 1990--2025 and there are no NAs.
+## (c) Not necessarily. A severe drought or widespread crop failure could
+## produce a very low RM average.
 ')
 ```
 
 </details>
 
 ### Question 16
+
+*The Saskatchewan canola file contains one RM-year average yield per row, measured in bu/ac.*
 
 **(a)** In a comment at the top of your script, sketch your project's folder layout (the subfolders and where the csv sits).
 
@@ -835,6 +841,8 @@ names(rm_canola)
 
 ### Question 17
 
+*The Saskatchewan canola file contains one RM-year average yield per row, measured in bu/ac.*
+
 **(a)** Compute the mean, median, standard deviation, and variance of `rm_canola$Yield`.
 
 **(b)** Compute the 90th percentile of `Yield`.
@@ -872,6 +880,8 @@ quantile(rm_canola$Yield, probs = 0.9)
 
 ### Question 18
 
+*The Saskatchewan canola file contains one RM-year average yield per row, measured in bu/ac.*
+
 **(a)** Print the first six rows of `rm_canola` with `head()`.
 
 **(b)** In a comment: from those rows, say what one row of this dataset represents.
@@ -899,14 +909,16 @@ nrow(rm_canola) / 36
 ## I find 10,039 rows spanning 1990 to 2025.
 ## (b) One row is one RM in one year: that RM average canola yield.
 ## (d) 10,039 / 36 is about 279 rows per year, against roughly 295 RMs --
-## so not every RM reports canola every year; a handful of RM-years are
-## missing from the file.
+## so not every RM reports canola every year; some RM-year combinations
+## are absent from the file.
 ')
 ```
 
 </details>
 
 ### Question 19
+
+*The Saskatchewan canola file contains one RM-year average yield per row, measured in bu/ac.*
 
 **(a)** Run `glimpse()` on `rm_canola`. In a comment: which columns are text (`<chr>`) and which are numeric (`<dbl>`)?
 
@@ -937,6 +949,8 @@ glimpse(rm_canola)
 
 ### Question 20
 
+*The Saskatchewan canola file contains one RM-year average yield per row, measured in bu/ac.*
+
 **(a)** Using `$`, compute the mean, the standard deviation, and the 10th and 90th percentiles of `Yield` across the whole file.
 
 **(b)** In a comment: an RM-year at the 10th percentile grew how much canola? Interpret the number for a grower.
@@ -959,7 +973,7 @@ quantile(rm_canola$Yield, probs = c(0.10, 0.90))
 
 ## I find a mean of 28.29, an sd of 10.06, and percentiles of 16.1 and 42.5.
 ## (b) An RM-year at the 10th percentile grew 16.1 bu/ac -- nine in ten
-## RM-years across the file did better than that.
+## RM-years across the file were at or above that value.
 ## (c) The gap is 26.4 bu/ac. Like the sd it describes how spread out
 ## yields are, but it reads directly as a bushel distance holding the
 ## middle 80% of RM-years, and it ignores the extremes entirely.
@@ -969,6 +983,8 @@ quantile(rm_canola$Yield, probs = c(0.10, 0.90))
 </details>
 
 ### Question 21
+
+*The Saskatchewan canola file contains one RM-year average yield per row, measured in bu/ac.*
 
 In a fresh R session you run `rm_yields <- read_csv("data/rm_yields_1990_2025.csv")` and get:
 
@@ -1009,6 +1025,8 @@ rm_yields <- read_csv("data/rm_yields_1990_2025.csv")
 ## Manitoba Wheat Variety {.unnumbered}
 
 ### Question 22
+
+*The Manitoba reported-wheat file contains one published municipality-variety-year result per row.*
 
 **(a)** In a comment at the top of your script, sketch your project's folder layout.
 
@@ -1054,6 +1072,8 @@ names(mb_wheat)
 
 ### Question 23
 
+*The Manitoba reported-wheat file contains one published municipality-variety-year result per row.*
+
 **(a)** Run `glimpse()` on `mb_wheat`. In a comment: which columns are text (`<chr>`), which numeric (`<dbl>`), and which logical (`<lgl>`)?
 
 **(b)** In a comment: what values does the logical column hold in this file, and how does the file's name explain this?
@@ -1086,9 +1106,11 @@ summary(mb_wheat$Reported)
 
 ### Question 24
 
+*The Manitoba reported-wheat file contains one published municipality-variety-year result per row.*
+
 **(a)** Run `summary(mb_wheat)`. From its output, report the minimum, median, and maximum of `Yield_bu_ac`, and the first and last `Year`.
 
-**(b)** In a comment: work through the module's inspection questions. Are the yields mostly between 30 and 100 bu/ac, a typical spring wheat range? Are there missing values?
+**(b)** In a comment: are most yields in a plausible range for spring wheat, and do the extremes need investigation? Are there missing values?
 
 **(c)** The minimum is **4.5 bu/ac**. In a comment: is a reported yield that low necessarily an error?
 
@@ -1106,14 +1128,18 @@ mb_wheat <- read_csv("data/mb_wheat_reported_2020_2025.csv")
 summary(mb_wheat)
 
 ## (a) I find Yield_bu_ac has minimum 4.5, median 62.2, and maximum 97.8, and Year runs from 2020 to 2025.
-## (b) Plausible -- most yields sit in the tens of bushels, sensible for Manitoba spring wheat; and no NA count lines appear, so there are no missing values in this file.
-## (c) Not necessarily -- a variety grown on a few drought- or flood-hit fields can genuinely average that low. Extreme is a value to investigate, not delete.
+## (b) Most yields are plausible for Manitoba spring wheat, but the lowest
+## values deserve investigation. There are no missing values in this file.
+## (c) Not necessarily. Drought, flooding, or another crop failure could
+## produce a very low reported average.
 ')
 ```
 
 </details>
 
 ### Question 25
+
+*The Manitoba reported-wheat file contains one published municipality-variety-year result per row.*
 
 **(a)** Compute the mean, median, standard deviation, and variance of `mb_wheat$Yield_bu_ac`.
 
@@ -1152,6 +1178,8 @@ range(mb_wheat$Yield_bu_ac)
 
 ### Question 26
 
+*The Manitoba reported-wheat file contains one published municipality-variety-year result per row.*
+
 Suppose your script reads the data like this:
 
 ```r
@@ -1160,7 +1188,7 @@ mb_wheat <- read_csv("/Users/sam/Downloads/mb wheat data.csv")
 
 It works on your laptop and fails on everyone else's.
 
-**(a)** In a comment: give two problems -- one about where the path points, one about the file's name and location.
+**(a)** In a comment: explain why this path is not portable. Identify two project practices that would make the file easier for someone else to use.
 
 **(b)** Rewrite the line the way the module recommends, assuming the file was saved as `mb_wheat_reported_2020_2025.csv` in the project's `data/` folder.
 
@@ -1179,7 +1207,9 @@ library(tidyverse)
 #     moved into the data folder of the project, and read with a relative path
 mb_wheat <- read_csv("data/mb_wheat_reported_2020_2025.csv")
 
-## (a) Two problems. First, the path is absolute: it names the Downloads folder of one user on one machine, so it exists nowhere else. Second, the file is loose in Downloads under a name with spaces in it, instead of renamed and placed in the data folder of the project.
+## (a) The absolute path names one particular computer, so it is not portable.
+## Put the file in the project data folder and give it a consistent,
+## descriptive name. Spaces are allowed, but simple names are easier to use.
 ## (c) Check that the folder opened in Positron is the project folder -- the one containing data/. Relative paths start from the opened folder.
 ')
 ```
@@ -1187,6 +1217,8 @@ mb_wheat <- read_csv("data/mb_wheat_reported_2020_2025.csv")
 </details>
 
 ### Question 27
+
+*The Manitoba reported-wheat file contains one published municipality-variety-year result per row.*
 
 **(a)** Using `$`, compute the mean and median of `Acres` across the file.
 
@@ -1220,6 +1252,8 @@ quantile(mb_wheat$Acres, probs = 0.90)
 
 ### Question 28
 
+*The Manitoba reported-wheat file contains one published municipality-variety-year result per row.*
+
 **(a)** Using `$`, compute the minimum, mean, and maximum of `Farms`.
 
 **(b)** In a comment: what does one unit of this column mean -- what is being counted?
@@ -1241,9 +1275,9 @@ max(mb_wheat$Farms)
 ## (b) One unit is one farm that grew that variety in that municipality
 ## that year -- the column counts the growers behind each row.
 ## (c) A yield resting on 3 farms can be moved a long way by one grower
-## having a good or bad year; a yield resting on fifty is close to the
-## municipal experience. The farm count tells the reader which kind of
-## average they are looking at.
+## having a good or bad year. A result based on fifty farms is less
+## sensitive to one farm, although the count alone does not guarantee that
+## the result represents every farm in the municipality.
 ')
 ```
 
@@ -1254,6 +1288,8 @@ max(mb_wheat$Farms)
 ## Saskatchewan RM Crop Yields {.unnumbered}
 
 ### Question 29
+
+*The Saskatchewan crop file contains one RM-year-crop yield per row; `rm_yields` is the loaded data frame.*
 
 **(a)** Filter to the Spring Wheat observations of at least 60 bu/ac (all years), using `>=` and saving the result. How many rows are in the filtered data frame?
 
@@ -1291,13 +1327,15 @@ arrange(sw_best, desc(Yield))
 
 ## I find 434 rows at 60 bu/ac or better, and 53 of them are from 2023.
 ## RM 187 tops the 2023 list, at 74.7 bu/ac.
-## (d) filter(rm_yields, Yield >= 60 & !Crop == "Spring Wheat") -- the ! negates the crop condition.
+## (d) filter(rm_yields, Yield >= 60 & !(Crop == "Spring Wheat")) -- the ! negates the crop condition.
 ')
 ```
 
 </details>
 
 ### Question 30
+
+*The Saskatchewan crop file contains one RM-year-crop yield per row; `rm_yields` is the loaded data frame.*
 
 **(a)** Filter to rows where the crop is Oats **or** Barley, using `|`, saving the result. How many rows are in the filtered data frame?
 
@@ -1342,6 +1380,8 @@ arrange(oats_barley, desc(Yield))
 
 ### Question 31
 
+*The Saskatchewan crop file contains one RM-year-crop yield per row; `rm_yields` is the loaded data frame.*
+
 **(a)** Filter to Canola in 2024, then in one `mutate()` call add two columns: `yield_t_ha` (multiply by 0.0560) and `yield_kg_ha` (multiply by 56.0). Save the result of each step.
 
 **(b)** Compute the mean of each new column.
@@ -1385,6 +1425,8 @@ arrange(canola_2024, desc(yield_t_ha))
 </details>
 
 ### Question 32
+
+*The Saskatchewan crop file contains one RM-year-crop yield per row; `rm_yields` is the loaded data frame.*
 
 Canola is selling at $14.20 per bushel.
 
@@ -1431,6 +1473,8 @@ mean(canola_25$revenue_per_ac)
 
 ### Question 33
 
+*The Saskatchewan crop file contains one RM-year-crop yield per row; `rm_yields` is the loaded data frame.*
+
 **(a)** Filter `rm_yields` to Canola in 2024, saving the result as `canola_2024`. How many rows are in the filtered data frame?
 
 **(b)** From `canola_2024`, select only the `RM` and `Yield` columns, saving the result. Report its column names and its number of columns.
@@ -1474,7 +1518,9 @@ nrow(rm_yields)
 
 ### Question 34
 
-**(a)** Make a version of the data with only `Year`, `RM`, `Crop`, and `Yield` -- once by *naming what you keep*, once by *dropping* what you don't want -- saving each, and confirm the two have the same column names. Then make a third version keeping the adjacent-column range `Year:Crop`, and report its column names.
+*The Saskatchewan crop file contains one RM-year-crop yield per row; `rm_yields` is the loaded data frame.*
+
+**(a)** Make a version of the data with only `Year`, `RM`, `Crop`, and `Yield` -- once by naming what you keep and once by dropping `Unit`. Save both and confirm that they have the same column names.
 
 **(b)** Rename `Yield` to `yield_per_acre` in the full data, saving the result, and show the new column names.
 
@@ -1499,11 +1545,6 @@ dropped <- select(rm_yields, -Unit)
 # Confirm the two have the same column names
 names(kept)
 names(dropped)
-# The adjacent-column range Year:Crop
-ranged <- select(rm_yields, Year:Crop)
-# Its column names
-names(ranged)
-
 # (b) Rename Yield in the full data
 renamed <- rename(rm_yields, yield_per_acre = Yield)
 # The new column names
@@ -1514,7 +1555,7 @@ peas_2025 <- filter(renamed, Crop == "Peas" & Year == 2025)
 # Row count of the filtered data frame
 nrow(peas_2025)
 
-## Both versions have the columns Year, RM, Crop, Yield; the range version keeps Year, RM, Crop.
+## Both versions have the columns Year, RM, Crop, Yield.
 ## After the rename the columns are Year, RM, Crop, yield_per_acre, Unit.
 ## I find 285 rows of 2025 peas.
 ')
@@ -1523,6 +1564,8 @@ nrow(peas_2025)
 </details>
 
 ### Question 35
+
+*The Saskatchewan crop file contains one RM-year-crop yield per row; `rm_yields` is the loaded data frame.*
 
 **(a)** Filter `rm_yields` to Canola from 2020 through 2025 in one `filter()` call (two conditions on `Year` joined with `&`), saving the result. How many rows are in it?
 
@@ -1560,6 +1603,8 @@ arrange(canola_recent, desc(Yield))
 
 ### Question 36
 
+*The Manitoba wheat file contains one municipality-variety-year row. In the full file, `Reported` identifies published results; `mb_rep` contains only those rows.*
+
 **(a)** From `mb_rep`, filter to rows with at least 10 farms **and** a yield above 70 bu/ac, saving the result. How many rows are in it?
 
 **(b)** Sort best-first and report the top municipality, variety, and year.
@@ -1586,16 +1631,17 @@ arrange(solid_high, desc(Yield_bu_ac))
 
 ## I find 273 rows; LOUISE growing SY MANNESS in 2025 tops the list
 ## at 96.3 bu/ac.
-## (c) Yield alone can be one grower and one lucky field. Requiring ten or
-## more farms means every row here is a result many growers produced
-## together, so "this variety yields above 70 here" rests on evidence
-## rather than an anecdote.
+## (c) A reported average based on only a few farms is more sensitive to
+## an unusual result. Requiring ten or more farms gives the comparison a
+## broader base.
 ')
 ```
 
 </details>
 
 ### Question 37
+
+*The Manitoba wheat file contains one municipality-variety-year row. In the full file, `Reported` identifies published results; `mb_rep` contains only those rows.*
 
 **(a)** From `mb_rep`, use one `mutate()` to add `total_bu`, each observation's acres times its yield, saving the result.
 
@@ -1637,6 +1683,8 @@ arrange(mb_rep, desc(total_bu))
 
 ### Question 38
 
+*The Manitoba wheat file contains one municipality-variety-year row. In the full file, `Reported` identifies published results; `mb_rep` contains only those rows.*
+
 **(a)** From the full `mb` file, filter to the suppressed rows (`Reported == FALSE`), saving the result. How many rows are in it?
 
 **(b)** Select `Year`, `Municipality`, and `Variety` from the result (the numeric columns are empty in these rows) and print its first six rows.
@@ -1672,6 +1720,8 @@ head(suppressed_ids)
 </details>
 
 ### Question 39
+
+*The Manitoba wheat file contains one municipality-variety-year row. In the full file, `Reported` identifies published results; `mb_rep` contains only those rows.*
 
 **(a)** Filter `mb` to the reported rows (`Reported == TRUE`), saving as `mb_rep`. How many rows are in the filtered data frame?
 
@@ -1714,6 +1764,8 @@ nrow(mb)
 
 ### Question 40
 
+*The Manitoba wheat file contains one municipality-variety-year row. In the full file, `Reported` identifies published results; `mb_rep` contains only those rows.*
+
 **(a)** From `mb_rep` (reported rows), filter to the varieties `AAC BRANDON (BW 932)` **or** `AAC STARBUCK <SECAN>` using `|`, saving the result. How many rows are in the filtered data frame?
 
 **(b)** Write the same filter using `%in%` and confirm the count matches.
@@ -1752,7 +1804,9 @@ nrow(two_var2)
 
 ### Question 41
 
-**(a)** From `mb_rep`, make a version with only `Year`, `Municipality`, `Variety`, and `Yield_bu_ac` -- once by naming what you keep, once by dropping what you don't (`Farms`, `Acres`, `Reported`) -- saving each, and confirm the two have the same column names. Then make a third version keeping the adjacent range `Year:Variety` and report its names.
+*The Manitoba wheat file contains one municipality-variety-year row. In the full file, `Reported` identifies published results; `mb_rep` contains only those rows.*
+
+**(a)** From `mb_rep`, make a version with only `Year`, `Municipality`, `Variety`, and `Yield_bu_ac` -- once using the adjacent range `Year:Variety` plus `Yield_bu_ac`, and once by dropping `Farms`, `Acres`, and `Reported`. Save both and confirm that they have the same column names.
 
 **(b)** Rename `Yield_bu_ac` to `yield`, saving the result, and show the new column names.
 
@@ -1769,24 +1823,20 @@ library(tidyverse)
 mb <- read_csv("data/mb_wheat_varieties.csv")
 mb_rep <- filter(mb, Reported == TRUE)
 
-# (a) Keep four columns by naming them
-kept <- select(mb_rep, Year, Municipality, Variety, Yield_bu_ac)
+# (a) Keep the adjacent range plus the yield column
+kept <- select(mb_rep, Year:Variety, Yield_bu_ac)
 # The same four columns by dropping the rest
 dropped <- select(mb_rep, -Farms, -Acres, -Reported)
 # Confirm the two have the same column names
 names(kept)
 names(dropped)
-# The adjacent-column range Year:Variety
-ranged <- select(mb_rep, Year:Variety)
-# Its column names
-names(ranged)
-
 # (b) Rename the yield column
 renamed <- rename(mb_rep, yield = Yield_bu_ac)
 # The new column names
 names(renamed)
 
-## Both versions have the same four names, Year, Municipality, Variety, Yield_bu_ac; the range version keeps Year, Municipality, Variety.
+## Both versions have the same four names: Year, Municipality, Variety,
+## and Yield_bu_ac.
 ## The renamed data frame has the same seven columns, with yield in place of Yield_bu_ac.
 ')
 ```
@@ -1794,6 +1844,8 @@ names(renamed)
 </details>
 
 ### Question 42
+
+*The Manitoba wheat file contains one municipality-variety-year row. In the full file, `Reported` identifies published results; `mb_rep` contains only those rows.*
 
 **(a)** From `mb_rep`, use one `mutate()` to add `acres_per_farm` (acres divided by farms), saving the result.
 
@@ -1839,6 +1891,8 @@ mean(mb_rep$acres_per_farm)
 
 ### Question 43
 
+*The Saskatchewan crop file contains one RM-year-crop yield per row; `rm_yields` is the loaded data frame.*
+
 **(a)** In one pipeline: for **2025 only**, compute each crop's mean yield and observation count, sorted from highest mean to lowest, and save the result as `crop_summary_2025`.
 
 **(b)** Write the table to `output/crop_summary_2025.csv`.
@@ -1872,7 +1926,9 @@ crop_summary_2025
 write_csv(crop_summary_2025, "output/crop_summary_2025.csv")
 
 ## I find Lentils on top at 1897 and Oats second at 97.5.
-## (c) The Unit column shows Lentils are recorded in pounds per acre, not bushels, so the first place row is not comparable to the rest. Among the bushel crops, Oats are the real standout at 97.5 bu/ac, with Barley next at 72.8. 2025 was a strong year across the board.
+## (c) The Unit column shows Lentils are recorded in pounds per acre, not
+## bushels, so the first row is not comparable to the rest. Among the
+## bushel crops, Oats are highest at 97.5 bu/ac.
 ')
 ```
 
@@ -1880,9 +1936,11 @@ write_csv(crop_summary_2025, "output/crop_summary_2025.csv")
 
 ### Question 44
 
-**(a)** In one pipeline: filter to Lentils, convert to kg/ha with `mutate()` (multiply by 1.12), then summarise the mean of the converted column.
+*The Saskatchewan crop file contains one RM-year-crop yield per row; `rm_yields` is the loaded data frame.*
 
-**(b)** Report the mean in kg/ha.
+**(a)** In one pipeline: filter to Lentils from 2021 through 2025, convert to kg/ha with `mutate()` (multiply by 1.12), and compute the mean converted yield and `n()` for each year. Sort from highest mean to lowest and save the result as `lentil_summary`.
+
+**(b)** Report the highest and lowest annual means and the counts behind them.
 
 **(c)** In a comment: in what order do your steps run, and why would putting the `summarise()` before the `mutate()` fail?
 
@@ -1898,26 +1956,31 @@ library(tidyverse)
 # Read the long yield file
 rm_yields <- read_csv("data/rm_yields_1990_2025.csv")
 
-# (a) Lentils, converted to kg/ha, then the mean of the converted column
+# (a) Recent lentils, converted to kg/ha and summarised by year
 lentil_summary <- rm_yields |>
-  filter(Crop == "Lentils") |>                 # lentil rows only
-  mutate(yield_kg_ha = Yield * 1.12) |>        # lb/ac times 1.12 gives kg/ha
-  summarise(mean_kg_ha = mean(yield_kg_ha))    # average of the new column
+  filter(Crop == "Lentils" & Year >= 2021) |>    # recent lentil rows
+  mutate(yield_kg_ha = Yield * 1.12) |>          # convert lb/ac to kg/ha
+  group_by(Year) |>                               # one group per year
+  summarise(mean_kg_ha = mean(yield_kg_ha),       # annual average
+            n = n()) |>                           # observations behind it
+  arrange(desc(mean_kg_ha))                       # highest mean first
 
 # Print the summary table
 lentil_summary
 
-# The mean to more decimals than the tibble display shows
-lentil_summary$mean_kg_ha
-
-## (b) I find a mean of 1353.4 kg/ha.
-## (c) The steps run top to bottom, each one feeding its output to the next. Putting summarise() before mutate() would fail because the data would already be collapsed to one row and the yield_kg_ha column would not exist yet.
+## (b) The highest annual mean is 2025 at 2,124.4 kg/ha from 218
+## observations. The lowest is 2021 at 1,057.5 kg/ha from 194.
+## (c) The steps filter, convert, group, summarise, and sort in that order.
+## Putting summarise() before mutate() would fail because yield_kg_ha would
+## not exist when the summary tried to use it.
 ')
 ```
 
 </details>
 
 ### Question 45
+
+*The Saskatchewan crop file contains one RM-year-crop yield per row; `rm_yields` is the loaded data frame.*
 
 Canola is selling at $14.20 per bushel.
 
@@ -1959,6 +2022,8 @@ rm_yields |>
 
 ### Question 46
 
+*The Saskatchewan crop file contains one RM-year-crop yield per row; `rm_yields` is the loaded data frame.*
+
 **(a)** In one pipeline, compute the mean canola yield for **each year** from 2021 to 2025 (filter first, then group).
 
 **(b)** Report the five means. Which year was worst, and which best?
@@ -1992,11 +2057,13 @@ rm_yields |>
 
 ### Question 47
 
-**(a)** In one pipeline, compute the mean flax yield across 2020--2025 (`Year >= 2020`), calling the result column `mean_yield`.
+*The Saskatchewan crop file contains one RM-year-crop yield per row; `rm_yields` is the loaded data frame.*
 
-**(b)** Add `n()` to the same `summarise()` to count how many observations that mean is based on.
+**(a)** In one pipeline: filter to Flax from 2020 through 2025, compute each RM's `mean_yield` and `n()`, retain RMs with at least four observations, and sort from highest mean to lowest. Save the result as `flax_summary`.
 
-**(c)** In a comment: why is reporting the count alongside the mean good practice?
+**(b)** Report the top RM, its mean, and its count.
+
+**(c)** In a comment: why does the minimum-count rule improve the ranking, and why must `filter(n >= 4)` come after `summarise()`?
 
 <details><summary>Answer</summary>
 
@@ -2010,20 +2077,21 @@ library(tidyverse)
 # Read the long yield file
 rm_yields <- read_csv("data/rm_yields_1990_2025.csv")
 
-# (a, b) Mean flax yield across 2020 to 2025, with the observation count
+# (a) Recent flax means by RM, retaining RMs with at least four reports
 flax_summary <- rm_yields |>
-  filter(Crop == "Flax" & Year >= 2020) |>     # flax from 2020 onward
-  summarise(mean_yield = mean(Yield),          # average yield
-            n = n())                           # rows behind the mean
+  filter(Crop == "Flax" & Year >= 2020) |>    # recent flax rows
+  group_by(RM) |>                              # one group per RM
+  summarise(mean_yield = mean(Yield),          # average within the RM
+            n = n()) |>                        # observations behind it
+  filter(n >= 4) |>                            # enough years to compare
+  arrange(desc(mean_yield))                    # highest mean first
 
 # Print the summary table
 flax_summary
 
-# The mean to more decimals than the tibble display shows
-flax_summary$mean_yield
-
-## I find a mean of 22.39 bu/ac from 1143 observations.
-## (c) A mean based on a handful of rows deserves less trust than one based on a thousand; the count tells the reader which they are looking at.
+## (b) RM 336 is highest at 34.5 bu/ac from 4 observations.
+## (c) The rule removes rankings based on only one or two years. The count
+## n is created by summarise(), so it cannot be filtered before that step.
 ')
 ```
 
@@ -2031,11 +2099,13 @@ flax_summary$mean_yield
 
 ### Question 48
 
+*The Saskatchewan crop file contains one RM-year-crop yield per row; `rm_yields` is the loaded data frame.*
+
 **(a)** Write a pipeline, one step per line with a short comment on each step, that filters `rm_yields` to Durum in 2025, keeps only the `RM` and `Yield` columns, and sorts the result from highest yield to lowest.
 
 **(b)** Run it. How many rows are in the resulting data frame, and which RM had the best durum yield in 2025, at what value?
 
-**(c)** In a comment: read your pipeline aloud as a "take the data, then ..., then ..., then ..." sentence.
+**(c)** In a comment: which step changes the number of rows, which changes the columns, and which only changes their order?
 
 <details><summary>Answer</summary>
 
@@ -2065,13 +2135,16 @@ head(durum_2025)
 head(durum_2025$Yield)
 
 ## I find 189 rows; RM 369 had the best durum yield in 2025, at 105.6 bu/ac.
-## (c) Take rm_yields, then keep the 2025 durum rows, then keep the RM and Yield columns, then sort from highest yield to lowest.
+## (c) filter() changes the number of rows, select() changes the columns,
+## and arrange() changes only the row order.
 ')
 ```
 
 </details>
 
 ### Question 49
+
+*The Saskatchewan crop file contains one RM-year-crop yield per row; `rm_yields` is the loaded data frame.*
 
 **(a)** In one pipeline: filter to Spring Wheat in 2025, compute the mean, the standard deviation, and `n()` in one `summarise()`.
 
@@ -2107,6 +2180,8 @@ rm_yields |>
 ## Manitoba Wheat Variety {.unnumbered}
 
 ### Question 50
+
+*The Manitoba wheat file contains one municipality-variety-year row. In the full file, `Reported` identifies published results; `mb_rep` contains only those rows.*
 
 **(a)** In one pipeline, compute each variety's total acres from `mb_rep` (`sum(Acres)`), sorted largest first.
 
@@ -2144,6 +2219,8 @@ mb_rep |>
 
 ### Question 51
 
+*The Manitoba wheat file contains one municipality-variety-year row. In the full file, `Reported` identifies published results; `mb_rep` contains only those rows.*
+
 **(a)** In one pipeline, compute each variety's mean yield and observation count across `mb_rep`, sorted from highest mean to lowest.
 
 **(b)** Report the top two varieties, their means, and their counts.
@@ -2173,7 +2250,9 @@ mb_rep |>
   arrange(desc(mean_yield))                    # highest mean first
 
 ## (b) I find AAC WESTKING first at 79.2 bu/ac from 17 observations, then CDC GO (BW781) at 77.5 from a single observation.
-## (c) I would trust the AAC WESTKING mean more: seventeen municipality-years is evidence, while a single observation could be one lucky field in one good year.
+## (c) I would trust the AAC WESTKING mean more. It uses seventeen
+## municipality-year results, while the CDC GO mean uses one published
+## municipality-year result.
 ')
 ```
 
@@ -2181,11 +2260,13 @@ mb_rep |>
 
 ### Question 52
 
+*The Manitoba wheat file contains one municipality-variety-year row. In the full file, `Reported` identifies published results; `mb_rep` contains only those rows.*
+
 **(a)** Write a pipeline, one step per line with a short comment on each, that filters `mb_rep` to 2025, keeps `Municipality`, `Variety`, and `Yield_bu_ac`, and sorts best-first.
 
 **(b)** Run it. How many rows are in the resulting data frame, and which municipality and variety top it, at what yield?
 
-**(c)** In a comment: read the pipeline aloud as a "take the data, then ..." sentence.
+**(c)** In a comment: why must the Year filter come before `select()` in this pipeline? What would happen if you selected the three output columns first?
 
 <details><summary>Answer</summary>
 
@@ -2215,13 +2296,17 @@ nrow(wheat_2025)
 head(wheat_2025)
 
 ## I find 438 rows; LOUISE, growing SY MANNESS, tops the table at 96.3 bu/ac.
-## (c) Take the reported rows, then keep 2025, then keep three columns, then sort from highest yield to lowest.
+## (c) The Year filter must run before select() because the selected output
+## does not keep Year. Selecting first would remove the column that the
+## next step needs and filter() would fail.
 ')
 ```
 
 </details>
 
 ### Question 53
+
+*The Manitoba wheat file contains one municipality-variety-year row. In the full file, `Reported` identifies published results; `mb_rep` contains only those rows.*
 
 **(a)** In one pipeline: for **2025 only**, compute each variety's mean reported yield and observation count, sorted best-first, and save the result as `variety_summary_2025`.
 
@@ -2266,6 +2351,8 @@ write_csv(variety_summary_2025, "output/variety_summary_2025.csv")
 
 ### Question 54
 
+*The Manitoba wheat file contains one municipality-variety-year row. In the full file, `Reported` identifies published results; `mb_rep` contains only those rows.*
+
 **(a)** In one pipeline, compute each municipality's mean yield and observation count from `mb_rep`, sorted from highest mean to lowest.
 
 **(b)** Report the top municipality and how many observations back its mean.
@@ -2301,6 +2388,8 @@ mb_rep |>
 </details>
 
 ### Question 55
+
+*The Manitoba wheat file contains one municipality-variety-year row. In the full file, `Reported` identifies published results; `mb_rep` contains only those rows.*
 
 **(a)** In one pipeline: filter `mb_rep` to 2023, compute each variety's mean yield and count, sort best-first, and save the result.
 
@@ -2340,6 +2429,8 @@ variety_2023
 
 ### Question 56
 
+*The Manitoba wheat file contains one municipality-variety-year row. In the full file, `Reported` identifies published results; `mb_rep` contains only those rows.*
+
 A bushel of wheat is 60 lb, so one bu/ac is about 0.0673 t/ha.
 
 **(a)** In one pipeline: convert yields to t/ha with `mutate()`, compute each municipality's mean t/ha and count, keep municipalities and sort best-first, and save the result as `muni_summary`.
@@ -2372,12 +2463,11 @@ muni_summary
 write_csv(muni_summary, "output/muni_summary.csv")
 
 ## I find LOUISE on top at 4.90 t/ha, resting on 26 observations.
-## (c) Twenty-six results is a reasonable base -- enough that one variety
-## or one odd field is not driving the ranking, though thinner than the
-## biggest municipalities; the n column is what lets a reader make that
-## judgment for every row.
+## (c) Twenty-six municipality-variety-year results give the mean a broader
+## base than a municipality with only a few results. The count does not
+## remove differences in the mix of varieties, but it shows how much data
+## supports each mean.
 ')
 ```
 
 </details>
-
