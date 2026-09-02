@@ -728,9 +728,83 @@ quantile(rm_canola$Yield, probs = c(0.10, 0.90))
 </details>
 
 
+### Question 15
+*The Saskatchewan canola file contains one RM-year average yield per row, measured in bu/ac.*
+
+**(a)** Compute the 25th, 50th, and 75th percentiles of `Yield` in one `quantile()` call.
+
+**(b)** Compute the IQR twice: with `IQR()`, and as the difference between two of your percentiles. Confirm the two match.
+
+**(c)** In a comment: which RM-years fall inside the span the IQR measures?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the tidyverse and read the canola file
+library(tidyverse)
+rm_canola <- read_csv("data/rm_canola_yields_1990_2025.csv")
+
+# (a) The three quartiles in one call
+quantile(rm_canola$Yield, probs = c(0.25, 0.50, 0.75))
+
+# (b) The IQR, from the function
+IQR(rm_canola$Yield)
+
+# (b) The IQR, as the 75th minus the 25th percentile
+35.4 - 21.0
+
+## I find quartiles of 21.0, 26.9, and 35.4 bu/ac, and an IQR of 14.4
+## both ways.
+## (c) The middle half of RM-years: everything above the bottom quarter
+## and below the top quarter of yields.
+')
+```
+
+</details>
+
+### Question 16
+*The Saskatchewan canola file contains one RM-year average yield per row, measured in bu/ac.*
+
+**(a)** Compute the minimum and maximum of `Yield`, and the range (maximum minus minimum).
+
+**(b)** In a comment: the minimum is 1.9 bu/ac. If that row turned out to be a data error and was removed, which would change more -- the range or the IQR?
+
+**(c)** In a comment: which of the two better describes the spread of typical canola yields?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the tidyverse and read the canola file
+library(tidyverse)
+rm_canola <- read_csv("data/rm_canola_yields_1990_2025.csv")
+
+# (a) Smallest and largest yield
+min(rm_canola$Yield)
+max(rm_canola$Yield)
+
+# (a) The range
+max(rm_canola$Yield) - min(rm_canola$Yield)
+
+## I find a minimum of 1.9, a maximum of 61.0, and a range of 59.1 bu/ac.
+## (b) The range: it is built from the two most extreme values, so
+## removing the 1.9 moves it directly. The IQR depends only on the 25th
+## and 75th percentiles, and one row at the bottom barely touches those.
+## (c) The IQR. The range describes two extreme RM-years; the IQR
+## describes the middle half of them.
+')
+```
+
+</details>
+
 ## Manitoba Wheat Variety {.unnumbered}
 
-### Question 15
+### Question 17
 *The Manitoba wheat file contains one municipality-variety-year result per row.*
 
 **(a)** Run `summary(mb_wheat)`. From its output, report the minimum, median, and maximum of `Yield_bu_ac`, and the first and last `Year`.
@@ -758,7 +832,7 @@ summary(mb_wheat)
 
 </details>
 
-### Question 16
+### Question 18
 *The Manitoba wheat file contains one municipality-variety-year result per row.*
 
 **(a)** Compute the mean, median, standard deviation, and variance of `mb_wheat$Yield_bu_ac`.
@@ -799,14 +873,150 @@ range(mb_wheat$Yield_bu_ac)
 </details>
 
 
-[=MORE QUESTIONS on QUANTILES, IQR, RANGE, ETC]
+### Question 19
+*The Manitoba wheat file contains one municipality-variety-year result per row.*
+
+**(a)** Print the first six rows of the data with `head()`.
+
+**(b)** Report the number of rows, and compute the first and last year in the file (`range()` on the Year column with `$`).
+
+**(c)** In a comment: what does one row of this dataset represent?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the tidyverse and read the wheat file
+library(tidyverse)
+mb_wheat <- read_csv("data/mb_wheat_reported_2020_2025.csv")
+
+# (a) First six rows
+head(mb_wheat)
+
+# (b) Rows, and the span of years
+nrow(mb_wheat)
+range(mb_wheat$Year)
+
+## (b) I find 2,398 rows spanning 2020 to 2025.
+## (c) One row is one wheat variety grown in one municipality in one
+## year -- its farm count, its acres, and its average yield.
+')
+```
+
+</details>
+
+### Question 20
+*The Manitoba wheat file contains one municipality-variety-year result per row.*
+
+**(a)** Compute the 25th, 50th, and 75th percentiles of `Yield_bu_ac` in one `quantile()` call.
+
+**(b)** Compute the IQR as the difference between two of your percentiles.
+
+**(c)** In a comment: half of all results fall between which two yields?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the tidyverse and read the wheat file
+library(tidyverse)
+mb_wheat <- read_csv("data/mb_wheat_reported_2020_2025.csv")
+
+# (a) The three quartiles in one call
+quantile(mb_wheat$Yield_bu_ac, probs = c(0.25, 0.50, 0.75))
+
+# (b) The IQR, as the 75th minus the 25th percentile
+69.6 - 53.9
+
+## I find quartiles of 53.9, 62.2, and 69.6 bu/ac, and an IQR of 15.7.
+## (c) Between 53.9 and 69.6 bu/ac -- the middle half of results lies
+## between the quartiles.
+')
+```
+
+</details>
+
+### Question 21
+*The Manitoba wheat file contains one municipality-variety-year result per row.*
+
+**(a)** Compute the 5th and 95th percentiles of `Yield_bu_ac` in one call.
+
+**(b)** In a comment: interpret the 95th percentile for a grower.
+
+**(c)** Compute the gap between the two percentiles. In a comment: what fraction of all results does this span hold?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the tidyverse and read the wheat file
+library(tidyverse)
+mb_wheat <- read_csv("data/mb_wheat_reported_2020_2025.csv")
+
+# (a) The 5th and 95th percentiles in one call
+quantile(mb_wheat$Yield_bu_ac, probs = c(0.05, 0.95))
+
+# (c) The gap between them
+78.8 - 38.785
+
+## I find percentiles of 38.8 and 78.8 bu/ac.
+## (b) A result at the 95th percentile yielded 78.8 bu/ac -- only one in
+## twenty municipality-variety results beat that.
+## (c) The gap is about 40 bu/ac, and it holds the middle 90% of results.
+')
+```
+
+</details>
+
+### Question 22
+*The Manitoba wheat file contains one municipality-variety-year result per row.*
+
+**(a)** Compute the range of `Yield_bu_ac` (largest minus smallest) and the IQR.
+
+**(b)** In a comment: the two numbers disagree by a lot. What does each one describe?
+
+**(c)** In a comment: the smallest yield in the file is 4.5 bu/ac. Which of the two measures would change if that row were removed?
+
+<details><summary>Answer</summary>
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the tidyverse and read the wheat file
+library(tidyverse)
+mb_wheat <- read_csv("data/mb_wheat_reported_2020_2025.csv")
+
+# (a) The range
+max(mb_wheat$Yield_bu_ac) - min(mb_wheat$Yield_bu_ac)
+
+# (a) The IQR
+IQR(mb_wheat$Yield_bu_ac)
+
+## I find a range of 93.3 bu/ac against an IQR of 15.7.
+## (b) The range is the distance between the single best and single worst
+## results; the IQR is the width of the middle half.
+## (c) Only the range. The 4.5 is the minimum, so removing it moves the
+## range directly, while the quartiles sit deep in the middle of 2,398
+## results and barely notice.
+')
+```
+
+</details>
+
 
 
 # Section 3 — Data Manipulation Functions
 
 ## Saskatchewan RM Crop Yields {.unnumbered}
 
-### Question 17
+### Question 23
 *The Saskatchewan crop file contains one RM-year-crop yield per row; `rm_yields` is the loaded data frame.*
 
 **(a)** Filter to the Spring Wheat observations of at least 60 bu/ac (all years) and saving the result. How many rows are in the filtered data frame?
@@ -850,7 +1060,7 @@ arrange(sw_best, desc(Yield))
 
 </details>
 
-### Question 18
+### Question 24
 *The Saskatchewan crop file contains one RM-year-crop yield per row; `rm_yields` is the loaded data frame.*
 
 **(a)** Filter to rows where the crop is Oats **or** Barley, using `|`, saving the result. How many rows are in the filtered data frame?
@@ -892,7 +1102,7 @@ arrange(oats_barley, desc(Yield))
 
 </details>
 
-### Question 19
+### Question 25
 *The Saskatchewan crop file contains one RM-year-crop yield per row; `rm_yields` is the loaded data frame.*
 
 **(a)** Filter to Canola in 2024, then in one `mutate()` call add two columns: `yield_t_ha` (multiply by 0.0560) and `yield_kg_ha` (multiply by 56.0). Save the result of each step.
@@ -935,7 +1145,7 @@ arrange(canola_2024, desc(yield_t_ha))
 
 </details>
 
-### Question 20
+### Question 26
 *The Saskatchewan crop file contains one RM-year-crop yield per row; `rm_yields` is the loaded data frame.*
 
 Canola is selling at $14.20 per bushel.
@@ -980,7 +1190,7 @@ mean(canola_25$revenue_per_ac)
 
 </details>
 
-### Question 21
+### Question 27
 *The Saskatchewan crop file contains one RM-year-crop yield per row; `rm_yields` is the loaded data frame.*
 
 **(a)** Filter `rm_yields` to Canola in 2024, saving the result as `canola_2024`. How many rows are in the filtered data frame?
@@ -1027,7 +1237,7 @@ nrow(rm_yields)
 
 ## Manitoba Wheat Variety {.unnumbered}
 
-### Question 22
+### Question 28
 *The Manitoba wheat file contains one municipality-variety-year result per row.*
 
 **(a)** Filter to rows with at least 10 farms **and** a yield above 70 bu/ac, saving the result. How many rows are in it?
@@ -1070,7 +1280,7 @@ nrow(high_only)
 </details>
 
 
-### Question 23
+### Question 29
 *The Manitoba wheat file contains one municipality-variety-year result per row.*
 
 **(a)** Filter the data to the 2025 rows, saving the result. How many rows are in the filtered data frame?
@@ -1110,7 +1320,7 @@ nrow(mb_wheat)
 
 </details>
 
-### Question 24
+### Question 30
 *The Manitoba wheat file contains one municipality-variety-year result per row.*
 
 **(a)** Filter the data to the varieties `AAC BRANDON (BW 932)` **or** `AAC STARBUCK <SECAN>` using `|`, saving the result. How many rows are in the filtered data frame?
@@ -1146,7 +1356,7 @@ nrow(two_var2)
 
 </details>
 
-### Question 25
+### Question 31
 *The Manitoba wheat file contains one municipality-variety-year result per row.*
 
 **(a)** Make a version of the data with only `Year`, `Municipality`, `Variety`, and `Yield_bu_ac` -- once using the adjacent range `Year:Variety` plus `Yield_bu_ac`, and once by dropping `Farms`, `Acres`, and `Reported`. Save both and confirm that they have the same column names.
@@ -1183,7 +1393,7 @@ names(renamed)
 
 </details>
 
-### Question 26
+### Question 32
 *The Manitoba wheat file contains one municipality-variety-year result per row.*
 
 **(a)** Use one `mutate()` to add `acres_per_farm` (acres divided by farms), saving the result.
@@ -1227,7 +1437,7 @@ mean(mb_wheat$acres_per_farm)
 
 ## Saskatchewan RM Crop Yields {.unnumbered}
 
-### Question 27
+### Question 33
 *The Saskatchewan crop file contains one RM-year-crop yield per row; `rm_yields` is the loaded data frame.*
 
 **(a)** In one pipeline: for **2025 only**, compute each crop's mean yield and observation count, sorted from highest mean to lowest, and save the result as `crop_summary_2025`.
@@ -1271,7 +1481,7 @@ write_csv(crop_summary_2025, "output/crop_summary_2025.csv")
 
 </details>
 
-### Question 28
+### Question 34
 *The Saskatchewan crop file contains one RM-year-crop yield per row; `rm_yields` is the loaded data frame.*
 
 **(a)** In one pipeline: filter to Lentils from 2021 through 2025, convert to kg/ha with `mutate()` (multiply by 1.12), and compute the mean converted yield and `n()` for each year. Sort from highest mean to lowest and save the result as `lentil_summary`.
@@ -1314,7 +1524,7 @@ lentil_summary
 
 </details>
 
-### Question 29
+### Question 35
 *The Saskatchewan crop file contains one RM-year-crop yield per row; `rm_yields` is the loaded data frame.*
 
 Canola is selling at $14.20 per bushel.
@@ -1355,7 +1565,7 @@ rm_yields |>
 
 </details>
 
-### Question 30
+### Question 36
 *The Saskatchewan crop file contains one RM-year-crop yield per row; `rm_yields` is the loaded data frame.*
 
 **(a)** In one pipeline, compute the mean canola yield for **each year** from 2021 to 2025 (filter first, then group).
@@ -1389,7 +1599,7 @@ rm_yields |>
 
 </details>
 
-### Question 31
+### Question 37
 *The Saskatchewan crop file contains one RM-year-crop yield per row; `rm_yields` is the loaded data frame.*
 
 **(a)** In one pipeline: filter to Flax from 2020 through 2025, compute each RM's `mean_yield` and `n()`, retain RMs with at least four observations, and sort from highest mean to lowest. Save the result as `flax_summary`.
@@ -1430,7 +1640,7 @@ flax_summary
 
 </details>
 
-### Question 32
+### Question 38
 *The Saskatchewan crop file contains one RM-year-crop yield per row; `rm_yields` is the loaded data frame.*
 
 **(a)** Write a pipeline, one step per line with a short comment on each step, that filters `rm_yields` to Durum in 2025, keeps only the `RM` and `Yield` columns, and sorts the result from highest yield to lowest.
@@ -1474,7 +1684,7 @@ head(durum_2025$Yield)
 
 </details>
 
-### Question 33
+### Question 39
 *The Saskatchewan crop file contains one RM-year-crop yield per row; `rm_yields` is the loaded data frame.*
 
 **(a)** In one pipeline: filter to Spring Wheat in 2025, compute the mean, the standard deviation, and `n()` in one `summarise()`.
@@ -1510,7 +1720,7 @@ rm_yields |>
 
 ## Manitoba Wheat Variety {.unnumbered}
 
-### Question 34
+### Question 40
 *The Manitoba wheat file contains one municipality-variety-year result per row.*
 
 **(a)** In one pipeline, compute each variety's total acres (`sum(Acres)`), sorted largest first.
@@ -1546,7 +1756,7 @@ mb_wheat |>
 
 </details>
 
-### Question 35
+### Question 41
 *The Manitoba wheat file contains one municipality-variety-year result per row.*
 
 **(a)** In one pipeline, compute each variety's mean yield and observation count, sorted from highest mean to lowest.
@@ -1581,7 +1791,7 @@ mb_wheat |>
 
 </details>
 
-### Question 36
+### Question 42
 *The Manitoba wheat file contains one municipality-variety-year result per row.*
 
 **(a)** Write a pipeline, one step per line with a short comment on each, that filters the data to 2025, keeps `Municipality`, `Variety`, and `Yield_bu_ac`, and sorts best-first.
@@ -1621,7 +1831,7 @@ head(wheat_2025)
 
 </details>
 
-### Question 37
+### Question 43
 *The Manitoba wheat file contains one municipality-variety-year result per row.*
 
 **(a)** In one pipeline: for **2025 only**, compute each variety's mean reported yield and observation count, sorted best-first, and save the result as `variety_summary_2025`.
@@ -1660,7 +1870,7 @@ write_csv(variety_summary_2025, "output/variety_summary_2025.csv")
 
 </details>
 
-### Question 38
+### Question 44
 *The Manitoba wheat file contains one municipality-variety-year result per row.*
 
 **(a)** In one pipeline, compute each municipality's mean yield and observation count, sorted from highest mean to lowest.
@@ -1696,7 +1906,7 @@ mb_wheat |>
 
 </details>
 
-### Question 39
+### Question 45
 *The Manitoba wheat file contains one municipality-variety-year result per row.*
 
 **(a)** In one pipeline: filter the data to 2023, compute each variety's mean yield and count, sort best-first, and save the result.
@@ -1734,7 +1944,7 @@ variety_2023
 
 </details>
 
-### Question 40
+### Question 46
 *The Manitoba wheat file contains one municipality-variety-year result per row.*
 
 A bushel of wheat is 60 lb, so one bu/ac is about 0.0673 t/ha.
