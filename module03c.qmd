@@ -205,8 +205,6 @@ nrow(merged)
 ')
 ```
 
-## What the Merge Gives You {#sec-merge-result}
-
 The merged table has one row per RM, year and crop, with yield and precipitation beside one another:
 
 ```{r}
@@ -227,16 +225,25 @@ merged |>
     rain_mm = mean(precip_may_aug_mm),
     max_days_missing = max(days_missing)
   )
-
-# Describe association, not causation
-merged |>
-  filter(crop == "Canola") |>
-  summarise(
-    yield_rain_correlation = cor(yield_bu_ac, precip_may_aug_mm)
-  )
 ')
 ```
 
-Across RM-years, wetter observations tend to have higher canola yield, but the relationship is loose: the correlation is about 0.41. The annual table also resists a simple rainfall story. Both 2021 and 2024 have low average yields despite ordinary or above-average rainfall. These data cannot say why. Testing whether heat contributed would require temperature data; explaining the remaining differences would require other variables as well.
+This data frame would allow us to do further analysis on the relationship between precipitation and yield.  We will do that in the later chapters.  To give you a preview of this, here is a scatter plot of the mean canola yield and mean precipitation for each year -- the correlation is about 0.47.
 
-The annual means average rainfall over RM rows, so a station serving more RMs receives more weight than a station serving fewer RMs. The merge has further limits that should be recorded in the project's README. The median RM is 62 km from its assigned station, one quarter are more than 85 km away, and the maximum is 161 km, so station rainfall is a coarse proxy for rainfall across an RM. Some station-years also have many missing daily observations—up to 25 days in this file—and their seasonal totals sum only the available days, which biases those totals downward.
+```{r}
+#| eval: true
+#| echo: false
+#| fig-width: 6
+#| fig-height: 4
+#| fig-align: center
+annual_canola <- merged |>
+  filter(crop == "Canola") |>
+  group_by(year) |>
+  summarise(canola_bu_ac = mean(yield_bu_ac),
+            rain_mm = mean(precip_may_aug_mm))
+
+ggplot(annual_canola, aes(x = rain_mm, y = canola_bu_ac)) +
+  geom_point(size = 2) +
+  labs(x = "Mean May-August precipitation (mm)",
+       y = "Mean canola yield (bu/ac)")
+```
