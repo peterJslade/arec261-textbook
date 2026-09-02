@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.expanduser("~/.claude/skills/excel-pivot-tables/scrip
 from xlsx_pivot import add_pivot_table
 from openpyxl import Workbook, load_workbook
 from openpyxl.chart import BarChart, LineChart, Reference
-from openpyxl.styles import Font, PatternFill, Alignment
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 
 DATA, OUT = "practice/data", "practice/answers"
 FILES = {"rm_long": "rm_yields_1990_2025.csv",
@@ -31,10 +31,139 @@ VALFIELD = {"rm_long": "Yield", "mb": "Yield_bu_ac", "sc": "Yield_bu_ac"}
 AGGFMT = {"Average": "0.00", "Count": "#,##0", "Sum": "#,##0", "Min": "0.00"}
 
 HEAD = PatternFill("solid", fgColor="4A7C59")
+HILITE = PatternFill("solid", fgColor="FFF2CC")
+NOTE = PatternFill("solid", fgColor="E2F0D9")
 f_h = Font(name="Arial", size=10, bold=True, color="FFFFFF")
 f_b = Font(name="Arial", size=10, color="24302A")
 f_t = Font(name="Arial", size=12, bold=True, color="4A7C59")
 CEN = Alignment(horizontal="center")
+WRAP = Alignment(vertical="top", wrap_text=True)
+THIN_GREEN = Side(style="thin", color="A9C4AE")
+
+DISPLAY_Q = {
+    "71": 31, "76": 32, "74": 33, "101": 34, "80": 35,
+    "89": 36, "102": 37, "88": 38, "84": 39, "103": 40,
+}
+
+ANSWERS = {
+    "71": [
+        "Unit, then Crop on Rows; Yield shown as Average. Both unit groups remain visible.",
+        "Lentils are about 1,314 lb/ac. They look out of line only if their different unit is ignored.",
+        "Among the bu/ac crops, Oats are highest at about 71 and Flax is lowest at about 20.",
+    ],
+    "76": [
+        "Crop on Rows, Year on Columns and Yield shown as Average for 2019-2023 in bu/ac.",
+        "Canola is lowest in 2021 (about 21.9 bu/ac); Barley is also lowest in 2021 (about 34.8).",
+        "A shared low year suggests that conditions common to many RMs affected both crops.",
+    ],
+    "74": [
+        "Year on Rows and Yield shown as Count for Canola.",
+        "A typical recent year has about 290 reporting RMs (2023 has 289).",
+        "Count is the number of reported yields; Average would be their mean. A lower count means fewer reporting RMs.",
+    ],
+    "101": [
+        "Year on Rows, with Yield shown once as Minimum and once as Average for Canola.",
+        "In 2022 the minimum is 1.9 bu/ac and the average is about 35.4 bu/ac.",
+        "The minimum reveals the result for the lowest-yielding reporting RM; the average does not show that extreme.",
+    ],
+    "80": [
+        "Year on Rows and Yield shown as Average for Canola, with a line chart based on the summarized values.",
+        "The trend rises overall. The sharpest drop is 2020 to 2021, from about 38.2 to 21.9 bu/ac.",
+        "The chart makes the trend and abrupt changes easier to see; the PivotTable makes exact annual averages easier to read.",
+    ],
+    "89": [
+        "Variety on Rows, with Yield shown as Average and Count. All varieties remain visible.",
+        "Among varieties with Count at least 30, SY MANNESS is highest (about 72.1) and AAC TISDALE is lowest (about 53.9).",
+        "The minimum count removes comparisons supported by only a few reported yields.",
+    ],
+    "102": [
+        "Variety on Rows, Year on Columns and Acres shown as Sum; use the visible Grand Total column for overall totals.",
+        "AAC Brandon is first (about 6.74 million acres), AAC Starbuck second (2.50 million) and AAC Wheatland third (1.40 million). AAC Brandon declines every year, from about 1.64 million acres in 2020 to 0.79 million in 2025.",
+        "Acres are additive quantities. Yield is a per-acre rate, so adding yields would not give a meaningful total.",
+    ],
+    "88": [
+        "Year on Rows, the two varieties on Columns and Yield shown as Average.",
+        "AAC Starbuck has the higher reported average in every year from 2020 through 2025.",
+        "The repeated pattern is more informative than one year, but it does not prove causation because growing locations and conditions may differ.",
+    ],
+    "84": [
+        "Year on Rows, with Yield shown as Average and Count for 2020-2025.",
+        "The lowest average is 2021 (about 49.6 bu/ac); the highest is 2025 (about 68.0). Averages rise after 2021.",
+        "The variety mix changes by year. Count shows how many reported yields support each annual average.",
+    ],
+    "103": [
+        "Average and Count of Yield for AAC Brandon, AAC Starbuck and SY MANNESS, with a horizontal bar chart based on the averages.",
+        "SY MANNESS is tallest at about 72.1 bu/ac; AAC Brandon is shortest at about 59.6 bu/ac.",
+        "The chart makes the ranking easy to see but hides counts and spread. A zero baseline keeps bar lengths proportional.",
+    ],
+}
+
+HIGHLIGHT_LABELS = {
+    "71": {"Lentils", "Oats", "Flax"},
+    "76": {"Canola", "Barley"},
+    "74": {2023, "2023"},
+    "101": {2022, "2022"},
+    "80": {2020, "2020", 2021, "2021"},
+    "89": {"SY MANNESS", "AAC TISDALE (PT250)"},
+    "102": {"AAC BRANDON (BW 932)", "AAC STARBUCK <SECAN>", "AAC WHEATLAND <SECAN>"},
+    "88": {2020, "2020", 2021, "2021", 2022, "2022", 2023, "2023", 2024, "2024", 2025, "2025"},
+    "84": {2021, "2021", 2025, "2025"},
+    "103": {"SY MANNESS", "AAC BRANDON (BW 932)"},
+}
+
+
+def add_answer_sheet(wb, qno):
+    ws = wb.create_sheet("Answer", 0)
+    ws.sheet_view.showGridLines = False
+    ws.merge_cells("A1:D1")
+    ws["A1"] = f"Question {DISPLAY_Q[qno]} — Answer"
+    ws["A1"].font = Font(name="Arial", size=15, bold=True, color="FFFFFF")
+    ws["A1"].fill = HEAD
+    ws["A1"].alignment = Alignment(vertical="center")
+    ws.row_dimensions[1].height = 28
+
+    ws["A3"] = "Part"
+    ws.merge_cells("B3:D3")
+    ws["B3"] = "Answer"
+    for cell in ws[3]:
+        cell.fill = HEAD
+        cell.font = f_h
+        cell.alignment = CEN
+
+    for row, (part, answer) in enumerate(zip(("(a)", "(b)", "(c)"), ANSWERS[qno]), 4):
+        ws.cell(row, 1, part)
+        ws.merge_cells(start_row=row, start_column=2, end_row=row, end_column=4)
+        ws.cell(row, 2, answer)
+        for col in range(1, 5):
+            cell = ws.cell(row, col)
+            cell.fill = HILITE
+            cell.font = Font(name="Arial", size=11, bold=(col == 1), color="24302A")
+            cell.alignment = WRAP
+            cell.border = Border(top=THIN_GREEN, bottom=THIN_GREEN)
+        ws.row_dimensions[row].height = 46 if len(answer) < 125 else 62
+
+    ws.merge_cells("A9:D10")
+    ws["A9"] = "The live PivotTable (and chart, where requested) is on the PivotTable worksheet. The highlighted rows there show the values used in the written answers. The Data worksheet contains the source records."
+    ws["A9"].fill = NOTE
+    ws["A9"].font = f_b
+    ws["A9"].alignment = WRAP
+    ws["A9"].border = Border(top=THIN_GREEN, bottom=THIN_GREEN,
+                              left=THIN_GREEN, right=THIN_GREEN)
+    ws.column_dimensions["A"].width = 10
+    for col in ("B", "C", "D"):
+        ws.column_dimensions[col].width = 28
+    ws.freeze_panes = "A3"
+    ws.sheet_properties.tabColor = "4A7C59"
+    wb.active = 0
+
+
+def highlight_pivot_rows(ws, qno):
+    labels = HIGHLIGHT_LABELS.get(qno, set())
+    for row in range(1, ws.max_row + 1):
+        if any(ws.cell(row, col).value in labels
+               for col in range(1, ws.max_column + 1)):
+            for col in range(1, ws.max_column + 1):
+                ws.cell(row, col).fill = HILITE
 
 
 def write_data(path, ds, years=None, crop=None, unit_bu=False,
@@ -127,13 +256,6 @@ def build(qno, spec):
 
     wb = load_workbook(path)
     ws = wb["PivotTable"]
-    ws.insert_rows(1)
-    lab = f"Q{qno} — {' × '.join(rows + kcols)}"
-    if spec.get("crop"): lab += f" — {spec['crop']} only"
-    if spec.get("years"): lab += f" ({', '.join(spec['years'])})"
-    c = ws.cell(1, 1, lab + (
-                      f"{' (filter: ' + ', '.join(filters) + ')' if filters else ''}"))
-    c.font = f_t
 
     chart_type = spec.get("chart")
     if chart_type:
@@ -188,7 +310,11 @@ def build(qno, spec):
         chart.height = 9
         chart.width = 16
         ws.add_chart(chart, "E3")
+    highlight_pivot_rows(ws, qno)
+    add_answer_sheet(wb, qno)
     wb.save(path)
+    os.makedirs("outputs/module01-pivot-answers", exist_ok=True)
+    shutil.copy2(path, f"outputs/module01-pivot-answers/{os.path.basename(path)}")
     return path, n, rows, kcols, filters, spec.get("aggs", ["Average"])
 
 
