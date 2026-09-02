@@ -88,7 +88,7 @@ console('
 # Author: Jordan Field
 # Date: 2026-10-29
 # Description:
-#   Answers to the four test questions, one section per block.
+#   Answers to the four test questions, one block per question.
 #   Sentence answers are written as comments below each result.
 # ---
 
@@ -97,10 +97,10 @@ library(tidyverse)
 library(janitor)
 
 # ============================================================
-# Section 1: reading the ticket file
+# Question 1: reading the ticket file
 # ============================================================
 
-# Read the tickets, keeping the identifiers as text
+# (a) Read the tickets, keeping the identifiers as text
 tickets <- read_csv(
   "data/module03/q01_tickets.csv",
   col_types = cols(
@@ -110,78 +110,78 @@ tickets <- read_csv(
   )
 )
 
-# Number of tickets and total tonnes delivered
+# (b) Number of tickets and total tonnes delivered
 nrow(tickets)
 sum(tickets$weight_tonnes)
 
-# Left to guess, permit_book becomes a number and prints as 4.52e15.
+# (c) Left to guess, permit_book becomes a number and prints as 4.52e15.
 # R still holds the digits, but it now treats a permit number as a
 # quantity it would add or average, and Excel keeps only fifteen
 # significant digits, so there the last one really is lost. An
 # identifier should be text.
 
 # ============================================================
-# Section 2: wide to long
+# Question 2: wide to long
 # ============================================================
 
 # Read the wide table: one row per field, one column per crop
 wide <- read_csv("data/module03/q17_field_crops_wide.csv")
 
-# Long, keeping the blanks as NA
+# (a) Long, keeping the blanks as NA
 long_all <- wide |>
   pivot_longer(cols = -field, names_to = "crop", values_to = "yield_bu_ac")
 nrow(long_all)
 
-# Long, dropping the blanks
+# (b) Long, dropping the blanks
 long <- wide |>
   pivot_longer(cols = -field, names_to = "crop", values_to = "yield_bu_ac",
                values_drop_na = TRUE)
 nrow(long)
 
-# Mean yield by crop
+# (c) Mean yield by crop
 long |>
   group_by(crop) |>
   summarise(mean_yield = mean(yield_bu_ac))
 
 # ============================================================
-# Section 3: names and duplicates
+# Question 3: names and duplicates
 # ============================================================
 
-# Read the records and standardize the names
+# (a) Read the records and standardize the names
 records <- read_csv("data/module03/q31_records.csv") |>
   clean_names()
 
-# Rows before and after dropping exact duplicates
+# (b) Rows before and after dropping exact duplicates
 nrow(records)
 records_clean <- distinct(records)
 nrow(records_clean)
 
-# Mean yield of the deduplicated data
+# (c) Mean yield of the deduplicated data
 mean(records_clean$yield_bu_ac)
 
 # ============================================================
-# Section 4: prices onto fields
+# Question 4: prices onto fields
 # ============================================================
 
 # Read the two tables
 fields <- read_csv("data/module03/q47_fields.csv")
 prices <- read_csv("data/module03/q47_prices.csv")
 
-# Many fields share a crop; each crop has one price
+# (a) Many fields share a crop; each crop has one price
 with_price <- fields |>
   left_join(prices, by = join_by(crop), relationship = "many-to-one")
 nrow(fields)
 nrow(with_price)
 
-# Fields whose crop has no price
+# (b) Fields whose crop has no price
 anti_join(fields, prices, by = join_by(crop))
 
-# Revenue where a price exists
+# (c) Revenue where a price exists
 with_price |>
   mutate(revenue = yield_bu_ac * acres * price_per_bu) |>
   summarise(total_revenue = sum(revenue, na.rm = TRUE))
 
-# An inner join is the right choice when the analysis only makes sense
+# (d) An inner join is the right choice when the analysis only makes sense
 # for fields with a price, such as a revenue per acre comparison, and
 # the unpriced fields should not appear at all rather than appear as NA.
 ')
