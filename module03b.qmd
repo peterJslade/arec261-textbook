@@ -261,7 +261,7 @@ All seven issues appear together in [`field_records_messy.csv`](practice/data/fi
 6. The nitrogen rates for F003 and F006 sit below 1 while the rest sit near 100 -- tonnes against kilograms per hectare
 7. The same variety appears as Brandon, Brandon AAC, Brndon and AAC Brandon
 
-If we summarize the numeric columns, we see the following.  Note that the last row forces the moisture column to numeric, which converts any text to an NA value.
+The quick check from the list -- the minimum and maximum of every numeric column -- surfaces more, computed here over the full file:
 
 | Column | Min | Max | Mean | Median |
 |---|---:|---:|---:|---:|
@@ -269,11 +269,9 @@ If we summarize the numeric columns, we see the following.  Note that the last r
 | N rate | 0.08 | 135.9 | 71.5 | 89.9 |
 | harvest weight | \- | \- | \- | \- |
 | Moisture % | \- | \- | \- | \- |
-| Moisture % (forced to numeric) | 11.6 | 9999 | 299.3 | 14.7 |
 
-8. There are impossibly high yields of 1,250
-9. Moisture has issues with text in the column -- when not forced to numeric it doesn't return any summary statistics.  
-10. NA values for moisture are coded as 9999, which is outside the plausible range of 0 to 100.
+The yield minimum is a missing-value code and the maximum is twenty times a real yield, and together they pull the mean eighteen bushels above the median. The N rate minimum and maximum are in different units. The last two columns refuse to summarize at all: the unit suffix and the missing-value codes make them text, which is issue 2 doing its damage before any analysis starts.
+
 
 ## Data cleaning in Excel {#sec-cleaning-excel}
 
@@ -292,7 +290,7 @@ After diagnosing these issues, the best way to clean the data is through a Power
 <!-- Anyone-view link expires 2026-11-29 under the University of Saskatchewan 90-day policy. -->
 
 ::: {.excel-embed}
-<iframe width="100%" height="700" frameborder="0" scrolling="no" src="https://usaskca1-my.sharepoint.com/:x:/g/personal/pjs998_usask_ca/IQARIWupQ2l6SLHNK4SJIFi7AaPD784L8M-lxPSEBlwjw2I?e=Gd8AR1&action=embedview&wdAllowInteractivity=False&wdDownloadButton=True&wdInConfigurator=True&ActiveCell=%27DataSummary%27!A1"></iframe>
+<iframe width="100%" height="700" frameborder="0" scrolling="no" src="https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7BA96B2111-6943-487A-B1CD-2B84892058BB%7D&action=embedview&wdAllowInteractivity=False&wdDownloadButton=True&wdInConfigurator=True&ActiveCell=%27DataSummary%27!A1"></iframe>
 :::
 
 [Download this workbook](textbook_examples/mod03_field_records_cleaning.xlsx) · [Open online](https://usaskca1-my.sharepoint.com/:x:/g/personal/pjs998_usask_ca/IQARIWupQ2l6SLHNK4SJIFi7AaPD784L8M-lxPSEBlwjw2I?e=Gd8AR1) (File → Save a Copy to view formulas and edit)
@@ -300,37 +298,43 @@ After diagnosing these issues, the best way to clean the data is through a Power
 
 ## Data cleaning in R {#sec-cleaning-r}
 
-Data cleaning is -- in my view -- easier in R than in Excel.  We can write an R script that can be applied to any dataset.  In R the whole job fits in one script: read the raw file, check it, apply the cleaning rules and write the cleaned copy somewhere else. The script is the record of what was done, and when a new version of the raw file arrives it can be rerun from the top.
+Data cleaning is -- in my view -- easier in R than in Excel.  We can write a easy to read R script that can be applied to any dataset.  
 
-### Diagnosing data issues in R {.unnumbered}
+The following code solves the seven issues above.  There are a few new functions that we need to learn.  The first, and most important, is `if_else()`.
 
-We can diagnose data issues in R using many of the functions we have already learned, like `glimpse()` and `summary()`.  Three new functions will be useful:
+In R the whole job fits in one script: read the raw file, check it, apply the cleaning rules and write the cleaned copy somewhere else. The script is the record of what was done, and when a new version of the raw file arrives it can be rerun from the top. The full script is [`field_records_cleaning.R`](practice/field_records_cleaning.R); this section walks through it in stages.
 
-- `hist()` draws a histogram of a numeric column.
-- `count()` counts the number of rows in each category of a column.
-- `distinct()` returns the data with any duplicate rows removed.
+The header describes the script, and the read step already deals with part of issue 4: the `na` argument of `read_csv()` lists the codes that mean missing, so `N/A`, `missing` and the blank cell all become `NA` on the way in.
 
-```{r}
-#| eval: true
-#| echo: false
-#| fig.show: hold
-console('
+```r
+# ---
+# This script loads field_records_messy.csv, checks for data quality and cleads the data.
+# ---
+
 # Load packages
 library(tidyverse)
+library(janitor)
 
-# Read the file
-records <- read_csv("data/field_records_messy.csv")
+# ============================================================
+# Read
+# ============================================================
+
+# Read the file, declaring the missing-value codes up front (issue 4)
+records <- read_csv(
+  "data/field_records_messy.csv",
+  na = c("", "N/A", "missing")
+)
 
 # Column names and types as they arrived
 glimpse(records)
 
-## This reveals a first set of issues: harvest weight and moisture are text when they should be numeric.  Moreover, column names are a mess.
+## This reveals a first set of issues: harvest weight is text when it should be numeric.  Moreover, column names are a mess.
 
-# Summary of every column
+# Summary of every column: the min and max expose the planted problems
 summary(records)
 
-## This reveals further issues with the minimum and maximum of yield, and the minimum and 1st quartile of the nitrogen rate.  We might want to plot the histogram of the nitrogen rate to visualize the issue.
-hist(records$`N rate`, breaks = 20)
+##This reveals further issues with the minimum and maximum of yield, and the minimum and 1st quartile of the nitrogen rate.  We might want to plot the histogram of the nitrogen rate to visualize the issue.
+hist(records$`N rate`, breaks =20)
 
 # Count the categories: the same variety appears under four spellings
 records |>
@@ -339,154 +343,191 @@ records |>
 # Count the rows, then the distinct rows: the difference is the duplicates
 nrow(records)
 nrow(distinct(records))
-')
+
+## We can dig futher into all these issues by visualizing/sorting the data in our Positron viewer, or printing it in the console.
+
 ```
 
-#### Cleaning data in R {.unnumbered}
-
-
-To clean the data there are also four new functions that we need to learn:
-
-- `clean_names()` converts every column name to snake case, which fixes issue 1.  For example, `VARIETY_NAME` becomes `variety_name`.  This function requires the `janitor` package in R.  
-- `rename()` if we are still not happy with just using clean_names(), we can rename columns to whatever we want.  For example, `variety_name` could be renamed to `variety`.
-- `if_else()` is a conditional function. Similar to `IF` in Excel, it takes three arguments: a condition, a value to return if the condition is true, and a value to return if the condition is false.  When run in tidyverse it operates on each element of a column.  For example, `mutate(yield = if_else(yield < 0, NA, yield))` would mean to mutate the yield column such that, if the yield is less than 0 replace it with NA and otherwise return what was in the yield column.  So if yield started out as (35, -5, 40, -12, 50) it would become (35, NA, 40, NA, 50).
-- `parse_number()` removes text from numbers, so that `142.9 t` becomes `142.9`.
-
-
-The code below fixes our issues one-by-one, saving the resulting data frame after each step.  
 
 ```{r}
 #| eval: true
 #| echo: false
 console('
-## Install janitor package (if not installed already) -- I have commented it out because it is already installed
-#install.packages("janitor")
-
-## Load janitor package
 library(janitor)
 
+records <- read_csv(
+  "data/field_records_messy.csv",
+  na = c("", "N/A", "missing")
+)
 
-## Issue 1: column names.  We can clean column names using the clean_names() function from the janitor package.  It converts all column names to lower case and replaces spaces with underscores.  Save the resulting data frame as records_clean_names
+glimpse(records)
+
+summary(records)
+
+hist(records$`N rate`, breaks = 20)
+
+records |>
+  count(VARIETY_NAME, sort = TRUE)
+
+nrow(records)
+nrow(distinct(records))
+', echo = FALSE)
+```
+
+The transcript shows the problems found earlier: the yield runs from -99 to 1250, the moisture maximum is the 9999 code, the harvest weight arrived as text, the variety appears under four spellings, and the file has 38 rows but only 36 distinct ones.
+
+Now let's clean the data.  We will use a few different new functions:
+
+- `clean_names()` converts every column name to snake case, which fixes issue 1.  For example, `VARIETY_NAME` becomes `variety_name`.
+- `rename()` if we are still not happy with just using clean_names(), we can rename columns to whatever we want.  For example, `variety_name` could be renamed to `variety`.
+- `if_else()` is a conditional function. Similar to `IF` in Excel, it takes three arguments: a condition, a value to return if the condition is true, and a value to return if the condition is false.  For example, `mutate(yield = if_else(yield < 0, NA, yield))` would mean to mutate the yield column such that, if the yield is less than 0 replace it with NA and otherwise return what was in the yield column.
+- `parse_number()` removes text from numbers, so that `142.9 t` becomes `142.9`.
+
+The yield rule blanks the -99 code, the negative and the 1250 rather than correcting them, because there is nothing defensible to replace them with.
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+## We can clean column names using the clean_names() function from the janitor package.  It converts all column names to lower case and replaces spaces with underscores.
 
 records_clean_names <- records |>
   clean_names()
 
 names(records_clean_names)
 
-## If we still want to rename columns, we can use the rename() function.   Save the resulting data frame as records_new_names and check the column names.
-records_new_names <- records_clean_names |> 
-  rename(variety = variety_name)
+## We can remove duplicate rows using the distinct() function.  It removes any rows that are identical to another row in the dataset.  This is useful for removing accidental duplicates that may have been introduced during data entry or data processing.
 
-names(records_new_names)
-
-## Issue 2: text in harvest weight. We can strip the unit text from the weights and make them numeric using the parse_number() function.  This function extracts the numeric part of a string and converts it to a numeric value.  Save the resulting data frame as records_weight_fix and check the harvest_weight column.
-
-records_weight_fix <- records_new_names |>
-  mutate(harvest_weight = parse_number(harvest_weight))
-
-summary(records_weight_fix$harvest_weight)
-
-## Issue 3: Duplicate rows.  We can remove duplicate rows using the distinct() function.  It removes any rows that are identical to another row in the dataset.  Save the resulting data frame as records_unique and check the number of rows.
-
-records_unique <- distinct(records_weight_fix)
+records_unique <- distinct(records_clean_names)
 
 nrow(records_unique)
 
+## We can strip the unit text from the weights and make them numeric using the parse_number() function.  This function extracts the numeric part of a string and converts it to a numeric value.  This is useful for cleaning up data that may have been entered with units or other text.
 
-## Issue 4, 5 and 8: Impossible and NA yields. We can change yields below 0 and above 200 to NA using the if_else() function. This deals with yields that are reported as -99 (a typical missing value code) and others that are negative.  Save the resulting data frame as records_yield_fix and check the yield_bu_ac column.
+records_weight_fix <- records_clean_names |>
+  mutate(harvest_weight = parse_number(harvest_weight))
 
-records_yield_fix <- records_unique |>
+records_weight_fix$harvest_weight
+
+## We can change yields below 0 and above 200 to NA using the if_else() function.  This function allows us to create a new variable based on a condition.  In this case, we are creating a new variable called yield_bu_ac that is equal to the original yield_bu_ac variable if it is between 0 and 200, and NA otherwise.
+
+records_yield_fix <- records_clean_names |>
   mutate(yield_bu_ac = if_else(yield_bu_ac <= 0 | yield_bu_ac > 200,
                                 NA,
                                 yield_bu_ac))
 
 summary(records_yield_fix$yield_bu_ac)
 
+## We can fix the variety names in the same way using the if_else() function.  The three arguments would say if variety is one of "Brandon", "Brandon AAC", or "Brndon", then replace it with "AAC Brandon", otherwise leave it as is.
 
-## Issue 6: Nitrogen units vary. We can convert nitrogen rates below 1 to kg/ha by multiplying them by 1000 using the if_else() function.  Save the resulting data frame as records_n_rate_fix and check the n_rate column.
-
-records_n_rate_fix <- records_yield_fix |>
-    mutate(n_rate = if_else(n_rate < 1,
-                            n_rate * 1000,
-                            n_rate))
-
-summary(records_n_rate_fix$n_rate)
-
-
-## Issue 7: Inconsistent variety names. We can fix the variety names in the same way using the if_else() function.  The three arguments would say if variety is one of "Brandon", "Brandon AAC", or "Brndon", then replace it with "AAC Brandon", otherwise leave it as is.  Save the resulting data frame as records_variety_fix and count the varieties in the variety column.
-
-records_variety_fix <- records_n_rate_fix |>
-    mutate(variety = if_else(variety %in% c("Brandon", "Brandon AAC", "Brndon"),
+records_variety_fix <- records_clean_names |>
+    mutate(variety_name = if_else(variety_name %in% c("Brandon", "Brandon AAC", "Brndon"),
                            "AAC Brandon",
-                           variety))
+                           variety_name))
 
 records_variety_fix |>
-  count(variety, sort = TRUE)
-
-## Issue 9 and 10: Moisture has text and NA values recorded as 9999.  We can first change the type to numeric using parse_number() and then change any values above 100 to NA using the if_else() function.  Save the resulting data frame as records_moisture_fix and check the moisture_percent column.
-
-records_moisture_fix <- records_variety_fix |>
-  mutate(moisture_percent = parse_number(moisture_percent),
-         moisture_percent = if_else(moisture_percent > 100,
-                                     NA,
-                                     moisture_percent))
-
-summary(records_moisture_fix$moisture_percent)
-
-
-
+  count(variety_name, sort = TRUE)
 ')
-
-
 ```
 
+The mutate() function allows us to apply a series of transformations to the columns, including parsing numbers, replacing impossible values with NA, converting units and standardizing category names.  Putting the steps together in one pipe, with a `rename()` to give the numeric columns names that carry their units:
 
-The above code works just fine -- but it is a bit laborious to write and read.  We are saving six different data frames, one for each issue.  A better approach would be to combine all of this into a single pipeline, which is what we do below.  
+```r
+# ============================================================
+# Clean
+# ============================================================
+
+records_clean <- records |>
+  clean_names() |>   # issue 1: every column name to snake case
+  distinct() |>      # issue 3: drop the exact duplicate rows
+  rename(variety = variety_name,   # clearer names, with units where they matter
+         weight_t = harvest_weight,
+         n_rate_kg_ha = n_rate,
+         moisture_pct = moisture_percent) |>
+  mutate(
+    # Issue 2: strip the unit text from the weights and make them numeric
+    weight_t = parse_number(weight_t),
+    # Issues 4 and 5: the -99 code, the negative and the 1250 all become NA
+    yield_bu_ac = if_else(yield_bu_ac <= 0 | yield_bu_ac > 200,
+                          NA,
+                          yield_bu_ac),
+    # Issue 6: rates below 1 are t/ha, so convert them to kg/ha
+    n_rate_kg_ha = if_else(n_rate_kg_ha < 1,
+                           n_rate_kg_ha * 1000,
+                           n_rate_kg_ha),
+    # Issue 7: one spelling for the Brandon variety
+    variety = if_else(variety %in% c("Brandon", "Brandon AAC", "Brndon"),
+                      "AAC Brandon",
+                      variety),
+    # Issue 4 again: the 9999 moisture code becomes NA
+    moisture_pct = if_else(moisture_pct > 100,
+                          NA,
+                          moisture_pct)
+  )
+
+# Print the cleaned data
+records_clean
+```
 
 ```{r}
 #| eval: true
 #| echo: false
 console('
 records_clean <- records |>
-  clean_names() |>   # issue 1: every column name to snake case
-  rename(variety = variety_name)  |>
-  distinct() |>      # issue 3: drop the exact duplicate rows
-
+  clean_names() |>
+  distinct() |>
+  rename(variety = variety_name,
+         weight_t = harvest_weight,
+         n_rate_kg_ha = n_rate,
+         moisture_pct = moisture_percent) |>
   mutate(
-    # Issue 2: strip the unit text from the weights and make them numeric
-    harvest_weight = parse_number(harvest_weight),
-    # Issues 4, 5 and 8: the -99 code, the negative and the 1250 all become NA
+    weight_t = parse_number(weight_t),
     yield_bu_ac = if_else(yield_bu_ac <= 0 | yield_bu_ac > 200,
-                          NA,
-                          yield_bu_ac),
-    # Issue 6: rates below 1 are t/ha, so convert them to kg/ha
-    n_rate = if_else(n_rate < 1,
-                           n_rate * 1000,
-                           n_rate),
-    # Issue 7: one spelling for the Brandon variety
+                          NA, yield_bu_ac),
+    n_rate_kg_ha = if_else(n_rate_kg_ha < 1,
+                           n_rate_kg_ha * 1000, n_rate_kg_ha),
     variety = if_else(variety %in% c("Brandon", "Brandon AAC", "Brndon"),
-                      "AAC Brandon",
-                      variety),
-    # Issue 9: moisture has text values
-    moisture_percent = parse_number(moisture_percent),
-    # Issue 10: change moisture values above 100 to NA
-    moisture_percent = if_else(moisture_percent > 100,
-                          NA,
-                          moisture_percent)
+                      "AAC Brandon", variety),
+    moisture_pct = if_else(moisture_pct > 100, NA, moisture_pct)
   )
 
-# Print the cleaned data
 records_clean
+', echo = FALSE)
+```
 
-# Check again: the same checks on the cleaned data
+Check again before trusting the result. The ranges are now sane and the Brandon spellings have collapsed into one.
+
+```r
+# ============================================================
+# Check again
+# ============================================================
+
+# The same checks on the cleaned data: sane ranges, one Brandon spelling
 summary(records_clean)
 
 records_clean |>
   count(variety, sort = TRUE)
 
+# ============================================================
+# Write
+# ============================================================
+
 # Save the cleaned file to output; the raw file is never edited
 write_csv(records_clean, "output/field_records_clean.csv")
-')
 ```
 
-Check again before trusting the result. The ranges are now sane and the Brandon spellings have collapsed into one. The cleaned file goes to `output/` and the raw file is never edited. If a corrected version of the raw data arrives, rerunning the script applies the same rules and rebuilds the cleaned file.
+```{r}
+#| eval: true
+#| echo: false
+console('
+summary(records_clean)
+
+records_clean |>
+  count(variety, sort = TRUE)
+
+write_csv(records_clean, "output/field_records_clean.csv")
+', echo = FALSE)
+```
+
+The cleaned file goes to `output/` and the raw file is never edited. If a corrected version of the raw data arrives, rerunning the script applies the same rules and rebuilds the cleaned file.
+
