@@ -120,7 +120,8 @@ library(tidyverse)
 library(janitor)
 
 # Read the three tables
-yields <- read_csv("practice/data/rm_yields_2015_2024.csv")
+yields <- read_csv("practice/data/rm_yields_2015_2024.csv") |>
+  clean_names()      # Year and RM to year and rm; crop columns to snake case
 
 rms <- read_csv("practice/data/rm_lookup.csv") |>
   clean_names()      # RM_Number becomes rm_number, and so on
@@ -139,12 +140,11 @@ console('
 # One row per RM, year and crop
 yields_long <- yields |>
   pivot_longer(
-    cols = `Spring Wheat`:Peas,    # the six crop columns
+    cols = spring_wheat:peas,      # the six crop columns
     names_to = "crop",
     values_to = "yield_bu_ac",
     values_drop_na = TRUE          # drop crop-years an RM did not report
-  ) |>
-  clean_names()                    # Year and RM to year and rm
+  )
 
 # One row per RM-year-crop
 nrow(yields_long)
@@ -208,7 +208,7 @@ This data frame would allow us to do further analysis on the relationship betwee
 #| fig-height: 4
 #| fig-align: center
 annual_canola <- merged |>
-  filter(crop == "Canola") |>
+  filter(crop == "canola") |>
   group_by(year) |>
   summarise(canola_bu_ac = mean(yield_bu_ac),
             rain_mm = mean(precip_may_aug_mm))
