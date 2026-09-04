@@ -298,26 +298,24 @@ After diagnosing these issues, the best way to clean the data is through a Power
 
 ## Data cleaning in R {#sec-cleaning-r}
 
-Data cleaning is -- in my view -- easier in R than in Excel.  We can write a easy to read R script that can be applied to any dataset.  
+Data cleaning is -- in my view -- easier in R than in Excel.  We can write an R script that can be applied to any dataset.  In R the whole job fits in one script: read the raw file, check it, apply the cleaning rules and write the cleaned copy somewhere else. The script is the record of what was done, and when a new version of the raw file arrives it can be rerun from the top.
 
-The following code solves the seven issues above.  There are a few new functions that we need to learn.  The first, and most important, is `if_else()`.
+### Diagnosing data issues in R {.unnumbered}
 
-In R the whole job fits in one script: read the raw file, check it, apply the cleaning rules and write the cleaned copy somewhere else. The script is the record of what was done, and when a new version of the raw file arrives it can be rerun from the top. The full script is [`field_records_cleaning.R`](practice/field_records_cleaning.R); this section walks through it in stages.
+We can diagnose data issues in R using many of the functions we have already learned, like `glimpse()` and `summary()`.  Three new functions will be useful:
 
-The header describes the script, and the read step already deals with part of issue 4: the `na` argument of `read_csv()` lists the codes that mean missing, so `N/A`, `missing` and the blank cell all become `NA` on the way in.
+- `hist()` draws a histogram of a numeric column.
+- `count()` counts the number of rows in each category of a column.
+- `distinct()` returns the data with any duplicate rows removed.
 
-```r
-# ---
-# This script loads field_records_messy.csv, checks for data quality and cleads the data.
-# ---
-
+```{r}
+#| eval: true
+#| echo: false
+#| fig.show: hold
+console('
 # Load packages
 library(tidyverse)
 library(janitor)
-
-# ============================================================
-# Read
-# ============================================================
 
 # Read the file, declaring the missing-value codes up front (issue 4)
 records <- read_csv(
@@ -330,11 +328,11 @@ glimpse(records)
 
 ## This reveals a first set of issues: harvest weight is text when it should be numeric.  Moreover, column names are a mess.
 
-# Summary of every column: the min and max expose the planted problems
+# Summary of every column
 summary(records)
 
-##This reveals further issues with the minimum and maximum of yield, and the minimum and 1st quartile of the nitrogen rate.  We might want to plot the histogram of the nitrogen rate to visualize the issue.
-hist(records$`N rate`, breaks =20)
+## This reveals further issues with the minimum and maximum of yield, and the minimum and 1st quartile of the nitrogen rate.  We might want to plot the histogram of the nitrogen rate to visualize the issue.
+hist(records$`N rate`, breaks = 20)
 
 # Count the categories: the same variety appears under four spellings
 records |>
@@ -343,47 +341,19 @@ records |>
 # Count the rows, then the distinct rows: the difference is the duplicates
 nrow(records)
 nrow(distinct(records))
-
-## We can dig futher into all these issues by visualizing/sorting the data in our Positron viewer, or printing it in the console.
-
+')
 ```
 
+#### Cleaning data in R {.unnumbered}
 
-```{r}
-#| eval: true
-#| echo: false
-console('
-library(janitor)
 
-records <- read_csv(
-  "data/field_records_messy.csv",
-  na = c("", "N/A", "missing")
-)
-
-glimpse(records)
-
-summary(records)
-
-hist(records$`N rate`, breaks = 20)
-
-records |>
-  count(VARIETY_NAME, sort = TRUE)
-
-nrow(records)
-nrow(distinct(records))
-', echo = FALSE)
-```
-
-The transcript shows the problems found earlier: the yield runs from -99 to 1250, the moisture maximum is the 9999 code, the harvest weight arrived as text, the variety appears under four spellings, and the file has 38 rows but only 36 distinct ones.
-
-Now let's clean the data.  We will use a few different new functions:
+To clean the data there are also four new functions that we need to learn:
 
 - `clean_names()` converts every column name to snake case, which fixes issue 1.  For example, `VARIETY_NAME` becomes `variety_name`.
 - `rename()` if we are still not happy with just using clean_names(), we can rename columns to whatever we want.  For example, `variety_name` could be renamed to `variety`.
 - `if_else()` is a conditional function. Similar to `IF` in Excel, it takes three arguments: a condition, a value to return if the condition is true, and a value to return if the condition is false.  For example, `mutate(yield = if_else(yield < 0, NA, yield))` would mean to mutate the yield column such that, if the yield is less than 0 replace it with NA and otherwise return what was in the yield column.
 - `parse_number()` removes text from numbers, so that `142.9 t` becomes `142.9`.
 
-The yield rule blanks the -99 code, the negative and the 1250 rather than correcting them, because there is nothing defensible to replace them with.
 
 ```{r}
 #| eval: true
@@ -432,11 +402,10 @@ records_variety_fix |>
 
 The mutate() function allows us to apply a series of transformations to the columns, including parsing numbers, replacing impossible values with NA, converting units and standardizing category names.  Putting the steps together in one pipe, with a `rename()` to give the numeric columns names that carry their units:
 
-```r
-# ============================================================
-# Clean
-# ============================================================
-
+```{r}
+#| eval: true
+#| echo: false
+console('
 records_clean <- records |>
   clean_names() |>   # issue 1: every column name to snake case
   distinct() |>      # issue 3: drop the exact duplicate rows
@@ -467,67 +436,17 @@ records_clean <- records |>
 
 # Print the cleaned data
 records_clean
-```
 
-```{r}
-#| eval: true
-#| echo: false
-console('
-records_clean <- records |>
-  clean_names() |>
-  distinct() |>
-  rename(variety = variety_name,
-         weight_t = harvest_weight,
-         n_rate_kg_ha = n_rate,
-         moisture_pct = moisture_percent) |>
-  mutate(
-    weight_t = parse_number(weight_t),
-    yield_bu_ac = if_else(yield_bu_ac <= 0 | yield_bu_ac > 200,
-                          NA, yield_bu_ac),
-    n_rate_kg_ha = if_else(n_rate_kg_ha < 1,
-                           n_rate_kg_ha * 1000, n_rate_kg_ha),
-    variety = if_else(variety %in% c("Brandon", "Brandon AAC", "Brndon"),
-                      "AAC Brandon", variety),
-    moisture_pct = if_else(moisture_pct > 100, NA, moisture_pct)
-  )
-
-records_clean
-', echo = FALSE)
-```
-
-Check again before trusting the result. The ranges are now sane and the Brandon spellings have collapsed into one.
-
-```r
-# ============================================================
-# Check again
-# ============================================================
-
-# The same checks on the cleaned data: sane ranges, one Brandon spelling
+# Check again: the same checks on the cleaned data
 summary(records_clean)
 
 records_clean |>
   count(variety, sort = TRUE)
-
-# ============================================================
-# Write
-# ============================================================
 
 # Save the cleaned file to output; the raw file is never edited
 write_csv(records_clean, "output/field_records_clean.csv")
+')
 ```
 
-```{r}
-#| eval: true
-#| echo: false
-console('
-summary(records_clean)
-
-records_clean |>
-  count(variety, sort = TRUE)
-
-write_csv(records_clean, "output/field_records_clean.csv")
-', echo = FALSE)
-```
-
-The cleaned file goes to `output/` and the raw file is never edited. If a corrected version of the raw data arrives, rerunning the script applies the same rules and rebuilds the cleaned file.
+Check again before trusting the result. The ranges are now sane and the Brandon spellings have collapsed into one. The cleaned file goes to `output/` and the raw file is never edited. If a corrected version of the raw data arrives, rerunning the script applies the same rules and rebuilds the cleaned file.
 
