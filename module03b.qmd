@@ -273,6 +273,8 @@ The quick check from the list -- the minimum and maximum of every numeric column
 
 The yield minimum is a missing-value code and the maximum is twenty times a real yield, and together they pull the mean eighteen bushels above the median. The N rate minimum and maximum are in different units. The next two columns refuse to summarize at all: the unit suffix and the missing-value codes make them text, which is issue 2 doing its damage before any analysis starts. The last row shows what happens if the text is ignored and moisture is summarized over the numbers that remain, which is what Excel's `AVERAGE` quietly does: the 9999 missing-value code is a number, so it sails into the calculation and drags the mean to 299.3% moisture. The median, sitting in the middle of the ordered values, barely notices.
 
+8. Moisture has text in the column
+9. When we exclude the text for moisture, 
 
 ## Data cleaning in Excel {#sec-cleaning-excel}
 
@@ -431,7 +433,8 @@ records_variety_fix |>
 ')
 ```
 
-The mutate() function allows us to apply a series of transformations to the columns, including parsing numbers, replacing impossible values with NA, converting units and standardizing category names.  Putting the steps together in one pipe, with a `rename()` to give the numeric columns names that carry their units:
+
+The above code works just fine -- but it is a bit laborious to write and read.  We are saving six different data frames, one for each issue.  A better approach would be to combine all of this into a single pipeline, which is what we do below.  
 
 ```{r}
 #| eval: true
@@ -439,11 +442,12 @@ The mutate() function allows us to apply a series of transformations to the colu
 console('
 records_clean <- records |>
   clean_names() |>   # issue 1: every column name to snake case
-  distinct() |>      # issue 3: drop the exact duplicate rows
-  rename(variety = variety_name,   # clearer names, with units where they matter
+  rename(variety = variety_name,   
          weight_t = harvest_weight,
          n_rate_kg_ha = n_rate,
-         moisture_pct = moisture_percent) |>
+         moisture_pct = moisture_percent)  |>
+  distinct() |>      # issue 3: drop the exact duplicate rows
+
   mutate(
     # Issue 2: strip the unit text from the weights and make them numeric
     weight_t = parse_number(weight_t),
