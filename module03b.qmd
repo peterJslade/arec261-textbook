@@ -261,7 +261,7 @@ All seven issues appear together in [`field_records_messy.csv`](practice/data/fi
 6. The nitrogen rates for F003 and F006 sit below 1 while the rest sit near 100 -- tonnes against kilograms per hectare
 7. The same variety appears as Brandon, Brandon AAC, Brndon and AAC Brandon
 
-The quick check from the list -- the minimum and maximum of every numeric column -- surfaces more, computed here over the full file:
+If we summarize the numeric columns, we see the following.  Note that the last row forces the moisture column to numeric, which converts any text to an NA value.
 
 | Column | Min | Max | Mean | Median |
 |---|---:|---:|---:|---:|
@@ -271,10 +271,9 @@ The quick check from the list -- the minimum and maximum of every numeric column
 | Moisture % | \- | \- | \- | \- |
 | Moisture % (forced to numeric) | 11.6 | 9999 | 299.3 | 14.7 |
 
-The yield minimum is a missing-value code and the maximum is twenty times a real yield, and together they pull the mean eighteen bushels above the median. The N rate minimum and maximum are in different units. The next two columns refuse to summarize at all: the unit suffix and the missing-value codes make them text, which is issue 2 doing its damage before any analysis starts. The last row shows what happens if the text is ignored and moisture is summarized over the numbers that remain, which is what Excel's `AVERAGE` quietly does: the 9999 missing-value code is a number, so it sails into the calculation and drags the mean to 299.3% moisture. The median, sitting in the middle of the ordered values, barely notices.
-
-8. Moisture has text in the column
-9. When we exclude the text for moisture, 
+8. There are impossibly high yields of 1,250
+9. Moisture has issues with text in the column -- when not forced to numeric it doesn't return any summary statistics.  
+10. NA values for moisture are coded as 9999, which is outside the plausible range of 0 to 100.
 
 ## Data cleaning in Excel {#sec-cleaning-excel}
 
@@ -319,16 +318,13 @@ console('
 # Load packages
 library(tidyverse)
 
-# Read the file, declaring the missing-value codes up front (issue 4)
-records <- read_csv(
-  "data/field_records_messy.csv",
-  na = c("", "N/A", "missing")
-)
+# Read the file
+records <- read_csv("data/field_records_messy.csv")
 
 # Column names and types as they arrived
 glimpse(records)
 
-## This reveals a first set of issues: harvest weight is text when it should be numeric.  Moreover, column names are a mess.
+## This reveals a first set of issues: harvest weight and moisture are text when they should be numeric.  Moreover, column names are a mess.
 
 # Summary of every column
 summary(records)
@@ -363,7 +359,7 @@ The code below fixes our issues one-by-one, saving the resulting data frame afte
 #| eval: true
 #| echo: false
 console('
-## Install janitor package (if not installed already) -- I have commented it out because its already isntalled
+## Install janitor package (if not installed already) -- I have commented it out because it is already installed
 #install.packages("janitor")
 
 ## Load janitor package
@@ -379,10 +375,7 @@ names(records_clean_names)
 
 ## If we still want to rename columns, we can use the rename() function.   Save the resulting data frame as records_new_names and check the column names.
 records_new_names <- records_clean_names |> 
-  rename(variety = variety_name,  
-         weight_t = harvest_weight,
-         n_rate_kg_ha = n_rate,
-         moisture_pct = moisture_percent)
+  rename(variety = variety_name)
 
 names(records_new_names)
 
@@ -400,8 +393,7 @@ records_unique <- distinct(records_weight_fix)
 nrow(records_unique)
 
 
-
-## Issue 4 and 5: Impossible and NA yields. We can change yields below 0 and above 200 to NA using the if_else() function. This deals with yields that are reported as -99 (a typical missing value code) and others that are negative.  Save the resulting data frame as records_yield_fix and check the yield_bu_ac column.
+## Issue 4, 5 and 8: Impossible and NA yields. We can change yields below 0 and above 200 to NA using the if_else() function. This deals with yields that are reported as -99 (a typical missing value code) and others that are negative.  Save the resulting data frame as records_yield_fix and check the yield_bu_ac column.
 
 records_yield_fix <- records_unique |>
   mutate(yield_bu_ac = if_else(yield_bu_ac <= 0 | yield_bu_ac > 200,
@@ -411,26 +403,41 @@ records_yield_fix <- records_unique |>
 summary(records_yield_fix$yield_bu_ac)
 
 
-## Issue 6: Nitrogen units vary. We can convert nitrogen rates below 1 to kg/ha by multiplying them by 1000 using the if_else() function.  Save the resulting data frame as records_n_rate_fix and check the n_rate_kg_ha column.
+## Issue 6: Nitrogen units vary. We can convert nitrogen rates below 1 to kg/ha by multiplying them by 1000 using the if_else() function.  Save the resulting data frame as records_n_rate_fix and check the n_rate column.
 
 records_n_rate_fix <- records_yield_fix |>
-    mutate(n_rate_kg_ha = if_else(n_rate_kg_ha < 1,
-                                  n_rate_kg_ha * 1000,
-                                  n_rate_kg_ha))
+    mutate(n_rate = if_else(n_rate < 1,
+                            n_rate * 1000,
+                            n_rate))
 
-summary(records_n_rate_fix$n_rate_kg_ha)
+summary(records_n_rate_fix$n_rate)
 
 
-## Issue 7: Inconsistent variety names. We can fix the variety names in the same way using the if_else() function.  The three arguments would say if variety is one of "Brandon", "Brandon AAC", or "Brndon", then replace it with "AAC Brandon", otherwise leave it as is.  Save the resulting data frame as records_variety_fix and count the varieties in the variety_name column.
+## Issue 7: Inconsistent variety names. We can fix the variety names in the same way using the if_else() function.  The three arguments would say if variety is one of "Brandon", "Brandon AAC", or "Brndon", then replace it with "AAC Brandon", otherwise leave it as is.  Save the resulting data frame as records_variety_fix and count the varieties in the variety column.
 
 records_variety_fix <- records_n_rate_fix |>
-    mutate(variety_name = if_else(variety_name %in% c("Brandon", "Brandon AAC", "Brndon"),
+    mutate(variety = if_else(variety %in% c("Brandon", "Brandon AAC", "Brndon"),
                            "AAC Brandon",
-                           variety_name))
+                           variety))
 
 records_variety_fix |>
-  count(variety_name, sort = TRUE)
+  count(variety, sort = TRUE)
+
+## Issue 9 and 10: Moisture has text and NA values recorded as 9999.  We can first change the type to numeric using parse_number() and then change any values above 100 to NA using the if_else() function.  Save the resulting data frame as records_moisture_fix and check the moisture_percent column.
+
+records_moisture_fix <- records_variety_fix |>
+  mutate(moisture_percent = parse_number(moisture_percent),
+         moisture_percent = if_else(moisture_percent > 100,
+                                     NA,
+                                     moisture_percent))
+
+summary(records_moisture_fix$moisture_percent)
+
+
+
 ')
+
+
 ```
 
 
@@ -442,31 +449,30 @@ The above code works just fine -- but it is a bit laborious to write and read.  
 console('
 records_clean <- records |>
   clean_names() |>   # issue 1: every column name to snake case
-  rename(variety = variety_name,   
-         weight_t = harvest_weight,
-         n_rate_kg_ha = n_rate,
-         moisture_pct = moisture_percent)  |>
+  rename(variety = variety_name)  |>
   distinct() |>      # issue 3: drop the exact duplicate rows
 
   mutate(
     # Issue 2: strip the unit text from the weights and make them numeric
-    weight_t = parse_number(weight_t),
-    # Issues 4 and 5: the -99 code, the negative and the 1250 all become NA
+    harvest_weight = parse_number(harvest_weight),
+    # Issues 4, 5 and 8: the -99 code, the negative and the 1250 all become NA
     yield_bu_ac = if_else(yield_bu_ac <= 0 | yield_bu_ac > 200,
                           NA,
                           yield_bu_ac),
     # Issue 6: rates below 1 are t/ha, so convert them to kg/ha
-    n_rate_kg_ha = if_else(n_rate_kg_ha < 1,
-                           n_rate_kg_ha * 1000,
-                           n_rate_kg_ha),
+    n_rate = if_else(n_rate < 1,
+                           n_rate * 1000,
+                           n_rate),
     # Issue 7: one spelling for the Brandon variety
     variety = if_else(variety %in% c("Brandon", "Brandon AAC", "Brndon"),
                       "AAC Brandon",
                       variety),
-    # Issue 4 again: the 9999 moisture code becomes NA
-    moisture_pct = if_else(moisture_pct > 100,
+    # Issue 9: moisture has text values
+    moisture_percent = parse_number(moisture_percent),
+    # Issue 10: change moisture values above 100 to NA
+    moisture_percent = if_else(moisture_percent > 100,
                           NA,
-                          moisture_pct)
+                          moisture_percent)
   )
 
 # Print the cleaned data
