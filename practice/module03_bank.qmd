@@ -28,7 +28,7 @@ Each question names its tool on a **Tool:** line -- half the bank is answered in
 
 For each question, 20% of the mark is for presentation and the other 80% is for the correctness of your script or workbook.
 
-If you submit an R script, it should have a header block, a clearly labelled section for each question, and your sentence answers written as comments, and it should run from top to bottom in a fresh session.  If you submit a workbook, it should have a separate worksheet for each question, clearly labelled with the question number, with the queries still attached so the Applied Steps can be seen.  Here is an example of what a test will look like and a script that would earn full marks:
+If you submit an R script, it should have a header block, a clearly labelled section for each question, and your sentence answers written as comments, and it should run from top to bottom in a fresh session.  If you submit a workbook, it should have a separate worksheet for each question, clearly labelled with the question number, with the queries still attached so the Applied Steps can be seen. Write sentence answers in worksheet cells rather than cell comments so that they are visible when the workbook is opened. Here is an example of what a test will look like and a script that would earn full marks:
 
 ::: {.callout-note collapse="true"}
 ## A sample test, with a full-marks answer script
@@ -213,37 +213,37 @@ Procedure for test:
 
 ### Question 1
 **Tool: Excel (Power Query)**
-*The file [`q03_tickets_semicolon.csv`](data/module03/q03_tickets_semicolon.csv) is the ticket table exported from a European accounting system: fields are separated by semicolons and the decimal mark is a comma (`42,4` means 42.4 tonnes).*
+*The file [`q03_tickets_semicolon.csv`](data/module03/q03_tickets_semicolon.csv) contains twenty grain delivery tickets exported from a European accounting system. Fields are separated by semicolons and the decimal mark is a comma (`42,4` means 42.4 tonnes). Ticket numbers, permit-book numbers and lot codes are identifiers rather than quantities.*
 
-**(a)** Read the file so that `weight_tonnes` and `moisture_pct` arrive as numbers (`read_csv2()` handles this layout, or `read_delim()` with `delim = ";"` and a locale; in Power Query, set the delimiter in the import dialog, then **Transform > Data Type > Using Locale** for the decimal mark).
+**(a)** Import the file with Power Query. Use the semicolon delimiter, keep `ticket_id`, `permit_book` and `lot_code` as Text, and use an appropriate locale so that `weight_tonnes` and `moisture_pct` become Decimal Numbers.
 
-**(b)** Report the mean weight per ticket and the heaviest ticket.
+**(b)** Report the mean weight per ticket. Identify the heaviest ticket and report its weight.
 
-**(c)** In a comment: what do the two numeric columns look like if the file is read with ordinary `read_csv()`?
+**(c)** Explain what happens to the two numeric columns if they are converted to Decimal Number using a locale that expects a period as the decimal mark.
 
 <!-- TODO: Excel (Power Query) answer workbook -->
 
 ### Question 2
 **Tool: Excel (Power Query)**
-*The file [`q05_tickets_na.csv`](data/module03/q05_tickets_na.csv) is the ticket table, but the moisture tester was down for some deliveries. Those rows carry `-99` or `n/a` in `moisture_pct`.*
+*The file [`q05_tickets_na.csv`](data/module03/q05_tickets_na.csv) contains twenty grain delivery tickets. The moisture tester was down for some deliveries. Those rows contain either `-99` or `n/a` in `moisture_pct`; both codes mean that the reading is missing.*
 
-**(a)** Read the file so that both codes become missing values, using the `na` argument of `read_csv()` (in Power Query, **Replace Values** to null, then **Change Type**).
+**(a)** Import the file with Power Query. Replace both missing-value codes with `null`, then set `moisture_pct` to Decimal Number. Keep the three identifier columns as Text.
 
 **(b)** Report how many tickets have no moisture reading and the mean moisture of the rest.
 
-**(c)** In a comment: what would the mean have been if `-99` had been left as a number, and why does that make it worse than `n/a`?
+**(c)** Calculate the mean again with `-99` left as a number and `n/a` treated as missing. Explain why this result is wrong.
 
 <!-- TODO: Excel (Power Query) answer workbook -->
 
 ### Question 3
 **Tool: Excel (Power Query)**
-*The file [`q07_tickets_units.csv`](data/module03/q07_tickets_units.csv) is the ticket table with a units row directly under the column headings (`t` under the weight, `%` under the moisture).*
+*The file [`q07_tickets_units.csv`](data/module03/q07_tickets_units.csv) contains twenty grain delivery tickets. A units row appears directly below the column headings, with `t` under `weight_tonnes` and `%` under `moisture_pct`. The units row describes the columns and is not a delivery.*
 
-**(a)** Read the file so that the units row is not treated as data. One way: `skip = 2` with `col_names` set to the nine column names (in Power Query, **Use First Row as Headers**, then **Remove Top Rows** with a count of 1).
+**(a)** Import the file with Power Query and remove the units row. Keep the three identifier columns as Text, set `delivery_date` to Date, and set the two measurement columns to Decimal Number.
 
 **(b)** Report the total weight delivered.
 
-**(c)** In a comment: what happens to the weight column if the units row is read as data?
+**(c)** Explain why `weight_tonnes` cannot be used in a calculation while the units row remains in the data.
 
 <!-- TODO: Excel (Power Query) answer workbook -->
 
@@ -252,23 +252,23 @@ Procedure for test:
 *The ticket file for this question is not on your computer. It is served from the course site at
 `https://raw.githubusercontent.com/peterJslade/arec261-textbook/main/practice/data/module03/q10_tickets.csv`.*
 
-**(a)** Read the file directly from the URL, keeping the identifiers as text.
+**(a)** Download the file and save a dated, untouched copy in your project's raw-data folder. Import that copy with Power Query, keeping the three identifier columns as Text.
 
-**(b)** Save a dated snapshot of it under `output/` with `write_csv()` (in Power Query, **From Web**, then load to a sheet).
+**(b)** Add a source note to the worksheet that records the URL, the date you downloaded the file, what one row represents and the units of the two measurement columns.
 
-**(c)** Report the number of tickets and the mean weight. In a comment: why keep a local copy at all when the URL works?
+**(c)** Report the number of tickets and the mean weight. Explain why the dated copy should be kept even though the file remains available online.
 
 <!-- TODO: Excel (Power Query) answer workbook -->
 
 ### Question 5
 **Tool: Excel (Power Query)**
-*The file [`q15_tickets.csv`](data/module03/q15_tickets.csv) was emailed to you by the Rosetown elevator office on 2026-09-15 as their record of your fall deliveries.*
+*The file [`q15_tickets.csv`](data/module03/q15_tickets.csv) contains twenty grain delivery tickets emailed by the Rosetown elevator office on 2026-09-15. The original file must remain unchanged, but the moisture readings are not needed in the processed table.*
 
-**(a)** Read the file, keeping the identifiers as text, and write a comment block at the top of your script in the form of a README entry: where the file came from, when, what one row represents, the units of the numeric columns, and the path where the untouched raw copy lives in your project.
+**(a)** Save the file in your project's raw-data folder and import it with Power Query, keeping the three identifier columns as Text.
 
-**(b)** Create a processed copy with the moisture column removed and save it under `output/` with `write_csv()`.
+**(b)** In Power Query, remove `moisture_pct` and load the processed table to the question's worksheet. Keep the query attached to the original CSV.
 
-**(c)** In a comment: why is the raw file never edited, even to fix an obvious typo?
+**(c)** Record where the file came from, the date it was received, what one row represents and the units of `weight_tonnes`. Explain why the raw file should not be edited, even to fix an obvious error.
 
 <!-- TODO: Excel (Power Query) answer workbook -->
 
@@ -1791,4 +1791,3 @@ merged |>
 ```
 
 </details>
-
