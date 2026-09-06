@@ -1,0 +1,1279 @@
+<!-- Combined Module 2 course material. -->
+<!-- Regenerate this file after changing any source chapter listed below. -->
+
+<!-- Source: module02a.qmd -->
+
+# Getting Started with R {#sec-r-start}
+
+```{r}
+#| include: false
+#| eval: true
+# Defines console(), which renders a code listing plus a full console session.
+source("_console.R")
+```
+
+::: {.video-callout}
+::: {.callout-note collapse="true" title="Video walkthrough of this chapter"}
+{{< video https://youtu.be/Efv5QjdpTfQ >}}
+:::
+:::
+
+In the first three chapters, we used Excel to enter, organize, summarize, and visualize
+data. We now turn to **R**, a programming language built for working with data.
+
+R requires a different way of working. In Excel, you manipulate data by clicking on cells,
+menus, and buttons. In R, you write instructions as code. That takes some getting used to,
+but it has several advantages.  Most importantly, the instructions themselves become a record of exactly
+what you did.
+
+This chapter introduces the basic mechanics. We will use R as a calculator, save values as
+objects, write and run an R script, and introduce the two data structures we will use most
+often: vectors and data frames.
+
+## Why R? (And Why Also Excel?) {#sec-why-r}
+
+You just spent three chapters getting comfortable with Excel. Now I am going to ask you to learn another tool.
+
+Excel and R are good at different things. Excel is excellent when you want to see the data directly, make quick calculations, explore a relatively small dataset, or share a workbook with someone who does not program. We will continue to use it.
+
+But R has several advantages:
+
+- **Reproducibility.** In R, the steps in an analysis are written down as code. Run the same code again and you repeat the same analysis. In Excel, many steps -- sorting, filtering, copying, clicking through menus -- leave little or no record of what you did.
+- **Scale.** Excel worksheets are limited to a little over one million rows, and large workbooks become slow and difficult to manage well before that. R is designed to work with much larger datasets.
+- **Repetition.** Suppose you need to perform the same analysis on fifteen files. In Excel, that means repeating the same sequence of clicks fifteen times. In R, you write the instructions once and reuse them.
+- **Statistical analysis.** Excel handles basic descriptive statistics and regression reasonably well. R can do those things too, and it also gives us access to thousands of packages for more advanced statistical and data-analysis tasks.
+
+I used to be more pessimistic about including R in this class.  One thing that has changed my mind is the emergence of AI tools.  Agentic AI, which we will learn in @sec-ai, has revolutionized coding. Coding without AI is now like doing long division by hand.  Of course, we still need to understand the principles of good coding, just as we need to understand the principles of division -- otherwise we wouldn't understand what the calculator (or the AI) is doing.  
+
+::: {.callout-tip collapse="true"}
+## Other resources — why R?
+
+- **R for Data Science (2nd ed.)** -- the free, standard R textbook by Hadley Wickham and colleagues. The [Introduction](https://r4ds.hadley.nz/intro.html) lays out what data science is and the workflow (import → tidy → transform → visualize → model → communicate) we will follow.
+- **Video** -- R Programming 101, [*Why you should use R*](https://www.youtube.com/watch?v=9kYUGMg_14s) -- a short, beginner-friendly pitch for learning R.
+:::
+
+## Installing R and Positron {#sec-installing-r}
+
+You need two pieces of software to work with R:
+
+1. **R itself** -- the language and the program that actually runs your R code. Download it from CRAN (the Comprehensive R Archive Network), <https://cran.r-project.org/>.
+
+2. **Positron** -- the program we will use to write and run our R code. Download from <https://positron.posit.co/> and install it. Install R *first*, then Positron, so Positron can find your R.
+
+It helps to distinguish the language from the program used to write it. A helpful analogy is a web browser.  Webpages are written in HTML, but you can view them in Chrome, Firefox, or Safari.  The same idea applies here: R is the language, and Positron is the **editor** we will use to work with it. Other editors, including RStudio and VS Code, can also run R code. We will use Positron because it provides a convenient environment for writing code, viewing data, and using AI coding tools.
+
+When Positron first opens you will see its Welcome screen, which looks something like this:
+
+![The Positron Welcome screen.](images/positron_welcome.png){#fig-positron-welcome .screenshot}
+
+::: {.callout-tip collapse="true"}
+## Other resources — installing R and Positron
+
+- **Positron documentation** -- the [Download page](https://positron.posit.co/download.html) has installers for Windows, Mac, and Linux, plus the step for setting up R. The [docs home](https://positron.posit.co/) has guides and tutorials for first-time users.
+- **Video** -- Posit, [*Getting Started with Positron: A Quick Tour*](https://www.youtube.com/watch?v=mru9z50IOhI) -- a short guided tour of the Positron interface.
+:::
+
+## The Console {#sec-console}
+
+At the bottom of the screen is the **console**, which lets you give R a command and immediately see the result. At first, you can think of R as a fancy calculator: type an expression like `4 + 5` or `4 * 5`, press Enter, and R evaluates it. R follows the usual order of operations, which you can see in the last two commands in the screenshot: `4+5*2` gives 14, while `(4+5)*2` gives 18.
+
+![Doing arithmetic directly in the console. Type an expression, press Enter, and R prints the result on the next line.](images/positron_console_arithmetic.png){#fig-console-arithmetic .screenshot}
+
+One thing you will see in the output: each answer is printed with a `[1]` in front, like `[1] 9`. The `[1]` does not mean the answer is 1. It tells you that the first value shown on that line is the first value in the result, which matters only when a result is a long sequence of values printed across several lines. For a single number you can ignore it.
+
+### Saving answers as objects {#sec-console-objects .unnumbered}
+
+A calculator gives you an answer and then forgets it. In R, we often want to save a result so that we can use it again. We do this by creating an **object**:
+
+```r
+a <- 4
+```
+
+Read this as "save 4 as `a`". The symbol `<-` is the **assignment operator**: it assigns the value on the right to the name on the left. We can then use `a` in another calculation. In the screenshot below I saved `a` as an object equal to 4 and `b` as an object equal to `a*2`.
+
+![Saving objects in the console with `<-`. Each object (`a`, `b`) appears in the Variables pane on the right as soon as it is created.](images/positron_console_assignment.png){#fig-console-assignment .screenshot}
+
+As you create objects, they appear in Positron's **Variables** pane on the right (the panel that lists everything you have created). In the screenshot, you can see `a` and `b` show up with their values as soon as they are assigned.
+
+R also allows `=` for assignment in many situations. In this book we use `<-`: it keeps assignment visually distinct from `=` when we name arguments inside functions, and from `==`, which tests whether two values are equal.
+
+An object can hold more than a single number.  Below, I save a **vector** of five values in an object called `yields` using the function `c()`, which *combines* values.  I can then perform operations on `yields` like calculating its mean.
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+yields <- c(48, 52, 47, 55, 50)
+mean(yields)
+')
+```
+
+This small example contains the basic pattern we will use throughout R: store data in objects, use functions to do things to those objects, and save new results when we want to use them later.
+
+Typing commands directly into the console is useful for experimenting, but it is not how we should save an analysis.
+
+::: {.callout-tip collapse="true"}
+## Other resources — the R console
+
+- **Hands-On Programming with R** -- a free, gentle beginner's book. [Chapter 2, "The Very Basics,"](https://rstudio-education.github.io/hopr/basics.html) opens exactly where we did: using R as a calculator, then objects and the `<-` assignment operator.
+- **Video** -- Sani, [*The R Console: Your First Steps in R*](https://www.youtube.com/watch?v=64FgvzqlRD4) -- running commands and doing calculations directly in the console.
+- **Video** -- MarinStatsLectures, [*Basic Arithmetic and Coding in R*](https://www.youtube.com/watch?v=UYclmg1_KLk) -- using R as a calculator (a classic beginner series).
+:::
+
+## R Scripts {#sec-first-script}
+
+Suppose you calculate a mean in the console today and want to repeat the calculation next week with new data. Unless you remember exactly what you typed, the console is not much help. For any analysis you want to save, repeat, check, share, or hand in, write your code in an **R script**.
+
+A script is a plain text file (ending in `.R`) containing R code. Think of the script as the recipe for your analysis: the data are the ingredients, and the script records the instructions. If the recipe is complete, you -- or someone else -- can run it later and reproduce the analysis.
+
+### Creating and running a script {.unnumbered}
+
+Open Positron and create a new file with **File → New File**, then choose **R File** from the menu that appears:
+
+![Creating a new R file. **File → New File** opens this menu; choose **R File**.](images/positron_new_file.png){#fig-new-file .screenshot}
+
+Save it as `hello.R` (or whatever you want), then type (or paste) the following:
+
+```r
+##My first code
+a <- 4
+a*5
+b <- 1*2
+a*b
+```
+
+Writing code in the script does not run it. Typing these lines just puts text in a file. Look at the script below -- the code is written, but the console is still empty and no objects exist yet in the Variables pane:
+
+![Code written in the **script** (top), but not yet run. The console is empty and the Variables pane says "No variables have been created" -- writing code does not run it.](images/positron_script_before_run.png){#fig-script-before .screenshot}
+
+To actually run it, you have two options:
+
+1. Click the **Run** button in the top right and either source the whole file to run every line, or "Execute code" to run just the selected lines (or the current line if nothing is selected).
+
+2. A faster way to run code is to just type **Cmd+Enter** (Mac) / **Ctrl+Enter** (Windows).      This runs either the code you have selected or the line where your cursor is.
+
+After running all lines, the results appear in the **console**, and any objects you created show up in the **Variables** pane:
+
+![After running the script, the **console** shows the results and the **Variables** pane lists the objects that were created.](images/positron_script_after_run.png){#fig-script-after .screenshot}
+
+Let's break down what just happened:
+
+- The first line is a comment.  Comments start with `#` and are not run as code -- they are meant to explain the code to yourself and anyone else who will use the code.
+- `a <- 4` saves 4 as `a`. Notice that an assignment prints nothing to the console.
+- `a*5` evaluates an expression, just like in the console, and prints `[1] 20`. The result is displayed but not saved anywhere.
+- `b <- 1*2` calculates 1×2 and saves the result as `b`.
+- `a*b` prints `[1] 8`.
+
+The Variables pane now lists `a` and `b`, but nothing from the `a*5` line -- displaying a result and saving one are different things.  Note that `a` and `b` are now saved, and we can run further code that manipulates these objects.
+
+The difference from our earlier console work is that the instructions are now saved. Close R, come back tomorrow, open `hello.R`, and the code is still there. Run it again and R repeats the same steps.
+
+This will be the last screenshot of **Positron** that I will show in the textbook.  From now on I will just show the code, and the console output below it.
+
+::: {.callout-tip collapse="true"}
+## Other resources — R scripts
+
+- **Video** -- University of Surrey Library, [*Writing and running code: script vs console*](https://www.youtube.com/watch?v=2zXg0Pxapjs) -- the difference between typing in the console and saving/running code in a script.
+- **Video** -- Sam Burer, [*The Basics of Scripts in R*](https://www.youtube.com/watch?v=NVglx_rthuM) -- a short intro to what an R script is and how to run it.
+:::
+
+## R Basics: Types, Vectors, Data Frames, Lists, and Functions {#sec-r-basics}
+
+R stores things as **objects**. An object might contain a single number, a sequence of numbers, a table of data, a statistical model, or even a graph. For now, we need three kinds of objects: **vectors**, which hold a sequence of values; **data frames**, which hold data in rows and columns; and **lists**, which can hold different kinds of objects together.
+
+Values in R also have a **type**. The three types you will meet most often are numeric (numbers such as `48` or `-2`), character (text such as `"wheat"`), and logical (the values `TRUE` and `FALSE`). A vector contains values of one type, while a data frame can contain several columns of different types. You do not need to memorize a taxonomy of R objects and types; the important thing is to recognize what kind of information you are working with.
+
+### Vectors {.unnumbered}
+
+A **vector** is a sequence of values of the same type. You create one with `c()`:
+
+```r
+yields <- c(48, 52, 47, 55, 50)
+varieties <- c("InVigor", "DK", "Clearfield", "InVigor", "DK")
+is_irrigated <- c(TRUE, FALSE, FALSE, TRUE, FALSE)
+```
+
+Character values go inside quotation marks; numbers and the logical values `TRUE` and `FALSE` do not.
+
+One reason vectors are so useful is that R can perform an operation on every value at once. Say the five yields are in bushels per acre and we want tonnes per hectare -- we multiply the whole vector by the conversion factor, without writing the calculation five times:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+yields <- c(48, 52, 47, 55, 50)   # bushels per acre
+yields * 0.0560                   # tonnes per hectare
+')
+```
+
+This is called **vectorized** calculation, and it is one of the basic ways R works with data.
+
+### Data Frames {.unnumbered}
+
+A vector holds one variable. Real datasets usually contain many variables. In R a table of data is called a **data frame**. The shape is familiar from Excel: each row is an observation, and each column is a variable.
+
+We will usually read data in from an external file (we will learn how in the next chapter).  But we can also create a data frame by combining vectors, as in the following example:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+fields <- data.frame(
+  field_id = c("F01", "F02", "F03", "F04", "F05"),
+  region = c("South", "South", "Central", "North", "North"),
+  yield = c(48, 52, 47, 55, 50)
+)
+fields
+')
+```
+
+In this example `field_id`, `region`, and `yield` are variables; and each column is itself a vector.
+
+Three functions report a data frame's shape: `nrow()` gives the number of rows, `ncol()` the number of columns, and `names()` the column names.
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+nrow(fields)
+
+ncol(fields)
+
+names(fields)
+')
+``` 
+
+To refer to one column, use the `$` operator: `fields$yield` is the `yield` column of `fields`. When you type `fields$`, Positron provides a dropdown of the columns you can choose from. Because a column is a vector, you can use it in calculations:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+fields$yield        # the yield column as a vector
+mean(fields$yield)  # mean yield
+')
+```
+
+### Lists {#sec-r-lists .unnumbered}
+
+A vector contains values of one type, and a data frame is a rectangular collection of equal-length vectors. A **list** is more flexible.  Simply it is just a ordered collection of data.  For example, a list could have three elements.  The first two elements could be vectors, and the third could be a data frame.  In fact, one of the elements of a list could be another list -- this is called a nested list **nested list**.
+
+Create a list with `list()`. Naming its elements makes them easier to find:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Create a list containing a number and another list
+weather <- list(
+  latitude = 52.13,
+  daily = list(
+    date = c("2024-05-01", "2024-05-02"),
+    precipitation = c(7.5, 4.1)
+  )
+)
+
+# Display the structure of the nested list
+str(weather)
+
+# Extract one element from the outer list
+weather$latitude
+
+# Extract the daily list, then its precipitation vector
+weather$daily$precipitation
+')
+```
+
+The `$` operator selects a named element, just as it selects a column from a data frame. Each `$` moves down one level: `weather$daily` selects the list named `daily`, and the second `$` in `weather$daily$precipitation` selects the precipitation vector inside it.
+
+Lists often appear when data do not fit naturally into one rectangular table. When R fetches data from a web service (Module 3), for example, the raw answer arrives as a nested list, and the columns of a data frame are extracted from it.
+
+
+### Functions {.unnumbered}
+
+Most of our work in R consists of applying **functions** to objects. An R function is similar to the Excel functions we have already encountered (like SUM, AVERAGEIF, and MEDIAN). And we have already used several functions in R: `c()`, `mean()`, `data.frame()`.
+
+The information supplied to a function is called an **argument**. In `mean(fields$yield)`, the function is `mean()` and the argument is `fields$yield`.
+
+Here are the functions for the descriptive statistics we learned in Module 1:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+mean(fields$yield)       # Mean
+median(fields$yield)     # Median
+max(fields$yield)-min(fields$yield) #Range
+var(fields$yield)        # Variance
+sd(fields$yield)         # Standard deviation
+sd(fields$yield)/mean(fields$yield) # Coefficient of variation
+')
+```
+
+Some functions take multiple arguments.  For example, the function `quantile()` returns the value at a particular percentile.  Its two main arguments are `x`, the data, and `probs`, the percentile you want (expressed in decimal form).
+
+There are two ways to supply the arguments.  First, write them in the correct order without naming them.  Second, name the arguments, in which case the order does not matter.  Named arguments are particularly useful when a function has several options, because the code then tells the reader what each value means.  The third example below shows what happens with unnamed arguments in the wrong order: R does not know what you meant, and here it produces an error.
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+quantile(fields$yield, 0.25)              # unnamed arguments, in the correct order
+
+quantile(probs = 0.25, x = fields$yield)  # named arguments, in any order
+
+quantile(0.25, fields$yield)              # unnamed arguments, in the wrong order')
+```
+
+You do not need to memorize every function or every argument. To get help on a function, type `?` followed by its name:
+
+```r
+?mean
+```
+
+R will show you the documentation: what the function does, what its arguments mean, what it returns.  You are free to use this feature on any test.
+
+::: {.callout-tip collapse="true"}
+## Other resources — vectors, data frames, lists, and functions
+
+- **Hands-On Programming with R** -- [Chapter 2, "The Very Basics"](https://rstudio-education.github.io/hopr/basics.html) (objects, vectors, and writing/using functions) and [the "R Objects" chapter](https://rstudio-education.github.io/hopr/r-objects.html) (vectors, matrices, and data frames in depth).
+- **Video** -- R Programming 101, [*Using functions and objects in R*](https://www.youtube.com/watch?v=hvFBDmT4bdY) -- applying functions to objects, beginner-friendly.
+- **Video** -- Simon Sez IT, [*Introduction to vectors in R*](https://www.youtube.com/watch?v=DUWnw8G4udM) -- creating vectors and doing calculations with them.
+:::
+
+## Writing Good R Scripts {#sec-good-scripts}
+
+You now know enough R to write a small analysis. Before we move on to real datasets, a few habits are worth establishing. The goal: someone should be able to open your script, understand what it does, and run it from beginning to end.
+
+1. **Give the script a short header.** What the script is for, your name, and the date. For a larger project, also record the expected inputs and outputs.
+2. **Use comments to explain your code.** Especially when you are just starting to write code, it is good practice to use a lot of comments.  A comment explains what you are doing and why. Just because you understand why you are doing something right now, doesn't mean you will remember it tomorrow (or that your collaborator will understand it).  As you get more comfortable with coding, you might use slightly fewer comments as you can more easily interpret your own code.
+
+   I think there are two types of comments.  First, there are larger blocks of comments that might explain a whole section of code and then smaller comments that explain what is coming on the next line.  Some people like to keep comments on their own lines -- other people like to write comments at the end of a line.  I generally prefer the former approach, but either works.  Just know that once you put in `#` everything else that follows on that line will be ignored.  Here are examples of the two types of commenting:
+
+   `mean(yields)  # Calculate the mean yield`  
+
+   and
+
+   `# Calculate the mean yield`
+   `mean(yields)`
+
+3. **Use descriptive object names.** `mean_yield` and `total_acres`, not `x` and `data2`. A slightly longer name is usually worth it if it makes the code easier to understand.
+
+4. **Break an analysis into understandable steps.** You do not need to cram everything into one line. Saving intermediate results makes code easier to inspect and debug.
+
+5. **Make the script runnable from the beginning.** A script should not depend on commands you happened to type into the console earlier. Restart R, run the script from top to bottom, and it should reproduce the analysis.
+
+The template below is a complete, if small, data analysis built from what this chapter covered: vectors, arithmetic on them, and functions. It computes total production and the acreage-weighted average yield for the five wheat fields from Module 1.
+
+```r
+# ---
+# Title: Farm yield summary
+# Author: Your Name
+# Date: 2026-09-22
+# Description:
+#   Computes total production and the acreage-weighted
+#   average yield for five wheat fields.
+# ---
+
+# 1. Data
+yields <- c(48, 52, 47, 55, 50)    # bushels per acre
+acres  <- c(310, 220, 95, 180, 150)
+
+# 2. Production by field
+production <- yields * acres
+
+# 3. Total production
+total_bu <- sum(production)
+
+# 4. Farm average yield, weighted by acres
+weighted_yield <- total_bu / sum(acres)
+
+# 5. Print out results
+total_bu
+weighted_yield
+```
+
+It contains the data, records every calculation, uses meaningful names, and runs from beginning to end. Six months from now you can read this and know what it does.
+
+In the next chapter, we stop creating tiny datasets by hand and learn how to bring real data into R.
+
+::: {.callout-tip collapse="true"}
+## Other resources — writing good, reproducible R scripts
+
+- **The tidyverse style guide** -- [style.tidyverse.org](https://style.tidyverse.org/) is the standard reference for naming, spacing, and generally readable R code.
+- **Video** -- Riffomonas Project (Pat Schloss), [*Keeping R code DRY with functions*](https://www.youtube.com/watch?v=XSRO4VKD-pc) -- a good-habits video on not repeating yourself, from a reproducible-research series.
+:::
+
+---
+
+<!-- Source: module02b.qmd -->
+
+# Loading Data and Packages in R {#sec-working-with-data}
+
+```{r}
+#| include: false
+#| eval: true
+# console() renders a code listing plus the console session it produces.
+source("_console.R")
+suppressMessages({library(dplyr); library(readr); library(tidyr)})
+# Examples in this chapter run against this data frame. Students load it
+# themselves with read_csv("data/canola_trial.csv"); the path differs here
+# because the book renders from the project root.
+trial_data <- readr::read_csv("practice/data/canola_trial.csv", show_col_types = FALSE)
+```
+
+::: {.video-callout}
+::: {.callout-note collapse="true" title="Video walkthrough of this chapter"}
+{{< video https://youtu.be/sAMgnobztSo >}}
+:::
+:::
+
+In the last chapter, we created small datasets directly in R. Real data analysis usually starts with a file. That creates a few practical questions. Where should the file go? How does R find it? How do we bring it into R? And once it is there, how do we check that R has read it correctly?
+
+This chapter develops a simple workflow for working with real data: keep everything for an analysis in one project folder, refer to files with relative paths, use packages to add functions to R, read the data from a CSV file, and inspect it before doing any analysis. These habits are not exciting, but they prevent a remarkable number of problems later.
+
+The data we will work with is a small .csv file of canola yield trials (hypothetical data): 120 fields, each with an ID, a fertilizer rate, growing-season rainfall, a variety, and a yield.  It can be downloaded here: [`canola_trial.csv`](practice/data/canola_trial.csv).
+
+
+## Setting up a project folder {#sec-project-folder}
+
+The temptation after downloading the csv file is to get it loaded into R as quickly as possible.  However, it is worth taking a minute (and it only takes less than a minute!) to set up a project folder.  The folder will eventually hold your data, code, and output.  For complex projects, it would be best to separate these into subfolders.  A typical project might look like this:
+
+```
+canola_yields/
+  data/
+    canola_trial.csv          
+  code/
+    1_clean.R
+    2_analysis.R
+  output/
+    yield_by_variety.png
+    summary_table.csv
+  README.md
+```
+
+- `data/` contains the original data; 
+- `code/` contains the scripts, numbered in the order they
+run; 
+- `output/` contains tables, figures, and other results the scripts produce; and
+- `README.md` holds notes explaining the project. This becomes more important when we start using AI tools.
+
+
+The exact folder names matter less than the principle: **the project is self-contained**. If you zip `canola_yields/` and send it to somebody else, they have everything they need to run your analysis. 
+
+You can create all this in **Positron** by selecting **File → New Folder from Template…**. After you create the folder you will see a file explorer tab open on the left pane of Positron.  When you save data or files in your folder you will see them appear in this tab.  You can also add new subfolders and files in this pane by either right-clicking in the pane or using the new-folder button.
+
+![The Explorer pane after creating and opening the project folder. The new-folder button (shown with its tooltip) adds subfolders like `data/`, `code/`, and `output/`.](images/positron_project_explorer.png){#fig-project-explorer .screenshot}
+
+Creating a project folder is important for two reasons.  First, it allows you to read in data using relative paths (discussed in @sec-reading-data).  Second, when using AI tools you can choose to provide them access to your whole folder, and they can read all the files and data within that folder to get the context for your entire project (discussed in Module 5).
+
+An alternative set-up you might want for this class is to have an AREC_261 folder with subfolders branching off from there.  For example:
+
+```
+AREC_261/
+  code/
+    module_1/
+    module_2/
+  data/
+  output/
+    module_1/
+    module_2/
+  README.md
+```
+
+Note that I have subfolders for each module in the `code/` and `output/` folders.  But since the datasets we use will be shared across modules, I have just one `data/` folder.  Others might prefer a different structure.    
+
+A final note:  *Never overwrite your raw data*.  Suppose `canola_trial.csv` contains an obvious typo. You could open the file in Excel, fix the cell, and save -- but then there is no record of what you changed. Keep the original file exactly as it arrived and make the correction in your R script, where it
+leaves a trail: what changed, and how.
+
+## Packages {#sec-packages}
+
+R comes with hundreds of useful built-in functions (like `mean()` and `sd()`). However, one of the benefits of R is that other people have written thousands of other functions and bundled them into **packages**.  When you install and load these packages you can use these functions.  The first package that we will install is called *tidyverse*.  Using a package is a two-step process:
+
+1. **Install it -- once per computer.** This downloads the package from the internet and saves it on your machine:
+
+    ```r
+    install.packages("tidyverse")
+    ```
+
+    The first installation can take a few minutes and prints a *lot* of messages. Some appear in red even when nothing has gone wrong; what matters is whether R ultimately reports an error.
+
+2. **Load it -- once per script.** Installing puts the package on your computer, but it is not switched on until you *load* it. Put this at the top of every script that uses the tidyverse:
+
+    ```r
+    library(tidyverse)
+    ```
+
+If you skip the `library()` step and try to use a package function, R will stop with an error like:
+
+```
+Error in read_csv(...) : could not find function "read_csv"
+```
+
+That "could not find function" message almost always means you forgot to load the package (or you have not installed it yet). The fix is to run `library(tidyverse)` first. Note the quirk: you put quotes around the name when you *install* (`install.packages("tidyverse")`) but not when you *load* (`library(tidyverse)`). 
+
+## The Tidyverse {#sec-tidyverse}
+
+So what is this *tidyverse* package?  It is actually a collection of packages that do different jobs.  The four that will matter most in this book are:
+
+| Package   | Main job          |
+|-----------|-------------------|
+| `readr`   | reading data      |
+| `dplyr`   | manipulating data |
+| `tidyr`   | reshaping data    |
+| `ggplot2` | making graphs     |
+
+Installing the tidyverse installs these and several others, and `library(tidyverse)` loads the core packages at once. 
+
+::: {.callout-tip collapse="true"}
+## Other resources — packages and the tidyverse
+
+- **R for Data Science (2nd ed.)** -- the [Introduction](https://r4ds.hadley.nz/intro.html) describes the tidyverse workflow (import → tidy → transform → visualize → model → communicate) this course follows.
+- **tidyverse.org** -- [the package index](https://www.tidyverse.org/packages/) lists the core packages and what each does.
+:::
+
+## Reading Data from CSV {#sec-reading-data}
+
+Assuming you have saved the csv file in your project's `data/` folder, you can click on it in Positron's Explorer pane and the data appears as a spreadsheet.  You can use this spreadsheet to get an understanding of the data.  Clicking the arrow beside a variable opens a quick histogram of it, along with some summary statistics.
+
+![Positron's data viewer on `canola_trial.csv`. Expanding a variable shows its histogram and summary statistics -- here `fertilizer_kg_ha`, across the 120 rows.](images/positron_csv_viewer.png){#fig-csv-viewer .screenshot}
+
+But note that this data is not yet loaded into **R**; this is just Positron's spreadsheet functionality.  To actually load the data in R we can create a new script (perhaps calling it `code/1_canola_trial_script.R`).  We can then use the `read_csv()` function to read in the data and assign it to `trial_data`.  Here is my small script for doing this, and beneath it the console output from running it:
+
+```r
+# ---
+# Title: Canola trial data
+# Author: Your Name
+# Date: 2026-09-29
+# Description:
+#   Reads in the canola trial data and summarizes the
+#   variables in the data.
+# ---
+
+# Load packages
+library(tidyverse)
+
+# Read in the data
+trial_data <- read_csv("data/canola_trial.csv")
+```
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+trial_data <- read_csv("data/canola_trial.csv")
+', echo = FALSE)
+```
+
+The output is `read_csv()`'s note about what it just read.
+
+Note that I am using the path `data/canola_trial.csv` because I created a subfolder called `data/` and stored my .csv file in this subfolder.  If you didn't do this or if you created a differently named subfolder then your path will be different.  For example, if your folder structure looks like:
+```
+AREC_261/
+  module_1/
+    data/
+      canola_data.csv
+  README.md
+```
+
+Then your code should read: `trial_data <- read_csv("module_1/data/canola_trial.csv")`.  When you use a project folder you only need to specify the path relative to the project folder (called the **relative path**).  For example, on my computer the full or **absolute path** for this file is `/Users/peter/Documents/canola_yields/data/canola_trial.csv`.  But because my project folder is `canola_yields` I only need to specify the part of the absolute path that comes after the folder.  The nice part of this convention is that if I share this folder with anyone else, then the paths will all work on their computer too. 
+
+One should also note that if we just read in the data but don't assign it to `trial_data` -- for example if we just run:
+
+```r
+read_csv("data/canola_trial.csv")
+```
+
+-- then R prints the data to the console but does not save it anywhere. This is the same displaying-versus-saving distinction from the last chapter: without the assignment, there is no object to work with afterwards.
+
+::: {.callout-note}
+## Windows note
+
+Windows displays paths with backslashes, as in `C:\Users\Peter\Documents`, but a backslash
+means something special inside an R string. Write forward slashes even on Windows:
+`"C:/Users/Peter/Documents"`. R handles the translation.
+:::
+
+::: {.callout-tip}
+## File names
+
+Use short descriptive names without spaces or punctuation:
+`yield_data_final.csv`, not `Field Yields FINAL!!.csv`. 
+:::
+
+## Inspecting the Data {#sec-inspecting-data}
+
+Successfully reading a file does not mean you are ready to analyze it. Inspect it first:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+trial_data              # prints the data frame (first 10 rows)
+
+nrow(trial_data)        # number of rows
+
+ncol(trial_data)        # number of columns
+
+names(trial_data)       # column names
+
+glimpse(trial_data)     # compact column-by-column view, with types
+
+summary(trial_data)     # quick summary of every column
+')
+```
+
+`glimpse()` shows each column and its type; `summary()` reports the min, max, mean, median,
+and quartiles of every numeric column. The goal is not to run these commands mechanically
+but to answer some questions:
+
+- Did I get the number of observations I expected?
+- Are the variables I expected actually present?
+- Did R interpret numeric variables as numbers?
+- Are the values in plausible ranges?
+- Are there missing values?
+
+Looking at the data before analyzing it catches many mistakes cheaply.
+
+::: {.callout-tip collapse="true"}
+## Other resources — reading data from CSV
+
+- **R for Data Science (2nd ed.)** -- [Chapter 7, "Data import"](https://r4ds.hadley.nz/data-import.html): reading files with `read_csv()`, column types, and common import problems.
+- **readr documentation** -- the [tidyverse readr reference](https://readr.tidyverse.org/) for `read_csv()` and its relatives.
+- **Working directory & path errors** -- [this chapter from *Mastering R Through Errors and Warnings*](https://bookdown.org/guokai8/mastering-r-through-errors/docs/working-directory-paths.html) explains `getwd()` and the "file does not exist" error.
+- **Video** -- Science Grad School Coach, [*Read and load CSV files into R*](https://www.youtube.com/watch?v=B30wv33QzNY) -- loading a CSV step by step.
+:::
+
+## Summary Statistics in R {#sec-r-summary-stats}
+
+Once the data are in R, we can calculate the same summary statistics we used in Excel.
+`yield_bu_acre` is a column of the data frame `trial_data`, so we refer to it as
+`trial_data$yield_bu_acre`:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+mean(trial_data$yield_bu_acre)
+
+median(trial_data$yield_bu_acre)
+
+sd(trial_data$yield_bu_acre)
+
+range(trial_data$yield_bu_acre)                        # returns c(min, max)
+
+quantile(trial_data$yield_bu_acre, c(0.25, 0.5, 0.75)) # percentiles
+
+IQR(trial_data$yield_bu_acre)
+')
+```
+
+`var()`, `min()`, and `max()` work the same way. The statistical ideas have not changed
+since Module 1; only the way we ask the computer to calculate them has.
+
+One thing you may have spotted: `summary(trial_data)` above reports `NA's :3` under
+`rainfall_mm` -- three fields have no rainfall reading. `NA` is R's code for a missing
+value, and calculations involving the rainfall column will behave differently because of
+them. Missing values, and what to do about them, are covered in Module 3.
+
+::: {.callout-tip collapse="true"}
+## Other resources — summary statistics in R
+
+- **Video** -- Rob Spencer, [*Descriptive statistics using the `summary` function*](https://www.youtube.com/watch?v=rPSKX6460gY) -- a short walkthrough of `summary()`.
+- **Video** -- Dr E Research Videos, [*Basic summary statistics in R*](https://www.youtube.com/watch?v=8XFmPP93w_Y) -- mean, median, standard deviation, and the number summary.
+:::
+
+## Full Script {#sec-data-workflow}
+
+The whole chapter fits in one script -- the `code/1_canola_trial_script.R` we started in
+@sec-reading-data, now complete with every inspection and summary statistic from the
+chapter:
+
+```r
+# ---
+# Title: Canola trial data
+# Author: Your Name
+# Date: 2026-09-29
+# Description:
+#   Reads in the canola trial data and summarizes the
+#   variables in the data.
+# ---
+
+# Load packages
+library(tidyverse)
+
+# Read in the data
+trial_data <- read_csv("data/canola_trial.csv")
+
+# Inspect the structure
+trial_data           # print the first rows
+nrow(trial_data)     # number of rows
+ncol(trial_data)     # number of columns
+names(trial_data)    # column names
+glimpse(trial_data)  # columns, types, and first values
+
+# Inspect the values
+summary(trial_data)
+
+# Summary statistics for yield
+mean(trial_data$yield_bu_acre)
+median(trial_data$yield_bu_acre)
+sd(trial_data$yield_bu_acre)
+range(trial_data$yield_bu_acre)
+quantile(trial_data$yield_bu_acre, c(0.25, 0.5, 0.75))
+IQR(trial_data$yield_bu_acre)
+```
+
+
+---
+
+<!-- Source: module02c.qmd -->
+
+# Data Manipulation {#sec-dplyr-verbs}
+
+```{r}
+#| include: false
+#| eval: true
+source("_console.R")
+# No library() calls here: the first console() chunk runs library(tidyverse)
+# itself, so its transcript shows the full attach message a student sees.
+trial_data <- readr::read_csv("practice/data/canola_trial.csv", show_col_types = FALSE)
+```
+
+With a dataset in R and inspected, we can start doing things to it. Most data analysis
+involves repeating a surprisingly small number of operations: keep certain rows, keep
+certain columns, create or change a column, sort the rows, calculate summary statistics,
+and do those calculations separately for different groups.
+
+The tidyverse package `dplyr` gives us a function for each of these jobs (you will often see
+them called the dplyr "verbs"). None of the operations are new -- each is the R form of
+something from the Excel modules:
+
+| Question                                | `dplyr` function | Excel counterpart        |
+|-----------------------------------------|------------------|--------------------------|
+| Which rows do I want?                   | `filter()`       | filtering                |
+| Which columns do I want?                | `select()`       | keeping certain columns  |
+| What new column do I want?              | `mutate()`       | a formula in a new column|
+| In what order do I want the rows?       | `arrange()`      | sorting                  |
+| What summary do I want?                 | `summarise()`    | summary formulas         |
+| That summary separately for groups?     | `group_by()`     | a PivotTable             |
+
+Once you understand these operations, most everyday data manipulation in R is a matter of
+combining them.
+
+We will continue with the canola trial data from the last chapter, in the same project folder.
+Since this chapter does a new job, it gets a new script: `code/2_data_manipulation.R`.
+Start it with a header, then load the tidyverse and read the data in:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# ---
+# Title: Manipulating the canola trial data
+# Author: Your Name
+# Date: 2026-10-06
+# Description:
+#   Filters, transforms, and summarizes the canola trial data
+#   using the dplyr functions.
+# ---
+
+# Load packages
+library(tidyverse)
+
+# Read in the data
+trial_data <- read_csv("data/canola_trial.csv")
+')
+```
+
+## Data Manipulation Functions {#sec-verbs-basic}
+
+::: {.video-callout}
+::: {.callout-note collapse="true" title="Video walkthrough of this section"}
+{{< video https://youtu.be/kUNgyoJBnTc >}}
+:::
+:::
+
+We will learn four functions in this section.  Two affect the rows:
+
+- `filter()` chooses rows, and
+- `arrange()` changes their order.
+
+Two affect the columns:
+
+- `select()` chooses columns, and
+- `mutate()` creates or changes them.
+
+Each function takes the data frame as its first argument, followed by what to do with it.
+
+### `filter()`: Keep Certain Rows
+
+`filter()` keeps the rows that satisfy a condition.  It's two arguments are the data frame and the condition.  For example, to keep only the fields with yields above 50 bushels per acre:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+filter(trial_data, yield_bu_acre > 50)
+')
+```
+
+Notice that `filter()` displays the high-yielding fields but does not remove the other fields from `trial_data` -- check `nrow(trial_data)` and all 120 rows are still there. Every function in this chapter works the same way: it takes a data frame as input and returns a *new* data frame as output.  Running the above code will only display that output, R does not save it. To keep a result, assign it to an object:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+high_yield <- filter(trial_data, yield_bu_acre > 50)
+')
+```
+
+(An assignment prints nothing -- the result went into `high_yield` instead of the console.)
+
+Now there are two objects: `trial_data`, the original 120 fields, and `high_yield`, the filtered subset. That is a useful feature -- you can experiment without changing the original data. Throughout the chapter, an example without `<-` is just displaying a result.
+
+Text variables work too:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+filter(trial_data, variety == "InVigor")
+')
+```
+
+Note the **two** equals signs: `==` asks whether two things are equal, so `variety == "InVigor"` asks "is `variety` equal to `"InVigor"`?". Also note the quotation marks: `"InVigor"` with quotes is text; `InVigor` without quotes would be read as the name of an object, which probably doesn't exist and would cause an error.
+
+You can combine conditions with `&` (and -- both must be true), `|` (or -- at least one must be true), and `!` (not):
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+##Filter for yields above 50 with the variety InVigor
+filter(trial_data, yield_bu_acre > 50 & variety == "InVigor")
+
+##Filter for fertilizer below 80 or above 160
+filter(trial_data, fertilizer_kg_ha < 80 | fertilizer_kg_ha > 160)
+
+##Filter for yields above 60 with the variety not equal to InVigor
+filter(trial_data, yield_bu_acre > 60 & !variety == "InVigor")
+')
+```
+
+When you want to match several possible values of the same variable, `%in%` is easier to read:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+
+##The following two filters are identical
+
+filter(trial_data, variety == "InVigor" | variety == "DEKALB")
+
+filter(trial_data, variety %in% c("InVigor", "DEKALB"))
+')
+```
+
+
+### `arrange()`: Sort Rows
+
+The function `arrange()` changes the order of the rows.  It also takes a minimum of two arguments: the data frame and the variable to sort by.  The code `arrange(trial_data, yield_bu_acre)` sorts from lowest yield to highest.  If you want to arrange from highest to lowest then use the `desc()` (descending order) function. 
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+
+##Sort data by yield (lowest to highest)
+arrange(trial_data, yield_bu_acre)
+
+##Sort data by yield (highest to lowest)
+arrange(trial_data, desc(yield_bu_acre))
+')
+```
+
+You can sort by more than one variable -- `arrange(trial_data, variety, desc(yield_bu_acre))` sorts by variety and then, within each variety, from highest yield to lowest. Like the other functions, `arrange()` does not permanently rearrange `trial_data` unless you save the result.
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+
+## Sort data by variety first, then yield (highest to lowest)
+arrange(trial_data, variety, desc(yield_bu_acre))
+')
+```
+
+### `select()`: Keep Certain Columns
+
+`select()` chooses variables rather than observations.  It's arguments are the data frame and the names of the variables to keep.  For example, to keep only the field ID, variety, and yield:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+select(trial_data, field_id, variety, yield_bu_acre)
+')
+```
+
+The result has the same rows but only those three columns -- especially useful with datasets containing dozens or hundreds of variables. You can also drop a column by putting `-` in front of its name, or keep a range of adjacent columns:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+
+## Select  everything except rainfall
+select(trial_data, -rainfall_mm)                 
+
+# Select columns from field_id through rainfall_mm
+select(trial_data, field_id:rainfall_mm)         
+')
+```
+
+A relative of `select()` is `rename()`, which changes a column's name without dropping anything: `rename(trial_data, yield = yield_bu_acre)`.
+
+### `mutate()`: Create or Change Columns
+
+Potentially the most useful function is `mutate()`, which creates a new variable or changes an existing one. Suppose we want yield in tonnes per hectare rather than bushels per acre. We can accomplish this by running the code:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+## Create a new variable which is yield in tons per ha using the conversion factor of 0.056.  Save as trial data
+trial_data <- mutate(trial_data, yield_t_ha = yield_bu_acre * 0.0560)
+
+## Print trial data to see our new column
+head(trial_data)
+')
+```
+
+Note that we have saved the resulting data frame back into `trial_data`. In R we can always overwrite an object.  The result contains all the original columns plus a new `yield_t_ha`. Read the expression as: create `yield_t_ha` and set it equal to `yield_bu_acre` × 0.0560. 
+
+You can create several variables in one call:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+## Create new rainfall and fertilizer variables
+trial_data <- mutate(trial_data,
+       rainfall_cm = rainfall_mm / 10,
+       kg_n_per_t = fertilizer_kg_ha / yield_t_ha)
+
+## Print trial data to see our new columns
+print(trial_data)
+')
+```
+
+In the second variable the hectares cancel -- fertilizer and yield are both per hectare -- leaving kilograms of nitrogen per tonne of grain.
+
+
+## The Pipe `|>` {#sec-pipe}
+
+::: {.video-callout}
+::: {.callout-note collapse="true" title="Video walkthrough of this section"}
+{{< video https://youtu.be/m5c5gwby2tY >}}
+:::
+:::
+
+Many questions that we want to resolve require more than one function. Suppose we want to know: among the InVigor fields, what are the field IDs and yields, ordered from highest to lowest? We know every operation we need -- filter to InVigor, select the two columns, arrange by descending yield. We can combine these using the **pipe**, which is written as `|>`.  The pipe takes whatever is on its *left* and feeds it as the first argument to the function on its *right*.  Essentially, think of the pipe as a command that says "then".  For example, suppose we want to
+
+- filter the data to InVigor, THEN
+- select the columns field_id and yield_bu_acre, THEN
+- arrange by yield (highest to lowest).
+
+We can write this in R code as:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+trial_data |>                         ##Take our trial data THEN  
+  filter(variety == "InVigor") |>     ##Filter it to InVigor THEN
+  select(field_id, yield_bu_acre) |>  ##Select field_id and yield_bu_acre columns THEN
+  arrange(desc(yield_bu_acre))        ##Sort by yield (highest to lowest)
+')
+```
+
+One thing to note is that we have split this code across multiple lines.  We could have written it all one one line as:
+```{r}
+#| eval: true
+#| echo: false
+console('
+trial_data |> filter(variety == "InVigor") |> select(field_id, yield_bu_acre) |> arrange(desc(yield_bu_acre))
+')
+```
+
+This becomes difficult to read. R knows that when a line ends with the pipe `|>`, the command is not finished, so it continues reading the next line. This lets us write a long sequence of operations across several lines rather than cramming everything onto one line.
+
+This is not something special about the pipe. More generally, R will keep reading whenever it can tell that a command is incomplete. For example, we can also split a function across multiple lines:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+##These two commands are identical
+filter(trial_data,
+        yield_bu_acre > 50)
+
+filter(trial_data, yield_bu_acre > 50)
+  
+')
+```
+In the first command, the opening parenthesis `(` tells R that the command will not be complete until there is a closing parenthesis `)`. 
+
+To keep a result, assign the whole pipeline to an object:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+invigor_yields <- trial_data |>
+  filter(variety == "InVigor") |>
+  select(field_id, yield_bu_acre) |>
+  arrange(desc(yield_bu_acre))
+
+head(invigor_yields)
+')
+```
+
+## `summarise()` and `group_by()` {#sec-summarise-group}
+
+::: {.video-callout}
+::: {.callout-note collapse="true" title="Video walkthrough of this section and Writing Output"}
+{{< video https://youtu.be/a01D6EyHtvA >}}
+:::
+:::
+
+The four functions so far rearrange or add information while keeping observations as rows. Sometimes we want to *collapse* the observations into summary statistics. That is the job of `summarise()`.
+
+### `summarise()`: Many Rows Become One
+
+Suppose we want to get the mean of yields in the data.  We can use the summarise function and inside define a column that is the mean of yields.  The result is a new data frame with a single row and a single column, `mean_yield`:
+```{r}
+#| eval: true
+#| echo: false
+console('
+trial_data |>
+  summarise(mean_yield = mean(yield_bu_acre, na.rm = TRUE))
+')
+```
+
+We can extend this to get several summary statistics at the same time:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+trial_data |>
+  summarise(
+    mean_yield = mean(yield_bu_acre, na.rm = TRUE),
+    sd_yield = sd(yield_bu_acre, na.rm = TRUE),
+    n_fields = n()
+  )
+')
+```
+
+
+The names on the left (`mean_yield`, `sd_yield`, `n_fields`) become column names in the
+result; the expressions on the right calculate the values. `n()` counts the rows.   Note again that we have split the arguments of summarise across multiple lines.  We could also write:
+
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+trial_data |>
+  summarise(mean_yield = mean(yield_bu_acre, na.rm = TRUE), sd_yield = sd(yield_bu_acre, na.rm = TRUE), n_fields = n())
+')
+```
+
+
+The contrast with `mutate()` matters. `mutate()` keeps the observations and adds
+information; `summarise()` collapses the observations into summaries. So
+`trial_data |> mutate(mean_yield = mean(yield_bu_acre))` still has 120 rows, with the
+overall mean repeated on every row, while the `summarise()` version returns one row.
+
+Note that we could have used potentially simpler commands from "base R" to get the mean and standard deviation above:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+##Get mean and st dev of yields using base R
+
+mean(trial_data$yield_bu_acre)
+sd(trial_data$yield_bu_acre)
+')
+```
+
+The power of summarise comes from being able to combine it with other commands via the pipe.  For example, we can combine it with `filter()` to get the mean of only the InVigor fields:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+trial_data |>
+  filter(variety == "InVigor") |>
+  summarise(
+    mean_yield = mean(yield_bu_acre, na.rm = TRUE)
+    )
+')
+```
+
+Or we may want to get the means for each variety -- not just InVigor.  In this case we can use `group_by()`
+
+### `group_by()`: Calculate Separately for Groups
+`group_by()` doesn't change the data -- it tells subsequent operations to apply *per group*:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+trial_data |>
+  group_by(variety) |>
+  summarise(
+    mean_yield = mean(yield_bu_acre, na.rm = TRUE),
+    sd_yield = sd(yield_bu_acre, na.rm = TRUE),
+    n_fields = n()
+  )
+')
+```
+
+Take `trial_data`, *then* divide the observations by variety, *then* calculate the
+statistics separately for each variety. The result has one row per variety. This is the R equivalent of a PivotTable.
+
+The central pattern -- `data |> group_by(group_variable) |> summarise(...)` -- appears
+throughout the rest of the book.
+
+## Writing Output {#sec-writing-output}
+
+Results so far have existed only inside R. To save one as a file that can be opened in Excel
+or sent to someone else, pass the object and a filename to `write_csv`. With our project
+layout, results go in `output/`:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+## Summarise mean yields by variety
+variety_summary <- trial_data |>
+  group_by(variety) |>
+  summarise(mean_yield = mean(yield_bu_acre, na.rm = TRUE),
+            n_fields = n())
+
+## Write the summary table to the output folder
+write_csv(variety_summary, "output/variety_summary.csv")
+')
+```
+
+Notice that `write_csv` prints nothing to the console -- the result is the file itself,
+which appears in `output/`. `read_csv` brings data into R; `write_csv` sends a data frame
+out to a file. Because the output is created by the script, you can always recreate it by
+running the script again.
+
+## Combining It All {#sec-dplyr-combining}
+
+We now have enough tools to answer a realistic question: for each variety, among fields
+that received at least 100 kg/ha of nitrogen, what was the mean yield in tonnes per
+hectare, and how many fields were observed? Show the highest-yielding variety first.
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+variety_summary_100 <- trial_data |>
+  filter(fertilizer_kg_ha >= 100) |>
+  mutate(yield_t_ha = yield_bu_acre * 0.0560) |>
+  group_by(variety) |>
+  summarise(mean_yield_t_ha = mean(yield_t_ha, na.rm = TRUE),
+            n_fields = n()) |>
+  arrange(desc(mean_yield_t_ha))
+variety_summary_100
+')
+```
+
+Do not read it as one giant command; read it one step at a time:
+
+1. **Filter** to the fields that received at least 100 kg/ha.
+2. **Create** the variable the question needs: metric yield.
+3. **Group** the observations by variety.
+4. **Summarise** each group down to one row: its mean yield and its number of fields.
+5. **Sort** from highest mean yield to lowest.
+
+Each line does one simple thing, and that is the reason for pipes: a good pipeline makes the
+logic of an analysis visible. Saving the table is one more line:
+`write_csv(variety_summary_100, "output/variety_summary_100.csv")`.
+
+
+## Debugging {#sec-debugging}
+
+Your code will break. That is normal -- everyone's does -- and finding the problem is a skill of its own. It has two parts: reading what R tells you, and narrowing down where things went wrong.
+
+### Reading error messages {.unnumbered}
+
+R's error messages name the problem more precisely than they first appear to. Here are the three you will meet most often, each with its usual cause.
+
+A misspelled function name (or a package you forgot to load):
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+quantle(trial_data$yield_bu_acre, 0.5)
+')
+```
+
+R is exact about names -- `quantle` is not `quantile`, and no amount of context will make R guess. The same message appears when the function is spelled correctly but its package is not loaded; then the fix is `library(tidyverse)`.
+
+A misspelled object name, or an object that was never created:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+mean(trial_dta$yield_bu_acre)
+')
+```
+
+Check the Variables pane: is the object there, spelled exactly that way? If it is missing entirely, the line that creates it has not been run -- which often means the script was not run from the top.
+
+Using `=` where `==` belongs:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+filter(trial_data, variety = "InVigor")
+')
+```
+
+This one diagnoses itself -- the message even suggests the fix.
+
+### The wrong answer with no error {.unnumbered}
+
+The harder case is code that runs and returns something wrong. R is exact about the *values* in the data too:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+filter(trial_data, variety == "invigor")
+')
+```
+
+No error -- just zero rows, because no variety is spelled `"invigor"` with a small i. A comparison matches text exactly, capitals included.
+
+For a pipeline that produces a wrong-looking result, do not stare at the whole thing and guess. Run it one step at a time: run the first step alone, check the result, add the second step, check again, and keep going. The first point where the data stops looking the way you expect is where the problem is.
+
+::: {.callout-tip collapse="true"}
+## Other resources — dplyr
+
+- **R for Data Science (2nd ed.)** -- [Chapter 3, "Data transformation"](https://r4ds.hadley.nz/data-transform.html): the core dplyr functions, the pipe, and grouped summaries.
+- **dplyr documentation** -- the [dplyr reference site](https://dplyr.tidyverse.org/), including the one-page [cheatsheet](https://rstudio.github.io/cheatsheets/html/data-transformation.html).
+- **Video** -- Equitable Equations, [*The five main dplyr verbs*](https://www.youtube.com/watch?v=b2ODCVAsXlw) -- filter, select, mutate, arrange, and summarise in one sitting.
+:::

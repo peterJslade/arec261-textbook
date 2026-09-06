@@ -1,0 +1,1106 @@
+<!-- Combined Module 3 course material. -->
+<!-- Regenerate this file after changing any source chapter listed below. -->
+
+<!-- Source: module03a.qmd -->
+
+# Getting Data {#sec-getting-data}
+
+```{r}
+#| include: false
+#| eval: true
+# Load the helper that prints executed code as a console transcript
+source("_console.R")
+```
+
+Every dataset in the book so far has arrived as a tidy table with sensible column names. Data does not normally show up that way. It shows up as an Excel workbook somebody emailed you with the numbers starting on row 8, as a CSV behind a link on a government dashboard, as a folder of monthly files, or as the answer a server sends back when a program asks it a question.
+
+Getting the data is part of the analysis. Done well, it is repeatable, it leaves the original untouched, and it records enough that somebody else could fetch the same thing later. The chapter follows that order: decide what you need, find a source, fetch it, keep a raw copy, read it in, check it, write down where it came from. The tools differ between Excel and R; the order does not.
+
+## Start With the Table You Need {#sec-table-needed}
+
+Do not start by downloading the biggest file you can find. Start by describing the table that would answer the question. For the question that runs through this module, whether Saskatchewan canola yields move with growing-season rain, that is:
+
+- One row per rural municipality per year.
+- Columns for canola yield and for May to August precipitation.
+- Saskatchewan, roughly 2015 onward.
+- Yield in bushels per acre, precipitation in millimetres.
+- Something to identify each row: an RM number, a year, and whatever identifies a weather station.
+
+Written out like this, the description says what to search for and whether a candidate file fits. It also shows that the yield and the rain will come from different agencies and will need a common identifier, which is the problem @sec-merging-data solves.
+
+When you find a candidate, read its documentation before you read the data. What does one row represent? Who produced it, and is it measured, surveyed, or modelled? What are the units and the reference period? How are missing, suppressed or preliminary values marked? Is it revised after release? Is there a licence or attribution requirement? A file that opens without trouble can still be the wrong file.
+
+## Where Agricultural Data Comes From {#sec-data-sources}
+
+Some data you make yourself: a field trial, a survey, a sensor, the records from your own farm or business. Some is sent to you, usually as a spreadsheet. The rest has to be found, and for agriculture a lot of it is in the public domain. A short list of the places you can find data:
+
+- **[Statistics Canada](https://www.statcan.gc.ca/en/subjects-start/agriculture_and_food).** Crop area, production and yield, livestock, prices, farm income, trade, the Census of Agriculture. The starting point for almost any Canadian question.
+- **Saskatchewan Agriculture.** The weekly [crop report](https://www.saskatchewan.ca/business/agriculture-natural-resources-and-industry/agribusiness-farmers-and-ranchers/market-and-trade-statistics/crops-statistics/crop-report), the [crop planning guide](https://www.saskatchewan.ca/business/agriculture-natural-resources-and-industry/agribusiness-farmers-and-ranchers/farm-business-management/crop-planning-guide-and-crop-planner), and the [provincial dashboard](https://dashboard.saskatchewan.ca/agriculture), which is where the RM yields used in this module come from. The [Saskatchewan Crop Insurance Corporation](https://www.scic.ca/) publishes yields and premiums by risk zone.
+- **Weather.** [Environment and Climate Change Canada](https://climate.weather.gc.ca/historical_data/search_historic_data_e.html) has daily observations from every station it has run, some going back to the 1880s. [Open-Meteo](https://open-meteo.com/en/docs/historical-weather-api) serves modelled weather for any latitude and longitude, which is useful where there is no station, with the caveat that it is a model estimate and not a gauge.
+- **Soils.** The [Saskatchewan Soil Information System](https://sksis.usask.ca/) and the [Canadian Soil Information Service](https://sis.agr.gc.ca/cansis/).
+- **Prices and markets.** AAFC's [market information system](https://agriculture.canada.ca/en/market-information-system), [ICE](https://www.ice.com/products/251/Canola-Futures) for canola futures, [Farm Credit Canada](https://www.fcc-fac.ca/en/knowledge/economics/farmland-values-report) for land values.
+- **Drought.** The [Canadian Drought Monitor](https://agriculture.canada.ca/en/agricultural-production/weather/canadian-drought-monitor), monthly maps and data.
+- **Outside Canada.** USDA's [QuickStats](https://quickstats.nass.usda.gov/) for the US, [FAOSTAT](https://www.fao.org/faostat/en/) for the world, the [World Bank](https://data.worldbank.org/) for anything macroeconomic.
+
+It is best practice to obtain data directly from the agency that produces it. A chart in a news story is a good way to discover that a dataset exists; the agency's table is the thing to download.
+
+One source worth knowing about now, though it waits for @sec-spatial-data: AAFC's [Annual Crop Inventory](https://open.canada.ca/data/en/dataset/ba2645d5-4458-414d-b196-6303ac06c1c9), a satellite classification of what grew in every 30-metre cell of Canadian farmland, every year since 2009.
+
+## Downloading Data
+
+We can obtain data in a few different ways. The simplest is to directly download data or have data sent to you in a `.csv`, `.xlsx` or some other file. This is how we have approached data so far in this class.  So far in the class we have been reading in data that is already fairly "clean".  Not all data is this simple.  In this chapter, we will overview some common issues with loading data.
+
+We will also discuss obtaining data directly through R code.  Many data providers have an API (application programming interface) that allows you to request data directly from their server.  Using the API directly is a more advanced topic.  However, we will learn to use R packages that use APIs to download data -- in particular we will learn about the `openmeteo` package that allows the user to download weather data and the `cansim` package that allows the user to download data from Statistics Canada.
+
+
+## Opening data files in Excel {#sec-excel-getting}
+
+Excel's native file format is .xlsx.  But it can also open `.csv`, `.tsv`, `.txt` and other file formats.  One issue with Excel opening these files is that it can try to convert the data to formats that are not intended.  
+
+For example, download [`elevator_tickets.csv`](practice/data/elevator_tickets.csv) -- twenty grain-delivery tickets -- and open it in Excel.  The following message pops-up, warning that excel will convert large numbers to scientific notation and remove leading zeros.  This is a problem because the data contains identifiers that are not meant to be treated as numbers.  It also has silently converted the lot codes to dates.   
+
+
+![Excel warns that it will remove leading zeros and convert large numbers to scientific notation.](images/csv_doubleclick.png){#fig-csv-doubleclick .screenshot}
+
+### Power Query {#sec-power-query}
+
+::: {.video-callout}
+::: {.callout-note collapse="true" title="Video walkthrough of this section"}
+{{< video https://youtu.be/DPYVwtaNKn0 >}}
+:::
+:::
+
+A better -- though much more involved -- way of importing data into Excel is to use Power Query.  Power Query is found under **Data > Get Data**. We will use it more in the coming chapters. It reads a source, shows a preview, lets you fix the columns, and loads the result onto a sheet.
+For the tickets file:
+
+1. Choose **Data > Get Data > From Text/CSV** (on a Mac, **Data > Get Data (Power Query)**; the wording moves around between versions) and select the file.
+2. In the preview, set **Data Type Detection** to **Do not detect data types**. This matters: once `00001` has been converted to the number `1`, changing it back to Text cannot restore the zeros.
+3. Press **Transform Data** rather than **Load**. In the editor, use each column header's type icon to set `ticket_id`, `permit_book` and `lot_code` to Text, `delivery_date` to Date, and `weight_tonnes` to Decimal Number.
+4. Choose **Close & Load**. Save the workbook as `.xlsx`, which keeps the query; saving as CSV throws it away.
+
+::: {.callout-note collapse="true" title="Screenshots of these steps"}
+![On Excel for Mac, the Power Query import starts under **Data > Get Data (Power Query)**.](images/csv_getdata_menu.png){#fig-csv-getdata-menu .screenshot}
+
+![Set **Data type detection** to **Do not detect data types** before transforming the file.](images/csv_type_detection.png){#fig-csv-type-detection .screenshot}
+
+![In the Power Query editor, change identifier columns such as `ticket_id` to Text.](images/csv_type_text.png){#fig-csv-type-text .screenshot}
+:::
+
+After loading, check it. The number of rows and columns is what you expected; the identifiers kept their zeros and all their digits; the dates cover the right period; the numbers are numbers; blanks did not become zeros.
+
+<!-- Public view-only link expires 2026-11-20 under the USask 90-day policy. -->
+::: {.workbook-callout}
+::: {.callout-tip collapse="true" title="Workbook: elevator_tickets_correct.xlsx after importing with Power Query"}
+
+::: {.excel-embed}
+<iframe width="402" height="346" frameborder="0" scrolling="no" src="https://usaskca1-my.sharepoint.com/:x:/g/personal/pjs998_usask_ca/IQD955B7F1PqSaL5DFwl9gh7AQZwjKYJIwzw-xZ0Kcw0_54?e=99d1Ua&action=embedview&wdAllowInteractivity=False&wdHideGridlines=True&wdHideHeaders=True&wdDownloadButton=True&wdInConfigurator=True"></iframe>
+:::
+
+[Download this workbook](textbook_examples/elevator_tickets_correct.xlsx) · [Open online](https://usaskca1-my.sharepoint.com/:x:/g/personal/pjs998_usask_ca/IQD955B7F1PqSaL5DFwl9gh7AQZwjKYJIwzw-xZ0Kcw0_54?e=99d1Ua) (view only)
+:::
+:::
+
+
+
+
+## Getting Data Into R {#sec-r-getting}
+
+In R the whole acquisition is a script: the path or address, the parameters, the column types, the checks. Rerunning the script reruns the acquisition.
+
+### CSV, TSV and other delimited files {#sec-csv-files}
+
+The tidyverse functions come from **readr**. The two files used here are the same ones used in the Excel examples above:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the tidyverse packages
+library(tidyverse)
+
+# Read the comma-delimited ticket file
+tickets <- read_csv(
+  "practice/data/elevator_tickets.csv"
+)
+
+# Print the first six rows
+head(tickets)
+')
+```
+
+In a CSV file, a comma delimits fields. Other text files may use a different **delimiter**. Use `read_delim()` for these files and specify the delimiter with its `delim` argument.
+
+Much like Excel, `read_csv()` guesses each column's type from the first thousand values. In the console above, `ticket_id` kept its zeros and `lot_code` stayed as text. However, `permit_book` was read as a number, printed as `4.52e15`, and has already lost its last digits. We can state the types in `read_csv()` using the `col_types` argument. `cols()` creates a named list in which each column name is paired with the type that column should have.
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Read the ticket file and state the important column types
+tickets <- read_csv(
+  "practice/data/elevator_tickets.csv",
+  col_types = cols(
+    # Keep ticket identifiers as text
+    ticket_id = col_character(),
+    # Keep permit-book identifiers as text
+    permit_book = col_character(),
+    # Keep lot codes as text
+    lot_code = col_character(),
+    # Read dates in year-month-day order
+    delivery_date = col_date("%Y-%m-%d")
+  )
+)
+
+# Print the first six rows
+head(tickets)
+')
+```
+
+Columns not named in `cols()` are still guessed.  We can read Excel files directly in R using the **readxl** package. 
+
+### Direct download {#sec-direct-download}
+
+To this point, where he have used `read_csv()`, we have used a path on our computer as the file name.  We can also use a URL in place of a path.  For example, the average RM yields that we have been using in this course can be directly download from the Government of Saskatchewan's website. 
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Store the direct download URL
+rm_yields_url <- "https://dashboard.saskatchewan.ca/export/rm-yields-data/4950.csv"
+
+# Read the CSV directly from the web
+rm_yields <- read_csv(rm_yields_url)
+
+# Save a dated snapshot of the data in the project data folder
+write_csv(rm_yields, "data/rm_yields_2026-08-22.csv")
+
+# Print the first six rows
+head(rm_yields)
+')
+```
+
+Note that when we download the data it is best to always store a copy of the data on our computer.  This saves us from having to dowload the data multiple times, and protects us against the data provider alterning their url or removing the data completely.
+There are some issues with these data. For example, `Winter Wheat` contains a space, so R prints the name in backticks. We will standardize names in @sec-cleaning-r.
+
+### Downloading data via an R package {#sec-data-packages}
+
+::: {.video-callout}
+::: {.callout-note collapse="true" title="Video walkthrough of this section"}
+{{< video https://youtu.be/TnY5Ohu8v5o >}}
+:::
+:::
+
+Many data providers allow their data to be downloaded though an API (application programming interface).  Essentially, that data is kept o na server and a request can be sent to the server to ask for certain data.  For example, we could ask the Statistics Canada API for averge wheat yields in Saskatchewan from 2020-2025.  Querying APIs directly is a more advanced topic.  Fortunately, R packages exsit that will make these API calls for you, once you provide the information that you need.  Let's look at two of these pacakges:
+
+1. **openmeteo** package is one example.  When you load this package you can use the function `weather_history()` to directly download data.  As with all functions, if you want to understand the arguments that you need to supply to weather history type `?weather_history` in your console.  In this case you will see that you need to supply at least three arguments, start, end and either hourly or daily:
+
+2. **cansim** package allows you to download data from Statistics Canada.  The function `get_cansim()` allows you to download data from a specific table.  For example, if we wanted to download the nitrogen fertilizer price index (Table: 18-10-0258-01) we could use the following code:
+
+
+
+To use the openmeteo package, we first need to install it.  This is a bit of a special package as it doens't live on CRAN, but rather on GitHub.  To install it we first need to install the remotes package from CRAN, and then use that to install openmeteo from GitHub.
+
+```r
+# Install remotes from CRAN
+install.packages("remotes")
+
+# Install openmeteo from GitHub
+remotes::install_github("tpisel/openmeteo")
+```
+
+After installation, we can use the weather_history() function to download data.  This function requires four arguments:
+
+1. Location (in logitude and latitude)
+2. The start date/time of the data you want
+3. The end date/time of the data you want
+4. One of either hourly or daily, depending on the time scale of the data you want.  For these arguments you must specify the variable that you want: tempreature_2m, precipitation_sum, windspeed_10, etc.
+5. You can also specify the timezone of the data you want.  If you don't specify a timezone, the default is Grenwhich mean time.  That is to say if you ask for precipitation at 2pm, it will give you the precipitation at 2pm GMT, which is not very useful for us in Saskatchewan.  So we will specify the timezone as "America/Regina".
+
+For example, 
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the Open-Meteo API wrapper
+library(openmeteo)
+
+# Request hourly precipitation for Saskatoon, May 1-5, 2024, in the America/Regina timezone
+saskatoon_rain_package <- weather_history(
+  c(52.13, -106.67),
+  start = "2024-05-01",
+  end = "2024-05-05",
+  hourly = "precipitation"
+)
+
+# Print the returned data frame
+saskatoon_rain_package
+')
+```
+
+
+#### The cansim package {#sec-cansim}
+
+The **cansim** package downloads any Statistics Canada table by its table number. It installs from CRAN:
+
+```r
+# Install cansim from CRAN
+install.packages("cansim")
+```
+
+The main function is `get_cansim()`, which takes the table number as its only required argument. Earlier in the chapter we downloaded seeded acres by clicking through the website for table 32-10-0359-01. The same table arrives as a data frame in one call:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load the Statistics Canada wrapper
+library(cansim)
+
+# Download table 32-10-0359-01 (seeded acres, production and yield)
+field_crops <- get_cansim("32-10-0359-01")
+
+# Print the dimensions of the table
+dim(field_crops)
+')
+```
+
+`get_cansim()` returns the whole table -- every province, crop, year and harvest disposition -- so it is large, and the numbers sit in a column named `VALUE`. The functions from @sec-dplyr-verbs cut it down to the piece you want:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Keep Saskatchewan canola seeded acres since 2015
+sask_canola_acres <- field_crops |>
+  filter(
+    GEO == "Saskatchewan",                              # Saskatchewan only
+    `Type of crop` == "Canola (rapeseed)",              # canola only
+    `Harvest disposition` == "Seeded area (acres)",     # seeded acres
+    REF_DATE >= 2015                                    # 2015 onward
+  ) |>
+  select(REF_DATE, GEO, VALUE)                          # keep three columns
+
+# Print the result
+sask_canola_acres
+')
+```
+
+The table number records exactly what was downloaded, and rerunning the script fetches the current version of the table. `get_cansim()` also caches the download, so a script that reads the same table twice only fetches it once.
+
+## A final note on saving data {#sec-readme}
+
+When building your project folder it is best practice to keep data seperate from code.  It is also best to store raw data seperately from cleaned and processed data.  The raw data is never edited by you.  
+
+```
+project/
+  data/
+    raw/          files exactly as retrieved, never edited
+    processed/    written by scripts
+  R/
+  README.md
+```
+
+Then in the README.md you can log the provenance of each dataset.
+
+
+::: {.callout-tip collapse="true"}
+## Other resources — getting data
+
+- **Microsoft** -- [What is Power Query?](https://learn.microsoft.com/en-us/power-query/power-query-what-is-power-query) and the [Web connector](https://learn.microsoft.com/en-us/power-query/connectors/web/web).
+- **readr** -- [column types](https://readr.tidyverse.org/articles/column-types.html); **readxl** -- [`read_excel()`](https://readxl.tidyverse.org/reference/read_excel.html).
+- **openmeteo** -- [package documentation and source code](https://github.com/tpisel/openmeteo).
+- **cansim** -- [package documentation](https://mountainmath.github.io/cansim/).
+:::
+
+---
+
+<!-- Source: module03b.qmd -->
+
+# Cleaning Data {#sec-cleaning}
+
+```{r}
+#| include: false
+#| eval: true
+source("_console.R")
+```
+
+A file that opens without an error may still contain duplicate rows, inconsistent names, mixed units and missing values recorded as ordinary text. Data cleaning takes up a large part of most data analysis projects. Unfortunately, it is also the dullest part of the job. This chapter is about finding common problems and recording what you did about them.
+
+
+## Data shape {#sec-tidy-data}
+
+The R packages we use for data cleaning are part of the tidyverse, which is organized around the idea of **tidy data**. The same idea matters in Excel. A dataset is tidy when:
+
+1. Every variable has its own column.
+2. Every observation has its own row.
+3. Every value has its own cell.
+
+The definition is simple, but deciding what counts as a variable or an observation is not always obvious. Consider the RM yield data used in the previous chapter. In the original file, one row represents an RM in one year, while the yields for six crops occupy six columns.
+
+| Year | RM | Spring Wheat | Durum | Canola | Barley | Oats | Peas |
+|-----:|---:|-------------:|------:|-------:|-------:|-----:|-----:|
+| 2015 |  1 |        34.32 | 29.18 |  28.65 |  50.96 | 56.36 | 37.7 |
+| 2016 |  1 |        40.50 | 38.40 |  32.10 |  68.10 | 75.70 | 26.2 |
+| 2017 |  1 |        45.97 |       |  39.19 |        | 85.82 | 43.4 |
+| 2018 |  1 |        50.00 |       |  39.20 |  76.00 | 96.00 | 42.0 |
+
+We could make the data even wider. One row could represent an RM, with a separate column for every crop-year combination: `Canola_2024`, `Canola_2025`, `Barley_2024` and so on.
+
+<!-- TODO: Insert the RM table with one column per crop-year combination. -->
+
+Or we could make the data longer, with one row for each RM-year-crop combination and separate columns for `RM`, `year`, `crop` and `yield_bu_ac`.
+
+<!-- TODO: Insert the long RM-year-crop table. -->
+
+None of these shapes is always right or wrong. The useful shape depends on what you want to do. The long version works well for PivotTables because `crop` can be placed in the Rows, Columns or Filters area. In R, the same `crop` column can be filtered, grouped or mapped to a graph. A wider table may be easier for a person to read or for presenting a small number of results.
+
+When you open a table, write down what one row represents and what each column represents. This usually makes the shape problem visible.
+
+::: {.callout-tip collapse="true"}
+## Other resources -- tidy data
+
+- **R for Data Science (2nd ed.)** -- [Chapter 5, "Data tidying"](https://r4ds.hadley.nz/data-tidy) develops the tidy-data idea and shows how to reshape datasets between long and wide forms.
+- **Video** -- Riffomonas Project, [*Reshaping data to be long or wide with pivot_longer and pivot_wider*](https://www.youtube.com/watch?v=ZVddiwrbrr4).
+:::
+
+### Data shape in Excel {#sec-unpivot}
+
+::: {.video-callout}
+::: {.callout-note collapse="true" title="Video walkthrough of this section"}
+{{< video https://youtu.be/tIWh5nmnUso >}}
+:::
+:::
+
+The RM yields file (@sec-direct-download) is wide, with one column for each crop. Power Query calls the wide-to-long operation **Unpivot**. Import the CSV with **Data > Get Data > From Text/CSV**, choose **Transform Data**, select `Year` and `RM`, and then choose **Transform > Unpivot Columns > Unpivot Other Columns**. Rename the two new columns `crop` and `yield_bu_ac` before loading the result.
+
+Power Query returns 15,478 rows because **Unpivot Other Columns** drops source cells containing `null`. The R example below keeps those cells as `NA` and therefore returns 17,700 rows; add `values_drop_na = TRUE` to `pivot_longer()` when you want the two results to agree. The reverse operation is **Pivot Column** in Power Query or a PivotTable on a worksheet.
+
+![Importing the CSV with **Data > Get Data > From Text/CSV**. The preview shows the wide table, one column per crop. Choose **Transform Data** to open the Power Query Editor.](images/pq_unpivot_1_getdata.png)
+
+![In the Power Query Editor, select the `Year` and `RM` columns, then choose **Transform > Unpivot Columns > Unpivot Other Columns**.](images/pq_unpivot_2_editor.png)
+
+![After unpivoting, the crop names sit in one column and the yields in another. Rename them `crop` and `yield_bu_ac` before loading.](images/pq_unpivot_3_result.png)
+
+### Data shape in R {#sec-reshaping}
+
+::: {.video-callout}
+::: {.callout-note collapse="true" title="Video walkthrough of this section"}
+{{< video https://youtu.be/bL24bFKpvSg >}}
+:::
+:::
+
+`pivot_longer()` does the same job as Unpivot. It takes several columns, puts their names in one column and puts their values in another. Here is the RM yields table:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load packages
+library(tidyverse)
+
+# Read the wide table
+yields_wide <- read_csv(
+  "practice/data/rm_yields_2015_2024.csv",
+  show_col_types = FALSE
+)
+
+# Print the wide data
+yields_wide
+
+# Put the crop names and yields into columns
+yields_long <- yields_wide |>
+  pivot_longer(
+    cols = -c(Year, RM),
+    names_to = "crop",
+    values_to = "yield_bu_ac"
+  )
+
+# Print the long data
+yields_long
+
+nrow(yields_long)
+')
+```
+
+The column selection `-c(Year, RM)` means every column except `Year` and `RM`. Those two columns continue to identify the observation, while the six crop columns become values in the new `crop` column. The result has one row per RM-year-crop and six times as many rows as the wide table.
+
+`pivot_wider()` goes in the other direction. `names_from` supplies the new column names and `values_from` supplies the values placed under them:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Return the crop column to six separate crop columns
+yields_long |>
+  pivot_wider(
+    names_from = crop,
+    values_from = yield_bu_ac
+  )
+')
+```
+
+There is no single correct shape for every purpose. Analysis is often easier with long data, while a wider table can be useful for presenting results.
+
+## Data cleaning {#sec-data-cleaning}
+
+Before cleaning a new dataset, check what arrived. A file can contain the wrong units, missing records and duplicate observations without producing an error. A short inspection at the beginning can save a great deal of confusion later.
+
+These checks can find problems, but they cannot prove that every value is correct. A yield of 55 bu/ac may be perfectly plausible and still belong to the wrong field. We need to understand the source as well as inspect the values.
+
+### Know what the values mean {.unnumbered}
+
+Data cleaning relies on your ability to spot values that do not make sense. This means you need some idea of what the data should look like. A crop yield between 0 and 100 may be plausible when it is measured in bushels per acre, while the same crop measured in tonnes per acre will have much smaller values. The number alone is not enough.
+
+Before looking for errors, answer a few questions:
+
+- What does one row represent?
+- What population and time period does the file cover?
+- What units are used?
+- Which column or columns should identify one observation?
+- How are missing values and categories coded?
+- Has the file already been filtered, cleaned or aggregated?
+
+This information may be in a data dictionary, a README file or the page from which the data were downloaded. If it is not documented, you may need to ask the person who created the file.
+
+### Take a first look {.unnumbered}
+
+Start with the basic structure:
+
+- Count the rows and columns.
+- Inspect the column names and data types.
+- Look at several rows from the beginning and end of the file.
+- Check whether numbers or dates were imported as text.
+- Count repeated values of any column, or combination of columns, that should identify one row.
+
+An unexpected row count or repeated identifier may mean that records are missing, duplicated or stored at a different level than you expected. Looking at the first few rows is useful, but it will not reveal a problem near the bottom of a large file.
+
+### Check each variable {.unnumbered}
+
+For a **numeric variable**:
+
+- Count the observed and missing values.
+- Examine the minimum, quartiles, median, mean and maximum.
+- Plot a histogram or box plot.
+- Look for impossible values, extreme observations, several clusters and suspicious concentrations at zero.
+
+The useful limits depend on the subject. A negative crop yield is impossible, while a yield of 100 bu/ac may be unusual but real. Investigate an extreme value rather than automatically deleting it.
+
+For a **categorical variable**:
+
+- Count the distinct values and their frequencies.
+- Look for inconsistent capitalization, spelling and extra spaces, such as `Canola`, `canola` and `Canola `.
+- Check whether blank strings or codes such as `-99`, `N/A` and `unknown` represent missing values.
+- Investigate rare categories rather than assuming that they are mistakes.
+
+For a **date variable**:
+
+- Check the earliest and latest dates.
+- Look for dates outside the period covered by the data.
+- Check for gaps, repeated dates and dates stored as text.
+
+### Check variables together {.unnumbered}
+
+Some problems appear only when two or more variables are compared:
+
+- Seeding should occur before harvest.
+- Percentages should normally fall between 0 and 100.
+- Reported production should be consistent with acres and yield.
+- Category and location codes should agree with their documentation.
+
+A scatter plot can reveal an odd relationship between two numeric variables. A line plot can expose gaps or abrupt changes over time. Summaries grouped by year, region or source can show whether missing values or unusual measurements are concentrated in one part of the dataset.
+
+### Investigate before changing {.unnumbered}
+
+When something looks wrong:
+
+1. Return to the source record or documentation if possible.
+2. Flag the observation rather than immediately deleting it.
+3. Keep the raw file unchanged.
+4. Record any correction, conversion or exclusion in a reproducible cleaning step.
+5. If the correct treatment remains uncertain, report that uncertainty and compare the results with and without the questionable observations.
+
+## Common data quality issues {#sec-quality-issues}
+
+These are the issues I most commonly encounter with datasets:
+
+1. **Awkward column names.** In R, you will refer to column names constantly, so consistency matters. If you sometimes use `SpringWheat`, other times `Spring Wheat`, and still other times `spring-wheat`, you will continually have to remember which convention you chose.
+
+    A common best practice is **snake case**: use lowercase letters and replace spaces with underscores. For example, use `spring_wheat`.
+
+    Column names should be descriptive without becoming unnecessarily long. Whether you choose `yield` or `yield_bu_ac` depends on the dataset. If it contains several yield measures, names such as `yield_bu_ac` and `yield_kg_ha` clearly distinguish their units. If there is only one yield column, the simpler name `yield` may be sufficient.
+
+2. **Text in a numeric column.** Sometimes units or other text are included with numeric values. For example, a weight column might contain `38.2 t`, `42.1 t`, and `37.8 t`.
+
+    Excel or R will usually interpret such a column as text, preventing you from performing calculations such as finding the mean or standard deviation. You will need to separate the units from the values and convert the values to numbers. Ideally, the units should be recorded in the column name—for example, `weight_t`.
+
+3. **Duplicate observations.** A dataset may contain duplicate rows. These can arise from data-entry mistakes, combining files more than once, or recording the same observation in multiple systems.
+
+    Duplicates are often data-quality problems, but identical rows are not necessarily errors. Two producers, fields, or transactions may legitimately have the same recorded values. Before removing duplicates, determine what uniquely identifies an observation and investigate why the duplication occurred.
+
+4. **Missing values.** Ideally, missing values are stored as blank cells or as `NA`. However, they may instead be represented by codes such as `-99`, `N/A`, `missing`, or `9999`.
+
+    You need to identify these codes and convert them to a consistent missing-value representation. Be careful: a code such as `0` may indicate a missing value in one dataset but a genuine observation in another. Consult the dataset's documentation whenever possible.
+
+5. **Impossible or implausible values.** A dataset may contain values that are impossible, such as negative yields, or highly implausible, such as a wheat yield of 1,250 bu/acre.
+
+    Examining the minimum and maximum of each numeric variable is a quick way to identify potential problems. Histograms and other graphs can also reveal unusual observations. These values should be investigated before being corrected or removed; an unusual value is not necessarily an error.
+
+6. **Mixed units.** A column may contain values recorded in different units. For example, some weights might be reported in tonnes and others in kilograms.
+
+    A histogram can help identify mixed units. Suppose you plot nitrogen application rates and find that 30% of observations fall below 1 while the remaining 70% are above 100. This pattern may indicate that some producers recorded tonnes per hectare while others recorded kilograms per hectare.
+
+    Once you identify mixed units, convert all observations to a common unit and record that unit clearly in the column name or dataset documentation.
+
+7. **Inconsistent categories.** Data based on individual reporting often contain categories recorded in inconsistent ways. For example, the same wheat variety might appear as `Brandon`, `AAC Brandon`, `Brandon AAC`, and `Brndon`.
+
+    Listing the unique categories and counting the number of observations in each is a useful way to find these inconsistencies. You can then standardize the different versions under a single category, such as `AAC Brandon`.
+
+All seven issues appear together in [`field_records_messy.csv`](practice/data/field_records_messy.csv), a season of spring wheat field records constructed for practice. The first ten rows:
+
+| Field ID | VARIETY_NAME | Acres | Yield (bu/ac) | harvest weight | N rate | Moisture % |
+|---|---|---:|---:|---|---:|---|
+| F001 | AAC Viewfield | 160 | 67.6 | 297.7 t | 97.1 | 12.4 |
+| F002 | Brandon | 320 | 54.9 | 476.0 t | 96.2 | 14.7 |
+| F003 | CDC Landmark | 120 | 54.4 | 172.6 t | 0.081 | 12.3 |
+| F002 | Brandon | 320 | 54.9 | 476.0 t | 96.2 | 14.7 |
+| F004 | Brandon AAC | 320 | -99 | 642.5 t | 116.7 | 15.4 |
+| F005 | CDC Landmark | 320 | 65.8 | 561.5 t | 89.9 | 12.3 |
+| F006 | Brndon | 160 | 50.8 | 222.8 t | 0.113 | N/A |
+| F005 | CDC Landmark | 320 | 65.8 | 561.5 t | 89.9 | 12.3 |
+| F007 | AAC Viewfield | 80 | -12 | 138.6 t | 135.9 | 14.5 |
+| F008 | AAC Brandon | 160 | 60.3 | 264.0 t | 127.3 | 12.4 |
+
+
+1. Column names have spaces, capitals and special characters
+2. Harvest weight has its unit typed into the cell
+3. F002 and F005 each appear twice, identically
+4. Some yields are reported as -99 (a typical missing value code)
+5. F007 has a yield of -12, which is impossible
+6. The nitrogen rates for F003 and F006 sit below 1 while the rest sit near 100 -- tonnes against kilograms per hectare
+7. The same variety appears as Brandon, Brandon AAC, Brndon and AAC Brandon
+
+The quick check from the list -- the minimum and maximum of every numeric column -- surfaces more, computed here over the full file:
+
+| Column | Min | Max | Mean | Median |
+|---|---:|---:|---:|---:|
+| Yield (bu/ac) | -99 | 1250 | 74.5 | 55.8 |
+| N rate | 0.08 | 135.9 | 71.5 | 89.9 |
+| harvest weight | \- | \- | \- | \- |
+| Moisture % | \- | \- | \- | \- |
+
+The yield minimum is a missing-value code and the maximum is twenty times a real yield, and together they pull the mean eighteen bushels above the median. The N rate minimum and maximum are in different units. The last two columns refuse to summarize at all: the unit suffix and the missing-value codes make them text, which is issue 2 doing its damage before any analysis starts.
+
+
+## Data cleaning in Excel {#sec-cleaning-excel}
+
+::: {.video-callout}
+::: {.callout-note collapse="true" title="Video walkthrough of this section"}
+{{< video https://youtu.be/lITVHVsyOX4 >}}
+:::
+:::
+
+The following Excel workbook shows some steps in checking and then cleaning the data.  In the DataSummary worksheet, the numeric variables are summarized, getting the mean, median, minimum and maximum and a histogram is plotted.  For the categorical variables, the `UNIQUE()` function is used to list the distinct values and the `COUNTIF()` function is used to count how many times each distinct value appears.  Finally, we counted the number of rows using `=ROWS(RawData!A2:A39)` and the number of distinct rows using `=ROWS(UNIQUE(RawData!A2:A39))`.  The difference between these two counts is the number of duplicate rows.
+
+
+After diagnosing these issues, the best way to clean the data is through a Power Query which creates a transparent and reproducible workflow.  The output of the Power Query is in the workbook and the video at the top of this section explains the steps taken to clean the data.
+
+::: {.workbook-callout}
+<!-- Anyone-view link expires 2026-11-29 under the University of Saskatchewan 90-day policy. -->
+
+::: {.excel-embed}
+<iframe width="100%" height="700" frameborder="0" scrolling="no" src="https://usaskca1-my.sharepoint.com/personal/pjs998_usask_ca/_layouts/15/Doc.aspx?sourcedoc=%7BA96B2111-6943-487A-B1CD-2B84892058BB%7D&action=embedview&wdAllowInteractivity=False&wdDownloadButton=True&wdInConfigurator=True&ActiveCell=%27DataSummary%27!A1"></iframe>
+:::
+
+[Download this workbook](textbook_examples/mod03_field_records_cleaning.xlsx) · [Open online](https://usaskca1-my.sharepoint.com/:x:/g/personal/pjs998_usask_ca/IQARIWupQ2l6SLHNK4SJIFi7AaPD784L8M-lxPSEBlwjw2I?e=Gd8AR1) (File → Save a Copy to view formulas and edit)
+:::
+
+## Data cleaning in R {#sec-cleaning-r}
+
+Data cleaning is -- in my view -- easier in R than in Excel.  We can write a easy to read R script that can be applied to any dataset.  
+
+The following code solves the seven issues above.  There are a few new functions that we need to learn.  The first, and most important, is `if_else()`.
+
+In R the whole job fits in one script: read the raw file, check it, apply the cleaning rules and write the cleaned copy somewhere else. The script is the record of what was done, and when a new version of the raw file arrives it can be rerun from the top. The full script is [`field_records_cleaning.R`](practice/field_records_cleaning.R); this section walks through it in stages.
+
+The header describes the script, and the read step already deals with part of issue 4: the `na` argument of `read_csv()` lists the codes that mean missing, so `N/A`, `missing` and the blank cell all become `NA` on the way in.
+
+```r
+# ---
+# This script loads field_records_messy.csv, checks for data quality and cleads the data.
+# ---
+
+# Load packages
+library(tidyverse)
+library(janitor)
+
+# ============================================================
+# Read
+# ============================================================
+
+# Read the file, declaring the missing-value codes up front (issue 4)
+records <- read_csv(
+  "data/field_records_messy.csv",
+  na = c("", "N/A", "missing")
+)
+
+# Column names and types as they arrived
+glimpse(records)
+
+## This reveals a first set of issues: harvest weight is text when it should be numeric.  Moreover, column names are a mess.
+
+# Summary of every column: the min and max expose the planted problems
+summary(records)
+
+##This reveals further issues with the minimum and maximum of yield, and the minimum and 1st quartile of the nitrogen rate.  We might want to plot the histogram of the nitrogen rate to visualize the issue.
+hist(records$`N rate`, breaks =20)
+
+# Count the categories: the same variety appears under four spellings
+records |>
+  count(VARIETY_NAME, sort = TRUE)
+
+# Count the rows, then the distinct rows: the difference is the duplicates
+nrow(records)
+nrow(distinct(records))
+
+## We can dig futher into all these issues by visualizing/sorting the data in our Positron viewer, or printing it in the console.
+
+```
+
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+library(janitor)
+
+records <- read_csv(
+  "data/field_records_messy.csv",
+  na = c("", "N/A", "missing")
+)
+
+glimpse(records)
+
+summary(records)
+
+hist(records$`N rate`, breaks = 20)
+
+records |>
+  count(VARIETY_NAME, sort = TRUE)
+
+nrow(records)
+nrow(distinct(records))
+', echo = FALSE)
+```
+
+The transcript shows the problems found earlier: the yield runs from -99 to 1250, the moisture maximum is the 9999 code, the harvest weight arrived as text, the variety appears under four spellings, and the file has 38 rows but only 36 distinct ones.
+
+Now let's clean the data.  We will use a few different new functions:
+
+- `clean_names()` converts every column name to snake case, which fixes issue 1.  For example, `VARIETY_NAME` becomes `variety_name`.
+- `rename()` if we are still not happy with just using clean_names(), we can rename columns to whatever we want.  For example, `variety_name` could be renamed to `variety`.
+- `if_else()` is a conditional function. Similar to `IF` in Excel, it takes three arguments: a condition, a value to return if the condition is true, and a value to return if the condition is false.  For example, `mutate(yield = if_else(yield < 0, NA, yield))` would mean to mutate the yield column such that, if the yield is less than 0 replace it with NA and otherwise return what was in the yield column.
+- `parse_number()` removes text from numbers, so that `142.9 t` becomes `142.9`.
+
+The yield rule blanks the -99 code, the negative and the 1250 rather than correcting them, because there is nothing defensible to replace them with.
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+## We can clean column names using the clean_names() function from the janitor package.  It converts all column names to lower case and replaces spaces with underscores.
+
+records_clean_names <- records |>
+  clean_names()
+
+names(records_clean_names)
+
+## We can remove duplicate rows using the distinct() function.  It removes any rows that are identical to another row in the dataset.  This is useful for removing accidental duplicates that may have been introduced during data entry or data processing.
+
+records_unique <- distinct(records_clean_names)
+
+nrow(records_unique)
+
+## We can strip the unit text from the weights and make them numeric using the parse_number() function.  This function extracts the numeric part of a string and converts it to a numeric value.  This is useful for cleaning up data that may have been entered with units or other text.
+
+records_weight_fix <- records_clean_names |>
+  mutate(harvest_weight = parse_number(harvest_weight))
+
+records_weight_fix$harvest_weight
+
+## We can change yields below 0 and above 200 to NA using the if_else() function.  This function allows us to create a new variable based on a condition.  In this case, we are creating a new variable called yield_bu_ac that is equal to the original yield_bu_ac variable if it is between 0 and 200, and NA otherwise.
+
+records_yield_fix <- records_clean_names |>
+  mutate(yield_bu_ac = if_else(yield_bu_ac <= 0 | yield_bu_ac > 200,
+                                NA,
+                                yield_bu_ac))
+
+summary(records_yield_fix$yield_bu_ac)
+
+## We can fix the variety names in the same way using the if_else() function.  The three arguments would say if variety is one of "Brandon", "Brandon AAC", or "Brndon", then replace it with "AAC Brandon", otherwise leave it as is.
+
+records_variety_fix <- records_clean_names |>
+    mutate(variety_name = if_else(variety_name %in% c("Brandon", "Brandon AAC", "Brndon"),
+                           "AAC Brandon",
+                           variety_name))
+
+records_variety_fix |>
+  count(variety_name, sort = TRUE)
+')
+```
+
+The mutate() function allows us to apply a series of transformations to the columns, including parsing numbers, replacing impossible values with NA, converting units and standardizing category names.  Putting the steps together in one pipe, with a `rename()` to give the numeric columns names that carry their units:
+
+```r
+# ============================================================
+# Clean
+# ============================================================
+
+records_clean <- records |>
+  clean_names() |>   # issue 1: every column name to snake case
+  distinct() |>      # issue 3: drop the exact duplicate rows
+  rename(variety = variety_name,   # clearer names, with units where they matter
+         weight_t = harvest_weight,
+         n_rate_kg_ha = n_rate,
+         moisture_pct = moisture_percent) |>
+  mutate(
+    # Issue 2: strip the unit text from the weights and make them numeric
+    weight_t = parse_number(weight_t),
+    # Issues 4 and 5: the -99 code, the negative and the 1250 all become NA
+    yield_bu_ac = if_else(yield_bu_ac <= 0 | yield_bu_ac > 200,
+                          NA,
+                          yield_bu_ac),
+    # Issue 6: rates below 1 are t/ha, so convert them to kg/ha
+    n_rate_kg_ha = if_else(n_rate_kg_ha < 1,
+                           n_rate_kg_ha * 1000,
+                           n_rate_kg_ha),
+    # Issue 7: one spelling for the Brandon variety
+    variety = if_else(variety %in% c("Brandon", "Brandon AAC", "Brndon"),
+                      "AAC Brandon",
+                      variety),
+    # Issue 4 again: the 9999 moisture code becomes NA
+    moisture_pct = if_else(moisture_pct > 100,
+                          NA,
+                          moisture_pct)
+  )
+
+# Print the cleaned data
+records_clean
+```
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+records_clean <- records |>
+  clean_names() |>
+  distinct() |>
+  rename(variety = variety_name,
+         weight_t = harvest_weight,
+         n_rate_kg_ha = n_rate,
+         moisture_pct = moisture_percent) |>
+  mutate(
+    weight_t = parse_number(weight_t),
+    yield_bu_ac = if_else(yield_bu_ac <= 0 | yield_bu_ac > 200,
+                          NA, yield_bu_ac),
+    n_rate_kg_ha = if_else(n_rate_kg_ha < 1,
+                           n_rate_kg_ha * 1000, n_rate_kg_ha),
+    variety = if_else(variety %in% c("Brandon", "Brandon AAC", "Brndon"),
+                      "AAC Brandon", variety),
+    moisture_pct = if_else(moisture_pct > 100, NA, moisture_pct)
+  )
+
+records_clean
+', echo = FALSE)
+```
+
+Check again before trusting the result. The ranges are now sane and the Brandon spellings have collapsed into one.
+
+```r
+# ============================================================
+# Check again
+# ============================================================
+
+# The same checks on the cleaned data: sane ranges, one Brandon spelling
+summary(records_clean)
+
+records_clean |>
+  count(variety, sort = TRUE)
+
+# ============================================================
+# Write
+# ============================================================
+
+# Save the cleaned file to output; the raw file is never edited
+write_csv(records_clean, "output/field_records_clean.csv")
+```
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+summary(records_clean)
+
+records_clean |>
+  count(variety, sort = TRUE)
+
+write_csv(records_clean, "output/field_records_clean.csv")
+', echo = FALSE)
+```
+
+The cleaned file goes to `output/` and the raw file is never edited. If a corrected version of the raw data arrives, rerunning the script applies the same rules and rebuilds the cleaned file.
+
+
+---
+
+<!-- Source: module03c.qmd -->
+
+# Merging Data {#sec-merging-data}
+
+```{r}
+#| include: false
+#| eval: true
+source("_console.R")
+```
+
+The data you need to answer one question often arrive in several tables. For example, suppose we wanted to understand the relationship between RM yields and precipitation. The yield data would come in one table, and the precipitation data would likely come in another. To answer our question, we would need to **merge** or **join** these tables.
+
+Throughout this section, we will work with three datasets:
+
+- [`rm_yields_2015_2024.csv`](practice/data/rm_yields_2015_2024.csv), with one row per RM per year. It contains 2,950 rows for ten years and six crops. Yields are measured in bushels per acre.
+- [`station_precip.csv`](practice/data/station_precip.csv), with one row per weather station per year. It contains May to August precipitation for sixteen stations and a count of days with no reading.
+- [`rm_lookup.csv`](practice/data/rm_lookup.csv), with one row per RM. It contains the RM name, census division, 2021 population and the closest of the sixteen weather stations.
+
+We will do two merges:
+
+1. Merge the RM yields with the RM lookup. This will give us a dataset containing the closest weather station for each yield observation.
+2. Merge the dataset from step 1 with the weather station data. This will give us the growing-season precipitation for each observation.
+
+
+### Keys {.unnumbered}
+
+A key is a column, or set of columns, used to identify and match rows across datasets. When we merge, we say that we merge on the key. The key must be present in both datasets.
+
+
+In the three tables above, the keys for the two merges are:
+
+1. RM yields to RM lookup: RM.
+2. The resulting dataset to weather-station data: weather station and year.
+
+### One-to-one, many-to-one and many-to-many {.unnumbered}
+
+There are three types of merges:
+
+
+![Three kinds of merge. Each line connects a grades row to the row it matches.](images/join_types.svg){#fig-join-types}
+
+- **One-to-one (1:1).** Each key value appears once in both tables. Grades and attendance both have one row per student-class, so the merged table has the same number of rows as either input.
+- **Many-to-one (n:1).** Values in the key column may repeat in one dataset but are unique in the other. In this example, students take many classes, so each student appears multiple times in the table on the left. Each class has a single professor, however, so each class appears only once in the table on the right.
+- **Many-to-many (n:n).** Values in the key column repeat in both datasets. In the figure, students take multiple classes (the table on the left), and each class can have multiple teaching assistants (the table on the right).
+
+Before joining, decide which relationship you expect. Then compare the row counts before and after.
+
+Both of our merges will be many-to-one:
+
+1. The RM yields dataset contains many observations for the same RM, but the RM lookup contains only one row for each RM.
+2. The merged dataset from step 1 contains many observations with the same closest weather station and year, but the weather-station dataset contains only one observation for each station and year.
+
+## Merging in Excel {#sec-merge-excel}
+
+::: {.video-callout}
+::: {.callout-note collapse="true" title="Video walkthrough of this section"}
+{{< video https://youtu.be/MCe5bMtbiMI >}}
+:::
+:::
+
+In Chapter 2, we used `XLOOKUP` to bring values from one table into another (@sec-lookup). That approach is useful for a quick lookup. Here, we will use Power Query because it records the merge as a repeatable series of steps and can match on several columns directly.
+
+Begin by importing `rm_yields_2015_2024.csv` and `rm_lookup.csv` with **Data > Get Data > From Text/CSV > Transform Data**. In the Power Query editor:
+
+1. Load the RM yield data using Power Query, transforming the data to longer format as we did before.
+2. Choose Power Query, select import csv, and select the RM lookup table.
+3. Select transform data.  You will now see two queries on your left hand side (@fig-pq-merge-queries).
+4. Select the first query (rm_yields_2015_2024) and then click **Home > Merge Queries**.
+
+![The two queries loaded, with the yield data in long format and **Merge queries** on the ribbon.](images/pq_merge_queries.png){#fig-pq-merge-queries .screenshot}
+
+5. In the pop up menu (@fig-pq-merge-dialog) select rm_lookup as the right table to merge.
+6. Select the key to merge on in each table by clicking its column heading: `RM` in the yields table and `RM_Number` in the lookup table.
+7. Keep **Left Outer** as the join kind. This keeps every yield observation and adds information wherever the lookup contains a matching RM.
+8. Check the number of matching rows reported at the bottom of the dialog -- here every one of the 15,478 yield observations finds a match -- then choose **OK**.
+
+![The Merge dialog: the two tables, the key selected in each, the join kind, and the match count along the bottom.](images/pq_merge_dialog.png){#fig-pq-merge-dialog .screenshot}
+
+9. The merged data arrives packed into a single new column whose every entry reads `[Table]` (@fig-pq-merged-column). Expand it using the double-arrow icon in its header: tick the columns you want (the RM name, census division, population and closest weather station) and untick **Use original column name as prefix** so the columns keep their own names.
+
+![After the merge, the lookup columns sit folded inside a `[Table]` column. The double-arrow icon in its header expands them. Do not click a `[Table]` link itself -- that drills into that one row's table and discards the rest.](images/pq_merged_table_column.png){#fig-pq-merged-column .screenshot}
+
+![After expanding: the lookup columns sit beside every yield observation, and the row count has not changed.](images/pq_merge_expanded.png){#fig-pq-merge-expanded .screenshot}
+
+Now you should see the RM lookup data merged with the RM yield data.  We can now repeat the same process to merge once again with the station data: import `station_precip.csv` the same way, so a third query appears (@fig-pq-station-added).  The only difference is that we are now going to merge on both the station name and the year (@fig-pq-two-keys). Select `Weather_Station` and then Ctrl-click `Year` in the top table, and `Station` then Ctrl-click `Year` in the bottom one -- the small 1 and 2 beside the headings show the matching order.
+
+![The station precipitation data imported as a third query.](images/pq_station_added.png){#fig-pq-station-added .screenshot}
+
+![The second Merge dialog, with the station column selected in each table; Ctrl-clicking `Year` in each adds it as the second key. Station and year together identify the right precipitation value.](images/pq_merge_two_keys.png){#fig-pq-two-keys .screenshot}
+
+After expanding the precipitation column and choosing **Close & load**, every yield observation carries its RM's name, closest station, and that station's growing-season precipitation for the right year.
+
+<!-- TODO: embed the finished mod03 merge workbook (OneDrive view-only iframe) here, following the mod04 pattern. -->
+
+### Checking the merge {.unnumbered}
+
+After each merge, compare the number of rows with the original yields table. A many-to-one left merge should retain the same number of rows. Filter the expanded columns for `null` to find observations that did not match, and check several rows against the source tables.
+
+Power Query also offers **Inner**, **Full Outer** and **Left Anti** joins. These correspond to the R joins introduced below. A Left Anti join is particularly useful for listing rows that have no match before completing the merge.
+
+## Merging in R {#sec-merge-r}
+
+In tidyverse we merge data with join functions.  There are four different types of joins depending on which data we want to keep in the merged file.  Suppose we have two datasets `y` and `x`:
+
+
+- **`left_join(x, y, by)`** keeps every row of `x` whether it has a match in `y` or not.  But does not keep rows in `y` that don't have a match. 
+- **`inner_join(x, y, by)`** keeps only rows that matched in both tables.
+- **`full_join(x, y, by)`** keeps every row from both tables, regardless of whether there is a match.
+- **`anti_join(x, y, by)`** returns the rows of `x` that have no match in `y`. It is useful for finding failed matches before a join.
+
+The `by` argument specifies the keys we merge on.  It can be a single column name or a vector of names.
+
+
+Read the three files, standardizing the lookup and station column names on the way in (@sec-cleaning-r):
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Load packages
+library(tidyverse)
+library(janitor)
+
+# Read the three tables
+yields <- read_csv(
+  "practice/data/rm_yields_2015_2024.csv",
+  show_col_types = FALSE
+)
+
+rms <- read_csv(
+  "practice/data/rm_lookup.csv",
+  show_col_types = FALSE
+) |>
+  clean_names()      # RM_Number becomes rm_number, and so on
+
+rain <- read_csv(
+  "practice/data/station_precip.csv",
+  show_col_types = FALSE
+) |>
+  clean_names()      # Station becomes station
+')
+```
+
+The Excel workflow began by pivoting the yields longer, one row per RM, year and crop. The same step in R (@sec-reshaping):
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# One row per RM, year and crop
+yields_long <- yields |>
+  pivot_longer(
+    cols = `Spring Wheat`:Peas,    # the six crop columns
+    names_to = "crop",
+    values_to = "yield_bu_ac",
+    values_drop_na = TRUE          # drop crop-years an RM did not report
+  ) |>
+  clean_names()                    # Year and RM to year and rm
+
+# One row per RM-year-crop
+nrow(yields_long)
+')
+```
+
+`left_join()` takes two data frames and a `by` argument that identifies the key. If a key has different names in the two tables, write `join_by(left_name == right_name)`; a column with the same name on both sides is written once.
+
+### First join: yields and the RM lookup {.unnumbered}
+
+The RM column is called `rm` in the yields table and `rm_number` in the lookup. Join, then compare the row counts:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Add the RM information and nearest station
+with_station <- yields_long |>
+  left_join(rms,
+            by = join_by(rm == rm_number),
+            relationship = "many-to-one")
+
+# Row counts before and after
+nrow(yields_long)
+nrow(with_station)
+')
+```
+
+A many-to-one left join keeps every yield row, so the matching counts are the check that the merge behaved. The `relationship = "many-to-one"` argument records what we expect and makes `left_join()` stop if the lookup ever holds more than one row for an RM.
+
+In R, text keys are sensitive to both case and spaces: `"canola"`, `"Canola"` and `"Canola "` are three different keys. These differences have to be reconciled before the join (@sec-quality-issues).
+
+### Second join: add the rain {.unnumbered}
+
+The second key has two parts. The station column is called `weather_station` on the left and `station` on the right; `year` has the same name in both tables.
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Add precipitation for the matching station and year
+merged <- with_station |>
+  left_join(rain,
+            by = join_by(weather_station == station, year),
+            relationship = "many-to-one")
+
+# Still one row per RM-year
+nrow(merged)
+')
+```
+
+The merged table has one row per RM, year and crop, with yield and precipitation beside one another:
+
+```{r}
+#| eval: true
+#| echo: false
+console('
+# Display the columns used in the analysis
+merged |>
+  select(year, rm, rm_name, crop, yield_bu_ac,
+         weather_station, precip_may_aug_mm)
+
+# Annual mean canola yield and precipitation
+merged |>
+  filter(crop == "Canola") |>
+  group_by(year) |>
+  summarise(
+    canola_bu_ac = mean(yield_bu_ac),
+    rain_mm = mean(precip_may_aug_mm),
+    max_days_missing = max(days_missing)
+  )
+')
+```
+
+This data frame would allow us to do further analysis on the relationship between precipitation and yield.  We will do that in the later chapters.  To give you a preview of this, here is a scatter plot of the mean canola yield and mean precipitation for each year -- the correlation is about 0.47.
+
+```{r}
+#| eval: true
+#| echo: false
+#| fig-width: 6
+#| fig-height: 4
+#| fig-align: center
+annual_canola <- merged |>
+  filter(crop == "Canola") |>
+  group_by(year) |>
+  summarise(canola_bu_ac = mean(yield_bu_ac),
+            rain_mm = mean(precip_may_aug_mm))
+
+ggplot(annual_canola, aes(x = rain_mm, y = canola_bu_ac)) +
+  geom_point(size = 2) +
+  labs(x = "Mean May-August precipitation (mm)",
+       y = "Mean canola yield (bu/ac)")
+```

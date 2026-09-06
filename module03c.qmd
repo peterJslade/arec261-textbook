@@ -98,7 +98,7 @@ Power Query also offers **Inner**, **Full Outer** and **Left Anti** joins. These
 
 ## Merging in R {#sec-merge-r}
 
-In tidyverse we merge data with join functions.  There are four different types of joins depending on which data we want to keep in the merged file.  Suppose we have two datasets `y` and `x`:
+In tidyverse we merge data with join functions.  There are four different types of joins depending on which data we want to keep in the merged file.  Suppose we have two datasets `x` and `y`:
 
 
 - **`left_join(x, y, by)`** keeps every row of `x` whether it has a match in `y` or not.  But does not keep rows in `y` that don't have a match. 
@@ -106,7 +106,7 @@ In tidyverse we merge data with join functions.  There are four different types 
 - **`full_join(x, y, by)`** keeps every row from both tables, regardless of whether there is a match.
 - **`anti_join(x, y, by)`** returns the rows of `x` that have no match in `y`. It is useful for finding failed matches before a join.
 
-The `by` argument specifies the keys we merge on.  It can be a single column name or a vector of names.
+The `by` argument specifies the key we merge on, written with `join_by()`. A column with the same name in both tables is written once, `join_by(year)`; if the key has different names in the two tables, write `join_by(left_name == right_name)`.
 
 
 Read the three files, standardizing the lookup and station column names on the way in (@sec-cleaning-r):
@@ -120,21 +120,13 @@ library(tidyverse)
 library(janitor)
 
 # Read the three tables
-yields <- read_csv(
-  "practice/data/rm_yields_2015_2024.csv",
-  show_col_types = FALSE
-)
+yields <- read_csv("practice/data/rm_yields_2015_2024.csv") |>
+  clean_names()      # Year and RM to year and rm; crop columns to snake case
 
-rms <- read_csv(
-  "practice/data/rm_lookup.csv",
-  show_col_types = FALSE
-) |>
+rms <- read_csv("practice/data/rm_lookup.csv") |>
   clean_names()      # RM_Number becomes rm_number, and so on
 
-rain <- read_csv(
-  "practice/data/station_precip.csv",
-  show_col_types = FALSE
-) |>
+rain <- read_csv("practice/data/station_precip.csv") |>
   clean_names()      # Station becomes station
 ')
 ```
@@ -148,12 +140,11 @@ console('
 # One row per RM, year and crop
 yields_long <- yields |>
   pivot_longer(
-    cols = `Spring Wheat`:Peas,    # the six crop columns
+    cols = spring_wheat:peas,      # the six crop columns
     names_to = "crop",
     values_to = "yield_bu_ac",
     values_drop_na = TRUE          # drop crop-years an RM did not report
-  ) |>
-  clean_names()                    # Year and RM to year and rm
+  )
 
 # One row per RM-year-crop
 nrow(yields_long)
@@ -202,41 +193,28 @@ merged <- with_station |>
 
 # Still one row per RM-year
 nrow(merged)
+
+## Print out a glimpse of the merged data frame to check the columns and types
+glimpse(merged)
 ')
 ```
 
-## What the Merge Gives You {#sec-merge-result}
-
-The merged table has one row per RM, year and crop, with yield and precipitation beside one another:
+This data frame would allow us to do further analysis on the relationship between precipitation and yield.  We will do that in the later chapters.  To give you a preview of this, here is a scatter plot of the mean canola yield and mean precipitation for each year -- the correlation is about 0.47.
 
 ```{r}
 #| eval: true
 #| echo: false
-console('
-# Display the columns used in the analysis
-merged |>
-  select(year, rm, rm_name, crop, yield_bu_ac,
-         weather_station, precip_may_aug_mm)
-
-# Annual mean canola yield and precipitation
-merged |>
-  filter(crop == "Canola") |>
+#| fig-width: 6
+#| fig-height: 4
+#| fig-align: center
+annual_canola <- merged |>
+  filter(crop == "canola") |>
   group_by(year) |>
-  summarise(
-    canola_bu_ac = mean(yield_bu_ac),
-    rain_mm = mean(precip_may_aug_mm),
-    max_days_missing = max(days_missing)
-  )
+  summarise(canola_bu_ac = mean(yield_bu_ac),
+            rain_mm = mean(precip_may_aug_mm))
 
-# Describe association, not causation
-merged |>
-  filter(crop == "Canola") |>
-  summarise(
-    yield_rain_correlation = cor(yield_bu_ac, precip_may_aug_mm)
-  )
-')
+ggplot(annual_canola, aes(x = rain_mm, y = canola_bu_ac)) +
+  geom_point(size = 2) +
+  labs(x = "Mean May-August precipitation (mm)",
+       y = "Mean canola yield (bu/ac)")
 ```
-
-Across RM-years, wetter observations tend to have higher canola yield, but the relationship is loose: the correlation is about 0.41. The annual table also resists a simple rainfall story. Both 2021 and 2024 have low average yields despite ordinary or above-average rainfall. These data cannot say why. Testing whether heat contributed would require temperature data; explaining the remaining differences would require other variables as well.
-
-The annual means average rainfall over RM rows, so a station serving more RMs receives more weight than a station serving fewer RMs. The merge has further limits that should be recorded in the project's README. The median RM is 62 km from its assigned station, one quarter are more than 85 km away, and the maximum is 161 km, so station rainfall is a coarse proxy for rainfall across an RM. Some station-years also have many missing daily observations—up to 25 days in this file—and their seasonal totals sum only the available days, which biases those totals downward.
