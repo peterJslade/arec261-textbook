@@ -93,9 +93,9 @@ barley_2025 |>
   geom_col()
 ```
 
-First, let's note what we did in the first two lines.  Recall that the pipe `|>` is like saying "then".  So we are saying to R, take `barley_2025`, then filter it to only include rows where `acres` is greater than 10,000.  Then assign acres to the x-axis and variety to the y-axis.  Then draw the bars with `geom_col()`, which infers that the bars should run along the numeric axis.  This is starting to look better!
+First, let's note what we did in the first two lines.  Recall that the pipe `|>` is like saying "then".  So we are saying to R, take `barley_2025`, then filter it to only include rows where `acres` is greater than 10,000.  Then assign acres to the x-axis and variety to the y-axis.  Then draw the bars with `geom_col()`, which infers that the bars should run along the numeric axis.  This is starting to look better.
 
-Now we can start adding additional options.  First, we want to order the bars by their value, not alphabetically.  We can do this with the `fct_reorder()` function: `fct_reorder(variety, acres)` orders the varieties by their acres.
+Now we can start adding additional options.  First, we want to order the bars by their value, not alphabetically.  ggplot puts a text column on the axis in alphabetical order.  `fct_reorder(variety, acres)` converts `variety` to a **factor** -- R's data type for categories with a set order -- with the varieties ordered by their acres, so the bars plot in that order.
 
 
 ```{r}
@@ -213,11 +213,11 @@ pie_data
 Again, let's break down this code:
 
 1. Set `pie_data` equal to `barley_2025` *then*
-2. Use `mutate()` to create a new column `variety` (this overwrites the existing column) that assigns the value `"Other"` to any row where `acres` is less than or equal to 100,000, and keeps the original `variety` value otherwise *then*
+2. Use `mutate()` to create a new column `variety` (this overwrites the existing column) that keeps the original `variety` value for any row where `acres` is greater than 100,000, and assigns the value `"Other"` otherwise *then*
 3. Group the data by the new `variety` column *then*
 4. Summarise the data by calculating the total `acres` for each group
 
-Now we can see that pie_data is made up of four rows with acreage for the four largest varieties, and one row with acreage for all of the other varieties combined.    
+Now `pie_data` has five rows: the four largest varieties, plus an `Other` row with the acreage of all the remaining varieties combined.
 
 When we make a pie chart with the new data we get:
 ```{r}
@@ -277,7 +277,7 @@ Breaking this down:
 3. Assign `year` to the x-axis and `acres` to the y-axis *then*
 4. Draw a line through the points, in year order, with `geom_line()`.
 
-This works, but returns a quite ugly chart.  Once again, we can add the same formatting options as we added to the bar chart to make it more readable.  
+This works, but returns a quite ugly chart.  Once again, we can add the same formatting options as we added to the bar chart to make it more readable.  One new argument appears here: `limits = c(0, NA)` inside `scale_y_continuous()` starts the y-axis at zero, following the zero-baseline principle from @sec-graphing-principles, and the `NA` leaves the upper limit for ggplot to choose from the data.
 
 ```{r}
 #| label: fig-r-line-formatted
@@ -376,7 +376,7 @@ Reading this code line by line:
 
 1. Take the barley records, group them by `variety`, and use `mutate()` to create a `total_acres` column holding each variety's acres summed across every zone and year.  Where `summarise()` would collapse the groups down to one row each, `mutate()` after a `group_by()` keeps every row and attaches the group total to each of them.  `ungroup()` then removes the grouping so later steps work on the whole table *then*
 2. Use `if_else()` to rename every variety whose `total_acres` is under 150,000 -- the same threshold we used in the PivotChart filter -- to `"Other"` *then*
-3. Re-total the acres by variety and year, so `"Other"` is a single line rather than fifty separate ones.
+3. Re-total the acres by variety and year, so `"Other"` is a single line rather than twenty-five separate ones.
 
 
 
@@ -428,7 +428,7 @@ variety_line_chart
 
 # Save the finished line chart
 ggsave(
-  "output/module_4/variety_line_chart.png",
+  "output/variety_line_chart.png",
   plot = variety_line_chart,
   width = 6.4,
   height = 4.0,
