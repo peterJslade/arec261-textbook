@@ -109,93 +109,101 @@ In tidyverse we merge data with join functions.  There are four different types 
 The `by` argument specifies the key we merge on, written with `join_by()`. A column with the same name in both tables is written once, `join_by(year)`; if the key has different names in the two tables, write `join_by(left_name == right_name)`.
 
 
-Read the three files, standardizing the lookup and station column names on the way in (@sec-cleaning-r):
+The full R code for merging the datasets in R is below.  We first read in the three datasets, pivoting the yields to be in long format.  We then merge the yield data with the RM lookup using a left join.  This keeps all the data in yield data regardless of whether there is a match in the RM lookup, but would not keep any RM lookup rows that do not have a match in the yield data.  We then check the number of rows before and after the merge to make sure it is what we expect.  The exact code is
+
+```{r}
+with_station <- yields_long |>
+  left_join(rm_lookup,
+            by = join_by(rm == rm_number))
+```
+
+
+We can read this as set `with_station` equal to the result of:
+
+1. Take yields long *then*
+2. Left join it with the RM lookup.  
+3. Merge the dataset by matching `rm` in the yields_long with `rm_number` in the RM lookup. 
+
+
+*As an exercise, you should see how and why the merge would be different if we used an inner join or full join instead of a left join.  Because there is one RM in the rm_lookup that is not in the yields_long, full join will result in more rows -- these additional rows will have empty data for columns that are in `yields_long`.  However, because all rows in `yields_long` have a match in `rm_lookup`, `inner_join` will result in the exact same table as `left_join` -- note that this is only because all the RMs in our yield data are represented in the RM lookup data.*
+
+We then check the number of rows before and after the merge.
+
+We then merge the `with_station` dataset with the station precipitation data using another left join.
+
 
 ```{r}
 #| eval: true
 #| echo: false
 console('
-# Load packages
+
+#########################
+##### Load packages
+#########################
+
 library(tidyverse)
 library(janitor)
 
-# Read the three tables
-yields <- read_csv("practice/data/rm_yields_2015_2024.csv") |>
+#########################
+##### Step 1: Read in data 
+#########################
+
+# Read the yield data and pivot longer
+yields <- read_csv("data/rm_yields_2015_2024.csv") |>
   clean_names()      # Year and RM to year and rm; crop columns to snake case
 
-rms <- read_csv("practice/data/rm_lookup.csv") |>
-  clean_names()      # RM_Number becomes rm_number, and so on
-
-rain <- read_csv("practice/data/station_precip.csv") |>
-  clean_names()      # Station becomes station
-')
-```
-
-The Excel workflow began by pivoting the yields longer, one row per RM, year and crop. The same step in R (@sec-reshaping):
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-# One row per RM, year and crop
+# Pivot yields longer
 yields_long <- yields |>
   pivot_longer(
     cols = spring_wheat:peas,      # the six crop columns
     names_to = "crop",
-    values_to = "yield_bu_ac",
-    values_drop_na = TRUE          # drop crop-years an RM did not report
+    values_to = "yield_bu_ac"
   )
 
-# One row per RM-year-crop
-nrow(yields_long)
-')
-```
+# Read the RM lookup data
+rm_lookup <- read_csv("data/rm_lookup.csv") |>
+  clean_names()      # RM_Number becomes rm_number, and so on
 
-`left_join()` takes two data frames and a `by` argument that identifies the key. If a key has different names in the two tables, write `join_by(left_name == right_name)`; a column with the same name on both sides is written once.
+# Read the station data 
+rain <- read_csv("data/station_precip.csv") |>
+  clean_names()      # Station becomes station
 
-### First join: yields and the RM lookup {.unnumbered}
 
-The RM column is called `rm` in the yields table and `rm_number` in the lookup. Join, then compare the row counts:
+#########################
+##### Step 2: Merge yields and RM data
+#########################
 
-```{r}
-#| eval: true
-#| echo: false
-console('
 # Add the RM information and nearest station
 with_station <- yields_long |>
-  left_join(rms,
-            by = join_by(rm == rm_number),
-            relationship = "many-to-one")
+  left_join(rm_lookup,
+            by = join_by(rm == rm_number))
+
+# Print column names to check merge
+names(with_station)
 
 # Row counts before and after
 nrow(yields_long)
 nrow(with_station)
-')
-```
 
-A many-to-one left join keeps every yield row, so the matching counts are the check that the merge behaved. The `relationship = "many-to-one"` argument records what we expect and makes `left_join()` stop if the lookup ever holds more than one row for an RM.
+#########################
+##### Step 3: Merge in the weather station data
+#########################
 
-In R, text keys are sensitive to both case and spaces: `"canola"`, `"Canola"` and `"Canola "` are three different keys. These differences have to be reconciled before the join (@sec-quality-issues).
-
-### Second join: add the rain {.unnumbered}
-
-The second key has two parts. The station column is called `weather_station` on the left and `station` on the right; `year` has the same name in both tables.
-
-```{r}
-#| eval: true
-#| echo: false
-console('
-# Add precipitation for the matching station and year
 merged <- with_station |>
   left_join(rain,
-            by = join_by(weather_station == station, year),
-            relationship = "many-to-one")
+            by = join_by(weather_station == station, year))
 
-# Still one row per RM-year
+# Print column names to check merge
+names(merged)
+
+# Row counts before and after
+nrow(with_station)
 nrow(merged)
 
-## Print out a glimpse of the merged data frame to check the columns and types
-glimpse(merged)
+# Glimpse the merged data frame to check the columns and types
+glimpse(merged) 
+
+
 ')
 ```
 
@@ -210,8 +218,8 @@ This data frame would allow us to do further analysis on the relationship betwee
 annual_canola <- merged |>
   filter(crop == "canola") |>
   group_by(year) |>
-  summarise(canola_bu_ac = mean(yield_bu_ac),
-            rain_mm = mean(precip_may_aug_mm))
+  summarise(canola_bu_ac = mean(yield_bu_ac, na.rm = TRUE),
+            rain_mm = mean(precip_may_aug_mm, na.rm = TRUE))
 
 ggplot(annual_canola, aes(x = rain_mm, y = canola_bu_ac)) +
   geom_point(size = 2) +
