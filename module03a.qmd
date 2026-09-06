@@ -43,7 +43,7 @@ One source worth knowing about now, though it waits for @sec-spatial-data: AAFC'
 
 ## Downloading Data
 
-We can obtain data in a few different ways. The simplest is to directly download data or have data sent to you in a `.csv`, `.xlsx` or some other file. This is how we have approached data so far in this class.  So far in the class we have been reading in data that is already fairly "clean".  Not all data is this simple.  In this chapter, we will overview some common issues with loading data.
+We can obtain data in a few different ways. The simplest is to directly download data or have data sent to you in a `.csv`, `.xlsx` or some other file. This is how we have approached data so far in this class, and we have been reading in data that is already fairly "clean".  Not all data is this simple.  In this chapter, we will overview some common issues with loading data.
 
 We will also discuss obtaining data directly through R code.  Many data providers have an API (application programming interface) that allows you to request data directly from their server.  Using the API directly is a more advanced topic.  However, we will learn to use R packages that use APIs to download data -- in particular we will learn about the `openmeteo` package that allows the user to download weather data and the `cansim` package that allows the user to download data from Statistics Canada.
 
@@ -52,7 +52,7 @@ We will also discuss obtaining data directly through R code.  Many data provider
 
 Excel's native file format is .xlsx.  But it can also open `.csv`, `.tsv`, `.txt` and other file formats.  One issue with Excel opening these files is that it can try to convert the data to formats that are not intended.  
 
-For example, download [`elevator_tickets.csv`](practice/data/elevator_tickets.csv) -- twenty grain-delivery tickets -- and open it in Excel.  The following message pops-up, warning that excel will convert large numbers to scientific notation and remove leading zeros.  This is a problem because the data contains identifiers that are not meant to be treated as numbers.  It also has silently converted the lot codes to dates.   
+For example, download [`elevator_tickets.csv`](practice/data/elevator_tickets.csv) -- twenty grain-delivery tickets -- and open it in Excel.  The following message pops up, warning that excel will convert large numbers to scientific notation and remove leading zeros.  This is a problem because the data contains identifiers that are not meant to be treated as numbers.  It also has silently converted the lot codes to dates.   
 
 
 ![Excel warns that it will remove leading zeros and convert large numbers to scientific notation.](images/csv_doubleclick.png){#fig-csv-doubleclick .screenshot}
@@ -104,7 +104,7 @@ In R the whole acquisition is a script: the path or address, the parameters, the
 
 ### CSV, TSV and other delimited files {#sec-csv-files}
 
-The tidyverse functions come from **readr**. The two files used here are the same ones used in the Excel examples above:
+The tidyverse functions come from **readr**. The file used here is the same one used in the Excel examples above:
 
 ```{r}
 #| eval: true
@@ -155,7 +155,7 @@ Columns not named in `cols()` are still guessed.  We can read Excel files direct
 
 ### Direct download {#sec-direct-download}
 
-To this point, where he have used `read_csv()`, we have used a path on our computer as the file name.  We can also use a URL in place of a path.  For example, the average RM yields that we have been using in this course can be directly download from the Government of Saskatchewan's website. 
+To this point, where we have used `read_csv()`, we have used a path on our computer as the file name.  We can also use a URL in place of a path.  For example, the average RM yields that we have been using in this course can be directly downloaded from the Government of Saskatchewan's website. 
 ```{r}
 #| eval: true
 #| echo: false
@@ -174,7 +174,7 @@ head(rm_yields)
 ')
 ```
 
-Note that when we download the data it is best to always store a copy of the data on our computer.  This saves us from having to dowload the data multiple times, and protects us against the data provider alterning their url or removing the data completely.
+Note that when we download the data it is best to always store a copy of the data on our computer.  This saves us from having to download the data multiple times, and protects us against the data provider altering their url or removing the data completely.
 There are some issues with these data. For example, `Winter Wheat` contains a space, so R prints the name in backticks. We will standardize names in @sec-cleaning-r.
 
 ### Downloading data via an R package {#sec-data-packages}
@@ -185,15 +185,15 @@ There are some issues with these data. For example, `Winter Wheat` contains a sp
 :::
 :::
 
-Many data providers allow their data to be downloaded though an API (application programming interface).  Essentially, that data is kept o na server and a request can be sent to the server to ask for certain data.  For example, we could ask the Statistics Canada API for averge wheat yields in Saskatchewan from 2020-2025.  Querying APIs directly is a more advanced topic.  Fortunately, R packages exsit that will make these API calls for you, once you provide the information that you need.  Let's look at two of these pacakges:
+Many data providers allow their data to be downloaded through an API (application programming interface).  Essentially, the data is kept on a server and a request can be sent to the server to ask for certain data.  For example, we could ask the Statistics Canada API for average wheat yields in Saskatchewan from 2020-2025.  Querying APIs directly is a more advanced topic.  Fortunately, R packages exist that will make these API calls for you, once you provide the information that you need.  Let's look at two of these packages:
 
-1. **openmeteo** package is one example.  When you load this package you can use the function `weather_history()` to directly download data.  As with all functions, if you want to understand the arguments that you need to supply to weather history type `?weather_history` in your console.  In this case you will see that you need to supply at least three arguments, start, end and either hourly or daily:
+1. **openmeteo** package is one example.  When you load this package you can use the function `weather_history()` to directly download data.  As with all functions, if you want to understand the arguments that you need to supply to weather history type `?weather_history` in your console.  In this case you will see that you need to supply the location, a start and end date, and either an hourly or a daily variable.
 
-2. **cansim** package allows you to download data from Statistics Canada.  The function `get_cansim()` allows you to download data from a specific table.  For example, if we wanted to download the nitrogen fertilizer price index (Table: 18-10-0258-01) we could use the following code:
+2. **cansim** package allows you to download data from Statistics Canada.  The function `get_cansim()` allows you to download data from a specific table, such as the nitrogen fertilizer price index (Table 18-10-0258-01) or the field crops table we use below.
 
 
 
-To use the openmeteo package, we first need to install it.  This is a bit of a special package as it doens't live on CRAN, but rather on GitHub.  To install it we first need to install the remotes package from CRAN, and then use that to install openmeteo from GitHub.
+To use the openmeteo package, we first need to install it.  This is a bit of a special package as it doesn't live on CRAN, but rather on GitHub.  To install it we first need to install the remotes package from CRAN, and then use that to install openmeteo from GitHub.
 
 ```r
 # Install remotes from CRAN
@@ -203,13 +203,13 @@ install.packages("remotes")
 remotes::install_github("tpisel/openmeteo")
 ```
 
-After installation, we can use the weather_history() function to download data.  This function requires four arguments:
+After installation, we can use the weather_history() function to download data.  This function takes the following arguments:
 
-1. Location (in logitude and latitude)
+1. Location (in latitude and longitude)
 2. The start date/time of the data you want
 3. The end date/time of the data you want
-4. One of either hourly or daily, depending on the time scale of the data you want.  For these arguments you must specify the variable that you want: tempreature_2m, precipitation_sum, windspeed_10, etc.
-5. You can also specify the timezone of the data you want.  If you don't specify a timezone, the default is Grenwhich mean time.  That is to say if you ask for precipitation at 2pm, it will give you the precipitation at 2pm GMT, which is not very useful for us in Saskatchewan.  So we will specify the timezone as "America/Regina".
+4. One of either hourly or daily, depending on the time scale of the data you want.  For these arguments you must specify the variable that you want: `temperature_2m` or `windspeed_10m` for hourly data, `precipitation_sum` for daily, and so on.
+5. You can also specify the timezone of the data you want.  The default, `timezone = "auto"`, uses the local time at the location you asked for.  We will specify `"America/Regina"` explicitly, so the script says what it means.
 
 For example, 
 
@@ -225,7 +225,8 @@ saskatoon_rain_package <- weather_history(
   c(52.13, -106.67),
   start = "2024-05-01",
   end = "2024-05-05",
-  hourly = "precipitation"
+  hourly = "precipitation",
+  timezone = "America/Regina"
 )
 
 # Print the returned data frame
@@ -243,7 +244,7 @@ The **cansim** package downloads any Statistics Canada table by its table number
 install.packages("cansim")
 ```
 
-The main function is `get_cansim()`, which takes the table number as its only required argument. Earlier in the chapter we downloaded seeded acres by clicking through the website for table 32-10-0359-01. The same table arrives as a data frame in one call:
+The main function is `get_cansim()`, which takes the table number as its only required argument. Statistics Canada table 32-10-0359-01 holds seeded area, production and yield for field crops by province, and it arrives as a data frame in one call:
 
 ```{r}
 #| eval: true
@@ -272,7 +273,7 @@ sask_canola_acres <- field_crops |>
     GEO == "Saskatchewan",                              # Saskatchewan only
     `Type of crop` == "Canola (rapeseed)",              # canola only
     `Harvest disposition` == "Seeded area (acres)",     # seeded acres
-    REF_DATE >= 2015                                    # 2015 onward
+    as.numeric(REF_DATE) >= 2015                        # 2015 onward
   ) |>
   select(REF_DATE, GEO, VALUE)                          # keep three columns
 
@@ -285,7 +286,7 @@ The table number records exactly what was downloaded, and rerunning the script f
 
 ## A final note on saving data {#sec-readme}
 
-When building your project folder it is best practice to keep data seperate from code.  It is also best to store raw data seperately from cleaned and processed data.  The raw data is never edited by you.  
+When building your project folder it is best practice to keep data separate from code.  It is also best to store raw data separately from cleaned and processed data.  The raw data is never edited by you.  
 
 ```
 project/

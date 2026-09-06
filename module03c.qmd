@@ -80,13 +80,15 @@ Begin by importing `rm_yields_2015_2024.csv` and `rm_lookup.csv` with **Data > G
 
 ![After expanding: the lookup columns sit beside every yield observation, and the row count has not changed.](images/pq_merge_expanded.png){#fig-pq-merge-expanded .screenshot}
 
-Now you should see the RM lookup data merged with the RM yield data.  We can now repeat the same process to merge once again with the station data: import `station_precip.csv` the same way, so a third query appears (@fig-pq-station-added).  The only difference is that we are now going to merge on both the station name and the year (@fig-pq-two-keys). Select `Weather_Station` and then Ctrl-click `Year` in the top table, and `Station` then Ctrl-click `Year` in the bottom one -- the small 1 and 2 beside the headings show the matching order.
+Now you should see the RM lookup data merged with the RM yield data.  We can now repeat the same process to merge once again with the station data: import `station_precip.csv` the same way, so a third query appears (@fig-pq-station-added).  The only difference is that we are now going to merge on both the station name and the year (@fig-pq-two-keys). Select `Weather_Station` and then Ctrl-click (Cmd-click on a Mac) `Year` in the top table, and `Station` then Ctrl-click `Year` in the bottom one -- the small 1 and 2 beside the headings show the matching order.
 
 ![The station precipitation data imported as a third query.](images/pq_station_added.png){#fig-pq-station-added .screenshot}
 
 ![The second Merge dialog, with the station column selected in each table; Ctrl-clicking `Year` in each adds it as the second key. Station and year together identify the right precipitation value.](images/pq_merge_two_keys.png){#fig-pq-two-keys .screenshot}
 
 After expanding the precipitation column and choosing **Close & load**, every yield observation carries its RM's name, closest station, and that station's growing-season precipitation for the right year.
+
+[Download the finished merge workbook](textbook_examples/mod03_merge_excel.xlsx) -- the three queries with their Applied Steps intact.
 
 <!-- TODO: embed the finished mod03 merge workbook (OneDrive view-only iframe) here, following the mod04 pattern. -->
 
@@ -115,7 +117,7 @@ In tidyverse we merge data with join functions.  There are four different types 
 The `by` argument specifies the key we merge on, written with `join_by()`. A column with the same name in both tables is written once, `join_by(year)`; if the key has different names in the two tables, write `join_by(left_name == right_name)`.
 
 
-The full R code for merging the datasets in R is below.  We first read in the three datasets, pivoting the yields to be in long format.  We then merge the yield data with the RM lookup using a left join.  This keeps all the data in yield data regardless of whether there is a match in the RM lookup, but would not keep any RM lookup rows that do not have a match in the yield data.  We then check the number of rows before and after the merge to make sure it is what we expect.  The exact code is
+The full R code for merging the datasets in R is below.  We first read in the three datasets, pivoting the yields to be in long format.  We then merge the yield data with the RM lookup using a left join.  This keeps all the data in yield data regardless of whether there is a match in the RM lookup, but would not keep any RM lookup rows that do not have a match in the yield data.  The exact code for that join is
 
 ```{r}
 with_station <- yields_long |>
@@ -135,7 +137,7 @@ We can read this as set `with_station` equal to the result of:
 
 We then check the number of rows before and after the merge.
 
-Fianlly, we merge the `with_station` dataset with the precipitation data using another left join.
+Finally, we merge the `with_station` dataset with the precipitation data using another left join.
 
 
 ```{r}

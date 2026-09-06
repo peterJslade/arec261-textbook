@@ -26,7 +26,7 @@ The definition is simple, but deciding what counts as a variable or an observati
 | 2017 |  1 |        45.97 |       |  39.19 |        | 85.82 | 43.4 |
 | 2018 |  1 |        50.00 |       |  39.20 |  76.00 | 96.00 | 42.0 |
 
-We could make the data even wider. One row could represent an RM, with a separate column for every crop-year combination: `Canola_2024`, `Canola_2025`, `Barley_2024` and so on.
+We could make the data even wider. One row could represent an RM, with a separate column for every crop-year combination: `Canola_2023`, `Canola_2024`, `Barley_2023` and so on.
 
 <!-- TODO: Insert the RM table with one column per crop-year combination. -->
 
@@ -53,7 +53,7 @@ When you open a table, write down what one row represents and what each column r
 :::
 :::
 
-The RM yields file (@sec-direct-download) is wide, with one column for each crop. Power Query calls the wide-to-long operation **Unpivot**. Import the CSV with **Data > Get Data > From Text/CSV**, choose **Transform Data**, select `Year` and `RM`, and then choose **Transform > Unpivot Columns > Unpivot Other Columns**. Rename the two new columns `crop` and `yield_bu_ac` before loading the result.
+The RM yields file ([`rm_yields_2015_2024.csv`](practice/data/rm_yields_2015_2024.csv), the 2015--2024 extract used through this module) is wide, with one column for each crop. Power Query calls the wide-to-long operation **Unpivot**. Import the CSV with **Data > Get Data > From Text/CSV**, choose **Transform Data**, select `Year` and `RM`, and then choose **Transform > Unpivot Columns > Unpivot Other Columns**. Rename the two new columns `crop` and `yield_bu_ac` before loading the result.
 
 Power Query returns 15,478 rows because **Unpivot Other Columns** drops source cells containing `null`. The R example below keeps those cells as `NA` and therefore returns 17,700 rows; add `values_drop_na = TRUE` to `pivot_longer()` when you want the two results to agree. The reverse operation is **Pivot Column** in Power Query or a PivotTable on a worksheet.
 
@@ -81,10 +81,7 @@ console('
 library(tidyverse)
 
 # Read the wide table
-yields_wide <- read_csv(
-  "practice/data/rm_yields_2015_2024.csv",
-  show_col_types = FALSE
-)
+yields_wide <- read_csv("data/rm_yields_2015_2024.csv")
 
 # Print the wide data
 yields_wide
@@ -237,7 +234,7 @@ These are the issues I most commonly encounter with datasets:
 
     Listing the unique categories and counting the number of observations in each is a useful way to find these inconsistencies. You can then standardize the different versions under a single category, such as `AAC Brandon`.
 
-All seven issues appear together in [`field_records_messy.csv`](practice/data/field_records_messy.csv), a season of spring wheat field records constructed for practice. The first ten rows:
+All of these issues appear together in [`field_records_messy.csv`](practice/data/field_records_messy.csv), a season of spring wheat field records constructed for practice. The first ten rows:
 
 | Field ID | VARIETY_NAME | Acres | Yield (bu/ac) | harvest weight | N rate | Moisture % |
 |---|---|---:|---:|---|---:|---|
@@ -258,7 +255,7 @@ All seven issues appear together in [`field_records_messy.csv`](practice/data/fi
 3. Some yields are reported as -99 (a typical missing value code)
 4. F007 has a yield of -12, which is impossible
 5. Harvest weight has its unit typed into the cell
-6. The nitrogen rates for F003 and F006 sit below 1 while the rest sit near 100 -- tonnes against kilograms per hectare
+6. About a third of the nitrogen rates (F003 and F006 in the excerpt above) sit below 1 while the rest sit near 100 -- tonnes against kilograms per hectare
 7. F002 and F005 each appear twice, identically
 
 
@@ -285,7 +282,7 @@ If we summarize the numeric columns, we see the following.  Note that the last r
 :::
 :::
 
-The following Excel workbook shows some steps in checking and then cleaning the data.  In the DataSummary worksheet, the numeric variables are summarized, getting the mean, median, minimum and maximum and a histogram is plotted.  For the categorical variables, the `UNIQUE()` function is used to list the distinct values and the `COUNTIF()` function is used to count how many times each distinct value appears.  Finally, we counted the number of rows using `=ROWS(RawData!A2:A39)` and the number of distinct rows using `=ROWS(UNIQUE(RawData!A2:A39))`.  The difference between these two counts is the number of duplicate rows.
+The following Excel workbook shows some steps in checking and then cleaning the data.  In the DataSummary worksheet, the numeric variables are summarized, getting the mean, median, minimum and maximum and a histogram is plotted.  For the categorical variables, the `UNIQUE()` function is used to list the distinct values and the `COUNTIF()` function is used to count how many times each distinct value appears.  Finally, we counted the number of rows using `=ROWS(RawData!A2:A39)` and the number of distinct rows using `=ROWS(UNIQUE(RawData!A2:G39))`.  The difference between these two counts is the number of duplicate rows.
 
 
 After diagnosing these issues, the best way to clean the data is through a Power Query which creates a transparent and reproducible workflow.  The output of the Power Query is in the workbook and the video at the top of this section explains the steps taken to clean the data.
@@ -417,7 +414,7 @@ records_variety_fix <- records_new_names |>
 records_variety_fix |>
   count(variety, sort = TRUE)
 
-## Issues 3, 4 and 8: Impossible and NA yields. We can change yields below 0 and above 200 to NA using the if_else() function. This deals with yields that are reported as -99 (a typical missing value code), the impossible -12, and the implausible 1,250.  Save the resulting data frame as records_yield_fix and check the yield_bu_ac column.
+## Issues 3, 4 and 8: Impossible and NA yields. We can change yields at or below 0, or above 200, to NA using the if_else() function. This deals with yields that are reported as -99 (a typical missing value code), the impossible -12, and the implausible 1,250.  Save the resulting data frame as records_yield_fix and check the yield_bu_ac column.
 
 records_yield_fix <- records_variety_fix |>
   mutate(yield_bu_ac = if_else(yield_bu_ac <= 0 | yield_bu_ac > 200,
@@ -470,7 +467,9 @@ summary(records_moisture_fix$moisture_percent)
 ```
 
 
-The above code works just fine -- but it is a bit laborious to write and read.  We are saving six different data frames, one for each issue.  A better approach would be to combine all of this into a single pipeline, which is what we do below.  
+The `parse_number()` warning about two parsing failures is R telling you that two moisture values (`N/A` and `missing`) could not be read as numbers and became NA -- which is exactly what we wanted.
+
+The above code works just fine -- but it is a bit laborious to write and read.  We are saving eight different data frames along the way.  A better approach would be to combine all of this into a single pipeline, which is what we do below.  
 
 ```{r}
 #| eval: true
