@@ -9,9 +9,14 @@ source("_console.R")
 knitr::opts_knit$set(root.dir = "practice")
 ```
 
-The Excel chapter built a bar chart of barley acreage, a pie chart, and line charts of acreage over time. This chapter makes the same charts with `ggplot2`. Excel starts with a selected range and a chart menu. In R, we describe the chart in code: the data, the variables assigned to visual properties, and the marks to draw. The `ggplot2` package turns that description into a figure.
+This chapter provides an overview of making charts in R with the `ggplot2` package, which is a part of the tidyverse.
 
-The data are the same two files the Excel workbooks used. [`sask_barley_2025.csv`](practice/data/sask_barley_2025.csv) has one row per barley variety with its 2025 acres and average yield. [`sask_variety_yields.csv`](practice/data/sask_variety_yields.csv) has Saskatchewan Crop Insurance Corporation records by risk zone, crop, variety and year, 2021 to 2025 [@scic_smp]; suppressed observations have missing acres and yield.
+The data used in this chapter are:
+
+1. [`sask_barley_2025.csv`](practice/data/sask_barley_2025.csv) -- one row per barley variety, with its 2025 acres and average yield.
+2. [`sask_variety_yields.csv`](practice/data/sask_variety_yields.csv) -- Saskatchewan Crop Insurance Corporation records by risk zone, crop, variety and year, 2021 to 2025 [@scic_smp]. Suppressed observations have missing acres and yield.
+
+These are the same two files the Excel workbooks in @sec-graphing-excel used.
 
 ## Introduction to ggplot2 {#sec-ggplot-intro}
 
@@ -35,7 +40,7 @@ If we want an analogy to Excel, we can think of `data` as the spreadsheet contai
 
 ## Bar charts {#sec-r-bar-example}
 
-Let's again start with a simple example using the barley variety data for 2025.  When we read the file in, we also convert the column names to lowercase with `clean_names()` (@sec-cleaning-r), so they are easier to type.  We can then plot the acres of all the varieties with the following code:
+Let's again start with a simple example using the barley variety data for 2025.  When we read the file in, we also convert the column names to lowercase with `clean_names()` (@sec-cleaning-r), so they are easier to type.  We can then plot the acres of all the varieties with the following code.
 
 ```{r}
 #| label: fig-r-bar-first
@@ -53,13 +58,11 @@ library(janitor)
 
 # One row per barley variety: 2025 acres and average yield
 barley_2025 <- read_csv(
-  "data/sask_barley_2025.csv",
-  show_col_types = FALSE
-) |>
+  "data/sask_barley_2025.csv") |>
   clean_names()          # column names to lowercase
 
-## Show the first few rows of data
-head(barley_2025)
+## Glimpse the data
+glimpse(barley_2025)
 
 ## Create a bar chart
 barley_2025 |>
@@ -67,7 +70,7 @@ barley_2025 |>
   geom_col()
 ```
 
-Here we can see our formula in action: `barley_2025` is the data, `aes()` puts `variety` on the x-axis and `acres` on the y-axis, and then we use the function `geom_col()` to specify that we want a bar chart -- that is a bar for each row.  
+The first few rows of this code read in our packages and data.  The last three lines create the chart.  The first line specifies the data `barley_2025`.  The second line specifies that we want varieties on the horizontal axis (or x-axis) and acres on the vertical axis (or y-axis).  The third line specifies that we want a bar chart: `geom_col()`.
 
 This gives us a graph that looks a lot like the terrible graph that we first made in Excel.  
 
@@ -90,9 +93,9 @@ barley_2025 |>
   geom_col()
 ```
 
-First, let's note what we did in the first two lines.  Recall that the pipe `|>` is like saying "then".  So we are saying to R, take `barley_2025`, then filter it to only include rows where `acres` is greater than 10,000.  Then assign acres to the x-axis and variety to the y-axis.  Then draw the bars with `geom_col()`, which infers that the bars should run along the numeric axis.
+First, let's note what we did in the first two lines.  Recall that the pipe `|>` is like saying "then".  So we are saying to R, take `barley_2025`, then filter it to only include rows where `acres` is greater than 10,000.  Then assign acres to the x-axis and variety to the y-axis.  Then draw the bars with `geom_col()`, which infers that the bars should run along the numeric axis.  This is starting to look better!
 
-Great!  Now we can start adding additional options.  First, we want to order the bars by their value, not alphabetically.  We can do this with the `fct_reorder()` function: `fct_reorder(variety, acres)` orders the varieties by their acres, which in Excel required sorting the worksheet rows.
+Now we can start adding additional options.  First, we want to order the bars by their value, not alphabetically.  We can do this with the `fct_reorder()` function: `fct_reorder(variety, acres)` orders the varieties by their acres.
 
 
 ```{r}
@@ -112,7 +115,7 @@ barley_2025 |>
   geom_col()
 ```
 
-Finally we can add all of our additional options to the chart -- the colour of the bars, a title and axis labels, comma formatting on the axis, and a theme with a larger font -- with additional functions and with arguments inside some of the functions.
+Finally, we can add all of our additional options to the chart -- the colour of the bars, a title and axis labels, comma formatting on the axis, and a theme with a larger font -- with additional functions and with arguments inside some of the functions.
 
 ```{r}
 #| label: fig-r-bar-final
@@ -146,7 +149,7 @@ Let's read this code one line at a time:
 6. Add a title and axis labels *then*
 7. Change the theme to `theme_classic()` and increase the base font size to 13.
 
-All of this is a bit overwhelming -- even for me who has been using R for years.  Whereas in Excel you can kind of find the options through a user interface, with R you need to know the functions that you can add on to ggplot and what their arguments are.  To be honest, I rarely remember the exact function names or arguments. I used to have to look them up -- now I get AI to do that for me -- in the next module we will start graphing with AI.  For now, it is only important that you understand the very basic graphing commands:
+All of this is a bit overwhelming -- even for me who has been using R for years.  Whereas in Excel you can find the options through a user interface, with R you need to know the functions that you can add on to ggplot and what their arguments are.  To be honest, I rarely remember the exact function names or arguments. I used to have to look them up -- now I get AI to do that for me -- in the next module we will start graphing with AI.  For now, it is only important that you understand the very basic graphing commands:
 
 1. `ggplot()` to start the graph, and `aes()` to assign variables to axes and other visual properties.
 2. `geom_col()` to make a bar chart, `geom_line()` to make a line chart, and `geom_point()` to make a scatter plot.  If you don't supply any arguments to these functions, defaults will be used.  But you can change things like the colour and size of the bars, lines and points inside them, as we did with `fill = "DarkGreen"`.
@@ -154,8 +157,10 @@ All of this is a bit overwhelming -- even for me who has been using R for years.
 4. The `theme_*()` functions, such as `theme_minimal()` and `theme_classic()`, to control the overall look of the chart, including the font size.
 
 
+
+
 ## Pie charts {#sec-r-pie-example}
-Truth be told, ggplot is not great at producing pie charts.  In part, this is because data analysts don't much like pie charts, so perhaps ggplot developers do not want to encourage their use.  But we can still make a pie chart with ggplot by adding `+coord_polar(theta = "y")`.  This is like saying take the bar chart that we had created *then* wrapped into a circle along the y axis. 
+Truth be told, ggplot is not great at producing pie charts.  In part, this is because data analysts don't much like pie charts, so perhaps ggplot developers do not want to encourage their use.  But we can still make a pie chart with ggplot by adding `+coord_polar(theta = "y")`.  This is like saying take the bar chart that we had created *then* wrap it in a circle along the y axis. 
 
 When we do exactly this we get the same kind of terrible pie chart as we had in Excel.  Note that I removed some of the lines of code from the bar chart code above that don't apply to the pie chart -- the `fct_reorder()` function, because we don't want to order the slices, the colour of the bars, and the scale.
 
@@ -180,6 +185,7 @@ barley_2025 |>
 ```
 
 Again, let's break down this code:
+
 1. Take the data `barley_2025` *then*
 2. Filter to only include rows where `acres` is greater than 10,000 *then*
 3. Assign `acres` to the y-axis and `variety` to the fill colour, and assign an empty string to the x-axis (this is a bit of a hack since the x-axis does not exist on our pie chart) *then*
@@ -205,6 +211,7 @@ pie_data
 ```
 
 Again, let's break down this code:
+
 1. Set `pie_data` equal to `barley_2025` *then*
 2. Use `mutate()` to create a new column `variety` (this overwrites the existing column) that assigns the value `"Other"` to any row where `acres` is less than or equal to 100,000, and keeps the original `variety` value otherwise *then*
 3. Group the data by the new `variety` column *then*
@@ -397,7 +404,7 @@ barley_by_year |>
 
 ## Save the finished chart {#sec-saving-plots}
 
-In our code to date we have just displayed the plots in Positron.  We can also save these plots as an object and then save them to a file.  The first step is to assign the plot to a name.  This means the object is saved in memory and can be displayed again later.  
+To this point, we have just displayed plots in Positron.  We can also save these plots as an object and then save them to a file.  The first step is to assign the plot to a name.  This means the object is saved in memory and can be displayed again later.  
 
 We can then save that object to a file with `ggsave()`.  The first argument is the file name, and the second is the plot object.  
 
