@@ -1,7 +1,5 @@
 # ---
 # Title: Checking and cleaning the field records
-# Author: Your Name
-# Date: 2026-09-04
 # Description:
 #   Checks data/field_records_messy.csv for the data-quality issues
 #   from Module 3, fixes each one, and writes the cleaned file to
