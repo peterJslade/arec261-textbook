@@ -254,12 +254,14 @@ All seven issues appear together in [`field_records_messy.csv`](practice/data/fi
 
 
 1. Column names have spaces, capitals and special characters
-2. Harvest weight has its unit typed into the cell
-3. F002 and F005 each appear twice, identically
-4. Some yields are reported as -99 (a typical missing value code)
-5. F007 has a yield of -12, which is impossible
+2. The same variety appears as Brandon, Brandon AAC, Brndon and AAC Brandon
+3. Some yields are reported as -99 (a typical missing value code)
+4. F007 has a yield of -12, which is impossible
+5. Harvest weight has its unit typed into the cell
 6. The nitrogen rates for F003 and F006 sit below 1 while the rest sit near 100 -- tonnes against kilograms per hectare
-7. The same variety appears as Brandon, Brandon AAC, Brndon and AAC Brandon
+7. F002 and F005 each appear twice, identically
+
+
 
 If we summarize the numeric columns, we see the following.  Note that the last row forces the moisture column to numeric, which converts any text to an NA value.
 
@@ -379,43 +381,9 @@ records_new_names <- records_clean_names |>
 
 names(records_new_names)
 
-## Issue 2: text in harvest weight. We can strip the unit text from the weights and make them numeric using the parse_number() function.  This function extracts the numeric part of a string and converts it to a numeric value.  Save the resulting data frame as records_weight_fix and check the harvest_weight column.
+## Issue 2: Inconsistent variety names. We can fix the variety names using the if_else() function.  The three arguments would say if variety is one of "Brandon", "Brandon AAC", or "Brndon", then replace it with "AAC Brandon", otherwise leave it as is.  Save the resulting data frame as records_variety_fix and count the varieties in the variety column.
 
-records_weight_fix <- records_new_names |>
-  mutate(harvest_weight = parse_number(harvest_weight))
-
-summary(records_weight_fix$harvest_weight)
-
-## Issue 3: Duplicate rows.  We can remove duplicate rows using the distinct() function.  It removes any rows that are identical to another row in the dataset.  Save the resulting data frame as records_unique and check the number of rows.
-
-records_unique <- distinct(records_weight_fix)
-
-nrow(records_unique)
-
-
-## Issue 4, 5 and 8: Impossible and NA yields. We can change yields below 0 and above 200 to NA using the if_else() function. This deals with yields that are reported as -99 (a typical missing value code) and others that are negative.  Save the resulting data frame as records_yield_fix and check the yield_bu_ac column.
-
-records_yield_fix <- records_unique |>
-  mutate(yield_bu_ac = if_else(yield_bu_ac <= 0 | yield_bu_ac > 200,
-                                NA,
-                                yield_bu_ac))
-
-summary(records_yield_fix$yield_bu_ac)
-
-
-## Issue 6: Nitrogen units vary. We can convert nitrogen rates below 1 to kg/ha by multiplying them by 1000 using the if_else() function.  Save the resulting data frame as records_n_rate_fix and check the n_rate column.
-
-records_n_rate_fix <- records_yield_fix |>
-    mutate(n_rate = if_else(n_rate < 1,
-                            n_rate * 1000,
-                            n_rate))
-
-summary(records_n_rate_fix$n_rate)
-
-
-## Issue 7: Inconsistent variety names. We can fix the variety names in the same way using the if_else() function.  The three arguments would say if variety is one of "Brandon", "Brandon AAC", or "Brndon", then replace it with "AAC Brandon", otherwise leave it as is.  Save the resulting data frame as records_variety_fix and count the varieties in the variety column.
-
-records_variety_fix <- records_n_rate_fix |>
+records_variety_fix <- records_new_names |>
     mutate(variety = if_else(variety %in% c("Brandon", "Brandon AAC", "Brndon"),
                            "AAC Brandon",
                            variety))
@@ -423,15 +391,50 @@ records_variety_fix <- records_n_rate_fix |>
 records_variety_fix |>
   count(variety, sort = TRUE)
 
-## Issue 9 and 10: Moisture has text and NA values recorded as 9999.  We can first change the type to numeric using parse_number() and then change any values above 100 to NA using the if_else() function.  Save the resulting data frame as records_moisture_fix and check the moisture_percent column.
+## Issues 3, 4 and 8: Impossible and NA yields. We can change yields below 0 and above 200 to NA using the if_else() function. This deals with yields that are reported as -99 (a typical missing value code), the impossible -12, and the implausible 1,250.  Save the resulting data frame as records_yield_fix and check the yield_bu_ac column.
 
-records_moisture_fix <- records_variety_fix |>
+records_yield_fix <- records_variety_fix |>
+  mutate(yield_bu_ac = if_else(yield_bu_ac <= 0 | yield_bu_ac > 200,
+                                NA,
+                                yield_bu_ac))
+
+summary(records_yield_fix$yield_bu_ac)
+
+
+## Issue 5: text in harvest weight. We can strip the unit text from the weights and make them numeric using the parse_number() function.  This function extracts the numeric part of a string and converts it to a numeric value.  Save the resulting data frame as records_weight_fix and check the harvest_weight column.
+
+records_weight_fix <- records_yield_fix |>
+  mutate(harvest_weight = parse_number(harvest_weight))
+
+summary(records_weight_fix$harvest_weight)
+
+## Issue 6: Nitrogen units vary. We can convert nitrogen rates below 1 to kg/ha by multiplying them by 1000 using the if_else() function.  Save the resulting data frame as records_n_rate_fix and check the n_rate column.
+
+records_n_rate_fix <- records_weight_fix |>
+    mutate(n_rate = if_else(n_rate < 1,
+                            n_rate * 1000,
+                            n_rate))
+
+summary(records_n_rate_fix$n_rate)
+
+
+## Issue 7: Duplicate rows.  We can remove duplicate rows using the distinct() function.  It removes any rows that are identical to another row in the dataset.  Save the resulting data frame as records_unique and check the number of rows.
+
+records_unique <- distinct(records_n_rate_fix)
+
+nrow(records_unique)
+
+
+## Issues 9 and 10: Moisture has text and NA values recorded as 9999.  We can first change the type to numeric using parse_number() and then change any values above 100 to NA using the if_else() function.  Save the resulting data frame as records_moisture_fix and check the moisture_percent column.
+
+records_moisture_fix <- records_unique |>
   mutate(moisture_percent = parse_number(moisture_percent),
          moisture_percent = if_else(moisture_percent > 100,
                                      NA,
                                      moisture_percent))
 
 summary(records_moisture_fix$moisture_percent)
+
 
 
 
@@ -450,23 +453,23 @@ console('
 records_clean <- records |>
   clean_names() |>   # issue 1: every column name to snake case
   rename(variety = variety_name)  |>
-  distinct() |>      # issue 3: drop the exact duplicate rows
+  distinct() |>      # issue 7: drop the exact duplicate rows
 
   mutate(
-    # Issue 2: strip the unit text from the weights and make them numeric
-    harvest_weight = parse_number(harvest_weight),
-    # Issues 4, 5 and 8: the -99 code, the negative and the 1250 all become NA
+    # Issue 2: one spelling for the Brandon variety
+    variety = if_else(variety %in% c("Brandon", "Brandon AAC", "Brndon"),
+                      "AAC Brandon",
+                      variety),
+    # Issues 3, 4 and 8: the -99 code, the negative and the 1250 all become NA
     yield_bu_ac = if_else(yield_bu_ac <= 0 | yield_bu_ac > 200,
                           NA,
                           yield_bu_ac),
+    # Issue 5: strip the unit text from the weights and make them numeric
+    harvest_weight = parse_number(harvest_weight),
     # Issue 6: rates below 1 are t/ha, so convert them to kg/ha
     n_rate = if_else(n_rate < 1,
                            n_rate * 1000,
                            n_rate),
-    # Issue 7: one spelling for the Brandon variety
-    variety = if_else(variety %in% c("Brandon", "Brandon AAC", "Brndon"),
-                      "AAC Brandon",
-                      variety),
     # Issue 9: moisture has text values
     moisture_percent = parse_number(moisture_percent),
     # Issue 10: change moisture values above 100 to NA
